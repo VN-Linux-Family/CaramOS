@@ -1,6 +1,6 @@
 #!/bin/bash
 # Hook: Install Google Chrome + Chrome OS theme + cleanup
-# Runs inside chroot during live-build
+# Runs inside chroot during remaster
 set -e
 
 echo "[CaramOS] Installing Google Chrome..."
@@ -11,12 +11,17 @@ rm -f /tmp/google-chrome.deb
 
 echo "[CaramOS] Installing ChromeOS GTK theme..."
 git clone --depth=1 https://github.com/vinceliuice/ChromeOS-theme /tmp/chromeos-theme
-cd /tmp/chromeos-theme && ./install.sh && cd /
+cd /tmp/chromeos-theme
+mkdir -p /root/.config/gtk-4.0
+./install.sh || true
+cd /
 rm -rf /tmp/chromeos-theme
 
 echo "[CaramOS] Installing Tela Circle icon theme..."
 git clone --depth=1 https://github.com/vinceliuice/Tela-circle-icon-theme /tmp/tela-icons
-cd /tmp/tela-icons && ./install.sh -a && cd /
+cd /tmp/tela-icons
+./install.sh -a || true
+cd /
 rm -rf /tmp/tela-icons
 
 echo "[CaramOS] Installing Bibata cursor..."

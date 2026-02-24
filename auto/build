@@ -1,3 +1,0 @@
-#!/bin/sh
-# auto/build — build the ISO
-lb build noauto "${@}" 2>&1 | tee build.log

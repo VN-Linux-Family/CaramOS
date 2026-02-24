@@ -1,19 +1,11 @@
-*.pyc
-__pycache__/
-*.deb
-*.buildinfo
-*.changes
-*.tar.*
-.DS_Store
-
-# live-build artifacts
-.build/
-binary/
-cache/
-chroot/
+# Build artifacts
+build/
 *.iso
-*.img
 *.log
-*.contents
-*.files
-*.packages
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Mint ISO (large file, don't commit)
+linuxmint-*.iso

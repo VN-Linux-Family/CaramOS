@@ -1,4 +1,0 @@
-#!/bin/sh
-# auto/clean — clean build artifacts
-lb clean noauto "${@}"
-rm -f build.log

@@ -135,6 +135,10 @@ install_deps() {
 }
 
 install_gum() {
+    # Skip trong CI hoặc không có terminal
+    if [ -n "$CI" ] || [ ! -t 1 ]; then
+        return 0
+    fi
     if ! command -v gum &>/dev/null; then
         info "Cài gum (UI đẹp cho terminal)..."
         mkdir -p /etc/apt/keyrings

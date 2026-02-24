@@ -1,0 +1,43 @@
+name: Build CaramOS ISO
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ISO (dev)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          # GitHub runner có ~14GB free, cần ~15GB
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo apt-get clean
+          df -h /
+
+      - name: Install build tools
+        run: sudo apt-get update && sudo apt-get install -y squashfs-tools xorriso rsync wget
+
+      - name: Cache Mint ISO
+        uses: actions/cache@v4
+        with:
+          path: linuxmint-22-cinnamon-64bit.iso
+          key: mint-iso-22-cinnamon
+
+      - name: Build CaramOS ISO
+        run: sudo ./build.sh
+
+      - name: Upload ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: CaramOS-ISO
+          path: CaramOS-*.iso
+          retention-days: 7

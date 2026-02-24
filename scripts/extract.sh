@@ -4,7 +4,7 @@
 step_extract() {
     info "[1/7] Chuẩn bị thư mục build..."
     rm -rf "$WORK_DIR"
-    mkdir -p "$WORK_DIR"/{mnt,custom,squashfs}
+    mkdir -p "$WORK_DIR"/{mnt,custom}
 
     info "[2/7] Extract ISO..."
     mount -o loop,ro "$MINT_ISO" "$WORK_DIR/mnt"

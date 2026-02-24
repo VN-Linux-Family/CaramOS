@@ -80,7 +80,7 @@ sudo dd if=CaramOS.iso of=/dev/sdX bs=4M status=progress
 | **Base** | [Linux Mint 22](https://linuxmint.com/) (Ubuntu 24.04 LTS) |
 | **Desktop** | [Cinnamon](https://github.com/linuxmint/cinnamon) |
 | **Login** | [SDDM](https://github.com/sddm/sddm) |
-| **Build** | [live-build](https://live-team.pages.debian.net/live-manual/) — `make build` → ISO |
+| **Build** | ISO Remaster — `sudo ./build.sh` → ISO |
 | **Theme** | [ChromeOS-theme](https://github.com/vinceliuice/ChromeOS-theme) + [Tela Circle](https://github.com/vinceliuice/Tela-circle-icon-theme) + [Bibata](https://github.com/ful1e5/Bibata_Cursor) |
 | **Font** | [Be Vietnam Pro](https://fonts.google.com/specimen/Be+Vietnam+Pro) |
 | **Browser** | Google Chrome (cài sẵn) |
@@ -93,9 +93,9 @@ sudo dd if=CaramOS.iso of=/dev/sdX bs=4M status=progress
 ### Build ISO
 
 ```bash
-sudo apt install live-build debootstrap
+sudo apt install squashfs-tools xorriso rsync wget
 git clone https://github.com/VN-Linux-Family/CaramOS.git
-cd CaramOS && make build
+cd CaramOS && sudo ./build.sh    # Tự tải Mint ISO + remaster + ra CaramOS.iso
 ```
 
 > 📖 Hướng dẫn đầy đủ (ghi USB, test VM, build .deb) → [CONTRIBUTING.md](CONTRIBUTING.md#build-iso)

@@ -1,28 +1,23 @@
-.PHONY: all config build clean
+.PHONY: build clean help
 
-all: build
-
-config:
-	lb config
-
-build: config
-	sudo lb build
+build:
+	@echo "CaramOS Build — Remaster từ Linux Mint"
+	@echo ""
+	@echo "Usage:"
+	@echo "  sudo ./build.sh                    # Tự tải và build"
+	@echo "  sudo ./build.sh /path/to/mint.iso  # Dùng ISO có sẵn"
+	sudo ./build.sh $(ISO)
 
 clean:
-	sudo lb clean
-	rm -f *.iso *.log
-
-# Build the caramos-default-settings .deb package
-deb:
-	dpkg-buildpackage -b -us -uc
+	sudo ./build.sh --clean
 
 help:
-	@echo "CaramOS Build System (live-build)"
+	@echo "CaramOS Build System (ISO Remaster)"
 	@echo ""
-	@echo "  make build    — Build CaramOS ISO (requires sudo)"
-	@echo "  make clean    — Clean build artifacts"
-	@echo "  make deb      — Build caramos-default-settings.deb"
-	@echo "  make help     — Show this help"
+	@echo "  make build              — Build CaramOS ISO (tự tải Mint ISO)"
+	@echo "  make build ISO=file.iso — Build từ ISO có sẵn"
+	@echo "  make clean              — Xoá build artifacts"
+	@echo "  make help               — Hiển thị trợ giúp"
 	@echo ""
-	@echo "Requirements:"
-	@echo "  sudo apt install live-build debootstrap"
+	@echo "Yêu cầu:"
+	@echo "  sudo apt install squashfs-tools xorriso rsync wget"

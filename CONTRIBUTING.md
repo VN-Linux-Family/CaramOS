@@ -19,15 +19,17 @@ Cảm ơn bạn đã quan tâm đến CaramOS! Tài liệu này mô tả kiến 
 
 ## Kiến trúc dự án
 
-CaramOS = **Ubuntu base** + **Linux Mint tools** + **CaramOS customization**.
+CaramOS = **Linux Mint** + **CaramOS customization**.
+
+Build bằng cách **remaster ISO Mint gốc**: extract → chroot → tuỳ biến → đóng gói ISO mới.
 
 ```
-Ubuntu archive (kernel, systemd, libs)
-     ↓
-+ Linux Mint repo (mintupdate, nemo, cinnamon, timeshift...)
-     ↓
-+ CaramOS hooks (Chrome, ChromeOS theme, Việt hoá...)
-     ↓
+Linux Mint ISO (Cinnamon 22)
+     ↓ extract + chroot
++ Cài thêm packages    (config/packages.txt)
++ Copy overlay files    (config/includes.chroot/)
++ Chạy hooks            (config/hooks/live/)
+     ↓ mksquashfs + xorriso
 = CaramOS ISO
 ```
 
@@ -35,52 +37,58 @@ Ubuntu archive (kernel, systemd, libs)
 
 ```
 CaramOS/
-├── auto/                                  # live-build auto scripts
-│   ├── config                             # Cấu hình build (base, arch, mirror, Secure Boot)
-│   ├── build                              # lb build + logging
-│   └── clean                              # lb clean
+├── build.sh                               # Entry point — điều phối build
+├── Makefile                               # make build / clean
+│
+├── scripts/                               # Build modules
+│   ├── config.sh                          # Version, mirror, output config
+│   ├── utils.sh                           # Log, check root, cài deps, tìm ISO
+│   ├── extract.sh                         # Mount ISO + unsquashfs
+│   ├── customize.sh                       # Chroot + packages + overlay + hooks
+│   └── repack.sh                          # mksquashfs + xorriso → ISO
 │
 ├── config/
-│   ├── archives/                          # APT repos bổ sung
-│   │   ├── linuxmint.list.chroot          # Repo Linux Mint (Wilma)
-│   │   └── linuxmint.list.binary
-│   ├── package-lists/
-│   │   └── caramos.list.chroot            # Package cài vào ISO
-│   ├── packages.chroot/                   # File .deb local để cài
-│   ├── hooks/live/                        # Script chạy trong chroot khi build
-│   │   ├── 0050-mint-base.hook.chroot     # Import Mint key + cài Mint tools
+│   ├── packages.txt                       # Package CẦN THÊM (Mint ISO đã có hầu hết)
+│   ├── hooks/live/
 │   │   └── 0100-caramos-setup.hook.chroot # Chrome, theme, icon, cursor, locale
-│   ├── includes.chroot/                   # Overlay → / của ISO
-│   │   ├── etc/sddm.conf.d/              # SDDM login screen
-│   │   ├── etc/skel/.config/              # Config mặc định user mới
-│   │   │   ├── cinnamon/                  # Panel layout Chrome OS
-│   │   │   ├── fcitx5/                    # Bộ gõ tiếng Việt
-│   │   │   ├── autostart/                 # Flameshot screenshot
-│   │   │   └── mimeapps.list              # Chrome mặc định
-│   │   └── usr/share/
-│   │       ├── glib-2.0/schemas/          # Dconf (theme, icon, font...)
-│   │       ├── backgrounds/caramos/       # Hình nền
-│   │       └── pixmaps/                   # Logo
-│   ├── includes.binary/                   # File trên ISO (ngoài filesystem)
-│   └── preseed/                           # Auto-answer installer
+│   └── includes.chroot/                   # Overlay → / (copy vào filesystem)
+│       ├── etc/sddm.conf.d/              # SDDM login screen
+│       ├── etc/skel/.config/              # Config mặc định user mới
+│       │   ├── cinnamon/                  # Panel layout Chrome OS
+│       │   ├── fcitx5/                    # Bộ gõ tiếng Việt
+│       │   ├── autostart/                 # Flameshot screenshot
+│       │   └── mimeapps.list              # Chrome mặc định
+│       └── usr/share/
+│           ├── glib-2.0/schemas/          # Dconf (theme, icon, font...)
+│           ├── backgrounds/caramos/       # Hình nền
+│           └── pixmaps/                   # Logo
 │
 ├── debian/                                # Debian packaging → .deb
-│   ├── control, changelog, rules
-│   ├── install                            # File mapping
-│   └── postinst                           # Post-install hook
-│
-├── Makefile                               # make build / clean / deb
-└── README.md, CONTRIBUTING.md, LICENSE
+├── README.md, CONTRIBUTING.md, LICENSE
+└── .gitignore
 ```
 
-### Hook scripts — Trình tự chạy
+### Build flow — script nào làm gì
 
-| Hook | Chạy khi | Làm gì |
-|---|---|---|
-| `0050-mint-base` | Sau bootstrap | Import Mint GPG key, `apt-get update`, cài mintupdate, mintsystem, timeshift, warpinator... |
-| `0100-caramos-setup` | Sau 0050 | Cài Chrome .deb, ChromeOS theme, Tela icon, Bibata cursor, gỡ bloat, set locale VI, cài font Be Vietnam Pro |
+| Script | Làm gì |
+|---|---|
+| `build.sh` | Entry point — gọi các script bên dưới |
+| `scripts/config.sh` | Cấu hình: Mint version, mirror, tên ISO output |
+| `scripts/utils.sh` | Log màu, check root, tự cài deps, tìm/tải ISO |
+| `scripts/extract.sh` | Mount ISO → rsync → unsquashfs filesystem |
+| `scripts/customize.sh` | Chroot → cài packages.txt → copy overlay → chạy hooks → dọn dẹp |
+| `scripts/repack.sh` | mksquashfs → xorriso → ISO bootable (UEFI + Legacy) |
 
-### Config overlay — File nào đi đâu
+### Hook — Chạy gì trong chroot
+
+**`0100-caramos-setup.hook.chroot`:**
+- Cài Google Chrome (.deb)
+- Cài ChromeOS GTK theme, Tela Circle icons, Bibata cursor
+- Gỡ bloatware (Thunderbird, Hexchat...)
+- Set Vietnamese locale + cài Be Vietnam Pro font
+- Compile dconf schemas
+
+### Overlay — File nào đi đâu
 
 | Trong repo | Đích trên ISO |
 |---|---|
@@ -96,45 +104,46 @@ CaramOS/
 ### Yêu cầu
 
 - Máy chạy **Ubuntu 22.04+** hoặc **Linux Mint 21+**
-- Khoảng **10 GB** dung lượng trống
-- Kết nối internet
+- Khoảng **15 GB** dung lượng trống
+- Kết nối internet (lần đầu tải ISO Mint ~2.5GB)
 
-### Lệnh build
+### Build
 
 ```bash
 # 1. Cài công cụ (lần đầu)
-sudo apt install live-build debootstrap git
+sudo apt install squashfs-tools xorriso rsync wget
 
 # 2. Clone repo
 git clone https://github.com/VN-Linux-Family/CaramOS.git
 cd CaramOS
 
-# 3. Build ISO (1 lệnh duy nhất)
-make build
+# 3. Build — 1 lệnh, tự tải Mint ISO + remaster
+sudo ./build.sh
+
+# Hoặc dùng ISO Mint có sẵn:
+sudo ./build.sh /path/to/linuxmint-22-cinnamon-64bit.iso
 ```
 
-Chờ **15-30 phút** → ra file `.iso` → ghi USB → boot.
-
-### Build .deb settings package
-
-```bash
-make deb    # → caramos-default-settings.deb
-```
+Chờ **15-30 phút** → ra file `CaramOS-0.1-cinnamon-amd64.iso`
 
 ### Ghi USB
 
 ```bash
-sudo dd if=*.iso of=/dev/sdX bs=4M status=progress
+sudo dd if=CaramOS-*.iso of=/dev/sdX bs=4M status=progress
 # Hoặc dùng Balena Etcher (GUI)
 ```
 
 ### Test trong VM
 
 ```bash
-# QEMU
-qemu-system-x86_64 -m 4G -cdrom *.iso -boot d -enable-kvm
-
+qemu-system-x86_64 -m 4G -cdrom CaramOS-*.iso -boot d -enable-kvm
 # Hoặc dùng VirtualBox / GNOME Boxes
+```
+
+### Dọn dẹp
+
+```bash
+sudo ./build.sh --clean
 ```
 
 ---
@@ -147,33 +156,18 @@ qemu-system-x86_64 -m 4G -cdrom *.iso -boot d -enable-kvm
 |---|---|---|
 | **Tester** | Test ISO trên nhiều loại máy, báo lỗi | Có máy tính để test |
 | **Designer** | Wallpaper, icon, theme, branding | Biết thiết kế đồ hoạ |
-| **Developer** | Script, hook, config | Bash, biết live-build |
+| **Developer** | Script, hook, config | Bash |
 | **Writer** | Tài liệu hướng dẫn, dịch thuật | Viết tiếng Việt/Anh tốt |
 
 ### Quy trình đóng góp code
 
-1. **Fork** repo về tài khoản GitHub
-2. **Clone** về máy:
-   ```bash
-   git clone https://github.com/<your-username>/CaramOS.git
-   cd CaramOS
-   ```
-3. **Tạo branch** mới:
-   ```bash
-   git checkout -b feature/ten-tinh-nang
-   ```
-4. **Code** và commit:
-   ```bash
-   git commit -m "feat: mô tả ngắn gọn"
-   ```
-5. **Push** và tạo **Pull Request**
+1. **Fork** repo → **Clone** → **Tạo branch** → **Commit** → **Push** → **Pull Request**
 
 ### Quy tắc Pull Request
 
 - 1 PR = 1 tính năng hoặc 1 bug fix
 - Mô tả rõ PR làm gì và tại sao
 - Đảm bảo đã test trước khi tạo PR
-- Chờ ít nhất 1 người review
 
 ---
 
@@ -194,9 +188,6 @@ main            ← Bản ổn định, build ISO phát hành
 ```
 CaramOS X.Y.Z
 X = Major   Y = Minor   Z = Patch
-
-0.1.0  — Beta đầu tiên
-1.0.0  — Phát hành chính thức
 ```
 
 ---
@@ -209,17 +200,9 @@ X = Major   Y = Minor   Z = Patch
 feat:     tính năng mới
 fix:      sửa lỗi
 docs:     tài liệu
-chore:    build, config, CI
+chore:    build, config
 brand:    wallpaper, logo, theme
 ```
-
-### Ngôn ngữ
-
-| Ngữ cảnh | Ngôn ngữ |
-|---|---|
-| Tên biến, hàm, comment | Tiếng Anh |
-| Commit, Issue, PR | Tiếng Việt hoặc Anh |
-| UI, tài liệu user | Tiếng Việt |
 
 ### Bash (hook scripts)
 

@@ -1,6 +1,5 @@
 #!/bin/bash
-# Hook: Theme + branding + cleanup (KHÔNG cài phần mềm)
-# Phần mềm để user tự cài sau khi có internet
+# Hook: Theme + branding + cleanup
 set -e
 
 echo "[CaramOS] Installing Google Chrome..."
@@ -10,19 +9,23 @@ apt-get install -y /tmp/google-chrome.deb
 rm -f /tmp/google-chrome.deb
 
 echo "[CaramOS] Installing ChromeOS GTK theme..."
-git clone --depth=1 https://github.com/vinceliuice/ChromeOS-theme /tmp/chromeos-theme
-cd /tmp/chromeos-theme
+wget -q -O /tmp/chromeos-theme.zip \
+    "https://github.com/vinceliuice/ChromeOS-theme/archive/refs/heads/master.zip"
+unzip -qo /tmp/chromeos-theme.zip -d /tmp/
+cd /tmp/ChromeOS-theme-master
 mkdir -p /root/.config/gtk-4.0
 ./install.sh || true
 cd /
-rm -rf /tmp/chromeos-theme
+rm -rf /tmp/chromeos-theme.zip /tmp/ChromeOS-theme-master
 
 echo "[CaramOS] Installing Tela Circle icon theme..."
-git clone --depth=1 https://github.com/vinceliuice/Tela-circle-icon-theme /tmp/tela-icons
-cd /tmp/tela-icons
+wget -q -O /tmp/tela-icons.zip \
+    "https://github.com/vinceliuice/Tela-circle-icon-theme/archive/refs/heads/master.zip"
+unzip -qo /tmp/tela-icons.zip -d /tmp/
+cd /tmp/Tela-circle-icon-theme-master
 ./install.sh -a || true
 cd /
-rm -rf /tmp/tela-icons
+rm -rf /tmp/tela-icons.zip /tmp/Tela-circle-icon-theme-master
 
 echo "[CaramOS] Installing Bibata cursor..."
 BIBATA_VER="2.0.6"

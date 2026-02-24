@@ -25,17 +25,13 @@ fi
 # --- Kiểm tra ---
 check_root
 install_deps
+install_gum
 
 # --- ISO input ---
 resolve_iso "$1"
 
-echo ""
-echo "============================================"
-echo -e "  ${CYAN}CaramOS ${CARAMOS_VERSION}${NC} — Build từ Linux Mint"
-echo "============================================"
-echo "  Input:  $MINT_ISO"
-echo "  Output: $OUTPUT_ISO"
-echo ""
+# --- Header ---
+print_header
 
 # --- Build ---
 source "$SCRIPT_DIR/scripts/extract.sh"
@@ -47,16 +43,4 @@ step_customize
 step_repack
 
 # --- Kết quả ---
-echo ""
-echo "============================================"
-echo -e "  ${GREEN}✅ Build thành công!${NC}"
-echo ""
-echo "  ISO:  $OUTPUT_ISO"
-echo "  Size: $(du -h "$OUTPUT_ISO" | cut -f1)"
-echo ""
-echo "  Ghi USB:"
-echo "    sudo dd if=$OUTPUT_ISO of=/dev/sdX bs=4M status=progress"
-echo ""
-echo "  Test VM:"
-echo "    qemu-system-x86_64 -m 4G -cdrom $OUTPUT_ISO -boot d -enable-kvm"
-echo "============================================"
+print_result

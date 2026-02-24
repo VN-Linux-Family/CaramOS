@@ -7,7 +7,8 @@ step_repack() {
     # Rebuild squashfs
     info "  → Tạo filesystem.squashfs (${SQUASHFS_COMP})..."
     mksquashfs "$WORK_DIR/squashfs" "$WORK_DIR/custom/casper/filesystem.squashfs" \
-        -comp $SQUASHFS_COMP $SQUASHFS_OPTS
+        -comp $SQUASHFS_COMP $SQUASHFS_OPTS \
+        -e proc -e sys -e dev -e run
     ok "squashfs xong."
 
     # Cập nhật filesystem.size
@@ -65,7 +66,7 @@ step_repack() {
     fi
 
     # Isohybrid (cho ghi USB)
-    if [ -f "isolinux/isolinux.bin" ]; then
+    if [ -f "isolinux/isolinux.bin" ] && [ -f /usr/lib/ISOLINUX/isohdpfx.bin ]; then
         XORRISO_ARGS+=(-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin)
     fi
 

@@ -1,6 +1,6 @@
 #!/bin/bash
-# Hook: Install Google Chrome + Chrome OS theme + cleanup
-# Runs inside chroot during remaster
+# Hook: Theme + branding + cleanup (KHÔNG cài phần mềm)
+# Phần mềm để user tự cài sau khi có internet
 set -e
 
 echo "[CaramOS] Installing Google Chrome..."
@@ -33,33 +33,24 @@ if [ -f /tmp/bibata.tar.xz ]; then
     rm -f /tmp/bibata.tar.xz
 fi
 
-echo "[CaramOS] Removing unwanted packages..."
-apt-get remove -y thunderbird hexchat drawing hypnotix rhythmbox 2>/dev/null || true
-apt-get autoremove -y
-
-echo "[CaramOS] Configuring Flatpak..."
-flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo || true
-
-echo "[CaramOS] Setting Vietnamese locale..."
-sed -i 's/# vi_VN.UTF-8 UTF-8/vi_VN.UTF-8 UTF-8/' /etc/locale.gen
-locale-gen
-
 echo "[CaramOS] Installing Be Vietnam Pro font..."
 mkdir -p /usr/share/fonts/truetype/be-vietnam-pro
 wget -q -O /tmp/be-vietnam-pro.zip \
-    "https://github.com/bettergui/BeVietnamPro/archive/refs/heads/master.zip" 2>/dev/null || \
-wget -q -O /tmp/be-vietnam-pro.zip \
-    "https://fonts.google.com/download?family=Be+Vietnam+Pro" 2>/dev/null || true
+    "https://github.com/bettergui/BeVietnamPro/archive/refs/heads/master.zip" 2>/dev/null || true
 if [ -f /tmp/be-vietnam-pro.zip ] && file /tmp/be-vietnam-pro.zip | grep -q "Zip"; then
     unzip -qo /tmp/be-vietnam-pro.zip -d /tmp/be-vietnam-pro-extract/
     find /tmp/be-vietnam-pro-extract/ -name "*.ttf" -exec cp {} /usr/share/fonts/truetype/be-vietnam-pro/ \;
     rm -rf /tmp/be-vietnam-pro.zip /tmp/be-vietnam-pro-extract
     fc-cache -f
-    echo "[CaramOS] Font installed."
-else
-    echo "[CaramOS] Font download failed, skipping."
-    rm -f /tmp/be-vietnam-pro.zip
 fi
+
+echo "[CaramOS] Setting Vietnamese locale..."
+sed -i 's/# vi_VN.UTF-8 UTF-8/vi_VN.UTF-8 UTF-8/' /etc/locale.gen
+locale-gen
+
+echo "[CaramOS] Removing bloatware..."
+apt-get remove -y thunderbird hexchat drawing hypnotix rhythmbox 2>/dev/null || true
+apt-get autoremove -y
 
 echo "[CaramOS] Compiling schemas..."
 glib-compile-schemas /usr/share/glib-2.0/schemas/

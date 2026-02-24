@@ -26,7 +26,6 @@ volumes-visible=true
 [org.cinnamon.desktop.peripherals.touchpad]
 tap-to-click=true
 natural-scroll=true
-two-finger-scrolling=true
 
 [org.cinnamon.settings-daemon.plugins.power]
 sleep-inactive-ac-timeout=0
@@ -34,9 +33,8 @@ sleep-inactive-battery-timeout=900
 lid-close-ac-action='nothing'
 lid-close-battery-action='suspend'
 
-[org.cinnamon.settings-daemon.plugins.color]
-night-light-enabled=true
-night-light-schedule-automatic=true
+# Night light — Cinnamon chưa có built-in, bỏ qua
+# (User bật thủ công trong Settings > Display)
 
 [org.cinnamon.desktop.screensaver]
 lock-enabled=true

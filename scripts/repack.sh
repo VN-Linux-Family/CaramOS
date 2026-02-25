@@ -4,15 +4,35 @@
 step_repack() {
     info "[7/7] Đóng gói ISO..."
 
+    local SFS="$WORK_DIR/squashfs"
+
+    # Đảm bảo các virtual fs dir trống sạch trước khi pack vào squashfs.
+    # KHÔNG dùng -e proc/sys/dev/run để loại trừ — nếu loại trừ, các thư mục
+    # này sẽ KHÔNG TỒN TẠI trong squashfs, casper sẽ không có chỗ để mount
+    # devtmpfs/proc/sysfs vào → /dev/null không tồn tại → boot crash.
+    # Các dir phải có mặt nhưng TRỐNG; chúng đã được umount ở step_customize.
+    for dir in proc sys dev run; do
+        if [ -d "$SFS/$dir" ]; then
+            # Kiểm tra lần cuối còn mount không (paranoia check)
+            if mountpoint -q "$SFS/$dir" 2>/dev/null; then
+                error "CRITICAL: $SFS/$dir vẫn còn mount — không thể pack. Dọn thủ công: sudo umount -lf $SFS/$dir"
+            fi
+            # Xoá nội dung bên trong nhưng giữ thư mục gốc
+            find "$SFS/$dir" -mindepth 1 -delete 2>/dev/null || true
+        else
+            # Thư mục không tồn tại → tạo lại để casper có chỗ mount
+            mkdir -p "$SFS/$dir"
+        fi
+    done
+
     # Rebuild squashfs
     info "  → Tạo filesystem.squashfs (${SQUASHFS_COMP})..."
-    mksquashfs "$WORK_DIR/squashfs" "$WORK_DIR/custom/casper/filesystem.squashfs" \
-        -comp $SQUASHFS_COMP $SQUASHFS_OPTS \
-        -e proc -e sys -e dev -e run
+    mksquashfs "$SFS" "$WORK_DIR/custom/casper/filesystem.squashfs" \
+        -comp $SQUASHFS_COMP $SQUASHFS_OPTS
     ok "squashfs xong."
 
     # Cập nhật filesystem.size
-    printf '%s' "$(du -sx --block-size=1 "$WORK_DIR/squashfs" | cut -f1)" \
+    printf '%s' "$(du -sx --block-size=1 "$SFS" | cut -f1)" \
         > "$WORK_DIR/custom/casper/filesystem.size"
 
     # Cập nhật md5sum
@@ -77,6 +97,19 @@ step_repack() {
     cd "$SCRIPT_DIR"
 
     # Dọn working dirs (giữ cache)
-    umount -Rlf "$WORK_DIR/squashfs" 2>/dev/null || true
-    rm -rf "$WORK_DIR/squashfs" "$WORK_DIR/custom" "$WORK_DIR/mnt" 2>/dev/null || true
+    # Không dùng umount -Rlf trước rm -rf — xem customize.sh để biết lý do.
+    # Ở đây squashfs đã được umount sạch từ step_customize; chỉ kiểm tra lại
+    # để chắc chắn không còn mount nào trước khi xoá (phòng trường hợp
+    # build bị gọi lại không qua step_customize, ví dụ debug repack riêng)
+    if grep -q " $WORK_DIR/squashfs/" /proc/mounts 2>/dev/null; then
+        warn "Phát hiện mount còn sót trong squashfs, đang umount..."
+        for mp in "$SFS/dev/pts" "$SFS/dev" "$SFS/proc" "$SFS/sys" "$SFS/run"; do
+            mountpoint -q "$mp" 2>/dev/null && umount -lf "$mp" || true
+        done
+        # Nếu vẫn còn → không rm -rf, tránh phá host
+        if grep -q " $SFS/" /proc/mounts 2>/dev/null; then
+            error "CRITICAL: Không umount được $SFS — bỏ qua rm -rf để bảo vệ host. Dọn thủ công bằng: sudo umount -Rlf $SFS"
+        fi
+    fi
+    rm -rf "$SFS" "$WORK_DIR/custom" "$WORK_DIR/mnt" 2>/dev/null || true
 }

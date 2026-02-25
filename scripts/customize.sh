@@ -21,6 +21,10 @@ step_customize() {
             export DEBIAN_FRONTEND=noninteractive
             # Pre-select SDDM as default display manager
             echo "sddm shared/default-x-display-manager select sddm" | debconf-set-selections
+            # Đổi sang mirror VN (BizFly Cloud) trước khi apt-get update
+            # archive.ubuntu.com đặt ở US/EU, tốc độ ~150kB/s từ VN — mirror VN đạt ~5-15MB/s
+            sed -i "s|http://archive.ubuntu.com/ubuntu|http://mirror.bizflycloud.vn/ubuntu|g" /etc/apt/sources.list
+            sed -i "s|http://security.ubuntu.com/ubuntu|http://mirror.bizflycloud.vn/ubuntu|g"  /etc/apt/sources.list
             apt-get update
             grep -v "^#" /tmp/packages.txt | grep -v "^$" | xargs apt-get install -y
             rm /tmp/packages.txt
@@ -55,5 +59,21 @@ step_customize() {
         rm -f /etc/resolv.conf
     '
 
-    umount -Rlf "$WORK_DIR/squashfs" 2>/dev/null || true
+    # Umount theo thứ tự NGƯỢC với mount — KHÔNG dùng -Rlf một lần vì
+    # kernel có thể lazy-detach nhưng mountpoint vẫn còn trong /proc/mounts,
+    # khiến rm -rf sau đó xoá thẳng vào /dev /proc của host → /dev/null bị phá.
+    # Thứ tự: dev/pts trước dev (dev/pts là submount của dev bind)
+    local SFS="$WORK_DIR/squashfs"
+    for mp in "$SFS/dev/pts" "$SFS/dev" "$SFS/proc" "$SFS/sys" "$SFS/run"; do
+        # Chỉ umount nếu thực sự đang được mount (tránh lỗi khi mount thất bại ở trên)
+        if mountpoint -q "$mp" 2>/dev/null; then
+            umount -lf "$mp" || warn "  umount thất bại: $mp (tiếp tục)"
+        fi
+    done
+
+    # Kiểm tra lần cuối — nếu vẫn còn mount trong squashfs thì DỪNG,
+    # không để rm -rf chạy vào host filesystem
+    if grep -q " $SFS/" /proc/mounts 2>/dev/null; then
+        error "CRITICAL: Vẫn còn bind mount trong $SFS — dừng để tránh xoá host! Kiểm tra /proc/mounts rồi umount thủ công."
+    fi
 }

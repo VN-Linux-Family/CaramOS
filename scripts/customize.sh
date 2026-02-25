@@ -19,6 +19,10 @@ step_customize() {
         cp "$SCRIPT_DIR/config/packages.txt" "$WORK_DIR/squashfs/tmp/packages.txt"
         chroot "$WORK_DIR/squashfs" /bin/bash -c '
             export DEBIAN_FRONTEND=noninteractive
+            # Đổi sang mirror VN (BizFly Cloud) trước khi apt-get update
+            # archive.ubuntu.com đặt ở US/EU, tốc độ ~150kB/s từ VN — mirror VN đạt ~5-15MB/s
+            sed -i "s|http://archive.ubuntu.com/ubuntu|http://mirror.bizflycloud.vn/ubuntu|g" /etc/apt/sources.list
+            sed -i "s|http://security.ubuntu.com/ubuntu|http://mirror.bizflycloud.vn/ubuntu|g"  /etc/apt/sources.list
             apt-get update
             grep -v "^#" /tmp/packages.txt | grep -v "^$" | xargs apt-get install -y
             rm /tmp/packages.txt

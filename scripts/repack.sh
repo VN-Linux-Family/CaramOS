@@ -77,6 +77,10 @@ step_repack() {
     cd "$SCRIPT_DIR"
 
     # Dọn working dirs (giữ cache)
-    umount -Rlf "$WORK_DIR/squashfs" 2>/dev/null || true
+    sync
+    umount "$WORK_DIR/squashfs/proc"    2>/dev/null || true
+    umount "$WORK_DIR/squashfs/sys"     2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev/pts" 2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev"     2>/dev/null || true
     rm -rf "$WORK_DIR/squashfs" "$WORK_DIR/custom" "$WORK_DIR/mnt" 2>/dev/null || true
 }

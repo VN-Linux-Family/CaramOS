@@ -18,8 +18,12 @@ source "$SCRIPT_DIR/scripts/utils.sh"
 # --- Clean ---
 if [ "${1}" = "--clean" ]; then
     info "Dọn dẹp build..."
-    umount -Rlf "$WORK_DIR/squashfs" 2>/dev/null || true
-    umount -lf  "$WORK_DIR/mnt"      2>/dev/null || true
+    sync 2>/dev/null || true
+    umount "$WORK_DIR/squashfs/proc"    2>/dev/null || true
+    umount "$WORK_DIR/squashfs/sys"     2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev/pts" 2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev"     2>/dev/null || true
+    umount "$WORK_DIR/mnt"              2>/dev/null || true
     rm -rf "$WORK_DIR" CaramOS-*.iso *.log
     ok "Đã dọn xong. (Mint ISO giữ lại)"
     exit 0

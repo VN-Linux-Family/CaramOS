@@ -54,6 +54,10 @@ step_customize() {
         rm -rf /tmp/* /var/tmp/*
         rm -f /etc/resolv.conf
     '
-
-    umount -Rlf "$WORK_DIR/squashfs" 2>/dev/null || true
+    # Unmount theo thứ tự (innermost trước) — KHÔNG lazy để tránh xoá /dev host
+    sync
+    umount "$WORK_DIR/squashfs/proc"    2>/dev/null || umount -lf "$WORK_DIR/squashfs/proc"    2>/dev/null || true
+    umount "$WORK_DIR/squashfs/sys"     2>/dev/null || umount -lf "$WORK_DIR/squashfs/sys"     2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev/pts" 2>/dev/null || umount -lf "$WORK_DIR/squashfs/dev/pts" 2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev"     2>/dev/null || umount -lf "$WORK_DIR/squashfs/dev"     2>/dev/null || true
 }

@@ -3,9 +3,13 @@
 
 step_extract() {
     info "[1/7] Chuẩn bị thư mục build..."
-    # Dọn mount cũ nếu build trước bị lỗi (recursive cho sysfs)
-    umount -Rlf "$WORK_DIR/squashfs" 2>/dev/null || true
-    umount -lf  "$WORK_DIR/mnt"      2>/dev/null || true
+    # Dọn mount cũ nếu build trước bị lỗi
+    sync 2>/dev/null || true
+    umount "$WORK_DIR/squashfs/proc"    2>/dev/null || true
+    umount "$WORK_DIR/squashfs/sys"     2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev/pts" 2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev"     2>/dev/null || true
+    umount "$WORK_DIR/mnt"              2>/dev/null || true
     rm -rf "$WORK_DIR/squashfs" "$WORK_DIR/custom"
     mkdir -p "$WORK_DIR"/{mnt,custom}
 

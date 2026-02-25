@@ -8,13 +8,10 @@ if [ -f "$HOME/.config/caramos-theme-applied" ]; then
 fi
 
 # ========== THEME ==========
-# GTK Theme + Icons + Cursor
 gsettings set org.cinnamon.desktop.interface gtk-theme 'ChromeOS-Light' 2>/dev/null || true
 gsettings set org.cinnamon.desktop.interface icon-theme 'Tela-circle' 2>/dev/null || true
 gsettings set org.cinnamon.desktop.interface cursor-theme 'Bibata-Modern-Classic' 2>/dev/null || true
 gsettings set org.cinnamon.desktop.interface font-name 'Be Vietnam Pro 10' 2>/dev/null || true
-
-# Window Manager
 gsettings set org.cinnamon.desktop.wm.preferences titlebar-font 'Be Vietnam Pro Bold 10' 2>/dev/null || true
 gsettings set org.cinnamon.theme name 'ChromeOS-Light' 2>/dev/null || true
 
@@ -22,25 +19,26 @@ gsettings set org.cinnamon.theme name 'ChromeOS-Light' 2>/dev/null || true
 gsettings set org.cinnamon.desktop.background picture-uri 'file:///usr/share/backgrounds/caramos/caramos-light.png' 2>/dev/null || true
 
 # ========== CHROMEOS LAYOUT ==========
-# Ẩn panel Cinnamon mặc định (để Plank thay thế)
-gsettings set org.cinnamon panels-autohide "['1:true']" 2>/dev/null || true
-gsettings set org.cinnamon panels-height "['1:30']" 2>/dev/null || true
 
-# Panel trong suốt hơn
-gsettings set org.cinnamon panel-zone-icon-sizes '[{"panelId": 1, "maxSize": 24}]' 2>/dev/null || true
+# --- Panel lên TRÊN, auto-hide, chỉ chứa system tray ---
+# Xoá panel cũ ở dưới, tạo panel mới ở trên
+# panel-zone-text-colors: để text panel sáng trên nền tối
+gsettings set org.cinnamon panels-enabled "['1:0:top']" 2>/dev/null || true
+gsettings set org.cinnamon panels-autohide "['1:intel']" 2>/dev/null || true
+gsettings set org.cinnamon panels-height "['1:28']" 2>/dev/null || true
+gsettings set org.cinnamon panel-zone-icon-sizes '[{"panelId": 1, "maxSize": 20}]' 2>/dev/null || true
 
-# Desktop: ẩn icon trên desktop (ChromeOS không có icon trên desktop)
+# Desktop: ẩn TẤT CẢ icon trên desktop (ChromeOS style)
 gsettings set org.nemo.desktop computer-icon-visible false 2>/dev/null || true
 gsettings set org.nemo.desktop home-icon-visible false 2>/dev/null || true
 gsettings set org.nemo.desktop trash-icon-visible false 2>/dev/null || true
 gsettings set org.nemo.desktop network-icon-visible false 2>/dev/null || true
 gsettings set org.nemo.desktop volumes-visible false 2>/dev/null || true
 
-# Nút cửa sổ bên phải (như ChromeOS/Windows)
+# Nút cửa sổ bên phải (ChromeOS/Windows style)
 gsettings set org.cinnamon.desktop.wm.preferences button-layout ':minimize,maximize,close' 2>/dev/null || true
 
 # ========== PLANK DOCK ==========
-# Copy config Plank nếu chưa có
 if [ ! -d "$HOME/.config/plank/dock1" ] && [ -d "/etc/skel/.config/plank/dock1" ]; then
     mkdir -p "$HOME/.config/plank"
     cp -a /etc/skel/.config/plank/dock1 "$HOME/.config/plank/"
@@ -51,6 +49,6 @@ if ! pgrep -x plank > /dev/null; then
     plank &
 fi
 
-# Lock file — chỉ chạy 1 lần
+# Lock file — chạy 1 lần duy nhất
 mkdir -p "$HOME/.config"
 touch "$HOME/.config/caramos-theme-applied"

@@ -72,10 +72,10 @@ step_boot_config() {
         info "  → Sửa GRUB config..."
 
         # Copy banner cho GRUB
-        local BANNER_SRC="$SCRIPT_DIR/caramos_303030.png"
-        if [ -n "$BANNER_SRC" ] && [ -f "$BANNER_SRC" ]; then
+        local GRUB_SPLASH="$SCRIPT_DIR/assets/boot-splash.png"
+        if [ -n "$GRUB_SPLASH" ] && [ -f "$GRUB_SPLASH" ]; then
             mkdir -p "$ISO_DIR/boot/grub" 2>/dev/null || true
-            cp "$BANNER_SRC" "$ISO_DIR/boot/grub/splash.png" 2>/dev/null || true
+            cp "$GRUB_SPLASH" "$ISO_DIR/boot/grub/splash.png" 2>/dev/null || true
         fi
 
         echo "$GRUB_FILES" | while IFS= read -r cfg; do
@@ -117,7 +117,7 @@ step_boot_config() {
     #      d) Nếu không file nào có → thêm vào stdmenu.cfg nếu tồn tại,
     #         không thì thêm vào isolinux.cfg (fallback cuối cùng)
     # ----------------------------------------------------------------
-    local BANNER_SRC="$SCRIPT_DIR/caramos_303030.png"
+    local BANNER_SRC="$SCRIPT_DIR/assets/boot-splash.png"
     local ISOLINUX_DIR
     ISOLINUX_DIR=$(find "$ISO_DIR" -maxdepth 3 -name "isolinux.bin" \
         -exec dirname {} \; 2>/dev/null | head -1)

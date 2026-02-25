@@ -21,8 +21,9 @@ picture-uri='file:///usr/share/backgrounds/caramos/caramos-light.png'
 picture-options='zoom'
 
 [org.cinnamon]
-panels-autohide=['1:true']
-panels-height=['1:30']
+panels-enabled=['1:0:top']
+panels-autohide=['1:intel']
+panels-height=['1:28']
 
 [org.nemo.desktop]
 computer-icon-visible=false

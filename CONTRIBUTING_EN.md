@@ -78,28 +78,45 @@ CaramOS/
 
 ### Requirements
 
+#### Option 1: Native Machine (Ubuntu/Mint only)
 - Machine running **Ubuntu 22.04+** or **Linux Mint 21+**
 - About **15 GB** free disk space
-- Internet connection (first run downloads ~2.5GB Mint ISO)
+- Internet connection
 
-### Build
+#### Option 2: Via Docker (Any OS like macOS, Windows, Arch...)
+- **Docker** and **docker compose** plugin installed
+- No other dependencies required
+
+### Build procedure
+
+Clone the repository:
+```bash
+git clone https://github.com/VN-Linux-Family/CaramOS.git
+cd CaramOS
+```
+
+#### Local Build (Ubuntu/Mint)
 
 ```bash
 # 1. Install tools (first time only)
-sudo apt install squashfs-tools xorriso rsync wget
+sudo apt install squashfs-tools xorriso rsync wget curl isolinux
 
-# 2. Clone repo
-git clone https://github.com/VN-Linux-Family/CaramOS.git
-cd CaramOS
+# 2. Fast Dev build (lz4 compression, ISO ~3.5GB)
+make build
 
-# 3. Build — single command, auto-downloads Mint ISO + remasters
-sudo ./build.sh
-
-# Or use an existing Mint ISO:
-sudo ./build.sh /path/to/linuxmint-22-cinnamon-64bit.iso
+# OR Small Release build (xz compression, ISO ~2.5GB)
+make release
 ```
 
-Wait **15-30 minutes** → `CaramOS-0.1-cinnamon-amd64.iso` is created.
+#### Docker Build (Any OS)
+
+```bash
+# The first run will automatically build the container image
+make docker-build       # Build Dev mode (lz4)
+make docker-release     # Build Release mode (xz)
+```
+
+Wait **1-10 minutes** (depending on lz4/xz) → `CaramOS-X.X-cinnamon-amd64.iso` is created.
 
 ### Write to USB
 

@@ -19,8 +19,6 @@ step_customize() {
         cp "$SCRIPT_DIR/config/packages.txt" "$WORK_DIR/squashfs/tmp/packages.txt"
         chroot "$WORK_DIR/squashfs" /bin/bash -c '
             export DEBIAN_FRONTEND=noninteractive
-            # Pre-select SDDM as default display manager
-            echo "sddm shared/default-x-display-manager select sddm" | debconf-set-selections
             apt-get update
             grep -v "^#" /tmp/packages.txt | grep -v "^$" | xargs apt-get install -y
             rm /tmp/packages.txt

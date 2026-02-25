@@ -45,9 +45,10 @@ step_boot_config() {
             # Đổi tên distro trong menu label/title — áp dụng mọi mode
             sed -i 's/Linux Mint/CaramOS/gI' "$cfg"
 
-            # Chỉ xoá quiet/splash ở debug mode
+            # Chỉ xoá quiet/splash ở debug mode — CHỈ trên dòng APPEND (kernel cmdline)
+            # KHÔNG đụng vào dòng MENU BACKGROUND splash.png
             if $IS_DEBUG; then
-                sed -i 's/\bquiet\b//g; s/\bsplash\b//g' "$cfg"
+                sed -i '/^[[:space:]]*APPEND/s/\bquiet\b//g; /^[[:space:]]*APPEND/s/\bsplash\b//g' "$cfg"
             fi
 
             ok "    Đã sửa: $(basename "$cfg")"
@@ -84,16 +85,17 @@ step_boot_config() {
             # Chèn ảnh nền GRUB nếu chưa có
             if [ -f "$ISO_DIR/boot/grub/splash.png" ]; then
                 if ! grep -q "background_image" "$cfg"; then
-                    # Mồi load module hiển thị đồ hoạ cần thiết cho hình nền
-                    sed -i '1 a\set gfxmode=auto\nset gfxpayload=keep\ninsmod all_video\ninsmod gfxterm\nterminal_output gfxterm\ninsmod png\nset background_image=/boot/grub/splash.png' "$cfg"
-                else
-                    sed -i 's|[a-zA-Z0-9_/.-]*\.png|/boot/grub/splash.png|gI' "$cfg"
+                    # Chỉ chèn vào file grub.cfg chính (không chèn vào theme.cfg, config.cfg v.v.)
+                    if basename "$cfg" | grep -qi "^grub.cfg$"; then
+                        sed -i '1 a\insmod all_video\ninsmod gfxterm\ninsmod png\nset background_image=/boot/grub/splash.png' "$cfg"
+                    fi
                 fi
             fi
 
-            # Chỉ xoá quiet/splash ở debug mode
+            # Chỉ xoá quiet/splash ở debug mode — CHỈ trên dòng linux/linuxefi (kernel cmdline)
+            # KHÔNG đụng vào dòng background_image hoặc tên file .png
             if $IS_DEBUG; then
-                sed -i 's/\bquiet\b//g; s/\bsplash\b//g' "$cfg"
+                sed -i '/^[[:space:]]*linux/s/\bquiet\b//g; /^[[:space:]]*linux/s/\bsplash\b//g' "$cfg"
             fi
 
             ok "    Đã sửa: $(basename "$cfg")"

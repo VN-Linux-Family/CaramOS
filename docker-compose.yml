@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  builder:
+    build: .
+    volumes:
+      - .:/app
+    # Privileged is required because build.sh needs to mount/umount and chroot
+    privileged: true

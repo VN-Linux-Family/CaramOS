@@ -103,28 +103,45 @@ CaramOS/
 
 ### Yêu cầu
 
+#### Cách 1: Máy thật (Chỉ hỗ trợ Ubuntu/Mint)
 - Máy chạy **Ubuntu 22.04+** hoặc **Linux Mint 21+**
 - Khoảng **15 GB** dung lượng trống
-- Kết nối internet (lần đầu tải ISO Mint ~2.5GB)
+- Mạng internet
 
-### Build
+#### Cách 2: Qua Docker (Mọi hệ điều hành như macOS, Windows, Arch...)
+- Cài sẵn **Docker** và plugin **docker compose**
+- Không cần cài thêm dependencies nào khác
+
+### Cách Build
+
+Clone repo về máy:
+```bash
+git clone https://github.com/VN-Linux-Family/CaramOS.git
+cd CaramOS
+```
+
+#### Build Local (Ubuntu/Mint)
 
 ```bash
 # 1. Cài công cụ (lần đầu)
-sudo apt install squashfs-tools xorriso rsync wget
+sudo apt install squashfs-tools xorriso rsync wget curl isolinux
 
-# 2. Clone repo
-git clone https://github.com/VN-Linux-Family/CaramOS.git
-cd CaramOS
+# 2. Build Dev (Nén lz4 nhanh, ISO to ~3.5GB)
+make build
 
-# 3. Build — 1 lệnh, tự tải Mint ISO + remaster
-sudo ./build.sh
-
-# Hoặc dùng ISO Mint có sẵn:
-sudo ./build.sh /path/to/linuxmint-22-cinnamon-64bit.iso
+# HOẶC Build Release (Nén xz chậm, ISO nhỏ ~2.5GB)
+make release
 ```
 
-Chờ **15-30 phút** → ra file `CaramOS-0.1-cinnamon-amd64.iso`
+#### Build bằng Docker (Mọi OS)
+
+```bash
+# Lần đầu chạy sẽ tự build image
+make docker-build       # Build Dev mode (lz4)
+make docker-release     # Build Release mode (xz)
+```
+
+Chờ **1-10 phút** (tuỳ chọn nén lz4/xz) → ra file `CaramOS-X.X-cinnamon-amd64.iso`
 
 ### Ghi USB
 

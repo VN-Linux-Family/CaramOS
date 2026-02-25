@@ -1,14 +1,12 @@
 # CaramOS — Package cần THÊM vào ISO
-# Mint ISO đã có: wifi, ethernet, bluetooth, Cinnamon, Firefox, LibreOffice
+# Mint ISO đã có: wifi, ethernet, bluetooth, linux-firmware
 # Chỉ thêm những gì Mint CHƯA CÓ
 
-# Display Manager (thay LightDM mặc định)
-sddm
-sddm-theme-breeze
+# Display Manager: Giữ nguyên LightDM + Slick-Greeter mặc định của Mint
 
-# Driver bổ sung — đảm bảo mọi máy đều có internet
-firmware-iwlwifi
-firmware-realtek
-firmware-atheros
-broadcom-sta-dkms
-dkms
+# ChromeOS-style Dock
+plank
+
+# Bộ gõ tiếng Việt
+fcitx5
+fcitx5-unikey

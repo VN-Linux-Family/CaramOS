@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="branding/logo.png" alt="CaramOS Logo" width="120">
+  <img src="assets/CaramOS_logo.png" alt="CaramOS Logo" width="250">
 </p>
 
 <h1 align="center">CaramOS</h1>

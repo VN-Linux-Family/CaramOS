@@ -1,0 +1,164 @@
+#!/bin/bash
+# Hook: De-brand Linux Mint → CaramOS
+# Chạy BÊN TRONG chroot — đổi TẤT CẢ tham chiếu đến Linux Mint
+
+export DEBIAN_FRONTEND=noninteractive
+
+echo "[CaramOS] === BẮT ĐẦU DE-BRANDING ==="
+
+# --- 0. Timezone Việt Nam (UTC+7) ---
+echo "[CaramOS] Đặt múi giờ Asia/Ho_Chi_Minh..."
+ln -sf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
+echo "Asia/Ho_Chi_Minh" > /etc/timezone
+dpkg-reconfigure -f noninteractive tzdata 2>/dev/null || true
+echo "[OK] Timezone = UTC+7"
+
+# --- 1. OS Identity ---
+echo "[CaramOS] Đổi OS identity..."
+
+# /etc/os-release
+if [ -f /etc/os-release ]; then
+    cat > /etc/os-release << 'EOF'
+NAME="CaramOS"
+VERSION="22.3"
+ID=caramos
+ID_LIKE="ubuntu debian"
+PRETTY_NAME="CaramOS 22.3"
+VERSION_ID="22.3"
+HOME_URL="https://github.com/VN-Linux-Family/CaramOS"
+SUPPORT_URL="https://github.com/VN-Linux-Family/CaramOS/issues"
+BUG_REPORT_URL="https://github.com/VN-Linux-Family/CaramOS/issues"
+PRIVACY_POLICY_URL="https://github.com/VN-Linux-Family/CaramOS"
+VERSION_CODENAME=wilma
+UBUNTU_CODENAME=noble
+EOF
+    echo "[OK] /etc/os-release"
+fi
+
+# /etc/lsb-release
+if [ -f /etc/lsb-release ]; then
+    cat > /etc/lsb-release << 'EOF'
+DISTRIB_ID=CaramOS
+DISTRIB_RELEASE=22.3
+DISTRIB_CODENAME=wilma
+DISTRIB_DESCRIPTION="CaramOS 22.3"
+EOF
+    echo "[OK] /etc/lsb-release"
+fi
+
+# /etc/linuxmint/info (neofetch đọc file này)
+if [ -f /etc/linuxmint/info ]; then
+    sed -i 's/GRUB_TITLE=.*/GRUB_TITLE=CaramOS/' /etc/linuxmint/info
+    sed -i 's/DESCRIPTION=.*/DESCRIPTION="CaramOS 22.3"/' /etc/linuxmint/info
+    sed -i 's/RELEASE=.*/RELEASE=22.3/' /etc/linuxmint/info
+    echo "[OK] /etc/linuxmint/info"
+fi
+
+# --- 2. Hostname ---
+echo "[CaramOS] Đổi hostname..."
+echo "caramos" > /etc/hostname
+sed -i 's/mint/caramos/g' /etc/hosts 2>/dev/null || true
+echo "[OK] hostname = caramos"
+
+# --- 3. Live session user display name ---
+# Mint live session dùng user "mint" — đổi display name
+if id mint &>/dev/null; then
+    usermod -c "CaramOS User" mint 2>/dev/null || true
+    echo "[OK] User display name"
+fi
+
+# --- 4. Desktop Install Icon ---
+echo "[CaramOS] Đổi tên Install icon..."
+# File .desktop trên desktop
+for f in /usr/share/applications/ubiquity.desktop \
+         /usr/share/applications/live-installer.desktop \
+         /usr/share/applications/calamares.desktop; do
+    if [ -f "$f" ]; then
+        sed -i 's/Install Linux Mint/Install CaramOS/gI' "$f"
+        sed -i 's/Linux Mint/CaramOS/gI' "$f"
+        echo "[OK] $(basename $f)"
+    fi
+done
+
+# Trên desktop của user mint
+if [ -f /etc/skel/Desktop/ubiquity.desktop ]; then
+    sed -i 's/Install Linux Mint/Install CaramOS/gI' /etc/skel/Desktop/ubiquity.desktop
+fi
+
+# --- 5. Casper/Live session config ---
+echo "[CaramOS] Đổi casper config..."
+# File casper.conf hoặc live.conf
+for f in /etc/casper.conf /etc/live.conf; do
+    if [ -f "$f" ]; then
+        sed -i 's/Linux Mint/CaramOS/gI' "$f"
+        sed -i 's/export HOST=mint/export HOST=caramos/' "$f"
+        sed -i 's/export USERNAME=mint/export USERNAME=caramos/' "$f"
+        echo "[OK] $(basename $f)"
+    fi
+done
+
+# --- 6. Neofetch / Screenfetch ---
+echo "[CaramOS] Cấu hình neofetch..."
+# Neofetch sẽ tự đọc /etc/os-release nên nó sẽ hiện CaramOS
+# Nhưng logo ASCII vẫn bị lấy theo distro ID
+# Tạo alias neofetch để force dùng linux logo thay vì mint
+mkdir -p /etc/profile.d
+cat > /etc/profile.d/caramos-neofetch.sh << 'NEOFETCH_EOF'
+# Force neofetch dùng tên và logo CaramOS
+alias neofetch='neofetch --ascii_distro linux'
+NEOFETCH_EOF
+chmod +x /etc/profile.d/caramos-neofetch.sh
+echo "[OK] neofetch config"
+
+# --- 7. Issue / Motd ---
+echo "[CaramOS] Đổi login banners..."
+if [ -f /etc/issue ]; then
+    echo "CaramOS 22.3 \\n \\l" > /etc/issue
+fi
+if [ -f /etc/issue.net ]; then
+    echo "CaramOS 22.3" > /etc/issue.net
+fi
+echo "[OK] /etc/issue"
+
+# --- 8. GRUB default ---
+echo "[CaramOS] Đổi GRUB defaults..."
+if [ -f /etc/default/grub ]; then
+    sed -i 's/Linux Mint/CaramOS/gI' /etc/default/grub
+    sed -i 's/GRUB_DISTRIBUTOR=.*/GRUB_DISTRIBUTOR="CaramOS"/' /etc/default/grub
+    echo "[OK] /etc/default/grub"
+fi
+
+# --- 9. Plymouth branding ---
+echo "[CaramOS] Đổi Plymouth branding..."
+# Đổi text trong plymouth themes
+find /usr/share/plymouth -type f -name "*.plymouth" -exec \
+    sed -i 's/Linux Mint/CaramOS/gI' {} + 2>/dev/null || true
+find /usr/share/plymouth -type f -name "*.script" -exec \
+    sed -i 's/Linux Mint/CaramOS/gI' {} + 2>/dev/null || true
+echo "[OK] Plymouth"
+
+# --- 10. Mint welcome screen & system tray ---
+echo "[CaramOS] Tắt Mint welcome screen..."
+# Disable mintwelcome (sẽ thay bằng CaramOS Center sau)
+if [ -f /etc/xdg/autostart/mintWelcome.desktop ]; then
+    sed -i 's/^Exec=.*/Exec=true/' /etc/xdg/autostart/mintWelcome.desktop
+    echo "[OK] mintWelcome disabled"
+fi
+
+# --- 11. Mint System branding files ---
+echo "[CaramOS] Đổi remaining branding files..."
+# Các file text chứa "Linux Mint" trong /usr/share/linuxmint/
+find /usr/share/linuxmint -type f \( -name "*.py" -o -name "*.desktop" -o -name "*.json" -o -name "*.xml" \) \
+    -exec sed -i 's/Linux Mint/CaramOS/gI' {} + 2>/dev/null || true
+echo "[OK] /usr/share/linuxmint/"
+
+echo ""
+echo "========================================="
+echo "[CaramOS] De-branding Verification:"
+echo "  os-release:   $(grep PRETTY_NAME /etc/os-release 2>/dev/null)"
+echo "  lsb-release:  $(grep DESCRIPTION /etc/lsb-release 2>/dev/null)"
+echo "  hostname:     $(cat /etc/hostname)"
+echo "  GRUB:         $(grep GRUB_DISTRIBUTOR /etc/default/grub 2>/dev/null)"
+echo "========================================="
+echo ""
+echo "[CaramOS] De-branding HOÀN TẤT!"

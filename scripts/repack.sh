@@ -4,9 +4,26 @@
 step_repack() {
     info "[7/7] Đóng gói ISO..."
 
+    local SFS="$WORK_DIR/squashfs"
+
+    # Đảm bảo các virtual fs dir trống sạch trước khi pack vào squashfs.
+    # KHÔNG dùng -e proc/sys/dev/run để loại trừ — nếu loại trừ, các thư mục
+    # này sẽ KHÔNG TỒN TẠI trong squashfs, casper sẽ không có chỗ để mount
+    # devtmpfs/proc/sysfs vào → /dev/null không tồn tại → boot crash.
+    # Các dir phải có mặt nhưng TRỐNG; chúng đã được umount ở step_customize.
+    for dir in proc sys dev run; do
+        if [ -d "$SFS/$dir" ]; then
+            # Xoá nội dung bên trong nhưng giữ thư mục gốc
+            find "$SFS/$dir" -mindepth 1 -delete 2>/dev/null || true
+        else
+            # Thư mục không tồn tại → tạo lại để casper có chỗ mount
+            mkdir -p "$SFS/$dir"
+        fi
+    done
+
     # Rebuild squashfs
     info "  → Tạo filesystem.squashfs (${SQUASHFS_COMP})..."
-    mksquashfs "$WORK_DIR/squashfs" "$WORK_DIR/custom/casper/filesystem.squashfs" \
+    mksquashfs "$SFS" "$WORK_DIR/custom/casper/filesystem.squashfs" \
         -comp $SQUASHFS_COMP $SQUASHFS_OPTS
     ok "squashfs xong."
 
@@ -65,7 +82,7 @@ step_repack() {
     fi
 
     # Isohybrid (cho ghi USB)
-    if [ -f "isolinux/isolinux.bin" ]; then
+    if [ -f "isolinux/isolinux.bin" ] && [ -f /usr/lib/ISOLINUX/isohdpfx.bin ]; then
         XORRISO_ARGS+=(-isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin)
     fi
 
@@ -76,5 +93,10 @@ step_repack() {
     cd "$SCRIPT_DIR"
 
     # Dọn working dirs (giữ cache)
-    rm -rf "$WORK_DIR/squashfs" "$WORK_DIR/custom" "$WORK_DIR/mnt"
+    sync
+    umount "$WORK_DIR/squashfs/proc"    2>/dev/null || true
+    umount "$WORK_DIR/squashfs/sys"     2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev/pts" 2>/dev/null || true
+    umount "$WORK_DIR/squashfs/dev"     2>/dev/null || true
+    rm -rf "$WORK_DIR/squashfs" "$WORK_DIR/custom" "$WORK_DIR/mnt" 2>/dev/null || true
 }

@@ -24,16 +24,16 @@ jobs:
           df -h /
 
       - name: Install build tools
-        run: sudo apt-get update && sudo apt-get install -y squashfs-tools xorriso rsync wget
+        run: sudo apt-get update && sudo apt-get install -y squashfs-tools xorriso rsync wget isolinux
 
       - name: Cache Mint ISO
         uses: actions/cache@v4
         with:
-          path: linuxmint-22-cinnamon-64bit.iso
-          key: mint-iso-22-cinnamon
+          path: linuxmint-22.3-cinnamon-64bit.iso
+          key: mint-iso-22.3-cinnamon
 
       - name: Build CaramOS ISO
-        run: sudo ./build.sh
+        run: sudo -E ./build.sh
 
       - name: Upload ISO
         uses: actions/upload-artifact@v4

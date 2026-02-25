@@ -1,5 +1,6 @@
-<!-- Logo: thêm sau khi thiết kế xong -->
-<!-- <p align="center"><img src="branding/logo.png" alt="CaramOS Logo" width="120"></p> -->
+<p align="center">
+  <img src="assets/CaramOS_logo.png" alt="CaramOS Logo" width="250">
+</p>
 
 <h1 align="center">CaramOS</h1>
 

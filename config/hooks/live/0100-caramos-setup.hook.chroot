@@ -1,60 +1,117 @@
 #!/bin/bash
-# Hook: Theme + branding + cleanup (KHÔNG cài phần mềm)
-# Phần mềm để user tự cài sau khi có internet
-set -e
+# Hook: Theme + branding + cleanup
+# Chạy BÊN TRONG chroot (squashfs) nên chỉ có tools của Mint
+# set -e bị bỏ để tránh crash toàn bộ khi 1 bước thất bại
 
+export DEBIAN_FRONTEND=noninteractive
+
+# --- 0. Cài tools cần thiết bên trong chroot ---
+echo "[CaramOS] Cài đặt build dependencies trong chroot..."
+apt-get update -qq
+apt-get install -y --no-install-recommends unzip wget curl ca-certificates file xz-utils || true
+
+# --- 1. Google Chrome ---
 echo "[CaramOS] Installing Google Chrome..."
-wget -q -O /tmp/google-chrome.deb \
-    "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"
-apt-get install -y /tmp/google-chrome.deb
-rm -f /tmp/google-chrome.deb
+if wget -q -O /tmp/google-chrome.deb \
+    "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"; then
+    apt-get install -y /tmp/google-chrome.deb || echo "[WARN] Chrome install failed"
+    rm -f /tmp/google-chrome.deb
+else
+    echo "[WARN] Không tải được Google Chrome, bỏ qua."
+fi
 
+# --- 2. ChromeOS GTK Theme ---
 echo "[CaramOS] Installing ChromeOS GTK theme..."
-git clone --depth=1 https://github.com/vinceliuice/ChromeOS-theme /tmp/chromeos-theme
-cd /tmp/chromeos-theme
-mkdir -p /root/.config/gtk-4.0
-./install.sh || true
-cd /
-rm -rf /tmp/chromeos-theme
+if wget -q -O /tmp/chromeos-theme.zip \
+    "https://github.com/vinceliuice/ChromeOS-theme/archive/refs/heads/master.zip"; then
+    unzip -qo /tmp/chromeos-theme.zip -d /tmp/
+    cd /tmp/ChromeOS-theme-master
+    mkdir -p /root/.config/gtk-4.0
+    ./install.sh || echo "[WARN] ChromeOS theme install.sh failed"
+    cd /
+    rm -rf /tmp/chromeos-theme.zip /tmp/ChromeOS-theme-master
+    echo "[OK] ChromeOS theme installed."
+else
+    echo "[WARN] Không tải được ChromeOS theme."
+fi
 
+# --- 3. Tela Circle Icon Theme ---
 echo "[CaramOS] Installing Tela Circle icon theme..."
-git clone --depth=1 https://github.com/vinceliuice/Tela-circle-icon-theme /tmp/tela-icons
-cd /tmp/tela-icons
-./install.sh -a || true
-cd /
-rm -rf /tmp/tela-icons
+if wget -q -O /tmp/tela-icons.zip \
+    "https://github.com/vinceliuice/Tela-circle-icon-theme/archive/refs/heads/master.zip"; then
+    unzip -qo /tmp/tela-icons.zip -d /tmp/
+    cd /tmp/Tela-circle-icon-theme-master
+    ./install.sh -a || echo "[WARN] Tela icon install.sh failed"
+    cd /
+    rm -rf /tmp/tela-icons.zip /tmp/Tela-circle-icon-theme-master
+    echo "[OK] Tela Circle icons installed."
+else
+    echo "[WARN] Không tải được Tela Circle icons."
+fi
 
+# --- 4. Bibata Cursor ---
 echo "[CaramOS] Installing Bibata cursor..."
 BIBATA_VER="2.0.6"
-wget -q -O /tmp/bibata.tar.xz \
-    "https://github.com/ful1e5/Bibata_Cursor/releases/download/v${BIBATA_VER}/Bibata-Modern-Classic.tar.xz" || true
-if [ -f /tmp/bibata.tar.xz ]; then
+if wget -q -O /tmp/bibata.tar.xz \
+    "https://github.com/ful1e5/Bibata_Cursor/releases/download/v${BIBATA_VER}/Bibata-Modern-Classic.tar.xz"; then
     tar -xf /tmp/bibata.tar.xz -C /usr/share/icons/
     rm -f /tmp/bibata.tar.xz
+    echo "[OK] Bibata cursor installed."
+else
+    echo "[WARN] Không tải được Bibata cursor."
 fi
 
+# --- 5. Be Vietnam Pro Font ---
 echo "[CaramOS] Installing Be Vietnam Pro font..."
 mkdir -p /usr/share/fonts/truetype/be-vietnam-pro
-wget -q -O /tmp/be-vietnam-pro.zip \
-    "https://github.com/bettergui/BeVietnamPro/archive/refs/heads/master.zip" 2>/dev/null || true
-if [ -f /tmp/be-vietnam-pro.zip ] && file /tmp/be-vietnam-pro.zip | grep -q "Zip"; then
-    unzip -qo /tmp/be-vietnam-pro.zip -d /tmp/be-vietnam-pro-extract/
-    find /tmp/be-vietnam-pro-extract/ -name "*.ttf" -exec cp {} /usr/share/fonts/truetype/be-vietnam-pro/ \;
-    rm -rf /tmp/be-vietnam-pro.zip /tmp/be-vietnam-pro-extract
-    fc-cache -f
+if wget -q -O /tmp/be-vietnam-pro.zip \
+    "https://github.com/bettergui/BeVietnamPro/archive/refs/heads/master.zip"; then
+    if file /tmp/be-vietnam-pro.zip | grep -q "Zip"; then
+        unzip -qo /tmp/be-vietnam-pro.zip -d /tmp/be-vietnam-pro-extract/
+        find /tmp/be-vietnam-pro-extract/ -name "*.ttf" -exec cp {} /usr/share/fonts/truetype/be-vietnam-pro/ \;
+        rm -rf /tmp/be-vietnam-pro.zip /tmp/be-vietnam-pro-extract
+        fc-cache -f
+        echo "[OK] Be Vietnam Pro font installed."
+    fi
+else
+    echo "[WARN] Không tải được Be Vietnam Pro font."
 fi
 
+# --- 6. Vietnamese Locale ---
 echo "[CaramOS] Setting Vietnamese locale..."
 sed -i 's/# vi_VN.UTF-8 UTF-8/vi_VN.UTF-8 UTF-8/' /etc/locale.gen
-locale-gen
+locale-gen || true
 
+# --- 7. Remove Bloatware ---
 echo "[CaramOS] Removing bloatware..."
 apt-get remove -y thunderbird hexchat drawing hypnotix rhythmbox 2>/dev/null || true
-apt-get autoremove -y
+apt-get autoremove -y || true
 
+# --- 8. Theme Applier Permissions ---
+echo "[CaramOS] Set permissions for theme applier..."
+if [ -f /usr/bin/caramos-theme-apply ]; then
+    chmod +x /usr/bin/caramos-theme-apply
+    echo "[OK] caramos-theme-apply is executable."
+fi
+
+# --- 9. Compile GLib Schemas ---
 echo "[CaramOS] Compiling schemas..."
-glib-compile-schemas /usr/share/glib-2.0/schemas/
+glib-compile-schemas /usr/share/glib-2.0/schemas/ || echo "[WARN] Schema compile failed"
 
+# --- 10. Verify ---
+echo ""
+echo "========================================="
+echo "[CaramOS] Theme Verification:"
+echo "  ChromeOS-Light: $(ls -d /usr/share/themes/ChromeOS-Light 2>/dev/null && echo 'OK' || echo 'MISSING')"
+echo "  Tela-circle:    $(ls -d /usr/share/icons/Tela-circle 2>/dev/null && echo 'OK' || echo 'MISSING')"
+echo "  Bibata cursor:  $(ls -d /usr/share/icons/Bibata-Modern-Classic 2>/dev/null && echo 'OK' || echo 'MISSING')"
+echo "  Be Vietnam Pro: $(ls /usr/share/fonts/truetype/be-vietnam-pro/*.ttf 2>/dev/null | wc -l) font files"
+echo "  Schema override:$(ls /usr/share/glib-2.0/schemas/99_caramos.gschema.override 2>/dev/null && echo 'OK' || echo 'MISSING')"
+echo "  Theme applier:  $(ls -l /usr/bin/caramos-theme-apply 2>/dev/null && echo 'OK' || echo 'MISSING')"
+echo "========================================="
+echo ""
+
+# --- Cleanup ---
 echo "[CaramOS] Cleaning up..."
 apt-get clean
 rm -rf /tmp/*

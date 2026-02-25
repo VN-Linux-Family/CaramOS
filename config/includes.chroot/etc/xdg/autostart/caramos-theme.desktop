@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Theme Applier
+Comment=Apply custom themes on first boot
+Exec=/usr/bin/caramos-theme-apply
+AutostartCondition=unless-exists ~/.config/caramos-theme-applied
+X-GNOME-Autostart-Phase=Desktop
+NoDisplay=true

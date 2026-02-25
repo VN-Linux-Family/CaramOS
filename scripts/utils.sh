@@ -121,7 +121,7 @@ check_root() {
 }
 
 install_deps() {
-    local DEPS="squashfs-tools xorriso rsync wget curl"
+    local DEPS="squashfs-tools xorriso rsync wget curl isolinux"
     local MISSING=""
     for cmd in unsquashfs mksquashfs xorriso rsync wget curl; do
         command -v "$cmd" &>/dev/null || MISSING="yes"

@@ -3,8 +3,10 @@
 # Chỉ thêm những gì Mint CHƯA CÓ
 
 # Display Manager: Giữ nguyên LightDM + Slick-Greeter mặc định của Mint
-# vì SDDM hay lỗi đen màn hình trên máy ảo và làm hỏng script live-boot.
 
-# Driver bổ sung (tên Ubuntu/Mint)
-linux-firmware
-dkms
+# ChromeOS-style Dock
+plank
+
+# Bộ gõ tiếng Việt
+fcitx5
+fcitx5-unikey

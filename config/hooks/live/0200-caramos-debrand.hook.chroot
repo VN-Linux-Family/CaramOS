@@ -6,6 +6,13 @@ export DEBIAN_FRONTEND=noninteractive
 
 echo "[CaramOS] === BẮT ĐẦU DE-BRANDING ==="
 
+# --- 0. Timezone Việt Nam (UTC+7) ---
+echo "[CaramOS] Đặt múi giờ Asia/Ho_Chi_Minh..."
+ln -sf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
+echo "Asia/Ho_Chi_Minh" > /etc/timezone
+dpkg-reconfigure -f noninteractive tzdata 2>/dev/null || true
+echo "[OK] Timezone = UTC+7"
+
 # --- 1. OS Identity ---
 echo "[CaramOS] Đổi OS identity..."
 

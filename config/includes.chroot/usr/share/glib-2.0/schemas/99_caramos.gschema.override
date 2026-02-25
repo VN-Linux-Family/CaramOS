@@ -1,4 +1,4 @@
-# CaramOS - System-wide Cinnamon defaults
+# CaramOS - System-wide Cinnamon defaults (ChromeOS layout)
 # Applied to all users, users can override in Settings
 
 [org.cinnamon.desktop.interface]
@@ -11,17 +11,25 @@ clock-use-24h=true
 
 [org.cinnamon.desktop.wm.preferences]
 titlebar-font='Be Vietnam Pro Bold 10'
+button-layout=':minimize,maximize,close'
+
+[org.cinnamon.theme]
+name='ChromeOS-Light'
 
 [org.cinnamon.desktop.background]
 picture-uri='file:///usr/share/backgrounds/caramos/caramos-light.png'
 picture-options='zoom'
 
+[org.cinnamon]
+panels-autohide=['1:true']
+panels-height=['1:30']
+
 [org.nemo.desktop]
 computer-icon-visible=false
-home-icon-visible=true
-trash-icon-visible=true
+home-icon-visible=false
+trash-icon-visible=false
 network-icon-visible=false
-volumes-visible=true
+volumes-visible=false
 
 [org.cinnamon.desktop.peripherals.touchpad]
 tap-to-click=true
@@ -32,9 +40,6 @@ sleep-inactive-ac-timeout=0
 sleep-inactive-battery-timeout=900
 lid-close-ac-action='nothing'
 lid-close-battery-action='suspend'
-
-# Night light — Cinnamon chưa có built-in, bỏ qua
-# (User bật thủ công trong Settings > Display)
 
 [org.cinnamon.desktop.screensaver]
 lock-enabled=true

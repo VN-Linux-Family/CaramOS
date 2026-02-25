@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Plank Dock
+Comment=ChromeOS-style dock for CaramOS
+Exec=plank
+Icon=plank
+AutostartCondition=GNOME3 unless-running plank
+X-GNOME-Autostart-Phase=Application
+NoDisplay=true

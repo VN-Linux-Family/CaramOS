@@ -10,3 +10,6 @@ plank
 # Bộ gõ tiếng Việt
 fcitx5
 fcitx5-unikey
+#5 @dungdinhmanh
+flameshot
+tlp

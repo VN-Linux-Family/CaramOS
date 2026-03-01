@@ -52,3 +52,25 @@ default-folder-viewer='icon-view'
 
 [org.cinnamon.desktop.default-applications.terminal]
 exec='gnome-terminal'
+
+#Free print screen keybind from area-screenshot
+[org.cinnamon.desktop.keybindings.media-keys]
+screenshot=@as []
+screenshot-clip=@as []
+window-screenshot=@as []
+window-screenshot-clip=@as []
+area-screenshot=@as []
+area-screenshot-clip=@as []
+
+[org.cinnamon.desktop.keybindings]
+custom-list=['custom0', 'custom1']
+
+[org.cinnamon.desktop.keybindings.custom-keybinding:/org/cinnamon/desktop/keybindings/custom-keybindings/custom0/]
+name='Flameshot'
+command='flameshot gui'
+binding=['<Super><Shift>s']
+
+[org.cinnamon.desktop.keybindings.custom-keybinding:/org/cinnamon/desktop/keybindings/custom-keybindings/custom1/]
+name='Flameshot Print'
+command='flameshot gui'
+binding=['Print']

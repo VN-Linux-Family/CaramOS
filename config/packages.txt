@@ -13,4 +13,3 @@ fcitx5-unikey
 #5 @dungdinhmanh
 flameshot
 tlp
-gdebi

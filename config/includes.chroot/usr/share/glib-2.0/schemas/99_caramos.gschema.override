@@ -63,7 +63,7 @@ area-screenshot=@as []
 area-screenshot-clip=@as []
 
 [org.cinnamon.desktop.keybindings]
-custom-list=['custom0', 'custom1']
+custom-list=['custom0', 'custom1', 'custom2']
 
 [org.cinnamon.desktop.keybindings.custom-keybinding:/org/cinnamon/desktop/keybindings/custom-keybindings/custom0/]
 name='Flameshot'
@@ -74,3 +74,8 @@ binding=['<Super><Shift>s']
 name='Flameshot Print'
 command='flameshot gui'
 binding=['Print']
+
+[org.cinnamon.desktop.keybindings.custom-keybinding:/org/cinnamon/desktop/keybindings/custom-keybindings/custom2/]
+name='CopyQ'
+command='copyq menu'
+binding=['<Super>v']

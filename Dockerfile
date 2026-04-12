@@ -3,7 +3,8 @@ FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies required by build.sh
-RUN apt-get update && \
+RUN apt-get upgrade && \ 
+    apt-get update && \
     apt-get install -y \
     squashfs-tools \
     xorriso \
@@ -12,6 +13,7 @@ RUN apt-get update && \
     curl \
     isolinux \
     sudo \
+    gnupg \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

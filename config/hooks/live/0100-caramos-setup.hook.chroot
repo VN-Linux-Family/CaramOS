@@ -139,19 +139,6 @@ echo "[CaramOS] Removing LibreOffice and bloatware..."
 "${APT_GET[@]}" purge -y 'libreoffice*' 2>/dev/null || true
 "${APT_GET[@]}" autoremove -y || true
 
-echo "[CaramOS] Installing WPS Office..."
-preseed_fonts_eula
-disable_package_data_downloads
-WPS_DEB_URL="${WPS_DEB_URL:-https://wdl1.pcfg.cache.wpscdn.com/wpsdl/wpsoffice/download/linux/11723/wps-office_11.1.0.11723.XA_amd64.deb}"
-wget -q -O /tmp/wps-office.deb "$WPS_DEB_URL" || true
-if [ -s /tmp/wps-office.deb ] && file /tmp/wps-office.deb | grep -qi "Debian binary package"; then
-    "${APT_GET[@]}" install -y /tmp/wps-office.deb || "${APT_GET[@]}" install -f -y
-    rm -f /tmp/wps-office.deb
-else
-    echo "[CaramOS] WARNING: Could not download WPS Office package from $WPS_DEB_URL" >&2
-    rm -f /tmp/wps-office.deb
-fi
-
 # --- Desktop branding defaults ---
 echo "[CaramOS] Applying desktop branding defaults..."
 mkdir -p /usr/share/applications /usr/share/pixmaps /usr/share/icons/hicolor/scalable/apps

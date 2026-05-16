@@ -1,0 +1,50 @@
+#!/bin/bash
+# Hook: Install WPS Office CN 12.1 (zh_CN MUI removed + update disabled)
+set -e
+export DEBIAN_FRONTEND=noninteractive
+APT_LOCK_TIMEOUT="${APT_LOCK_TIMEOUT:-600}"
+APT_GET=(apt-get -o DPkg::Lock::Timeout="${APT_LOCK_TIMEOUT}")
+
+WPS_VER="12.1.2.25882"
+
+_get_wps_url() {
+    local arch="$1"
+    local furl="https://wps-linux-personal.wpscdn.cn/wps/download/ep/Linux2023/${WPS_VER##*.}/wps-office_${WPS_VER}.AK.preread.sw.Personal_662820_${arch}.deb"
+    local uri="${furl#https://wps-linux-personal.wpscdn.cn}"
+    local secrityKey='7f8faaaa468174dc1c9cd62e5f218a5b'
+    local timestamp10=$(date '+%s')
+    local md5hash=$(echo -n "${secrityKey}${uri}${timestamp10}" | md5sum)
+    echo "${furl}?t=${timestamp10}&k=${md5hash%% *}"
+}
+
+echo "[CaramOS] Downloading WPS Office ${WPS_VER}..."
+WPS_URL=$(_get_wps_url amd64)
+wget -q -O /tmp/wps-office.deb "$WPS_URL" || true
+
+if [ ! -s /tmp/wps-office.deb ] || ! file /tmp/wps-office.deb | grep -qi "Debian binary package"; then
+    echo "[CaramOS] WARNING: Could not download WPS Office" >&2
+    rm -f /tmp/wps-office.deb
+    exit 0
+fi
+
+echo "[CaramOS] Extracting WPS Office deb (ar format)..."
+cd /tmp
+ar x wps-office.deb
+tar -xf data.tar.xz
+
+echo "[CaramOS] Removing zh_CN MUI..."
+rm -rf /tmp/opt/kingsoft/wps-office/office6/mui/zh_CN
+
+echo "[CaramOS] Removing wtool (update mechanism)..."
+rm -rf /tmp/opt/kingsoft/wps-office/office6/wtool
+
+echo "[CaramOS] Repackaging WPS Office..."
+tar -cJf data.tar.xz ./opt/ ./etc/ ./usr/ 2>/dev/null || true
+ar rcs wps-office-modified.deb debian-binary control.tar.gz data.tar.xz
+
+echo "[CaramOS] Installing WPS Office..."
+"${APT_GET[@]}" install -y /tmp/wps-office-modified.deb || "${APT_GET[@]}" install -f -y
+
+rm -rf /tmp/wps-office.deb /tmp/wps-office-modified.deb /tmp/data.tar.xz /tmp/control.tar.gz /tmp/debian-binary /tmp/opt /tmp/etc /tmp/usr
+
+echo "[CaramOS] WPS Office installed successfully!"

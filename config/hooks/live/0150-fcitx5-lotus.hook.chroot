@@ -1,0 +1,26 @@
+#!/bin/bash
+set -e
+export DEBIAN_FRONTEND=noninteractive
+APT_LOCK_TIMEOUT="${APT_LOCK_TIMEOUT:-600}"
+APT_GET=(apt-get -o DPkg::Lock::Timeout="${APT_LOCK_TIMEOUT}")
+
+echo "[CaramOS] Removing old fcitx5 packages..."
+"${APT_GET[@]}" remove -y fcitx5 fcitx5-unikey 2>/dev/null || true
+"${APT_GET[@]}" autoremove -y 2>/dev/null || true
+
+echo "[CaramOS] Installing fcitx5-lotus..."
+CODENAME=$(grep '^UBUNTU_CODENAME=' /etc/os-release | cut -d'=' -f2)
+if [ -z "$CODENAME" ]; then
+    CODENAME=noble
+fi
+
+mkdir -p /etc/apt/keyrings
+if ! ls /etc/apt/keyrings/fcitx5-lotus.gpg 2>/dev/null; then
+    curl -fsSL https://fcitx5-lotus.pages.dev/pubkey.gpg | gpg --dearmor -o /etc/apt/keyrings/fcitx5-lotus.gpg
+fi
+
+printf 'deb [signed-by=/etc/apt/keyrings/fcitx5-lotus.gpg] https://fcitx5-lotus.pages.dev/apt/%s %s main\n' "$CODENAME" "$CODENAME" > /etc/apt/sources.list.d/fcitx5-lotus.list
+
+"${APT_GET[@]}" update -qq
+"${APT_GET[@]}" install -y fcitx5-lotus
+echo "[CaramOS] fcitx5-lotus installed successfully!"

@@ -112,7 +112,7 @@ Nhiều nước đã làm tương tự:
 
 ### 1. **Việt hoá toàn diện**
 - Giao diện 100% tiếng Việt ngay từ cài đặt
-- **Bộ gõ tiếng Việt** (ibus-unikey / fcitx5-unikey) cài sẵn, hoạt động ngay
+- **Bộ gõ tiếng Việt** (fcitx5-lotus) cài sẵn, hoạt động ngay
 - Font chữ Việt đẹp mặc định (Google Noto, Be Vietnam Pro)
 - Hướng dẫn sử dụng bằng tiếng Việt tích hợp sẵn
 
@@ -234,7 +234,7 @@ Tuyệt vời! Bạn đã có **VNLF (Vietnam Linux Family)** — vậy là đã
 ```
 VNLF OS = Linux Mint (base)
          + Branding VNLF (wallpaper, logo, boot splash, icon)
-         + Unikey/ibus-unikey cài sẵn, bật sẵn
+         + Lotus cài sẵn, bật sẵn
          + Font tiếng Việt đẹp mặc định
          + LibreOffice tiếng Việt
          + Zalo Web PWA pinned sẵn

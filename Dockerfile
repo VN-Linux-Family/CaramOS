@@ -6,7 +6,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
 
 # Dependencies required by build.sh, hooks, and Makefile targets.
 # CI=1 skips the optional gum installer, but gnupg is kept for parity if enabled later.
-RUN apt-get update && apt-get upgrade -y\
+RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         apt-transport-https \
         ca-certificates \

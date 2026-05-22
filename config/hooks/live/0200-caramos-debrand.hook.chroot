@@ -25,6 +25,10 @@ echo "[OK] Timezone = UTC+7"
 echo "[CaramOS] Đổi OS identity..."
 
 # /etc/os-release
+# lebao3105: Cân nhắc đến việc thay đổi VERSION_CODENAME về
+# code name của Linux Mint. add-apt-repository không thể chạy
+# với code name "lạ" như thế này
+# (hoặc fork luôn các project của Mint)
 if [ -f /etc/os-release ]; then
     cat > /etc/os-release << EOF
 NAME="CaramOS"
@@ -213,6 +217,9 @@ echo "[CaramOS] Đổi GRUB defaults..."
 if [ -f /etc/default/grub ]; then
     sed -i 's/Linux Mint/CaramOS/gI' /etc/default/grub
     sed -i 's/GRUB_DISTRIBUTOR=.*/GRUB_DISTRIBUTOR="CaramOS"/' /etc/default/grub
+    if [ -f /etc/default/grub.d/50_linuxmint.cfg ]; then
+        sed -i 's/GRUB_DISTRIBUTOR=.*/GRUB_DISTRIBUTOR="CaramOS"/' /etc/default/grub.d/50_linuxmint.cfg
+    fi
     echo "[OK] /etc/default/grub"
 fi
 
@@ -242,6 +249,7 @@ echo "[OK] /usr/share/linuxmint/"
 find /usr/lib/linuxmint -type f -name "*.py" -exec \
     sed -i 's/Linux Mint/CaramOS/gI' {} + 2>/dev/null || true
 echo ""
+# Đổi string chứa "Linux Mint" trong mintwelcome
 if command -v msgunfmt &>/dev/null && command -v msgfmt &>/dev/null; then
     for mo in $(find /usr/share/linuxmint/locale -name "mintwelcome.mo"); do
         po=$(mktemp --suffix=.po)
@@ -251,6 +259,16 @@ if command -v msgunfmt &>/dev/null && command -v msgfmt &>/dev/null; then
         rm "$po"
     done
 fi
+# Logo trong mintreport
+sed -i 's/linuxmint-logo-filled-ring/caramos/g' /usr/share/linuxmint/mintreport/mintreport.ui
+
+# Nền logo trong mintreport
+# Từ commit https://github.com/linuxmint/mintreport/commit/4d9d9e1c87a6ed247807e04f5bbb5bfcc54ec62f,
+# Màu nền không còn bị hard-coded nữa, mà lấy màu accent luôn. Bên dưới cũng thực hiện y như vậy.
+# TODO: Xoá sau khi mintreport được cập nhật.
+sed -i 's/#86be43/shade(@theme_bg_color, 0.96)/g' /usr/lib/linuxmint/mintreport/app.py
+
+# --- 12. Tổng kết ---
 echo "========================================="
 echo "[CaramOS] De-branding Verification:"
 echo "  os-release:   $(grep PRETTY_NAME /etc/os-release 2>/dev/null)"

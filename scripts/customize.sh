@@ -68,6 +68,8 @@ step_customize() {
         set -e
         test -f /etc/dconf/db/local
         test -f /etc/xdg/autostart/caramos-theme.desktop
+        test -f /etc/systemd/zram-generator.conf
+        grep -q "^zram-size = ram / 2$" /etc/systemd/zram-generator.conf
         test -d /usr/share/cinnamon/applets/Cinnamenu@json
         find /usr/share/cinnamon/applets/Cinnamenu@json -name settings-schema.json -print -quit | grep -q .
         test -f /usr/share/plymouth/themes/caramos/caramos.plymouth

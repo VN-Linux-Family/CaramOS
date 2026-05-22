@@ -1,0 +1,15 @@
+#!/bin/bash
+# Hook: ZRAM mặc định 50% RAM
+set -e
+
+echo "[CaramOS] Configuring default ZRAM..."
+
+mkdir -p /etc/systemd
+cat > /etc/systemd/zram-generator.conf <<'ZRAM'
+[zram0]
+zram-size = ram / 2
+compression-algorithm = zstd
+swap-priority = 100
+ZRAM
+
+echo "[CaramOS] Default ZRAM configured."

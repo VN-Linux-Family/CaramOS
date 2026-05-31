@@ -1,0 +1,71 @@
+[Hotkey]
+# Enumerate when holding modifier of Toggle key
+EnumerateWithTriggerKeys=True
+# Activate Input Method
+ActivateKeys=
+# Deactivate Input Method
+DeactivateKeys=
+# Temporarily Toggle Input Method
+AltTriggerKeys=
+# Enumerate Input Method Forward
+EnumerateForwardKeys=
+# Enumerate Input Method Backward
+EnumerateBackwardKeys=
+# Skip first input method while enumerating
+EnumerateSkipFirst=False
+# Time limit in milliseconds for triggering modifier key shortcuts
+ModifierOnlyKeyTimeout=250
+
+[Hotkey/TriggerKeys]
+0=Control+Shift+Shift_L
+
+[Hotkey/EnumerateGroupForwardKeys]
+
+[Hotkey/EnumerateGroupBackwardKeys]
+
+[Hotkey/PrevPage]
+
+[Hotkey/NextPage]
+
+[Hotkey/PrevCandidate]
+
+[Hotkey/NextCandidate]
+
+[Hotkey/TogglePreedit]
+
+[Behavior]
+# Active By Default
+ActiveByDefault=False
+# Reset state on Focus In
+resetStateWhenFocusIn=No
+# Share Input State
+ShareInputState=All
+# Show preedit in application
+PreeditEnabledByDefault=True
+# Show Input Method Information when switch input method
+ShowInputMethodInformation=True
+# Show Input Method Information when changing focus
+showInputMethodInformationWhenFocusIn=False
+# Show compact input method information
+CompactInputMethodInformation=True
+# Show first input method information
+ShowFirstInputMethodInformation=True
+# Default page size
+DefaultPageSize=5
+# Override XKB Option
+OverrideXkbOption=False
+# Custom XKB Option
+CustomXkbOption=
+# Force Enabled Addons
+EnabledAddons=
+# Force Disabled Addons
+DisabledAddons=
+# Preload input method to be used by default
+PreloadInputMethod=True
+# Allow input method in the password field
+AllowInputMethodForPassword=False
+# Show preedit text when typing password
+ShowPreeditForPassword=False
+# Interval of saving user data in minutes
+AutoSavePeriod=30
+

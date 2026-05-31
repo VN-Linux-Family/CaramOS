@@ -1,0 +1,27 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Create runtime directories
+        mkdir -p /var/lib/caramos-ota
+        mkdir -p /var/log/caramos-ota
+
+        # Ensure root ownership
+        chown root:root /var/lib/caramos-ota
+        chmod 0755 /var/lib/caramos-ota
+        chown root:root /var/log/caramos-ota
+        chmod 0755 /var/log/caramos-ota
+
+        # Enable and start the daily check timer
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl daemon-reload || true
+            systemctl enable caramos-ota-check.timer || true
+            systemctl start caramos-ota-check.timer || true
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

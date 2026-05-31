@@ -1,0 +1,8 @@
+#!/usr/bin/env python3
+"""Command entrypoint for the CaramOS OTA desktop notifier."""
+
+from caramos_ota_notifier.app import main
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

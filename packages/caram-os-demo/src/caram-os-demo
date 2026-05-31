@@ -1,0 +1,6 @@
+#!/bin/sh
+set -e
+
+printf '%s\n' 'CaramOS PPA demo package is installed.'
+printf '%s\n' 'Version: 1.0.1'
+printf '%s\n' 'PPA: ppa:vietnamlinuxfamily/caram-os'

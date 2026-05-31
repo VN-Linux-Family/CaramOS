@@ -1,0 +1,5 @@
+# Automatically added by dh_installsystemd/13.6ubuntu1
+if [ -z "${DPKG_ROOT:-}" ] && [ "$1" = remove ] && [ -d /run/systemd/system ] ; then
+	deb-systemd-invoke stop 'caramos-ota-check.service' 'caramos-ota-check.timer' >/dev/null || true
+fi
+# End automatically added section

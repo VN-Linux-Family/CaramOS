@@ -1,0 +1,10 @@
+./usr/bin/caramos-ota
+./usr/bin/caramos-ota-notifier
+./usr/lib/python3/dist-packages/caramos_ota
+./usr/lib/python3/dist-packages/caramos_ota_notifier
+./usr/share/caramos-ota/manifest.json
+./usr/share/polkit-1/actions/net.vietnamlinuxfamily.caramos-ota.policy
+./lib/systemd/system/caramos-ota-check.service
+./lib/systemd/system/caramos-ota-check.timer
+./etc/xdg/autostart/caramos-ota-notifier.desktop
+./etc/logrotate.d/caramos-ota

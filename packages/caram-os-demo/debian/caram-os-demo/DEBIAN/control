@@ -1,0 +1,13 @@
+Package: caram-os-demo
+Version: 1.0.1
+Architecture: all
+Maintainer: Vietnam Linux Family <contact@vietnamlinuxfamily.net>
+Installed-Size: 13
+Section: admin
+Priority: optional
+Homepage: https://github.com/VN-Linux-Family/CaramOS
+Description: Demo package for the CaramOS PPA
+ This package is a minimal demonstration package for validating the
+ CaramOS Launchpad PPA upload and install flow.
+ .
+ It installs a small command and a release marker file.

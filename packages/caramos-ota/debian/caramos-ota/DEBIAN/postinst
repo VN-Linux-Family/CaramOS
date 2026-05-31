@@ -1,0 +1,57 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Create runtime directories
+        mkdir -p /var/lib/caramos-ota
+        mkdir -p /var/log/caramos-ota
+
+        # Ensure root ownership
+        chown root:root /var/lib/caramos-ota
+        chmod 0755 /var/lib/caramos-ota
+        chown root:root /var/log/caramos-ota
+        chmod 0755 /var/log/caramos-ota
+
+        # Enable and start the daily check timer
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl daemon-reload || true
+            systemctl enable caramos-ota-check.timer || true
+            systemctl start caramos-ota-check.timer || true
+        fi
+        ;;
+esac
+
+# Automatically added by dh_installsystemd/13.6ubuntu1
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	# This will only remove masks created by d-s-h on package removal.
+	deb-systemd-helper unmask 'caramos-ota-check.timer' >/dev/null || true
+
+	# was-enabled defaults to true, so new installations run enable.
+	if deb-systemd-helper --quiet was-enabled 'caramos-ota-check.timer'; then
+		# Enables the unit on first installation, creates new
+		# symlinks on upgrades if the unit file has changed.
+		deb-systemd-helper enable 'caramos-ota-check.timer' >/dev/null || true
+	else
+		# Update the statefile to add new symlinks (if any), which need to be
+		# cleaned up on purge. Also remove old symlinks.
+		deb-systemd-helper update-state 'caramos-ota-check.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+# Automatically added by dh_installsystemd/13.6ubuntu1
+if [ "$1" = "configure" ] || [ "$1" = "abort-upgrade" ] || [ "$1" = "abort-deconfigure" ] || [ "$1" = "abort-remove" ] ; then
+	if [ -d /run/systemd/system ]; then
+		systemctl --system daemon-reload >/dev/null || true
+		if [ -n "$2" ]; then
+			_dh_action=restart
+		else
+			_dh_action=start
+		fi
+		deb-systemd-invoke $_dh_action 'caramos-ota-check.service' 'caramos-ota-check.timer' >/dev/null || true
+	fi
+fi
+# End automatically added section
+
+
+exit 0

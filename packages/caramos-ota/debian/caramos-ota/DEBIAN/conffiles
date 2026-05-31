@@ -1,0 +1,2 @@
+/etc/logrotate.d/caramos-ota
+/etc/xdg/autostart/caramos-ota-notifier.desktop

@@ -1,0 +1,17 @@
+Source: caram-os-demo
+Section: admin
+Priority: optional
+Maintainer: Vietnam Linux Family <contact@vietnamlinuxfamily.net>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+Homepage: https://github.com/VN-Linux-Family/CaramOS
+
+Package: caram-os-demo
+Architecture: all
+Depends: ${misc:Depends}
+Description: Demo package for the CaramOS PPA
+ This package is a minimal demonstration package for validating the
+ CaramOS Launchpad PPA upload and install flow.
+ .
+ It installs a small command and a release marker file.

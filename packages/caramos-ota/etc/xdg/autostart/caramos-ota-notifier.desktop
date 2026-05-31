@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Update Notifier
+Comment=Check for CaramOS OTA updates
+Exec=/usr/bin/caramos-ota-notifier
+Icon=system-software-update
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-Phase=Applications
+X-GNOME-Autostart-Delay=30

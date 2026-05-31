@@ -1,0 +1,11 @@
+caramos-ota (1.0.2-0caramos1) noble; urgency=medium
+
+  * Initial CaramOS OTA updater package.
+  * CLI: check, upgrade, status, repair, rollback, dry-run.
+  * Daily update check via systemd timer.
+  * Desktop notifier with GTK3 Vietnamese dialog.
+  * Privilege escalation through pkexec/polkit.
+  * Transaction state tracking and best-effort rollback.
+  * Logging with logrotate support.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 26 May 2026 19:15:00 +0700

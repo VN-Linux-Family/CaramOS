@@ -1,0 +1,29 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    purge)
+        # Remove state directory on purge
+        rm -rf /var/lib/caramos-ota
+
+        # Keep /var/log/caramos-ota for debug/audit purposes
+        # Uncomment the next line to remove logs on purge:
+        # rm -rf /var/log/caramos-ota
+
+        # Reload systemd
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl daemon-reload || true
+        fi
+        ;;
+
+    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        # Reload systemd after file removal
+        if command -v systemctl >/dev/null 2>&1; then
+            systemctl daemon-reload || true
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

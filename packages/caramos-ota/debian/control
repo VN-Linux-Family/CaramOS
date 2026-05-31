@@ -1,0 +1,30 @@
+Source: caramos-ota
+Section: admin
+Priority: optional
+Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+Standards-Version: 4.6.2
+Build-Depends: debhelper-compat (= 13)
+Rules-Requires-Root: no
+
+Package: caramos-ota
+Architecture: all
+Depends: ${misc:Depends},
+ apt,
+ dpkg,
+ systemd,
+ python3,
+ python3-gi,
+ gir1.2-gtk-3.0,
+ pkexec
+Description: CaramOS over-the-air update helper
+ Provides a CaramOS-specific OTA update command, daily update check,
+ desktop notifier, state tracking, logs, and best-effort rollback support.
+ .
+ Users only need to run: sudo caramos-ota
+ .
+ Features:
+  - CLI-based update check, install, status, repair, and rollback
+  - Daily automatic check via systemd timer
+  - Desktop notification with GTK3 dialog (Vietnamese)
+  - Privilege escalation through pkexec/polkit
+  - Transaction logging and best-effort rollback

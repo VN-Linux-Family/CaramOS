@@ -8,7 +8,7 @@ MINT_ISO_NAME="linuxmint-${MINT_VERSION}-${MINT_EDITION}-${MINT_ARCH}.iso"
 if [ "$GITHUB_ACTIONS" = "true" ]; then
     MINT_MIRROR="https://mirrors.kernel.org/linuxmint/stable/${MINT_VERSION}/${MINT_ISO_NAME}"
 else
-    MINT_MIRROR="https://mirror.meowsmp.net/linuxmint/iso/stable/${MINT_VERSION}/${MINT_ISO_NAME}"
+    MINT_MIRROR="https://mirror.clearsky.vn/linuxmint/iso/stable/${MINT_VERSION}/${MINT_ISO_NAME}"
 fi
 
 # CaramOS version — source of truth, giống cách Linux kernel khai báo trong Makefile.

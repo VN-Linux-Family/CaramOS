@@ -16,33 +16,28 @@ class ReleaseInfo:
 
 
 @dataclass(frozen=True)
-class Component:
-    """One package component declared in the OTA manifest."""
-
-    package: str
-    min_version: str
-    required: bool
-    description: str
-
-
-@dataclass(frozen=True)
 class Manifest:
-    """Validated OTA manifest."""
+    """Validated migration-based OTA manifest."""
 
     release: str
     codename: str
     source: str
     min_client_version: str | None
+    channel: str
+    severity: str
+    size: str
+    title: str
+    summary: str
     release_notes_vi: list[str]
     release_notes_en: list[str]
-    components: list[Component]
 
 
 @dataclass(frozen=True)
 class UpdatePackage:
-    """One package that needs install/upgrade."""
+    """Display-only update item for the notifier UI."""
 
     name: str
     current_version: str
     available_version: str
     description: str
+    required: bool = True

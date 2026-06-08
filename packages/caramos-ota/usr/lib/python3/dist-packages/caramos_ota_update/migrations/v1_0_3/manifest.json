@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "version": "1.0.3",
+  "from_version": "1.0.2",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "systemd-zram-generator + migration payload",
+  "title": "CaramOS có bản cập nhật mới",
+  "summary": "Bản cập nhật này sẽ bật ZRAM mặc định 50% RAM cho CaramOS 1.0.3.",
+  "release_notes_vi": [
+    "PR #42: thêm ZRAM mặc định 50% RAM để cải thiện hiệu năng trên máy RAM thấp.",
+    "Cài systemd-zram-generator và cấu hình /dev/zram0 với zstd compression, swap priority 100."
+  ],
+  "release_notes_en": [
+    "PR #42: add default ZRAM at 50% of RAM to improve performance on low-memory machines.",
+    "Install systemd-zram-generator and configure /dev/zram0 with zstd compression and swap priority 100."
+  ]
+}

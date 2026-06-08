@@ -1,156 +1,156 @@
 # CaramOS packages
 
-Thư mục `packages/` chứa các Debian source package do CaramOS tự duy trì. Đây là lớp package riêng của distro, dùng để phân phối branding, cấu hình, công cụ hệ thống, metadata release và các bản vá mà upstream Ubuntu/Linux Mint không có.
+Thư mục `packages/` chứa các Debian source package do CaramOS tự duy trì. Đây là lớp migration riêng của distro. Với OTA, CaramOS chốt model migration theo version: các thay đổi branding/cấu hình sau phát hành nằm trong `caramos-ota-update` migrations, không tách mỗi thay đổi thành một migration riêng.
 
 > [!IMPORTANT]
-> `caramos-ota` là package trung tâm. Nó không chỉ tự cập nhật chính nó, mà còn là bộ điều phối để tự động phát hiện và cập nhật các package CaramOS khác thông qua PPA và manifest OTA.
+> Kiến trúc OTA mới của CaramOS là **version migration-driven OTA**: migration index chỉ báo `release`, còn việc cập nhật thật được chạy theo chuỗi migration trong `caramos-ota-update`.
 
 ---
 
-## 1. Mục đích của thư mục `packages/`
+## 1. Mục tiêu của `packages/`
 
-CaramOS là ISO remaster dựa trên Linux Mint/Ubuntu. Sau khi ISO đã phát hành, ta vẫn cần một cách để cập nhật các thành phần riêng của CaramOS mà không bắt user tải lại ISO. Thư mục này phục vụ mục tiêu đó.
+CaramOS là ISO remaster dựa trên Linux Mint/Ubuntu. Sau khi phát hành ISO, ta vẫn cần cập nhật các thành phần riêng mà không bắt user tải lại ISO.
 
-Các package ở đây thường dùng để:
+Các package trong thư mục này dùng để:
 
-- Cài/cập nhật branding của CaramOS.
+- Cài/cập nhật công cụ OTA của CaramOS.
+- Cài/cập nhật branding, wallpaper, icon, theme, cấu hình desktop.
 - Cài/cập nhật cấu hình hệ thống mặc định.
-- Cài/cập nhật công cụ riêng của CaramOS.
-- Cung cấp metadata để hệ thống biết đang ở release nào.
+- Cung cấp migration để nâng CaramOS từ version này lên version khác.
 - Đẩy bản vá nhỏ qua PPA sau khi ISO đã phát hành.
 - Kiểm thử pipeline build/upload PPA.
 
 ---
 
-## 2. Nguyên lý làm việc tổng thể
+## 2. Kiến trúc OTA mới
+
+Thay vì manifest liệt kê từng package cần `min_version`, CaramOS OTA dùng model giống database migration:
 
 ```text
-packages/
-  ├── caramos-ota/          # bộ điều phối OTA chính
-  └── package-khac/         # các package CaramOS khác
+current CaramOS version
+  └── migration A -> B
+      └── migration B -> C
+          └── migration C -> D
+              └── target/latest version
+```
 
-Contributor sửa package
+Ba command chính:
+
+| Command | Vai trò |
+|---|---|
+| `caramos-ota` | Orchestrator: check OS/repo, tải manifest, so current/latest version, ghi state, gọi updater. |
+| `caramos-ota-notifier` | Desktop UI: đọc state, hiện popup, gọi `pkexec caramos-ota --upgrade --yes`. |
+| `caramos-ota-update` | Migration runner: chạy từng migration version theo thứ tự. |
+
+Flow tổng thể:
+
+```text
+Contributor sửa package hoặc migration
   └── build .deb
       └── upload PPA ppa:vietnamlinuxfamily/caram-os
-          └── cập nhật OTA manifest online
-              └── máy người dùng chạy caramos-ota --check
-                  ├── apt-get update thấy candidate version mới từ PPA
-                  ├── caramos-ota tải/đọc manifest online
-                  ├── caramos-ota quyết định package nào cần update
-                  └── apt-get install package từ PPA khi user đồng ý
+          └── cập nhật migration index release
+              └── máy user chạy caramos-ota --check
+                  ├── tải migration index
+                  ├── thấy release > current_version
+                  └── ghi available_update vào state
+
+User đồng ý update
+  └── caramos-ota --upgrade
+      └── caramos-ota-update --target <release>
+          ├── chạy migration current -> next
+          ├── ghi state sau mỗi migration thành công
+          ├── chạy migration next -> target
+          └── cập nhật /etc/caramos-release
 ```
 
 Điểm quan trọng:
 
-- PPA là nơi chứa `.deb` thật sự.
-- Manifest online là nơi khai báo policy update hiện tại.
-- `caramos-ota` là bộ điều phối update.
-- Manifest khai báo package CaramOS nào phải đạt version tối thiểu nào.
-- Khi user hoặc systemd timer chạy `caramos-ota --check`, OTA lấy manifest mới, rồi so sánh version đã cài với version yêu cầu.
-- Khi user đồng ý update, `caramos-ota` gọi APT để cài/nâng cấp các package đó.
-- Các package khác không cần tự viết update logic riêng; chúng chỉ cần được đóng gói đúng, có trong PPA và được khai báo trong manifest.
-
-Nói ngắn gọn: **package khác được cập nhật qua PPA, manifest online nói cần cập nhật gì, còn `caramos-ota` là thằng kiểm tra, quyết định và kích hoạt việc cập nhật đó.** Bản thân `caramos-ota` cũng là một component trong manifest, nên nếu có version mới trong PPA thì client cũ có thể tự phát hiện và tự update chính nó, miễn là schema manifest vẫn tương thích với client cũ.
-
-> [!IMPORTANT]
-> Nếu manifest chỉ nằm bên trong package `caramos-ota`, thì đúng là sẽ có vấn đề “con gà quả trứng”: muốn biết cần update gì thì phải update `caramos-ota` trước. Vì vậy mô hình đúng cho OTA lâu dài là manifest phải có bản online/trusted để máy đang chạy bản `caramos-ota` cũ vẫn phát hiện được update mới.
+- PPA vẫn là nơi chứa `.deb` thật sự.
+- Migration metadata **không chứa script**, không chứa URL tải `.deb`.
+- Manifest chỉ là metadata release: `release`, release notes, schema, codename/channel.
+- Logic thay đổi hệ thống nằm trong migration code đã được đóng gói, review và cài qua APT.
+- `caramos-ota` không nên biến thành mini package manager.
+- `caramos-ota-update` mới là nơi quyết định update từng version làm gì.
 
 ---
 
 ## 3. Vai trò của `caramos-ota`
 
-`caramos-ota` là package quan trọng nhất trong `packages/`.
+`caramos-ota` là package trung tâm trong `packages/`.
 
-Nó chịu trách nhiệm:
+Nó gồm 3 phần:
 
-1. Xác minh máy đang chạy đúng CaramOS.
-2. Xác minh PPA/keyring CaramOS đã được cài từ ISO.
-3. Chạy `apt-get update` để refresh metadata.
-4. Tải manifest OTA online từ endpoint chính thức; nếu không tải được thì fallback sang manifest bundled nếu còn hợp lệ.
-5. Kiểm tra các package CaramOS khác đã đạt version yêu cầu chưa.
-6. Ghi state để CLI, systemd timer và desktop notifier dùng chung.
-7. Hiển thị danh sách update cho user.
-8. Cài update bằng APT khi user đồng ý.
-9. Ghi transaction/log để debug và rollback best-effort.
-10. Hiển thị desktop notifier cho user phổ thông.
-
-Ví dụ: nếu sau này có package `caramos-branding`, `caramos-default-settings`, `caramos-wallpapers`, thì manifest của `caramos-ota` có thể khai báo:
-
-```json
-{
-  "components": [
-    {
-      "package": "caramos-branding",
-      "min_version": "1.0.3-0caramos1",
-      "required": true,
-      "description": "CaramOS branding assets"
-    },
-    {
-      "package": "caramos-default-settings",
-      "min_version": "1.0.2-0caramos1",
-      "required": true,
-      "description": "Default desktop/system settings"
-    }
-  ]
-}
+```text
+caramos-ota package
+├── /usr/bin/caramos-ota              # check + orchestrator
+├── /usr/bin/caramos-ota-notifier     # desktop notifier
+└── /usr/bin/caramos-ota-update       # migration runner
 ```
 
-Khi đó `caramos-ota` sẽ tự phát hiện máy nào thiếu/chưa đủ version và đề xuất update các package này.
+Trách nhiệm tách rõ:
+
+### `caramos-ota`
+
+- Xác minh máy đang chạy đúng CaramOS.
+- Xác minh PPA/keyring CaramOS đã được cài từ ISO.
+- Tải manifest OTA online.
+- Fallback sang migration-local manifest nếu online lỗi.
+- So sánh `current_version` với `release`.
+- Ghi `/var/lib/caramos-ota/state.json`.
+- Khi upgrade, gọi `caramos-ota-update`.
+- Không tự nhét toàn bộ migration logic vào CLI chính.
+
+### `caramos-ota-notifier`
+
+- Chạy trong desktop session.
+- Đọc state do `caramos-ota --check` ghi.
+- Hiện popup tiếng Việt.
+- Khi user bấm cập nhật, gọi:
+
+```bash
+pkexec /usr/bin/caramos-ota --upgrade --yes
+```
+
+Notifier không tự parse manifest, không tự chạy APT, không tự quyết định update.
+
+### `caramos-ota-update`
+
+- Chạy với quyền root.
+- Đọc current version và target version.
+- Tìm chuỗi migration cần chạy.
+- Chạy từng migration theo thứ tự.
+- Ghi transaction/log sau từng bước.
+- Cập nhật `/etc/caramos-release` khi migration thành công.
+- Nếu lỗi, dừng ở version cuối cùng đã thành công để lần sau chạy tiếp.
 
 ---
 
-## 3.1 Manifest online và manifest bundled
-
-Để OTA thật sự tự cập nhật được các package khác, manifest không nên chỉ nằm trong package `caramos-ota`.
+## 4. Migration metadata và migration-local manifest
 
 Có 2 loại manifest:
 
 | Loại manifest | Vị trí | Vai trò |
 |---|---|---|
-| Manifest online | Endpoint chính thức của CaramOS, ví dụ `https://caramos.vietnamlinuxfamily.net/ota/stable/noble/manifest.json` | Nguồn policy update mới nhất. Máy đang chạy `caramos-ota` cũ vẫn đọc được để biết cần update gì. |
-| Manifest bundled | `packages/caramos-ota/usr/share/caramos-ota/manifest.json` và sau khi cài là `/usr/share/caramos-ota/manifest.json` | Fallback/offline baseline để CLI vẫn có schema mẫu và có thể hoạt động tối thiểu nếu endpoint tạm lỗi. |
+| Migration metadata | `caramos_ota_update/migrations/migration.json` | Danh sách version migration được đóng gói. |
+| Migration-local manifest | `packages/caramos-ota/usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json` | Metadata đóng gói theo từng migration. |
 
-Nguyên tắc:
+### 4.1 URL manifest
 
-- `caramos-ota --check` nên ưu tiên tải manifest online qua HTTPS.
-- Nếu online manifest tải thành công và hợp lệ, dùng nó để quyết định update.
-- Nếu endpoint lỗi, có thể fallback sang bundled manifest, nhưng fallback này có thể cũ.
-- Manifest online chỉ chứa metadata package/version/release notes, không chứa script để chạy.
-- Package binary vẫn phải đến từ PPA/APT, không tải `.deb` thủ công từ manifest.
-- Manifest online cần có cơ chế trust rõ ràng. Tối thiểu là HTTPS trên domain chính thức; tốt hơn là ký manifest bằng key riêng và verify chữ ký trong `caramos-ota`.
-
-Flow đúng:
+`caramos-ota` build URL từ `/etc/caramos-release`:
 
 ```text
-package mới hoặc version mới
-  ├── upload .deb lên PPA
-  └── cập nhật manifest online
-      └── máy user chạy caramos-ota --check
-          ├── tải manifest online
-          ├── apt-get update
-          ├── so installed/candidate với min_version
-          └── báo update cho user
-```
-
-Bundled manifest vẫn có ích, nhưng không nên là nguồn duy nhất cho OTA lâu dài.
-
-### 3.1.1 Cấu trúc URL manifest online
-
-`caramos-ota` build URL manifest từ `CHANNEL` và `UBUNTU_CODENAME` trong `/etc/caramos-release`:
-
-```text
-https://caramos.vietnamlinuxfamily.net/ota/{channel}/{codename}/manifest.json
+caramos_ota_update/migrations/migration.json
 ```
 
 Ví dụ:
 
 ```text
-https://caramos.vietnamlinuxfamily.net/ota/stable/noble/manifest.json
+caramos_ota_update/migrations/migration.json
 https://caramos.vietnamlinuxfamily.net/ota/beta/noble/manifest.json
 https://caramos.vietnamlinuxfamily.net/ota/stable/oracular/manifest.json
 ```
 
-Cấu trúc deploy trên server nên tương ứng:
+Cấu trúc deploy trên server:
 
 ```text
 /ota/
@@ -164,152 +164,102 @@ Cấu trúc deploy trên server nên tương ứng:
         └── manifest.json
 ```
 
-### 3.1.2 Mẫu manifest online
+### 4.2 Mẫu manifest mới
 
-Đây là mẫu manifest v1 để contributor copy khi tạo/cập nhật manifest online:
+Manifest v1 theo migration model:
 
 ```json
 {
   "schema": 1,
-  "min_client_version": "1.0.2-0caramos1",
-  "release": "1.0.3",
+  "channel": "stable",
   "codename": "noble",
+  "current_series": "1.x",
+  "release": "1.0.2",
+  "min_client_version": "1.0.2-0caramos1",
   "release_notes_vi": [
-    "Cập nhật bộ OTA để hỗ trợ manifest online.",
-    "Cập nhật branding/cấu hình CaramOS qua PPA."
+    "Cập nhật WPS Office.",
+    "Sửa cấu hình input method.",
+    "Cập nhật branding CaramOS."
   ],
   "release_notes_en": [
-    "Update OTA tooling to support online manifests.",
-    "Update CaramOS branding/settings through the PPA."
-  ],
-  "components": [
-    {
-      "package": "caramos-ota",
-      "required": true,
-      "min_version": "1.0.3-0caramos1",
-      "description": "CaramOS OTA updater and desktop notifier"
-    },
-    {
-      "package": "caramos-wallpapers",
-      "required": true,
-      "min_version": "1.0.0-0caramos1",
-      "description": "CaramOS default wallpapers"
-    },
-    {
-      "package": "caramos-default-settings",
-      "required": true,
-      "min_version": "1.0.0-0caramos1",
-      "description": "CaramOS default system and desktop settings"
-    }
+    "Update WPS Office.",
+    "Fix input method configuration.",
+    "Update CaramOS branding."
   ]
 }
 ```
 
-Quy tắc khi sửa manifest:
-
-- `schema` hiện tại giữ là `1` để client cũ còn đọc được.
-- `codename` phải khớp với thư mục URL và `/etc/caramos-release`.
-- `min_client_version` là version client OTA tối thiểu mà manifest này hỗ trợ.
-- `components[].package` phải là tên Debian package hợp lệ.
-- `components[].min_version` phải tồn tại trong PPA trước khi publish manifest.
-- Luôn khai báo `caramos-ota` trong manifest để OTA có thể tự update.
-- Không đưa URL tải `.deb`, shell script hoặc command vào manifest.
-- Nếu đổi breaking schema, phải dùng bridge rollout trước khi publish schema mới.
-
----
-
-## 3.2 Khi chính `caramos-ota` cần được cập nhật
-
-`caramos-ota` cũng phải được xem là một package CaramOS bình thường và được khai báo trong manifest online:
-
-```json
-{
-  "package": "caramos-ota",
-  "min_version": "1.0.3-0caramos1",
-  "required": true,
-  "description": "CaramOS OTA updater"
-}
-```
-
-Khi đó máy đang chạy `caramos-ota` cũ sẽ làm được luồng này:
-
-```text
-caramos-ota cũ --check
-  ├── tải manifest online bằng schema nó hiểu được
-  ├── thấy component caramos-ota cần >= 1.0.3-0caramos1
-  ├── apt-cache thấy PPA có candidate 1.0.3-0caramos1
-  └── khi user đồng ý: apt-get install caramos-ota
-      └── caramos-ota mới được cài lên máy
-```
-
-Vì vậy update `caramos-ota` bình thường không phải vấn đề, miễn là manifest online vẫn giữ schema tương thích với các client cũ đang tồn tại ngoài thực tế.
-
-### 3.2.1 Quy tắc không phá client cũ
-
-Manifest online là hợp đồng giữa server và mọi bản `caramos-ota` đã phát hành. Không được đổi đột ngột theo kiểu client cũ đọc vào là crash hoặc không hiểu gì.
-
 Quy tắc:
 
-- Giữ `schema: 1` tương thích lâu nhất có thể.
-- Field mới phải optional.
-- Không đổi nghĩa field cũ.
-- Không xóa field mà client cũ đang cần.
-- Nếu cần schema mới, manifest nên có `min_client_version` hoặc publish song song endpoint cũ/mới.
-- Client cũ gặp field lạ phải ignore, không crash.
-
-### 3.2.2 Nếu cần sửa logic OTA nhưng vẫn tương thích
-
-Ví dụ sửa bug UI, sửa normalize state, sửa cách gọi APT nhưng manifest schema không đổi.
-
-Flow:
-
-```text
-1. Sửa code caramos-ota.
-2. Build/upload caramos-ota version mới lên PPA.
-3. Cập nhật manifest online: component caramos-ota min_version = version mới.
-4. Client cũ đọc manifest schema cũ, thấy cần update caramos-ota.
-5. Client cũ dùng APT cài caramos-ota mới.
-```
-
-Đây là flow tự update bình thường.
-
-### 3.2.3 Nếu cần đổi breaking logic/schema
-
-Nếu bản `caramos-ota` cũ chưa hiểu manifest mới, không được publish manifest mới ngay. Phải rollout 2 pha.
-
-```text
-Pha 1: phát hành bridge updater
-  ├── caramos-ota mới vẫn hiểu schema cũ
-  ├── thêm code hiểu schema mới
-  ├── upload PPA
-  └── manifest schema cũ yêu cầu update caramos-ota lên bản bridge
-
-Pha 2: sau khi phần lớn máy đã lên bridge
-  ├── publish manifest schema mới
-  ├── bridge client đọc được schema mới
-  └── các update sau dùng logic mới
-```
-
-Nếu bắt buộc hỗ trợ máy quá cũ, giữ endpoint manifest v1 song song với endpoint manifest v2:
-
-```text
-/stable/noble/manifest.v1.json   # cho client cũ
-/stable/noble/manifest.v2.json   # cho client mới
-```
-
-### 3.2.4 Nếu `caramos-ota` cũ bị lỗi nặng không tải được manifest
-
-Đây là tình huống xấu nhất. Cần có escape hatch ngoài OTA:
-
-- User/support chạy `sudo apt update && sudo apt install caramos-ota` thủ công.
-- ISO mới ship sẵn bản `caramos-ota` đã sửa.
-- Nếu có desktop/software updater của Mint/Ubuntu, nó vẫn có thể thấy package mới từ PPA nếu PPA đã cấu hình.
-
-Vì vậy rule quan trọng: phần fetch manifest + parse schema cơ bản của `caramos-ota` phải cực kỳ ổn định, ít dependency, fail-safe và backward compatible.
+- `schema` giữ tương thích lâu nhất có thể.
+- `channel` và `codename` phải khớp URL và `/etc/caramos-release`.
+- `release` là target version mà migration runner có thể chạy tới.
+- `min_client_version` là version tối thiểu của package `caramos-ota` có thể hiểu manifest này.
+- Manifest không chứa command, shell script, URL `.deb` hoặc package action.
+- Nếu cần logic mới, phát hành `caramos-ota` mới qua PPA trước, rồi mới nâng manifest.
 
 ---
 
-## 4. Cấu trúc thư mục `packages/`
+## 5. Migration model
+
+Migration là một bước nâng CaramOS từ version này sang version kế tiếp.
+
+Ví dụ:
+
+```text
+1.0.2 -> 1.0.3
+1.0.3 -> 1.0.4
+1.0.4 -> 1.0.5
+```
+
+Source nên có dạng:
+
+```text
+packages/caramos-ota/
+└── usr/lib/python3/dist-packages/
+    └── caramos_ota_update/
+        ├── __init__.py
+        ├── cli.py
+        ├── runner.py
+        ├── context.py
+        ├── apt.py
+        └── migrations/
+            ├── __init__.py
+            ├── v1_0_2_to_v1_0_3.py
+            ├── v1_0_3_to_v1_0_4.py
+            └── v1_0_4_to_v1_0_5.py
+```
+
+Một migration nên khai báo rõ:
+
+```python
+FROM_VERSION = "1.0.3"
+TO_VERSION = "1.0.2"
+DESCRIPTION = "Install WPS Office and update Vietnamese input defaults"
+
+
+def run(context):
+    context.apt_install([
+        "wps-office",
+        "fcitx5",
+    ])
+    context.ensure_service_enabled("fcitx5")
+    context.update_release_file("1.0.2")
+```
+
+Rule cho migration:
+
+- Mỗi migration chỉ đi từ một version sang version kế tiếp.
+- Migration phải idempotent càng nhiều càng tốt.
+- Không append config mù quáng gây duplicate.
+- Không tải `.deb` thủ công nếu có thể cài qua APT/PPA.
+- Mỗi bước nguy hiểm phải log rõ.
+- Nếu fail, dừng ngay, giữ state/log để debug.
+- Không nhét nhiều release vào một migration khổng lồ.
+
+---
+
+## 6. Cấu trúc thư mục `packages/`
 
 ```text
 packages/
@@ -325,592 +275,382 @@ packages/
 ├── caram-os-demo/
 │   ├── debian/
 │   └── ...
-├── caramos-ota_*.deb
-├── caramos-ota_*.buildinfo
-└── caramos-ota_*.changes
+├── *.deb
+├── *.buildinfo
+└── *.changes
 ```
 
-### 4.1 `README.md`
+### `caramos-ota/`
 
-File bạn đang đọc. Đây là tài liệu cấp `packages/`, giải thích cách các package trong thư mục này phối hợp với nhau.
-
-### 4.2 `caramos-ota/`
-
-Source Debian package của hệ thống OTA. Đây là nơi contributor cần đọc kỹ nhất nếu muốn hiểu cơ chế update của CaramOS.
+Source Debian package của OTA. Đây là package vận hành thật và là nơi chứa CLI, notifier, updater, migration runner.
 
 Tài liệu chi tiết:
 
 - [caramos-ota/README.md](./caramos-ota/README.md)
 
-### 4.3 `caram-os-demo/`
+### `caram-os-demo/`
 
-Package demo dùng để kiểm thử PPA/build pipeline. Không phải package vận hành chính của distro.
+Package demo dùng để kiểm thử PPA/build/install flow. Không phải package vận hành chính của distro.
 
-### 4.4 File `.deb`, `.buildinfo`, `.changes`
+### Output build
 
-Đây là output sau khi chạy `dpkg-buildpackage`. Thông thường không nên commit các file này nếu không có lý do release rõ ràng.
-
----
-
-## 5. Cấu trúc chuẩn của một package trong `packages/`
-
-Một package Debian trong thư mục này nên có dạng:
-
-```text
-package-name/
-├── README.md                  # giải thích package làm gì và cách bảo trì
-├── debian/
-│   ├── changelog              # version/release notes Debian
-│   ├── control                # metadata + dependencies
-│   ├── install                # map file source vào filesystem khi cài
-│   ├── rules                  # debhelper entrypoint
-│   └── source/
-│       └── format
-├── etc/                       # file cài vào /etc nếu có
-├── lib/                       # systemd unit hoặc file /lib nếu có
-└── usr/                       # command, Python package, data, icon, app desktop...
-```
-
-Không phải package nào cũng cần đủ `etc/`, `lib/`, `usr/`. Nhưng nếu có logic phức tạp, cần tách module rõ ràng, không nhét toàn bộ vào một script dài trong `/usr/bin`.
+Các file `.deb`, `.buildinfo`, `.changes` là output của `dpkg-buildpackage`. Không nên commit nếu không có lý do release rõ ràng.
 
 ---
 
-## 6. Package hiện có
+## 7. Thêm update CaramOS mới
 
-| Package | Vai trò | Trạng thái | Tài liệu |
-|---|---|---|---|
-| `caramos-ota` | Bộ điều phối OTA chính. Tự check/cập nhật các package CaramOS khác dựa trên manifest và PPA. | Package vận hành thật | [caramos-ota/README.md](./caramos-ota/README.md) |
-| `caram-os-demo` | Package demo để xác minh PPA/build/install flow. | Demo/testing | [caram-os-demo](./caram-os-demo/) |
+Giả sử muốn nâng CaramOS từ `1.0.3` lên `1.0.2`.
 
----
+### Bước 1: Thêm migration
 
-## 7. Quy trình thêm package CaramOS mới để OTA cập nhật được
-
-Giả sử muốn thêm package mới `caramos-wallpapers` và để OTA tự cập nhật nó về sau.
-
-### Bước 1: Tạo source package
+Tạo file:
 
 ```text
-packages/caramos-wallpapers/
-├── README.md
-├── debian/
-│   ├── changelog
-│   ├── control
-│   ├── install
-│   ├── rules
-│   └── source/format
-└── usr/share/backgrounds/caramos/
+packages/caramos-ota/usr/lib/python3/dist-packages/caramos_ota_update/migrations/v1_0_3_to_v1_0_4.py
 ```
 
-### Bước 2: Build package
+Migration chứa các action cần thiết:
 
-```bash
-cd packages/caramos-wallpapers
-dpkg-buildpackage -us -uc -b
-```
+- cài/nâng package qua APT;
+- xóa package cũ nếu cần;
+- sửa config;
+- enable/disable service;
+- cập nhật branding;
+- cập nhật `/etc/caramos-release` sau khi thành công.
 
-### Bước 3: Upload package lên PPA
+### Bước 2: Tăng version `caramos-ota`
 
-Package phải có trong PPA `ppa:vietnamlinuxfamily/caram-os` để máy user có candidate version.
-
-### Bước 4: Cập nhật manifest OTA online
-
-Cập nhật manifest trên endpoint chính thức của CaramOS, ví dụ:
+Sửa:
 
 ```text
-https://caramos.vietnamlinuxfamily.net/ota/stable/noble/manifest.json
+packages/caramos-ota/debian/changelog
 ```
 
-Thêm component:
-
-```json
-{
-  "package": "caramos-wallpapers",
-  "min_version": "1.0.0-0caramos1",
-  "required": true,
-  "description": "CaramOS default wallpapers"
-}
-```
-
-Nếu repository vẫn giữ bundled manifest trong `caramos-ota`, có thể cập nhật thêm file này để làm baseline/fallback:
+Ví dụ:
 
 ```text
-packages/caramos-ota/usr/share/caramos-ota/manifest.json
+caramos-ota (1.0.2-0caramos1) noble; urgency=medium
 ```
 
-Nhưng contributor cần hiểu: **bundled manifest không đủ để máy đang chạy bản `caramos-ota` cũ biết package mới**, trừ khi bản `caramos-ota` cũ cũng biết tải manifest online.
-
-### Bước 5: Release package liên quan
-
-- Nếu chỉ thêm package mới và manifest online đã được cập nhật, không nhất thiết phải release `caramos-ota` chỉ để đổi bundled manifest.
-- Nếu thay đổi code/schema/logic OTA, phải build/upload `caramos-ota` mới.
-- Nếu muốn bundled manifest làm fallback mới hơn, cũng có thể release `caramos-ota` mới, nhưng đây không được là cơ chế duy nhất.
-
-
-### Bước 6: User nhận update
-
-Trên máy user:
-
-```text
-systemd timer hoặc user chạy caramos-ota --check
-  └── tải manifest online mới
-      └── thấy caramos-wallpapers chưa đạt min_version
-          └── ghi available_update vào state
-              └── notifier hiện popup
-                  └── user bấm cập nhật
-                      └── apt-get install caramos-wallpapers từ PPA
-```
-
----
-
-## 8. Quy trình sửa package đã có
-
-1. Sửa source package tương ứng trong `packages/<name>/`.
-2. Tăng version trong `debian/changelog`.
-3. Build `.deb`.
-4. Test cài local trong VM.
-5. Upload PPA.
-6. Nếu package đó cần được OTA đảm bảo version tối thiểu, cập nhật manifest online.
-7. Nếu đổi schema/logic OTA hoặc muốn cập nhật bundled fallback, build/upload `caramos-ota`.
-8. Test từ máy đang ở version cũ.
-
----
-
-## 9. Compile, build và test cho contributor
-
-Contributor không nên chỉ chạy `dpkg-buildpackage` rồi coi như xong. Với các package trong `packages/`, đặc biệt là `caramos-ota`, cần test theo nhiều lớp: syntax, package build, install local, manifest, OTA check, notifier và update path.
-
-### 9.1 Chuẩn bị môi trường build
-
-Khuyến nghị test trong VM CaramOS/Linux Mint 22/Ubuntu 24.04 `noble`, vì package này phụ thuộc APT, dpkg, systemd, GTK và layout filesystem Debian.
-
-Cài tool build cơ bản:
-
-```bash
-sudo apt update
-sudo apt install --yes build-essential devscripts debhelper dh-python python3 python3-gi gir1.2-gtk-3.0
-```
-
-Nếu chỉ kiểm tra nhanh source Python thì không cần cài toàn bộ GUI dependency, nhưng để test notifier thì cần `python3-gi` và GTK3.
-
-### 9.2 Compile Python source
-
-Chạy từ thư mục package:
+### Bước 3: Build và test
 
 ```bash
 cd packages/caramos-ota
 python3 -m py_compile \
   usr/bin/caramos-ota \
   usr/bin/caramos-ota-notifier \
+  usr/bin/caramos-ota-update \
   usr/lib/python3/dist-packages/caramos_ota/*.py \
-  usr/lib/python3/dist-packages/caramos_ota_notifier/*.py
+  usr/lib/python3/dist-packages/caramos_ota_notifier/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_update/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_update/migrations/*.py
+
+dpkg-buildpackage -us -uc -b
 ```
 
-Mục tiêu:
+### Bước 4: Upload PPA
 
-- Bắt lỗi syntax/import cơ bản.
-- Đảm bảo entrypoint `/usr/bin` vẫn import đúng package Python.
-- Đảm bảo tách module `caramos_ota` và `caramos_ota_notifier` không bị thiếu file.
+Upload `caramos-ota` mới lên:
 
-### 9.3 Validate manifest JSON bundled
+```text
+ppa:vietnamlinuxfamily/caram-os
+```
 
-Manifest bundled là fallback, nên phải luôn parse được:
+### Bước 5: Cập nhật migration index
+
+Sau khi PPA publish xong, đổi:
+
+```json
+{
+  "release": "1.0.2",
+  "min_client_version": "1.0.2-0caramos1"
+}
+```
+
+Nếu client cũ chưa hiểu migration model, cần bridge rollout: phát hành bản bridge trước, manifest cũ yêu cầu update lên bridge, sau đó mới publish manifest mới.
+
+---
+
+## 8. Compile, build và test cho contributor
+
+### 8.1 Chuẩn bị môi trường
+
+Test tốt nhất trong VM CaramOS/Linux Mint 22/Ubuntu 24.04.
+
+```bash
+sudo apt update
+sudo apt install --yes build-essential devscripts debhelper dh-python python3 python3-gi gir1.2-gtk-3.0
+```
+
+### 8.2 Compile Python
 
 ```bash
 cd packages/caramos-ota
-python3 -m json.tool usr/share/caramos-ota/manifest.json >/dev/null
+python3 -m py_compile \
+  usr/bin/caramos-ota \
+  usr/bin/caramos-ota-notifier \
+  usr/bin/caramos-ota-update \
+  usr/lib/python3/dist-packages/caramos_ota/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_notifier/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_update/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_update/migrations/*.py
 ```
 
-Kiểm tra nhanh các field bắt buộc:
+Nếu package update module chưa tồn tại trong source hiện tại, compile các path đang có trước; khi refactor xong phải thêm `caramos_ota_update` vào checklist.
+
+### 8.3 Validate manifest bundled
 
 ```bash
 cd packages/caramos-ota
-PYTHONPATH=usr/lib/python3/dist-packages python3 - <<'PY'
-from caramos_ota.manifest import load_bundled_manifest
-
-manifest = load_bundled_manifest()
-assert manifest["schema"] == 1
-assert manifest["codename"]
-assert manifest["components"]
-for component in manifest["components"]:
-    assert component["package"]
-    assert component["min_version"]
-print("bundled manifest OK")
-PY
+python3 -m json.tool usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json >/dev/null
 ```
 
-### 9.4 Test build Debian package
+Manifest migration model cần có:
 
-Build binary package:
+```text
+schema
+channel
+codename
+release
+release_notes_vi/release_notes_en
+```
+
+### 8.4 Build Debian package
 
 ```bash
 cd packages/caramos-ota
 dpkg-buildpackage -us -uc -b
 ```
 
-Output nằm ở thư mục cha `packages/`:
+Output nằm ở thư mục cha `packages/`.
 
-```text
-caramos-ota_1.0.2-0caramos1_all.deb
-caramos-ota_1.0.2-0caramos1_amd64.buildinfo
-caramos-ota_1.0.2-0caramos1_amd64.changes
-```
-
-Nếu build fail, đọc log ngay tại terminal trước. Không sửa bằng cách bỏ dependency bừa khỏi `debian/control`; phải hiểu file nào cần dependency đó.
-
-### 9.5 Kiểm tra nội dung `.deb` trước khi cài
-
-Từ thư mục `packages/`:
+### 8.5 Inspect `.deb`
 
 ```bash
+cd packages
 dpkg-deb -c caramos-ota_1.0.2-0caramos1_all.deb
 ```
 
-Cần thấy các nhóm file chính:
+Cần thấy:
 
 ```text
 /usr/bin/caramos-ota
 /usr/bin/caramos-ota-notifier
+/usr/bin/caramos-ota-update
 /usr/lib/python3/dist-packages/caramos_ota/
 /usr/lib/python3/dist-packages/caramos_ota_notifier/
-/usr/share/caramos-ota/manifest.json
+/usr/lib/python3/dist-packages/caramos_ota_update/
+caramos_ota_update/migrations/migration.json
 /lib/systemd/system/caramos-ota-check.service
 /lib/systemd/system/caramos-ota-check.timer
 /etc/xdg/autostart/caramos-ota-notifier.desktop
 ```
 
-### 9.6 Test install local trong VM
-
-Cài package vừa build:
+### 8.6 Test install local trong VM
 
 ```bash
 cd packages
 sudo apt install ./caramos-ota_1.0.2-0caramos1_all.deb
 ```
 
-Kiểm tra command tồn tại:
+Kiểm tra:
 
 ```bash
 command -v caramos-ota
 command -v caramos-ota-notifier
+command -v caramos-ota-update
 caramos-ota --version
 ```
 
-Kiểm tra systemd unit:
-
-```bash
-systemctl list-unit-files 'caramos-ota*'
-systemctl status caramos-ota-check.timer --no-pager
-```
-
-### 9.7 Test CLI không phá hệ thống
-
-Các lệnh dưới đây nên chạy trong VM/snapshot, không chạy trực tiếp trên máy làm việc nếu chưa chắc repo/PPA đã đúng.
+### 8.7 Test check/update
 
 ```bash
 sudo caramos-ota --status
 sudo caramos-ota --check
 sudo caramos-ota --dry-run
+sudo caramos-ota-update --target 1.0.2 --dry-run
 ```
 
 Kỳ vọng:
 
-- Nếu là CaramOS đúng chuẩn: detect được `/etc/caramos-release`, repo/keyring, manifest.
-- Nếu không phải CaramOS: fail closed với exit code `3`, không chạy APT install.
-- `--check` chỉ ghi state, không cài package.
-- `--dry-run` chỉ in danh sách update, không cài package.
+- `--check` không cài package.
+- `--dry-run` không sửa hệ thống.
+- Nếu không phải CaramOS, fail closed.
+- Nếu migration index lỗi, fail closed và log rõ lỗi.
+- Updater in đúng migration path cần chạy.
 
-State sau khi check:
-
-```bash
-sudo python3 -m json.tool /var/lib/caramos-ota/state.json
-```
-
-Log:
-
-```bash
-sudo tail -n 100 /var/log/caramos-ota/$(date +%F).log
-```
-
-### 9.8 Test manifest online
-
-Với URL runtime hiện tại, `caramos-ota` sẽ build endpoint theo công thức:
-
-```text
-https://caramos.vietnamlinuxfamily.net/ota/{channel}/{codename}/manifest.json
-```
-
-Ví dụ stable/noble:
-
-```bash
-python3 - <<'PY'
-from urllib.request import urlopen
-url = "https://caramos.vietnamlinuxfamily.net/ota/stable/noble/manifest.json"
-with urlopen(url, timeout=20) as response:
-    print(response.status, response.headers.get("Content-Type"))
-    print(response.read(200).decode("utf-8", errors="replace"))
-PY
-```
-
-Nếu endpoint chưa deploy, `caramos-ota` phải log warning và fallback sang bundled manifest, không crash.
-
-### 9.9 Test manifest offline/fallback
-
-Có. Đây là test bắt buộc vì OTA không được phụ thuộc 100% vào server manifest. Khi mạng lỗi, DNS lỗi, TLS lỗi hoặc endpoint chưa deploy, client phải dùng bundled manifest ở `/usr/share/caramos-ota/manifest.json` và không được crash.
-
-Test trực tiếp bằng source local, không cần root. Lưu ý: khi chạy từ source tree, phải trỏ `MANIFEST_FILE` về file local; nếu không Python sẽ đọc `/usr/share/caramos-ota/manifest.json` của package đã cài trên máy test.
+### 8.8 Test offline manifest
 
 ```bash
 cd packages/caramos-ota
 PYTHONPATH=usr/lib/python3/dist-packages python3 - <<'PY'
 from pathlib import Path
+import json
 
-import caramos_ota.manifest as manifest_module
-from caramos_ota.models import ReleaseInfo
-
-manifest_module.MANIFEST_FILE = Path("usr/share/caramos-ota/manifest.json")
-raw = manifest_module.load_bundled_manifest()
-manifest = manifest_module.validate_manifest(
-    raw,
-    ReleaseInfo(
-        name="CaramOS",
-        version="1.0.2",
-        codename="noble",
-        channel="stable",
-    ),
-    "offline-test",
-)
-
-assert manifest.source == "offline-test"
-assert manifest.codename == "noble"
-assert manifest.components
-assert any(component.package == "caramos-ota" for component in manifest.components)
-print("offline bundled manifest fallback OK")
+path = Path("usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json")
+manifest = json.loads(path.read_text(encoding="utf-8"))
+assert manifest["schema"] == 1
+assert manifest["codename"]
+assert manifest["release"]
+print("migration-local manifest OK")
 PY
 ```
 
-Test fallback khi online manifest lỗi bằng cách tạm override base URL trong Python process:
+### 8.9 Test migration thật trong VM snapshot
+
+```text
+1. Cài ISO hoặc VM ở version cũ.
+2. Cài/PPA publish caramos-ota mới có migration.
+3. Cập nhật manifest release.
+4. Chạy sudo caramos-ota --check.
+5. Chạy sudo caramos-ota-update --target <version> --dry-run.
+6. Chạy sudo caramos-ota --upgrade.
+7. Kiểm tra /etc/caramos-release đã lên version mới.
+8. Kiểm tra log/state không báo failed.
+```
+
+### 8.10 Cleanup trước khi commit
+
+Không commit output build/cache:
 
 ```bash
-cd packages/caramos-ota
-PYTHONPATH=usr/lib/python3/dist-packages python3 - <<'PY'
-from pathlib import Path
-
-import caramos_ota.manifest as manifest_module
-from caramos_ota.models import ReleaseInfo
-
-manifest_module.MANIFEST_BASE_URL = "https://invalid.invalid/ota"
-manifest_module.MANIFEST_FILE = Path("usr/share/caramos-ota/manifest.json")
-manifest = manifest_module.parse_manifest(
-    ReleaseInfo(
-        name="CaramOS",
-        version="1.0.2",
-        codename="noble",
-        channel="stable",
-    )
-)
-
-assert manifest.source.endswith("/usr/share/caramos-ota/manifest.json")
-assert manifest.components
-print("online failure -> bundled fallback OK")
-PY
+find packages -name '__pycache__' -type d -prune -exec rm -rf {} +
+rm -f packages/*.deb packages/*.buildinfo packages/*.changes packages/*.dsc packages/*.tar.*
 ```
-
-Kỳ vọng:
-
-- Online URL lỗi không làm process crash.
-- Log có warning kiểu `Online manifest unavailable, using bundled manifest`.
-- Manifest fallback vẫn validate schema/codename/component.
-- Component `caramos-ota` vẫn có trong fallback để client còn tự update nếu bundled manifest đủ mới.
-
-### 9.10 Test notifier desktop
-
-Notifier chỉ nên chạy trong desktop session có `DISPLAY` hoặc `WAYLAND_DISPLAY`.
-
-Kiểm tra import/smoke test:
-
-```bash
-cd packages/caramos-ota
-PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-notifier
-```
-
-Kỳ vọng:
-
-- Không có desktop session: thoát im lặng hoặc không hiện dialog.
-- Có `available_update` trong state: hiện dialog GTK.
-- Bấm cập nhật: notifier gọi `pkexec /usr/bin/caramos-ota --upgrade --yes`, không tự parse manifest hay tự chạy APT.
-
-### 9.11 Test update path thật
-
-Dùng VM snapshot:
-
-```text
-1. Cài bản caramos-ota cũ.
-2. Đảm bảo PPA đang trỏ đúng.
-3. Upload/cài local repo có caramos-ota mới.
-4. Cập nhật manifest online yêu cầu min_version mới.
-5. Chạy sudo caramos-ota --check.
-6. Chạy sudo caramos-ota --dry-run.
-7. Chạy sudo caramos-ota --upgrade.
-8. Kiểm tra caramos-ota --version đã lên version mới.
-```
-
-Nếu thay đổi schema manifest, phải test bridge rollout:
-
-```text
-client cũ -> manifest schema cũ -> update lên bridge -> manifest schema mới -> update tiếp
-```
-
-### 9.12 Test package khác được OTA quản lý
-
-Với package mới, ví dụ `caramos-wallpapers`:
-
-```text
-1. Build caramos-wallpapers .deb.
-2. Cài VM đang thiếu hoặc có version cũ.
-3. Đưa version mới vào PPA/local repo.
-4. Thêm component vào manifest online.
-5. Chạy sudo caramos-ota --check.
-6. Xác nhận package xuất hiện trong available_update.
-7. Chạy sudo caramos-ota --dry-run.
-8. Chạy sudo caramos-ota --upgrade.
-9. Kiểm tra dpkg-query -W caramos-wallpapers.
-```
-
-### 9.13 Cleanup trước khi commit
-
-Không commit output build và cache Python:
-
-```bash
-cd packages/caramos-ota
-rm -rf usr/lib/python3/dist-packages/caramos_ota/__pycache__ \
-       usr/lib/python3/dist-packages/caramos_ota_notifier/__pycache__
-```
-
-Các file thường không nên commit nếu chỉ là output local:
-
-```text
-packages/*.deb
-packages/*.buildinfo
-packages/*.changes
-packages/*.dsc
-packages/*.tar.*
-```
-
-### 9.14 Checklist tối thiểu trước khi mở PR
-
-- [ ] `python3 -m py_compile` pass cho CLI và notifier.
-- [ ] `python3 -m json.tool usr/share/caramos-ota/manifest.json` pass.
-- [ ] `dpkg-buildpackage -us -uc -b` pass.
-- [ ] `.deb` chứa đúng file bằng `dpkg-deb -c`.
-- [ ] Cài local `.deb` trong VM pass.
-- [ ] `sudo caramos-ota --status` pass hoặc fail closed đúng nếu không phải CaramOS.
-- [ ] `sudo caramos-ota --check` không tự cài package.
-- [ ] `sudo caramos-ota --dry-run` không tự cài package.
-- [ ] Test manifest offline/fallback pass khi online endpoint lỗi.
-- [ ] Manifest online đã cập nhật nếu package cần OTA quản lý.
-- [ ] Nếu sửa `caramos-ota`, manifest online có component `caramos-ota` với `min_version` mới.
-- [ ] Nếu đổi schema/logic breaking, đã có kế hoạch bridge rollout.
-- [ ] Không commit output build/cache ngoài ý muốn.
 
 ---
 
-## 10. Quy ước version
+## 9. Quy ước version
 
-Package CaramOS nên dùng suffix rõ ràng, ví dụ:
+Package CaramOS nên dùng suffix rõ ràng:
 
 ```text
 1.0.2-0caramos1
 ```
 
-Ý nghĩa gợi ý:
+Ý nghĩa:
 
-- `1.0.2`: version upstream/nội bộ của package.
-- `0caramos1`: revision dành cho CaramOS packaging/PPA.
+- `1.0.2`: version CaramOS/OTA nội bộ.
+- `0caramos1`: Debian packaging revision dành cho CaramOS.
 
-Khi upload PPA, version mới phải lớn hơn version đã có theo Debian version comparison.
-
----
-
-## 11. Quy ước dependency
-
-- Ưu tiên dependency có sẵn trong Ubuntu 24.04/Mint 22.
-- Không thêm dependency nặng nếu chỉ để làm việc nhỏ.
-- Nếu package chỉ là data/config, giữ dependency tối thiểu.
-- Nếu package có Python code, tránh dependency ngoài stdlib khi không thật sự cần.
-- Nếu thêm GUI dependency, cân nhắc có cần tách package GUI riêng không.
+Khi upload PPA, version mới phải lớn hơn version cũ theo Debian version comparison.
 
 ---
 
-## 12. Quy ước tài liệu cho mỗi package
+## 10. Policy cho contributor
 
-Mỗi package vận hành thật nên có `README.md` riêng, ít nhất giải thích:
-
-- Package làm gì.
-- Nó được cài vào path nào.
-- Nó có service/timer/autostart không.
-- Nó có file runtime không.
-- Nó tương tác với `caramos-ota` thế nào.
-- Cách build/test.
-- Cách release/update qua PPA.
-- Rủi ro bảo mật hoặc rủi ro phá update path.
-
-`caramos-ota` đã có tài liệu chi tiết tại:
-
-- [caramos-ota/README.md](./caramos-ota/README.md)
+- Không nhét toàn bộ logic vào một file `/usr/bin` dài.
+- CLI entrypoint chỉ nên mỏng, logic nằm trong Python package.
+- Update hệ thống phải chạy qua migration rõ version.
+- Migration phải idempotent càng nhiều càng tốt.
+- Không tự thêm PPA trong OTA; PPA/keyring phải đến từ ISO.
+- Không tải `.deb` thủ công từ manifest.
+- Không chạy script từ Internet.
+- Không auto-install từ systemd timer.
+- Luôn test trong VM/snapshot trước khi release.
 
 ---
 
-## 13. Nguyên tắc an toàn khi sửa package
+## 11. Checklist trước khi release OTA
 
-- Không tự tải và chạy script từ Internet.
-- Không tự thêm repository/keyring trong package runtime nếu không có thiết kế rõ.
-- Không ghi đè config người dùng nếu không cần thiết.
-- Không để postinst làm việc nguy hiểm hoặc không idempotent.
-- Không cho systemd timer tự động cài package nếu user chưa đồng ý.
-- Không nhét logic dài vào `/usr/bin`; hãy tách thành module/package.
-- Không để GUI quyết định logic update; GUI chỉ hiển thị và gọi CLI.
-- Không phá compatibility với máy đã cài bản ISO cũ.
-
----
-
-## 14. Checklist trước khi merge package mới/sửa package
-
-- [ ] Package có `debian/changelog` đúng version.
+- [ ] Migration mới có `FROM_VERSION` và `TO_VERSION` rõ ràng.
+- [ ] Migration chạy được dry-run.
+- [ ] Migration idempotent hoặc có guard chống chạy lặp.
+- [ ] `python3 -m py_compile` pass.
 - [ ] `dpkg-buildpackage -us -uc -b` pass.
+- [ ] `.deb` chứa `caramos-ota`, `caramos-ota-notifier`, `caramos-ota-update`.
 - [ ] Cài local `.deb` trong VM pass.
-- [ ] File được cài đúng path theo `debian/install`.
-- [ ] Dependency trong `debian/control` hợp lý.
-- [ ] Nếu package cần OTA quản lý, manifest online đã cập nhật.
-- [ ] Nếu package đó là `caramos-ota`, manifest online đã khai báo `caramos-ota` như một component cần `min_version` mới.
-- [ ] Nếu manifest schema/logic OTA đổi, đã có kế hoạch bridge/two-phase rollout, không làm client cũ gãy.
-- [ ] Update path từ version cũ đã test.
-- [ ] Không commit nhầm `.deb`, `.buildinfo`, `.changes`, `__pycache__`.
+- [ ] `caramos-ota --check` không tự cài package.
+- [ ] `caramos-ota-update --dry-run` không sửa hệ thống.
+- [ ] Migration metadata `release` trỏ tới version có migration tương ứng.
+- [ ] Offline/migration-local manifest vẫn parse được.
+- [ ] Nếu đổi schema, đã có bridge rollout.
+- [ ] Không commit output build/cache ngoài ý muốn.
 
 ---
 
-## 15. Tóm tắt ngắn
+## 12. Tóm tắt
 
 ```text
-packages/
-  = nơi chứa Debian source package riêng của CaramOS
+caramos-ota
+  = check + state + gọi updater
 
-caramos-ota/
-  = bộ điều phối OTA chính
-  = tự cập nhật chính nó nếu được khai báo trong manifest online
-  = đọc manifest online, fallback bundled nếu cần
-  = check/cập nhật các package CaramOS khác qua PPA
-  = ghi state/log/transaction
-  = cung cấp desktop notifier
+caramos-ota-notifier
+  = UI desktop + gọi caramos-ota
 
-package khác/
-  = chỉ cần đóng gói đúng, upload PPA, và được khai báo trong manifest nếu muốn OTA quản lý
+caramos-ota-update
+  = migration runner theo version
+
+migration index
+  = release + release notes + min_client_version
+
+PPA
+  = nơi chứa package .deb thật
 ```
 
-Nếu contributor muốn thêm thứ gì đó có thể cập nhật sau khi ISO phát hành, hãy nghĩ theo luồng:
+Nói ngắn gọn: **CaramOS OTA không còn là package manifest manager; nó là hệ thống nâng version CaramOS bằng migration có thứ tự.**
+
+---
+
+## 13. Release hiện tại: `caramos-ota` 1.0.5
+
+Người release PPA: **dungleviet**.
+
+Mục tiêu release hiện tại là để máy CaramOS `1.0.1` cài `caramos-ota` rồi tự nâng lên `1.0.5`:
+
+```bash
+sudo apt update
+sudo apt install caramos-ota
+sudo caramos-ota
+```
+
+Chuỗi migration được đóng gói trong `caramos-ota`:
 
 ```text
-package mới -> upload PPA -> cập nhật manifest online -> user nhận update qua OTA
+1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5
 ```
 
-Nếu thay đổi chính `caramos-ota` nhưng vẫn giữ schema tương thích, hãy upload `caramos-ota` mới lên PPA rồi khai báo chính `caramos-ota` trong manifest online với `min_version` mới. Nếu thay đổi breaking schema/logic, phải rollout 2 pha bằng bridge updater.
+Checklist release nhanh:
+
+```bash
+cd /home/dungleviet/Documents/CaramOS/packages/caramos-ota
+python3 -m py_compile \
+  usr/bin/caramos-ota \
+  usr/bin/caramos-ota-notifier \
+  usr/bin/caramos-ota-update \
+  usr/lib/python3/dist-packages/caramos_ota/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_notifier/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_update/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_update/migrations/*/*.py
+python3 -m json.tool usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json >/dev/null
+dpkg-buildpackage -us -uc -b
+sudo ./tools/ship-ota-to-vm.sh
+```
+
+Trong VM test:
+
+```bash
+cd /tmp/caramos-ota-e2e
+sudo ./vm-run-ota-e2e.sh install-and-cli
+grep -E '^(VERSION_CODENAME|UBUNTU_CODENAME)=' /etc/os-release
+sudo add-apt-repository -y ppa:mozillateam/ppa
+sudo rm -f /etc/apt/sources.list.d/*mozillateam*
+sudo apt update
+```
+
+Upload PPA sau khi bump `debian/changelog` lên `1.0.5-0caramos1`:
+
+```bash
+debuild -S -sa
+dput ppa:vietnamlinuxfamily/caram-os ../caramos-ota_1.0.5-0caramos1_source.changes
+```
+
+Sau khi PPA publish, kiểm tra candidate:
+
+```bash
+sudo apt update
+apt-cache policy caramos-ota
+```
+
+ISO build dùng `CARAMOS_VERSION=1.0.5` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs.

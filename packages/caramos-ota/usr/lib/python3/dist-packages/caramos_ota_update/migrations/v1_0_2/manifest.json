@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "version": "1.0.2",
+  "from_version": "1.0.1",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "~53 KB + migration payload",
+  "title": "CaramOS có bản cập nhật mới",
+  "summary": "Bản cập nhật này sẽ chạy migration CaramOS 1.0.1 lên 1.0.2.",
+  "release_notes_vi": [
+    "PR #40: cập nhật MintWelcome branding sang CaramOS."
+  ],
+  "release_notes_en": [
+    "PR #40: update MintWelcome branding to CaramOS."
+  ]
+}

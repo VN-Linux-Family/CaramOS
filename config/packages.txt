@@ -8,6 +8,3 @@ flameshot
 tlp
 #19
 copyq
-
-# ZRAM mặc định cho máy RAM thấp
-systemd-zram-generator

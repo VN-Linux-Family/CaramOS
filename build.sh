@@ -21,6 +21,7 @@ source "$SCRIPT_DIR/scripts/extract.sh"
 source "$SCRIPT_DIR/scripts/boot_config.sh"
 source "$SCRIPT_DIR/scripts/overlay.sh"
 source "$SCRIPT_DIR/scripts/customize.sh"
+source "$SCRIPT_DIR/scripts/ota_bootstrap.sh"
 source "$SCRIPT_DIR/scripts/chroot_shell.sh"
 source "$SCRIPT_DIR/scripts/repack.sh"
 

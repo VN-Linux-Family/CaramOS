@@ -194,7 +194,7 @@ Expected entries:
 ```text
 usr/bin/caramos-ota usr/bin/
 usr/bin/caramos-ota-notifier usr/bin/
-usr/share/caramos-ota/manifest.json usr/share/caramos-ota/
+usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json usr/share/caramos-ota/
 usr/share/polkit-1/actions/net.vietnamlinuxfamily.caramos-ota.policy usr/share/polkit-1/actions/
 lib/systemd/system/caramos-ota-check.service lib/systemd/system/
 lib/systemd/system/caramos-ota-check.timer lib/systemd/system/
@@ -241,7 +241,7 @@ Done when:
 Create:
 
 ```text
-usr/share/caramos-ota/manifest.json
+usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json
 ```
 
 Initial v1 content:
@@ -261,21 +261,21 @@ Initial v1 content:
     "Update MintReport branding for CaramOS.",
     "Update MintWelcome translations for CaramOS."
   ],
-  "components": [
+  "release_notes_vi": [
     {
-      "package": "caramos-zram-config",
+      "package": "migration 1.0.3→1.0.2",
       "required": true,
       "min_version": "1.0.2-0caramos1",
       "description": "Configure default ZRAM size to 50% of RAM"
     },
     {
-      "package": "caramos-mintreport-branding",
+      "package": "migration 1.0.2→1.0.2",
       "required": true,
       "min_version": "1.0.2-0caramos1",
       "description": "Update MintReport branding for CaramOS"
     },
     {
-      "package": "caramos-mintwelcome-l10n",
+      "package": "migration 1.0.1→1.0.2",
       "required": true,
       "min_version": "1.0.2-0caramos1",
       "description": "Update MintWelcome translations for CaramOS"
@@ -312,7 +312,7 @@ Tasks:
   - [ ] `STATE_FILE="/var/lib/caramos-ota/state.json"`
   - [ ] `LOCK_FILE="/var/lib/caramos-ota/lock"`
   - [ ] `LOG_DIR="/var/log/caramos-ota"`
-  - [ ] `MANIFEST_FILE="/usr/share/caramos-ota/manifest.json"`
+  - [ ] `MIGRATION_INDEX="caramos_ota_update/migrations/migration.json"`
   - [ ] `RELEASE_FILE="/etc/caramos-release"`
 
 Done when:
@@ -490,7 +490,7 @@ package<TAB>min_version<TAB>description
 Done when:
 
 - [ ] Malformed manifest exits code `6`.
-- [ ] Valid manifest produces deterministic package list.
+- [ ] Valid manifest produces deterministic migration release metadata.
 
 ### 6.2 State initialization
 
@@ -597,7 +597,7 @@ When updates exist:
 - [ ] Write `available_update.detected_at`.
 - [ ] Write `available_update.release`.
 - [ ] Write `available_update.current_version` from `/etc/caramos-release`.
-- [ ] Write package list with current/candidate/description.
+- [ ] Write migration release metadata with current/candidate/description.
 - [ ] Include `release_notes_vi` and `release_notes_en`.
 
 When no updates:
@@ -934,7 +934,7 @@ Show:
 - [ ] Current version.
 - [ ] New release.
 - [ ] Vietnamese release notes.
-- [ ] Package list.
+- [ ] Migration release metadata.
 - [ ] Buttons: `Đóng`, `Cập nhật`.
 
 Rules:
@@ -985,7 +985,7 @@ Run from `packages/caramos-ota`:
 ```bash
 bash -n usr/bin/caramos-ota
 python3 -m py_compile usr/bin/caramos-ota-notifier
-python3 -m json.tool usr/share/caramos-ota/manifest.json
+python3 -m json.tool usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json
 ```
 
 Optional if tools are installed:
@@ -1077,9 +1077,9 @@ Done when:
 Prerequisite:
 
 - [ ] Component packages exist in local repo or PPA:
-  - [ ] `caramos-zram-config`
-  - [ ] `caramos-mintreport-branding`
-  - [ ] `caramos-mintwelcome-l10n`
+  - [ ] `migration 1.0.3→1.0.2`
+  - [ ] `migration 1.0.2→1.0.2`
+  - [ ] `migration 1.0.1→1.0.2`
 
 Test flow:
 
@@ -1113,7 +1113,7 @@ Test:
 - [ ] Notifier starts from autostart.
 - [ ] Dialog is Vietnamese.
 - [ ] Release notes appear.
-- [ ] Package list appears.
+- [ ] Migration release metadata appears.
 - [ ] `Đóng` closes without state mutation.
 - [ ] `Cập nhật` triggers pkexec.
 - [ ] Indeterminate progress appears.
@@ -1229,3 +1229,65 @@ Purpose:
 - PPA upload checklist.
 - Launchpad publish verification.
 - VM release validation.
+
+
+---
+
+## Current release plan: CaramOS OTA 1.0.5
+
+Release owner: **dungleviet**.
+
+This implementation is now migration-driven and targets the release chain from existing CaramOS `1.0.1` installations to latest `1.0.5`. The released `caramos-ota` package must contain migrations and manifests for:
+
+```text
+1.0.1 → 1.0.2
+1.0.2 → 1.0.3
+1.0.3 → 1.0.4
+1.0.4 → 1.0.5
+```
+
+End-user commands after the PPA package is published:
+
+```bash
+sudo apt update
+sudo apt install caramos-ota
+sudo caramos-ota
+```
+
+Maintainer release commands:
+
+```bash
+cd /home/dungleviet/Documents/CaramOS/packages/caramos-ota
+python3 -m py_compile \
+  usr/bin/caramos-ota \
+  usr/bin/caramos-ota-notifier \
+  usr/bin/caramos-ota-update \
+  usr/lib/python3/dist-packages/caramos_ota/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_notifier/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_update/*.py \
+  usr/lib/python3/dist-packages/caramos_ota_update/migrations/*/*.py
+python3 -m json.tool usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json >/dev/null
+dpkg-buildpackage -us -uc -b
+sudo ./tools/ship-ota-to-vm.sh
+```
+
+PPA release is performed by **dungleviet** after bumping `debian/changelog` to `1.0.5-0caramos1`:
+
+```bash
+debuild -S -sa
+dput ppa:vietnamlinuxfamily/caram-os ../caramos-ota_1.0.5-0caramos1_source.changes
+```
+
+Validation must include:
+
+```bash
+cd /tmp/caramos-ota-e2e
+sudo ./vm-run-ota-e2e.sh install-and-cli
+cat /etc/caramos-release
+grep -E '^(VERSION_CODENAME|UBUNTU_CODENAME)=' /etc/os-release
+sudo add-apt-repository -y ppa:mozillateam/ppa
+sudo rm -f /etc/apt/sources.list.d/*mozillateam*
+sudo apt update
+```
+
+Expected final metadata: CaramOS `1.0.5`, `VERSION_CODENAME=wilma`, `UBUNTU_CODENAME=noble`.

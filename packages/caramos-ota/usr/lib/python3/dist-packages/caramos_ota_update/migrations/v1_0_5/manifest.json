@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "1.0.5",
+  "from_version": "1.0.4",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "technical metadata fix",
+  "title": "CaramOS có bản cập nhật mới",
+  "summary": "Bản cập nhật này sửa codename kỹ thuật về wilma để tương thích với add-apt-repository, đồng thời giữ branding CaramOS."
+}

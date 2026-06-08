@@ -1,0 +1,5 @@
+Types: deb
+URIs: https://ppa.launchpadcontent.net/vietnamlinuxfamily/caram-os/ubuntu
+Suites: noble
+Components: main
+Signed-By: /usr/share/keyrings/caramos-archive-keyring.gpg

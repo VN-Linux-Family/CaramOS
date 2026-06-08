@@ -9,7 +9,7 @@ from typing import Any
 from .constants import EXIT_APT, TOOL_NAME
 from .errors import OtaError
 from .logging_utils import current_log_file, log_error, log_info, now_iso, print_fail, print_ok
-from .manifest import parse_manifest
+from .manifest import load_migration_manifest, parse_manifest, resolve_migration_chain
 from .models import Manifest, ReleaseInfo, UpdatePackage
 from .state import save_state
 
@@ -77,7 +77,7 @@ def version_ge(left: str, right: str) -> bool:
 
 
 def detect_updates(release_info: ReleaseInfo, state: dict[str, Any]) -> tuple[Manifest, list[UpdatePackage]]:
-    """Detect packages that need install/upgrade for the current manifest."""
+    """Detect whether the migration manifest targets a newer CaramOS release."""
 
     try:
         manifest = parse_manifest(release_info)
@@ -87,50 +87,63 @@ def detect_updates(release_info: ReleaseInfo, state: dict[str, Any]) -> tuple[Ma
         raise SystemExit(exc.exit_code)
 
     updates: list[UpdatePackage] = []
-    for component in manifest.components:
-        installed = installed_version(component.package)
-        candidate = candidate_version(component.package)
-        if not candidate or candidate == "(none)":
-            if component.required:
-                print(f"Error: Required package '{component.package}' is not available in the repository.")
-                print("Please check the CaramOS PPA.")
-                log_error(f"Package not available: {component.package}")
-                raise SystemExit(EXIT_APT)
-            continue
+    chain = resolve_migration_chain(release_info.version, manifest.release)
+    chain_manifests = [load_migration_manifest(version, release_info) for version in chain]
 
-        needs_update = not installed or not version_ge(installed, component.min_version)
-        if not needs_update:
-            continue
-        if not version_ge(candidate, component.min_version):
-            if component.required:
-                print(f"Error: Package '{component.package}' candidate version {candidate} is below required {component.min_version}.")
-                log_error(f"Candidate too old: {component.package} {candidate} < {component.min_version}")
-                raise SystemExit(EXIT_APT)
-            continue
-        updates.append(
-            UpdatePackage(
-                name=component.package,
-                current_version=installed or "(new)",
-                available_version=candidate,
-                description=component.description,
+    if release_info.version != manifest.release:
+        previous_version = release_info.version
+        for item in chain_manifests:
+            updates.append(
+                UpdatePackage(
+                    name=TOOL_NAME,
+                    current_version=previous_version,
+                    available_version=item.release,
+                    description=item.summary,
+                    required=True,
+                )
             )
-        )
+            previous_version = item.release
+
+    if chain_manifests:
+        manifest_sizes = [item.size for item in chain_manifests if item.size]
+        manifest_notes_vi: list[str] = []
+        manifest_notes_en: list[str] = []
+        previous_version = release_info.version
+        for item in chain_manifests:
+            label = f"{previous_version} → {item.release}"
+            notes_vi = item.release_notes_vi or [item.summary]
+            notes_en = item.release_notes_en or [item.summary]
+            manifest_notes_vi.extend(f"{label}: {note}" for note in notes_vi)
+            manifest_notes_en.extend(f"{label}: {note}" for note in notes_en)
+            previous_version = item.release
+        display_size = " + ".join(manifest_sizes) if manifest_sizes else manifest.size
+    else:
+        manifest_notes_vi = manifest.release_notes_vi
+        manifest_notes_en = manifest.release_notes_en
+        display_size = manifest.size
 
     if updates:
         state["available_update"] = {
             "detected_at": now_iso(),
             "release": manifest.release,
+            "to_version": manifest.release,
             "manifest_source": manifest.source,
             "current_version": release_info.version,
-            "release_notes_vi": manifest.release_notes_vi,
-            "release_notes_en": manifest.release_notes_en,
+            "from_version": release_info.version,
+            "channel": manifest.channel,
+            "severity": manifest.severity,
+            "size": display_size,
+            "title": manifest.title,
+            "summary": manifest.summary,
+            "release_notes_vi": manifest_notes_vi,
+            "release_notes_en": manifest_notes_en,
             "packages": [update.__dict__ for update in updates],
         }
     else:
         state["available_update"] = None
     save_state(state)
     log_info(
-        f"Update detection complete: {len(updates)} updates for release {manifest.release} "
+        f"Migration update detection complete: {len(updates)} update marker(s) for release {manifest.release} "
         f"using manifest {manifest.source}"
     )
     return manifest, updates

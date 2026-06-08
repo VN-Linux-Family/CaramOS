@@ -1,0 +1,19 @@
+{
+  "schema": 1,
+  "version": "1.0.4",
+  "from_version": "1.0.3",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "mintreport branding migration payload",
+  "title": "CaramOS có bản cập nhật mới",
+  "summary": "Bản cập nhật này sẽ đổi logo banner và màu nền trong mintreport cho CaramOS 1.0.4.",
+  "release_notes_vi": [
+    "PR #43: đổi logo banner của mintreport sang CaramOS.",
+    "Cập nhật màu nền banner mintreport theo theme thay vì màu Mint hard-code."
+  ],
+  "release_notes_en": [
+    "PR #43: change mintreport banner logo to CaramOS.",
+    "Update mintreport banner background to use theme color instead of hard-coded Mint green."
+  ]
+}

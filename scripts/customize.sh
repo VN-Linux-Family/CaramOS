@@ -52,7 +52,7 @@ step_customize() {
             hook_name=$(basename "$hook")
             info "  → Chạy hook: $hook_name"
             cp "$hook" "$WORK_DIR/squashfs/tmp/$hook_name"
-            CARAMOS_VERSION="$CARAMOS_VERSION" \
+            CARAMOS_VERSION="${CARAMOS_MIGRATION_BASE_VERSION:-$CARAMOS_VERSION}" \
             MINT_VERSION="$MINT_VERSION" \
             MINT_EDITION="$MINT_EDITION" \
             chroot "$WORK_DIR/squashfs" /bin/bash "/tmp/$hook_name"
@@ -61,7 +61,10 @@ step_customize() {
         fi
     done
 
-    # Chỉ đánh dấu customized sau khi TOÀN BỘ hook đã chạy xong.
+    # Cài OTA package và chạy tất cả migrations vào rootfs trước khi đóng ISO.
+    step_ota_bootstrap
+
+    # Chỉ đánh dấu customized sau khi TOÀN BỘ hook + OTA bootstrap đã chạy xong.
     # Nếu bị Ctrl+C giữa chừng, marker không được tạo và make quick sẽ buộc
     # chạy lại customize thay vì repack rootfs thiếu Plymouth/Cinnamenu/dock.
     chroot "$WORK_DIR/squashfs" /bin/bash -c '

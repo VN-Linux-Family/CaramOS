@@ -1,3 +1,13 @@
+caramos-ota (1.0.5-0caramos1) noble; urgency=medium
+
+  * Release CaramOS OTA migration chain through CaramOS 1.0.5.
+  * Add migrations for MintWelcome branding, default ZRAM, MintReport branding,
+    and technical codename metadata compatibility.
+  * Aggregate multi-step migration release notes and update size in the notifier.
+  * Fix VERSION_CODENAME/DISTRIB_CODENAME to wilma for add-apt-repository.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 08 Jun 2026 20:35:00 +0700
+
 caramos-ota (1.0.2-0caramos1) noble; urgency=medium
 
   * Initial CaramOS OTA updater package.

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import argparse
-from datetime import datetime
+import os
+import subprocess
 from typing import Any
 
 from .apt import (
@@ -11,6 +12,7 @@ from .apt import (
     detect_updates,
     downgrade_package,
     install_packages,
+    installed_version,
     print_repair_result,
     remove_package,
     repair_apt,
@@ -24,7 +26,6 @@ from .privilege import acquire_lock, require_root
 from .release import detect_caramos
 from .repo import verify_repo
 from .state import (
-    add_transaction,
     latest_success_transaction,
     load_state,
     save_state,
@@ -45,69 +46,95 @@ def banner() -> None:
 
 
 def show_updates(updates: list[UpdatePackage]) -> None:
-    """Print the update summary table."""
+    """Print the migration update summary table."""
 
     if not updates:
-        print("No CaramOS OTA updates are available.")
+        print("No CaramOS migration updates are available.")
         return
-    print("Available updates:\n")
-    print(f"  {'Package':35} {'Current':12} Available")
+    print("Available CaramOS migration update:\n")
+    print(f"  {'Item':35} {'Current':12} Target")
     print("  ─────────────────────────────────────────────────────")
     for update in updates:
         print(f"  {update.name:35} {update.current_version:12} {update.available_version}")
-    print(f"\n{len(updates)} update(s) available.")
+    print(f"\nTarget release: {updates[0].available_version}")
 
 
-def do_upgrade(manifest: Manifest, updates: list[UpdatePackage], state: dict[str, Any], auto_yes: bool) -> None:
-    """Install detected updates and record a transaction."""
+def self_update_ota_if_needed(*, skip_self_update: bool) -> None:
+    """Upgrade caramos-ota first and re-exec into the new code when changed."""
 
-    if not updates:
-        print("No CaramOS OTA updates are available.")
+    if skip_self_update:
+        log_info("Skipping OTA self-update because --skip-self-update is set")
         return
-    show_updates(updates)
-    print()
+
+    before = installed_version("caramos-ota")
+    print("Updating CaramOS OTA engine first...")
+    log_info(f"OTA self-update before version: {before or '(not installed)'}")
+    if not install_packages(["caramos-ota"]):
+        log_error("OTA self-update failed")
+        print("Error: Failed to update caramos-ota before running migrations.")
+        print(f"Log: {current_log_file()}")
+        raise SystemExit(EXIT_APT)
+
+    after = installed_version("caramos-ota")
+    log_info(f"OTA self-update after version: {after or '(not installed)'}")
+    if before == after:
+        print("CaramOS OTA engine is already up to date.")
+        return
+
+    print(f"CaramOS OTA engine updated: {before or '(none)'} → {after}")
+    print("Restarting updater with the new OTA engine...")
+    log_info("Re-execing caramos-ota after self-update")
+    os.execv(
+        "/usr/bin/caramos-ota",
+        ["caramos-ota", "--upgrade", "--yes", "--skip-self-update"],
+    )
+
+
+def run_migration_update(target_version: str, *, dry_run: bool) -> None:
+    """Invoke caramos-ota-update for the target CaramOS version."""
+
+    command = ["/usr/bin/caramos-ota-update", "--target", target_version]
+    if dry_run:
+        command.append("--dry-run")
+    log_info("Running updater: " + " ".join(command))
+    result = subprocess.run(command, check=False, text=True)
+    if result.returncode != 0:
+        log_error(f"caramos-ota-update failed with exit code {result.returncode}")
+        print("Error: Migration update failed.")
+        print(f"Log: {current_log_file()}")
+        raise SystemExit(result.returncode)
+
+
+def do_upgrade(
+    manifest: Manifest,
+    updates: list[UpdatePackage],
+    state: dict[str, Any],
+    auto_yes: bool,
+    *,
+    skip_self_update: bool,
+) -> None:
+    """Run the migration-driven OTA upgrade."""
+
+    target_version = manifest.release
+    print(f"CaramOS target version: {target_version}")
+    if updates:
+        show_updates(updates)
+        print()
     if not auto_yes:
-        answer = input("Install these updates? [Y/n] ")
+        answer = input(f"Update CaramOS to {target_version}? [Y/n] ")
         if answer.lower().startswith("n"):
             print("Update cancelled.")
             log_info("User cancelled update")
             raise SystemExit(EXIT_CANCEL)
 
-    txn_id = datetime.now().strftime("%Y%m%d-%H%M%S")
-    transaction = {
-        "id": txn_id,
-        "status": "pending",
-        "started_at": now_iso(),
-        "finished_at": None,
-        "manifest_release": manifest.release,
-        "packages": [
-            {
-                "name": update.name,
-                "old_version": None if update.current_version == "(new)" else update.current_version,
-                "new_version": update.available_version,
-                "action": "install" if update.current_version == "(new)" else "upgrade",
-            }
-            for update in updates
-        ],
-    }
-    add_transaction(state, transaction)
-    log_info(f"Transaction {txn_id} started")
-
-    print("\nInstalling updates...")
-    if install_packages([update.name for update in updates]):
-        update_transaction_status(state, txn_id, "success", now_iso())
-        log_info(f"Transaction {txn_id} completed successfully")
-        print("\nUpdate complete.")
-        print(f"CaramOS is now on release {manifest.release}.")
-        print(f"{len(updates)} package(s) updated.")
-        return
-
-    update_transaction_status(state, txn_id, "failed", now_iso())
-    log_error(f"Transaction {txn_id} failed")
-    print("\nError: Update failed.")
-    print(f"Please try again or run: sudo {TOOL_NAME} --repair")
-    print(f"Log: {current_log_file()}")
-    raise SystemExit(EXIT_APT)
+    self_update_ota_if_needed(skip_self_update=skip_self_update)
+    run_migration_update(target_version, dry_run=False)
+    state["last_successful_upgrade"] = now_iso()
+    state["installed_release"] = target_version
+    state["available_update"] = None
+    save_state(state)
+    print("\nUpdate complete.")
+    print(f"CaramOS is now on version {target_version}.")
 
 
 def do_status(release_info: ReleaseInfo, state: dict[str, Any]) -> None:
@@ -129,11 +156,11 @@ def do_status(release_info: ReleaseInfo, state: dict[str, Any]) -> None:
     print(f"  ID:      {txn.get('id', '?')}")
     print(f"  Release: {txn.get('manifest_release', '?')}")
     print(f"  Date:    {txn.get('finished_at', '?')}")
-    print("  Packages:")
+    print("  Migration marker:")
     for package in txn.get("packages", []):
         if not isinstance(package, dict):
             continue
-        old = package.get("old_version") or "(new)"
+        old = package.get("old_version") or "(previous)"
         print(f"    {package.get('name', '?')}  {old} → {package.get('new_version', '?')}")
 
 
@@ -242,6 +269,11 @@ Exit codes:
     parser.add_argument("--status", action="store_true", help="Show current CaramOS OTA status")
     parser.add_argument("--repair", action="store_true", help="Fix broken package state")
     parser.add_argument("--rollback", action="store_true", help="Rollback the latest successful OTA transaction")
+    parser.add_argument(
+        "--skip-self-update",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     parser.add_argument("--version", "-V", action="version", version=f"{TOOL_NAME} {TOOL_VERSION}")
     return parser
 
@@ -302,10 +334,10 @@ def main(argv: list[str] | None = None) -> int:
         print()
         if args.dry_run:
             show_updates(updates)
-            if updates:
-                print("\n(dry-run: no packages were installed)")
+            print(f"\n(dry-run: would run /usr/bin/caramos-ota-update --target {manifest.release} --dry-run)")
+            run_migration_update(manifest.release, dry_run=True)
         else:
-            do_upgrade(manifest, updates, state, args.yes)
+            do_upgrade(manifest, updates, state, args.yes, skip_self_update=args.skip_self_update)
 
     log_info(f"Finished {TOOL_NAME} action={action}")
     return EXIT_OK

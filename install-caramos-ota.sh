@@ -95,13 +95,18 @@ install_ota() {
 prepare_update_state() {
   info "Kiểm tra bản cập nhật OTA để chuẩn bị popup..."
   if command -v caramos-ota >/dev/null 2>&1; then
-    caramos-ota --check || {
-      warn "caramos-ota --check lỗi. Có thể chạy thủ công: sudo caramos-ota --check"
-      return 0
-    }
+    rm -f /var/lib/caramos-ota/state.json 2>/dev/null || true
+    if ! caramos-ota --check; then
+      warn "caramos-ota --check lỗi nên KHÔNG mở popup để tránh báo sai 'đã cập nhật'."
+      warn "Xem log: ls -t /var/log/caramos-ota/*.log 2>/dev/null | head -1"
+      warn "Sau khi sửa apt update, chạy lại: sudo caramos-ota --check && caramos-ota-notifier"
+      return 1
+    fi
     ok "Đã kiểm tra OTA và ghi state cho notifier"
+    return 0
   else
     warn "Không tìm thấy caramos-ota sau khi cài."
+    return 1
   fi
 }
 
@@ -126,9 +131,10 @@ main() {
   install_keyring
   write_ppa_source
   install_ota
-  prepare_update_state
-  launch_notifier
-  printf '\nHoàn tất. Popup chỉ hiển thị nội dung cập nhật; user tự bấm "Cập nhật ngay" nếu đồng ý.\nNếu popup không hiện, chạy thủ công:\n  sudo caramos-ota --check\n  caramos-ota-notifier\n'
+  if prepare_update_state; then
+    launch_notifier
+  fi
+  printf '\nHoàn tất. Popup chỉ hiển thị nội dung cập nhật; user tự bấm "Cập nhật ngay" nếu đồng ý.\nNếu popup không hiện, chạy thủ công:\n  sudo apt update\n  sudo caramos-ota --check\n  caramos-ota-notifier\n'
 }
 
 main "$@"

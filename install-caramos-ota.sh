@@ -53,10 +53,32 @@ disable_live_cdrom_source() {
   ok "Đã tắt cdrom source nếu tồn tại"
 }
 
+cleanup_conflicting_ppa_sources() {
+  info "Dọn CaramOS PPA source cũ/trùng nếu có..."
+  rm -f "${LEGACY_SOURCE_FILE}"
+
+  if [[ -d /etc/apt/sources.list.d ]]; then
+    find /etc/apt/sources.list.d -maxdepth 1 -type f \( -name '*.list' -o -name '*.sources' \) -print0 \
+      | while IFS= read -r -d '' source_file; do
+          [[ "${source_file}" == "${SOURCE_FILE}" ]] && continue
+          if grep -Fq "${PPA_URL}" "${source_file}" 2>/dev/null; then
+            mv -f "${source_file}" "${source_file}.disabled-by-caramos-ota"
+            warn "Đã tắt source trùng: ${source_file}"
+          fi
+        done
+  fi
+  ok "Đã dọn source trùng"
+}
+
 install_keyring() {
   info "Cập nhật keyring Launchpad PPA CaramOS..."
   mkdir -p "${KEYRING_DIR}"
   chmod 0755 "${KEYRING_DIR}"
+
+  if [[ -s "${KEYRING_FILE}" ]]; then
+    ok "Keyring đã tồn tại: ${KEYRING_FILE}"
+    return 0
+  fi
 
   if command -v gpg >/dev/null 2>&1; then
     local tmp_home
@@ -79,8 +101,8 @@ install_keyring() {
 }
 
 write_ppa_source() {
-  info "Thêm CaramOS PPA source..."
-  rm -f "${LEGACY_SOURCE_FILE}"
+  info "Thêm/cập nhật CaramOS PPA source..."
+  cleanup_conflicting_ppa_sources
   cat > "${SOURCE_FILE}" <<EOF
 Types: deb
 URIs: ${PPA_URL}
@@ -95,7 +117,12 @@ install_ota() {
   info "Cập nhật APT và cài caramos-ota..."
   apt-get update
   apt-get install -y caramos-ota
-  ok "Đã cài caramos-ota"
+  if dpkg -s caramos-ota >/dev/null 2>&1; then
+    ok "caramos-ota đã sẵn sàng: $(dpkg-query -W -f='\${Version}' caramos-ota 2>/dev/null || true)"
+  else
+    fail "Không cài được caramos-ota"
+    exit 1
+  fi
 }
 
 prepare_update_state() {

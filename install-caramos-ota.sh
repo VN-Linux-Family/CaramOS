@@ -5,9 +5,10 @@ PPA_URL="https://ppa.launchpadcontent.net/vietnamlinuxfamily/caram-os/ubuntu"
 PPA_SUITE="noble"
 PPA_COMPONENT="main"
 PPA_KEY_FPR="CDAC57D9EB35115D"
-KEYRING_DIR="/etc/apt/keyrings"
-KEYRING_FILE="${KEYRING_DIR}/caramos-ppa.gpg"
-SOURCE_FILE="/etc/apt/sources.list.d/caramos-ppa.list"
+KEYRING_DIR="/usr/share/keyrings"
+KEYRING_FILE="${KEYRING_DIR}/caramos-archive-keyring.gpg"
+SOURCE_FILE="/etc/apt/sources.list.d/caramos-ppa.sources"
+LEGACY_SOURCE_FILE="/etc/apt/sources.list.d/caramos-ppa.list"
 RELEASE_FILE="/etc/caramos-release"
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
@@ -79,8 +80,13 @@ install_keyring() {
 
 write_ppa_source() {
   info "Thêm CaramOS PPA source..."
+  rm -f "${LEGACY_SOURCE_FILE}"
   cat > "${SOURCE_FILE}" <<EOF
-deb [signed-by=${KEYRING_FILE}] ${PPA_URL} ${PPA_SUITE} ${PPA_COMPONENT}
+Types: deb
+URIs: ${PPA_URL}
+Suites: ${PPA_SUITE}
+Components: ${PPA_COMPONENT}
+Signed-By: ${KEYRING_FILE}
 EOF
   ok "Đã ghi ${SOURCE_FILE}"
 }

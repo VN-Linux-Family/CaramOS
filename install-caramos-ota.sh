@@ -92,8 +92,21 @@ install_ota() {
   ok "Đã cài caramos-ota"
 }
 
+prepare_update_state() {
+  info "Kiểm tra bản cập nhật OTA để chuẩn bị popup..."
+  if command -v caramos-ota >/dev/null 2>&1; then
+    caramos-ota --check || {
+      warn "caramos-ota --check lỗi. Có thể chạy thủ công: sudo caramos-ota --check"
+      return 0
+    }
+    ok "Đã kiểm tra OTA và ghi state cho notifier"
+  else
+    warn "Không tìm thấy caramos-ota sau khi cài."
+  fi
+}
+
 launch_notifier() {
-  info "Mở CaramOS OTA Notifier..."
+  info "Mở CaramOS OTA Notifier để user đọc nội dung cập nhật..."
   if command -v caramos-ota-notifier >/dev/null 2>&1; then
     if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]] && command -v runuser >/dev/null 2>&1; then
       runuser -u "${SUDO_USER}" -- env DISPLAY="${DISPLAY:-:0}" XAUTHORITY="/home/${SUDO_USER}/.Xauthority" caramos-ota-notifier >/dev/null 2>&1 &
@@ -102,7 +115,7 @@ launch_notifier() {
     fi
     ok "Đã gọi caramos-ota-notifier"
   else
-    warn "Không tìm thấy caramos-ota-notifier sau khi cài. Chạy thử: sudo caramos-ota"
+    warn "Không tìm thấy caramos-ota-notifier sau khi cài. Chạy thử: sudo caramos-ota --check"
   fi
 }
 
@@ -113,8 +126,9 @@ main() {
   install_keyring
   write_ppa_source
   install_ota
+  prepare_update_state
   launch_notifier
-  printf '\nHoàn tất. Nếu popup không hiện, chạy thủ công:\n  caramos-ota-notifier\nhoặc:\n  sudo caramos-ota\n'
+  printf '\nHoàn tất. Popup chỉ hiển thị nội dung cập nhật; user tự bấm "Cập nhật ngay" nếu đồng ý.\nNếu popup không hiện, chạy thủ công:\n  sudo caramos-ota --check\n  caramos-ota-notifier\n'
 }
 
 main "$@"

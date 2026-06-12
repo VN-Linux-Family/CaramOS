@@ -26,7 +26,7 @@ gsettings set org.gnome.desktop.background picture-uri "$WALLPAPER_URI" 2>/dev/n
 gsettings set org.cinnamon panels-enabled "['1:0:bottom']" 2>/dev/null || true
 gsettings set org.cinnamon panels-autohide "['1:false']" 2>/dev/null || true
 gsettings set org.cinnamon panels-height "['1:32']" 2>/dev/null || true
-gsettings set org.cinnamon panel-zone-icon-sizes '[{"panelId": 1, "maxSize": 24}]' 2>/dev/null || true
+gsettings set org.cinnamon panel-zone-icon-sizes '[{"panelId": 1, "right": 18}]' 2>/dev/null || true
 
 # Desktop: ẩn TẤT CẢ icon trên desktop (desktop style)
 gsettings set org.nemo.desktop computer-icon-visible false 2>/dev/null || true

@@ -121,7 +121,7 @@ cat > /etc/dconf/db/local.d/01-caramos-task17-panel <<'DCONF'
 enabled-applets=['panel1:left:0:Cinnamenu@json', 'panel1:left:1:grouped-window-list@cinnamon.org', 'panel1:right:0:weather@mockturtl', 'panel1:right:1:systray@cinnamon.org', 'panel1:right:2:notifications@cinnamon.org', 'panel1:right:3:power@cinnamon.org', 'panel1:right:4:calendar@cinnamon.org']
 panels-height=['1:32']
 panel-scale-text-icons=false
-panel-zone-icon-sizes='[{"panelId": 1, "maxSize": 18}]'
+panel-zone-icon-sizes='[{"panelId": 1, "right": 18}]'
 panel-zone-symbolic-icon-sizes='[{"panelId": 1, "left": 20, "center": 20, "right": 16}]'
 panel-zone-text-sizes='[{"panelId": 1, "left":0.0, "center":0.0, "right":0.0}]'
 favorite-apps=@as []

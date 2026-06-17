@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>CaramOS Installer Slideshow</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            transition: opacity 0.3s ease;
+            opacity: 1;
+        }
+
+        iframe.fading {
+            opacity: 0;
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+
+<body>
+    <iframe id="slideframe" src="welcome.html"></iframe>
+
+    <script>
+        (function () {
+            var slides = [
+                "welcome.html",
+                "apps.html",
+                "vietnamese.html",
+                "windows_apps.html",
+                "updates.html",
+                "community.html"
+            ];
+            var current = 0;
+            var frame = document.getElementById("slideframe");
+            var interval = 7000; // 7 seconds
+            var timer;
+
+            function changeSlide(index) {
+                frame.classList.add('fading');
+                setTimeout(function () {
+                    current = (index + slides.length) % slides.length;
+                    frame.src = slides[current];
+                    setTimeout(function () {
+                        frame.classList.remove('fading');
+                    }, 100);
+                }, 300); // Wait for fade out
+            }
+
+            function nextSlide() { changeSlide(current + 1); }
+            function prevSlide() { changeSlide(current - 1); }
+
+            function resetTimer() {
+                clearInterval(timer);
+                timer = setInterval(nextSlide, interval);
+            }
+
+            // Keyboard navigation
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'ArrowRight') { nextSlide(); resetTimer(); }
+                else if (e.key === 'ArrowLeft') { prevSlide(); resetTimer(); }
+            });
+            document.addEventListener('click', function (e) {
+                // Không chuyển slide nếu nhấn vào link hoặc button
+                if (e.target.closest('a') || e.target.closest('button')) return;
+                nextSlide();
+                resetTimer();
+            });
+
+            // Re-bind focus loop mechanism to ensure keys work inside the iframe if clicked
+            setInterval(function () {
+                try {
+                    var frameDoc = frame.contentWindow.document;
+                    if (!frameDoc.hasKeydownListener) {
+                        frameDoc.addEventListener('keydown', function (e) {
+                            if (e.key === 'ArrowRight') { nextSlide(); resetTimer(); }
+                            else if (e.key === 'ArrowLeft') { prevSlide(); resetTimer(); }
+                        });
+                        frameDoc.addEventListener('click', function (e) {
+                            // Không chuyển slide nếu nhấn vào link hoặc button bên trong iframe
+                            if (e.target.closest('a') || e.target.closest('button')) return;
+                            nextSlide();
+                            resetTimer();
+                        });
+                        frameDoc.hasKeydownListener = true;
+                    }
+                } catch (e) { }
+            }, 1000);
+
+            timer = setInterval(nextSlide, interval);
+        })();
+    </script>
+</body>
+
+</html>

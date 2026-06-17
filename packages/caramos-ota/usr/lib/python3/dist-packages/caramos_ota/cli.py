@@ -59,7 +59,7 @@ def show_updates(updates: list[UpdatePackage]) -> None:
     print(f"\nTarget release: {updates[0].available_version}")
 
 
-def self_update_ota_if_needed(*, skip_self_update: bool) -> None:
+def self_update_ota_if_needed(*, skip_self_update: bool, reexec_args: list[str]) -> None:
     """Upgrade caramos-ota first and re-exec into the new code when changed."""
 
     if skip_self_update:
@@ -71,7 +71,7 @@ def self_update_ota_if_needed(*, skip_self_update: bool) -> None:
     log_info(f"OTA self-update before version: {before or '(not installed)'}")
     if not install_packages(["caramos-ota"]):
         log_error("OTA self-update failed")
-        print("Error: Failed to update caramos-ota before running migrations.")
+        print("Error: Failed to update caramos-ota before checking/running migrations.")
         print(f"Log: {current_log_file()}")
         raise SystemExit(EXIT_APT)
 
@@ -83,11 +83,8 @@ def self_update_ota_if_needed(*, skip_self_update: bool) -> None:
 
     print(f"CaramOS OTA engine updated: {before or '(none)'} → {after}")
     print("Restarting updater with the new OTA engine...")
-    log_info("Re-execing caramos-ota after self-update")
-    os.execv(
-        "/usr/bin/caramos-ota",
-        ["caramos-ota", "--upgrade", "--yes", "--skip-self-update"],
-    )
+    log_info("Re-execing caramos-ota after self-update: " + " ".join(reexec_args))
+    os.execv("/usr/bin/caramos-ota", reexec_args)
 
 
 def run_migration_update(target_version: str, *, dry_run: bool) -> None:
@@ -127,7 +124,10 @@ def do_upgrade(
             log_info("User cancelled update")
             raise SystemExit(EXIT_CANCEL)
 
-    self_update_ota_if_needed(skip_self_update=skip_self_update)
+    self_update_ota_if_needed(
+        skip_self_update=skip_self_update,
+        reexec_args=["caramos-ota", "--upgrade", "--yes", "--skip-self-update"],
+    )
     run_migration_update(target_version, dry_run=False)
     state["last_successful_upgrade"] = now_iso()
     state["installed_release"] = target_version
@@ -316,6 +316,10 @@ def main(argv: list[str] | None = None) -> int:
         banner()
         verify_repo()
         apt_update()
+        self_update_ota_if_needed(
+            skip_self_update=args.skip_self_update,
+            reexec_args=["caramos-ota", "--check", "--skip-self-update"],
+        )
         state["last_check"] = now_iso()
         save_state(state)
         _, updates = detect_updates(release_info, state)

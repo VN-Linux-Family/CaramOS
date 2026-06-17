@@ -3,7 +3,8 @@ Section: admin
 Priority: optional
 Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
 Standards-Version: 4.6.2
-Build-Depends: debhelper-compat (= 13)
+Build-Depends: debhelper-compat (= 13),
+ python3
 Rules-Requires-Root: no
 
 Package: caramos-ota

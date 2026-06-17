@@ -27,7 +27,7 @@ Defaults:
 What it does:
   1. Build caramos-ota .deb via tools/caramos-ota-testkit.sh build-deb
   2. Clean and recreate REMOTE_DIR on the VM
-  3. Copy .deb and guest runner scripts to the VM
+  3. Copy .deb, guest runner scripts, and VM Makefile to the VM
   4. Install the shipped .deb in the VM
   5. Print the commands to run inside the VM
 
@@ -72,9 +72,10 @@ remote_scp \
   "${deb}" \
   "${PKG_DIR}/tools/vm-run-ota-e2e.sh" \
   "${PKG_DIR}/tools/purge-caramos-ota.sh" \
+  "${PKG_DIR}/tools/Makefile.vm" \
   "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
 
-remote_ssh "chmod +x '${REMOTE_DIR}/vm-run-ota-e2e.sh' '${REMOTE_DIR}/purge-caramos-ota.sh'"
+remote_ssh "chmod +x '${REMOTE_DIR}/vm-run-ota-e2e.sh' '${REMOTE_DIR}/purge-caramos-ota.sh' && mv '${REMOTE_DIR}/Makefile.vm' '${REMOTE_DIR}/Makefile'"
 remote_ssh "cd '${REMOTE_DIR}' && printf '%s\\n' '${REMOTE_PASSWORD}' | sudo -S ./vm-run-ota-e2e.sh install-shipped"
 
 cat <<EOF
@@ -82,9 +83,9 @@ cat <<EOF
 
 Run this in the VM SSH session to execute the full default E2E flow:
   cd ${REMOTE_DIR}
-  sudo ./vm-run-ota-e2e.sh install-and-cli
+  make test
 
 For notifier GUI test, run inside the VM desktop terminal:
   cd ${REMOTE_DIR}
-  ./vm-run-ota-e2e.sh notifier
+  make test-notifier
 EOF

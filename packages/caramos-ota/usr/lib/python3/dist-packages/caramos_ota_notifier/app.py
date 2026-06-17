@@ -72,8 +72,18 @@ def run_upgrade_stream(on_line) -> tuple[bool, str]:
         return False, str(exc)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
     """Run the desktop notifier."""
+
+    import argparse
+
+    parser = argparse.ArgumentParser(prog="caramos-ota-notifier")
+    parser.add_argument(
+        "--autostart",
+        action="store_true",
+        help="Run from desktop autostart and stay silent when no update is available.",
+    )
+    args = parser.parse_args(argv)
 
     if not has_display():
         return 0
@@ -85,6 +95,8 @@ def main() -> int:
 
     update_info = read_available_update()
     if update_info is None:
+        if args.autostart:
+            return 0
         dialog = build_no_update_dialog()
         dialog.run()
         dialog.destroy()

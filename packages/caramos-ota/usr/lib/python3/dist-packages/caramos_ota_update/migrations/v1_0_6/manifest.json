@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "1.0.6",
+  "from_version": "1.0.5",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "installer slideshow assets",
+  "title": "CaramOS có bản cập nhật mới",
+  "summary": "Bản cập nhật này cài bộ slideshow CaramOS tùy biến cho trình cài đặt live/ISO, thay thế nội dung slideshow Linux Mint mặc định."
+}

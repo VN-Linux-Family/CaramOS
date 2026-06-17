@@ -1,0 +1,47 @@
+SHELL := /usr/bin/env bash
+.SHELLFLAGS := -euo pipefail -c
+
+TEST_RELEASE_FROM ?= 1.0.1
+TEST_RELEASE_TARGET ?= 1.0.5
+
+.PHONY: help install test test-cli prepare-check notifier test-notifier status clean
+
+help:
+	@printf '%s\n' 'CaramOS OTA VM test workflow'
+	@printf '%s\n' ''
+	@printf '%s\n' 'Targets:'
+	@printf '%s\n' '  make install        Install shipped .deb into this VM'
+	@printf '%s\n' '  make test           Run full CLI E2E migration test'
+	@printf '%s\n' '  make prepare-check  Prepare state.json with available update'
+	@printf '%s\n' '  make notifier       Launch notifier UI in desktop session'
+	@printf '%s\n' '  make test-notifier  prepare-check + notifier'
+	@printf '%s\n' '  make status         Show package/timer/state status'
+	@printf '%s\n' '  make clean          Purge caramos-ota from VM test system'
+	@printf '%s\n' ''
+	@printf '%s\n' 'Variables:'
+	@printf '%s\n' '  TEST_RELEASE_FROM=$(TEST_RELEASE_FROM) TEST_RELEASE_TARGET=$(TEST_RELEASE_TARGET)'
+
+install:
+	sudo ./vm-run-ota-e2e.sh install-shipped
+
+test test-cli:
+	sudo TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)' ./vm-run-ota-e2e.sh install-and-cli
+
+prepare-check:
+	sudo TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)' ./vm-run-ota-e2e.sh prepare-check
+
+notifier:
+	./vm-run-ota-e2e.sh notifier
+
+test-notifier: prepare-check notifier
+
+status:
+	@dpkg-query -W -f='Package: $${binary:Package}\nVersion: $${Version}\nStatus: $${db:Status-Abbrev}\n' caramos-ota 2>/dev/null || true
+	@printf '\nTimer:\n'
+	@systemctl status caramos-ota-check.timer --no-pager --lines=0 2>/dev/null || true
+	@printf '\nState:\n'
+	@sudo cat /var/lib/caramos-ota/state.json 2>/dev/null || true
+	@printf '\n'
+
+clean:
+	sudo ./purge-caramos-ota.sh

@@ -1,4 +1,12 @@
-caramos-ota (1.0.5-0caramos1) noble; urgency=medium
+caramos-ota (1.0.6-0caramos1) noble; urgency=medium
+
+  * Add CaramOS custom Ubiquity slideshow assets from PR #52.
+  * Add OTA migration to install slideshow files on existing systems.
+  * Keep package build dependency metadata compatible with Launchpad builders.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Tue, 09 Jun 2026 15:17:00 +0700
+
+caramos-ota (1.0.5.2-0caramos1) noble; urgency=medium
 
   * Release CaramOS OTA migration chain through CaramOS 1.0.5.
   * Add migrations for MintWelcome branding, default ZRAM, MintReport branding,

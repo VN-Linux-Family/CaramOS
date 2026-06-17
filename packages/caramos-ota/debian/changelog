@@ -1,3 +1,12 @@
+caramos-ota (1.0.7-0caramos1) noble; urgency=medium
+
+  * Apply Cinnamon panel layout update from PR #53.
+  * Add systray, network and sound applets to the right panel defaults.
+  * Remove weather and cornerbar from the default enabled applets.
+  * Add a searchable Start menu launcher for CaramOS Update Center.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 17 Jun 2026 15:12:00 +0700
+
 caramos-ota (1.0.6-0caramos1) noble; urgency=medium
 
   * Add CaramOS custom Ubiquity slideshow assets from PR #52.

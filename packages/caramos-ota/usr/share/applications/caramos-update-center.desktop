@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Update Center
+Name[vi]=Trung tâm cập nhật CaramOS
+Comment=Check for and install CaramOS OTA updates
+Comment[vi]=Kiểm tra và cài đặt các bản cập nhật OTA của CaramOS
+Exec=/usr/bin/caramos-ota-notifier
+Icon=system-software-update
+Terminal=false
+Categories=Settings;PackageManager;
+Keywords=CaramOS;Update;Updates;OTA;Upgrade;Cập nhật;Nâng cấp;
+StartupNotify=true

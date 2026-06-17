@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
-Name=CaramOS Update Notifier
-Comment=Check for CaramOS OTA updates
+Name=CaramOS Update Center
+Comment=Check for and install CaramOS OTA updates
 Exec=/usr/bin/caramos-ota-notifier --autostart
 Icon=system-software-update
 Terminal=false

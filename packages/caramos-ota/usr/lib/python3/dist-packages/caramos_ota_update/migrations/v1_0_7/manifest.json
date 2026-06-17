@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "1.0.7",
+  "from_version": "1.0.6",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "panel layout update",
+  "title": "Cập nhật bố cục panel Cinnamon",
+  "summary": "Bản cập nhật này sắp xếp lại panel Cinnamon: đưa systray lên đầu khu vực bên phải, thêm biểu tượng mạng và âm thanh, đồng thời bỏ weather/cornerbar khỏi mặc định."
+}

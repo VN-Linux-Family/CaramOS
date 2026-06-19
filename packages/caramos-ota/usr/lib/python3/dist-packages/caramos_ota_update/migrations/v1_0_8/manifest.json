@@ -1,0 +1,11 @@
+{
+  "schema": 1,
+  "version": "1.0.8",
+  "from_version": "1.0.7",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "software manager pins",
+  "title": "Ghim Software Manager",
+  "summary": "Bản cập nhật này ghim Software Manager vào panel Cinnamon và thêm biểu tượng Software Manager trên Desktop để người dùng dễ tìm kho ứng dụng."
+}

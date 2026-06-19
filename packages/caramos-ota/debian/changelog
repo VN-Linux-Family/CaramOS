@@ -1,3 +1,11 @@
+caramos-ota (1.0.8-0caramos1) noble; urgency=medium
+
+  * Apply Software Manager pinning update from PR #54.
+  * Pin Software Manager to Cinnamon grouped-window-list defaults.
+  * Add Software Manager launcher to the default and live user Desktop.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 17 Jun 2026 16:02:00 +0700
+
 caramos-ota (1.0.7-0caramos1) noble; urgency=medium
 
   * Apply Cinnamon panel layout update from PR #53.

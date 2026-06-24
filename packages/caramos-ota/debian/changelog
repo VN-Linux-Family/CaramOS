@@ -1,3 +1,14 @@
+caramos-ota (1.0.9-0caramos1) noble; urgency=medium
+
+  * Add stable Fcitx5 Lotus defaults for Vietnamese input.
+  * Keep English and Lotus input methods available in the Fcitx menu.
+  * Use Ctrl+Shift trigger keys with shared input state across applications.
+  * Route Cinnamon Start menu search through Fcitx with CLUTTER_IM_MODULE=fcitx.
+  * Restart Fcitx after applying login defaults so the running session loads them.
+  * Remove earlier experimental Fcitx switcher/state-sync helpers.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 24 Jun 2026 16:03:00 +0700
+
 caramos-ota (1.0.8-0caramos1) noble; urgency=medium
 
   * Apply Software Manager pinning update from PR #54.

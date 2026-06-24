@@ -8,6 +8,7 @@ REMOTE_USER="${REMOTE_USER:-caram}"
 REMOTE_HOST="${REMOTE_HOST:-127.0.0.1}"
 REMOTE_PORT="${REMOTE_PORT:-2222}"
 REMOTE_DIR="${REMOTE_DIR:-/tmp/caramos-ota-e2e}"
+TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.1}"
 # Test-only live-boot VM password. Override with REMOTE_PASSWORD=... if needed.
 REMOTE_PASSWORD="${REMOTE_PASSWORD:-caram}"
 
@@ -76,6 +77,17 @@ remote_scp \
   "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
 
 remote_ssh "chmod +x '${REMOTE_DIR}/vm-run-ota-e2e.sh' '${REMOTE_DIR}/purge-caramos-ota.sh' && mv '${REMOTE_DIR}/Makefile.vm' '${REMOTE_DIR}/Makefile'"
+remote_ssh "printf '%s\\n' '${REMOTE_PASSWORD}' | sudo -S /bin/sh -c 'cat > /etc/caramos-release <<EOF
+NAME=CaramOS
+VERSION=${TEST_RELEASE_FROM}
+VERSION_ID=${TEST_RELEASE_FROM}
+VERSION_CODENAME=noble
+UBUNTU_CODENAME=noble
+CHANNEL=stable
+ID=caramos
+ID_LIKE=\"linuxmint ubuntu debian\"
+PRETTY_NAME=\"CaramOS ${TEST_RELEASE_FROM}\"
+EOF'"
 remote_ssh "cd '${REMOTE_DIR}' && printf '%s\\n' '${REMOTE_PASSWORD}' | sudo -S ./vm-run-ota-e2e.sh install-shipped"
 
 cat <<EOF

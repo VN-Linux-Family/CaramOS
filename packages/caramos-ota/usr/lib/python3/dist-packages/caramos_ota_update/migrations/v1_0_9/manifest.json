@@ -1,0 +1,17 @@
+{
+  "schema": 1,
+  "version": "1.0.9",
+  "from_version": "1.0.8",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "fcitx5 config",
+  "title": "Cấu hình Fcitx5 mặc định",
+  "summary": "Thêm cấu hình phím tắt và hành vi mặc định cho Fcitx5/Lotus.",
+  "changes": [
+    "Thêm cấu hình Fcitx5 mặc định vào /etc/skel cho user mới.",
+    "Sửa phím tắt Ctrl+Shift để đổi giữa tiếng Anh và tiếng Việt.",
+    "Bật CLUTTER_IM_MODULE=fcitx để bộ gõ hoạt động trong ô tìm kiếm Start menu Cinnamon.",
+    "Giữ nguyên cấu hình Fcitx5 cá nhân nếu user đã tự chỉnh trước đó."
+  ]
+}

@@ -7,7 +7,7 @@ import subprocess
 import threading
 
 from .constants import OTA_COMMAND, PKEXEC_COMMAND, UPGRADE_TIMEOUT_SECONDS
-from .state import read_available_update
+from .state import read_available_update, read_no_update_status, resolve_available_update_now
 from .ui import (
     build_no_update_dialog,
     build_progress_dialog,
@@ -48,6 +48,7 @@ def run_upgrade_stream(on_line) -> tuple[bool, str]:
     """Run the OTA upgrade via pkexec and stream output lines to the UI."""
 
     output: list[str] = []
+    process: subprocess.Popen[str] | None = None
     try:
         process = subprocess.Popen(
             [PKEXEC_COMMAND, OTA_COMMAND, "--upgrade", "--yes"],
@@ -57,14 +58,28 @@ def run_upgrade_stream(on_line) -> tuple[bool, str]:
             bufsize=1,
         )
         assert process.stdout is not None
-        for raw_line in process.stdout:
-            line = raw_line.rstrip("\n")
-            output.append(line)
-            on_line(line)
-        return_code = process.wait(timeout=UPGRADE_TIMEOUT_SECONDS)
+
+        def kill_process() -> None:
+            if process and process.poll() is None:
+                process.kill()
+
+        timer = threading.Timer(UPGRADE_TIMEOUT_SECONDS, kill_process)
+        timer.start()
+        try:
+            for raw_line in process.stdout:
+                line = raw_line.rstrip("\n")
+                output.append(line)
+                on_line(line)
+            return_code = process.wait(timeout=5)
+        finally:
+            timer.cancel()
         detail = "\n".join(output).strip()
+        if return_code < 0:
+            return False, "Quá thời gian chờ cập nhật (10 phút)."
         return return_code == 0, detail
     except subprocess.TimeoutExpired:
+        if process and process.poll() is None:
+            process.kill()
         return False, "Quá thời gian chờ cập nhật (10 phút)."
     except FileNotFoundError:
         return False, "Không tìm thấy lệnh pkexec."
@@ -93,11 +108,15 @@ def main(argv: list[str] | None = None) -> int:
     except Exception:
         return 0
 
-    update_info = read_available_update()
+    update_info = read_available_update() if args.autostart else None
+    no_update_status = read_no_update_status()
+    if not args.autostart:
+        update_info, no_update_status = resolve_available_update_now()
+
     if update_info is None:
         if args.autostart:
             return 0
-        dialog = build_no_update_dialog()
+        dialog = build_no_update_dialog(no_update_status)
         dialog.run()
         dialog.destroy()
         return 0

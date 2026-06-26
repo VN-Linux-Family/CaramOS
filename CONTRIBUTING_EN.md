@@ -142,9 +142,9 @@ sudo ./build.sh --clean
 
 | Role | Tasks | Requirements |
 |---|---|---|
-| **Tester** | Test ISO on different hardware | A computer to test on |
+| **Tester** | Test ISO/OTA on different hardware | A computer or VM to test on |
 | **Designer** | Wallpapers, icons, themes | Graphic design skills |
-| **Developer** | Scripts, hooks, configs | Bash |
+| **Developer** | Scripts, hooks, configs, Debian packages, OTA migrations | Basic Bash/Python |
 | **Writer** | Documentation, translations | Good Vietnamese/English writing |
 
 ### Contribution Workflow
@@ -170,6 +170,92 @@ main            ← Stable, release ISOs
 ├── fix/*       ← Bug fixes
 └── release/*   ← Release preparation
 ```
+
+---
+
+## Writing OTA Migrations
+
+After an ISO has shipped, system changes should not require users to download a
+new ISO. Developers should add a migration to the `caramos-ota` package so the
+Update Center can move installed machines forward by version.
+
+### When do you need a migration?
+
+Create an OTA migration when a change affects already-installed CaramOS systems,
+for example:
+
+- branding, desktop defaults, dconf, panel, icon or theme updates;
+- adding/updating CaramOS-managed packages;
+- changes to `/etc/skel`, `/etc/caramos-release` or system configuration;
+- one-time commands that must run on user machines after release.
+
+If the change only affects future ISO builds, update `config/includes.chroot/`,
+`config/hooks/live/` or `config/packages.txt` instead.
+
+### File locations
+
+```text
+packages/caramos-ota/
+├── debian/changelog
+└── usr/lib/python3/dist-packages/caramos_ota_update/migrations/
+    ├── migration.json
+    └── vX_Y_Z/
+        ├── manifest.json
+        ├── __init__.py
+        └── *.py
+```
+
+A migration version must include:
+
+- a version entry in `migration.json`;
+- a matching `vX_Y_Z/` directory;
+- `manifest.json` with UI title/summary/changelog metadata;
+- code declaring `FROM_VERSION`, `TO_VERSION`, and `DESCRIPTION`;
+- a `run(context)` function that applies the change.
+
+### Safety rules
+
+- Each migration should upgrade exactly one adjacent version step.
+- Migrations must be idempotent or include explicit rerun guards.
+- Do not download or execute scripts from the internet inside migrations.
+- Do not download `.deb` files manually; use the configured APT/PPA path.
+- Do not add PPAs/keyrings from OTA; those must come from the ISO or reviewed packages.
+- Log each important action with `context.log(...)`.
+- `dry-run` must not mutate the system.
+- If a migration calls GUI/user-session processes such as `systemctl --user`,
+  `gsettings` or `fcitx5`, use short timeouts and fallbacks so Update Center
+  cannot hang forever.
+- If a service/desktop component restart is needed, prefer best-effort refresh
+  and tell users to logout/login when required.
+
+### Required tests before PR
+
+```bash
+cd packages/caramos-ota
+make compile
+make build
+make ship
+```
+
+Inside the VM:
+
+```bash
+cd /tmp/caramos-ota-e2e
+make test
+make test-notifier
+```
+
+PR checklist:
+
+- [ ] New migration has a clear version path.
+- [ ] `migration.json` and `manifest.json` are valid.
+- [ ] `make compile` and `make build` pass.
+- [ ] Upgrade from an older version was tested in a VM snapshot.
+- [ ] Update Center does not hang when a migration fails or a command times out.
+- [ ] Logs in `/var/log/caramos-ota/` are sufficient for debugging.
+
+See [packages/caramos-ota/README.md](packages/caramos-ota/README.md) for the full
+OTA architecture.
 
 ---
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import pwd
+import subprocess
 from pathlib import Path
 
 from caramos_ota_update.context import MigrationContext
@@ -175,6 +176,69 @@ def _chown_tree(path: Path, uid: int, gid: int) -> None:
             os.chown(child, uid, gid)
 
 
+def _session_environment(user: str, uid: int, home: Path) -> dict[str, str] | None:
+    """Return environment needed to talk to the live user's desktop session."""
+
+    runtime_dir = Path(f"/run/user/{uid}")
+    if not runtime_dir.exists():
+        return None
+    env = os.environ.copy()
+    env.update(
+        {
+            "DISPLAY": os.environ.get("DISPLAY", ":0"),
+            "XAUTHORITY": str(home / ".Xauthority"),
+            "XDG_RUNTIME_DIR": str(runtime_dir),
+            "DBUS_SESSION_BUS_ADDRESS": f"unix:path={runtime_dir}/bus",
+            "GTK_IM_MODULE": "fcitx",
+            "QT_IM_MODULE": "fcitx",
+            "XMODIFIERS": "@im=fcitx",
+            "INPUT_METHOD": "fcitx",
+            "SDL_IM_MODULE": "fcitx",
+            "GLFW_IM_MODULE": "ibus",
+            "CLUTTER_IM_MODULE": "fcitx",
+        }
+    )
+    return env
+
+
+def _run_as_user(user: str, env: dict[str, str], args: list[str], timeout: int = 5) -> subprocess.CompletedProcess[str] | None:
+    try:
+        return subprocess.run(
+            ["runuser", "-u", user, "--", *args],
+            check=False,
+            capture_output=True,
+            text=True,
+            env=env,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        return None
+
+
+def _refresh_live_session(context: MigrationContext, user: str, uid: int, home: Path) -> None:
+    """Restart input-method services for the current desktop session when possible."""
+
+    env = _session_environment(user, uid, home)
+    if env is None:
+        context.log(f"no live session found for user {user}; Fcitx refresh deferred until login")
+        return
+
+    _run_as_user(user, env, ["sh", "-lc", "ibus exit >/dev/null 2>&1 || killall ibus-daemon >/dev/null 2>&1 || true"])
+
+    if Path("/usr/bin/systemctl").exists():
+        _run_as_user(user, env, ["systemctl", "--user", "daemon-reload"])
+        _run_as_user(user, env, ["systemctl", "--user", "restart", "fcitx5.service"])
+
+    if Path("/usr/bin/fcitx5").exists():
+        result = _run_as_user(user, env, ["fcitx5", "-d", "--replace"], timeout=5)
+        if result is None:
+            context.log(f"warning: timed out restarting Fcitx5 for {user}; refresh deferred until login")
+        elif result.returncode == 0:
+            context.log(f"restarted Fcitx5 for live user: {user}")
+        else:
+            context.log(f"warning: could not restart Fcitx5 for {user}: {result.stderr.strip()}")
+
+
 def _apply_to_user(context: MigrationContext, uid: int) -> None:
     try:
         user_info = pwd.getpwuid(uid)
@@ -192,6 +256,7 @@ def _apply_to_user(context: MigrationContext, uid: int) -> None:
 
     _chown_tree(fcitx_dir, user_info.pw_uid, user_info.pw_gid)
     _chown_tree(env_dir, user_info.pw_uid, user_info.pw_gid)
+    _refresh_live_session(context, user_info.pw_name, user_info.pw_uid, home)
     context.log(f"updated Fcitx5 Lotus defaults for user: {user_info.pw_name}")
 
 
@@ -217,4 +282,4 @@ def run(context: MigrationContext) -> None:
     for _, uid in LIVE_USERS:
         _apply_to_user(context, uid)
 
-    context.log("logout/login is required for all Fcitx environment changes")
+    context.log("Fcitx was restarted for live sessions when possible; logout/login may still be needed for already-running applications to inherit environment changes")

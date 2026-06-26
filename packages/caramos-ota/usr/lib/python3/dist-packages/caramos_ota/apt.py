@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import subprocess
+from pathlib import Path
 from typing import Any
 
 from .constants import EXIT_APT, TOOL_NAME
@@ -36,10 +37,47 @@ def run_command(args: list[str], *, capture: bool = False, allow_fail: bool = Fa
     return result
 
 
+APT_SOURCES_LIST = Path("/etc/apt/sources.list")
+APT_SOURCES_DIR = Path("/etc/apt/sources.list.d")
+
+
+def disable_cdrom_sources() -> None:
+    """Disable live ISO cdrom APT sources that break apt-get update."""
+
+    source_files = [APT_SOURCES_LIST]
+    if APT_SOURCES_DIR.exists():
+        source_files.extend(sorted(APT_SOURCES_DIR.glob("*.list")))
+
+    for source_file in source_files:
+        try:
+            if not source_file.exists() or not source_file.is_file():
+                continue
+            original = source_file.read_text(encoding="utf-8")
+            changed = False
+            updated_lines: list[str] = []
+            for line in original.splitlines(keepends=True):
+                stripped = line.lstrip()
+                if stripped.startswith("deb cdrom:") or stripped.startswith("deb-src cdrom:"):
+                    updated_lines.append("# disabled by caramos-ota: " + line)
+                    changed = True
+                else:
+                    updated_lines.append(line)
+            if not changed:
+                continue
+            backup = source_file.with_suffix(source_file.suffix + ".caramos-ota.bak")
+            if not backup.exists():
+                backup.write_text(original, encoding="utf-8")
+            source_file.write_text("".join(updated_lines), encoding="utf-8")
+            log_info(f"Disabled cdrom APT source entries in {source_file}")
+        except OSError as exc:
+            log_error(f"Failed to inspect APT source file {source_file}: {exc}")
+
+
 def apt_update() -> None:
     """Refresh APT metadata."""
 
     print_ok("Updating package index...")
+    disable_cdrom_sources()
     try:
         run_command(["apt-get", "update", "-qq"])
     except subprocess.CalledProcessError:

@@ -10,16 +10,28 @@ KEYRING_FILE="${KEYRING_DIR}/caramos-archive-keyring.gpg"
 SOURCE_FILE="/etc/apt/sources.list.d/caramos-ppa.sources"
 LEGACY_SOURCE_FILE="/etc/apt/sources.list.d/caramos-ppa.list"
 RELEASE_FILE="/etc/caramos-release"
+TMP_GNUPG_HOME=""
 
 info() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
 ok() { printf '\033[1;32mOK\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33mWARN\033[0m %s\n' "$*"; }
 fail() { printf '\033[1;31mERROR\033[0m %s\n' "$*" >&2; }
 
+cleanup() {
+  if [[ -n "${TMP_GNUPG_HOME}" && -d "${TMP_GNUPG_HOME}" ]]; then
+    rm -rf "${TMP_GNUPG_HOME}"
+  fi
+}
+trap cleanup EXIT
+
 require_root() {
   if [[ "${EUID}" -ne 0 ]]; then
     fail "Vui lòng chạy bằng sudo: sudo bash $0"
     exit 2
+  fi
+  if [[ ! -d /etc/apt/sources.list.d ]]; then
+    fail "Không tìm thấy /etc/apt/sources.list.d; hệ thống APT không hợp lệ."
+    exit 1
   fi
 }
 
@@ -80,36 +92,36 @@ install_keyring() {
     return 0
   fi
 
-  if command -v gpg >/dev/null 2>&1; then
-    local tmp_home
-    tmp_home="$(mktemp -d)"
-    chmod 0700 "${tmp_home}"
-    GNUPGHOME="${tmp_home}" gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${PPA_KEY_FPR}"
-    GNUPGHOME="${tmp_home}" gpg --batch --export "${PPA_KEY_FPR}" > "${KEYRING_FILE}"
-    rm -rf "${tmp_home}"
-  elif command -v apt-key >/dev/null 2>&1; then
-    warn "gpg không có sẵn, fallback sang apt-key deprecated."
-    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys "${PPA_KEY_FPR}"
-    return 0
-  else
-    fail "Không tìm thấy gpg hoặc apt-key để import PPA key."
+  if ! command -v gpg >/dev/null 2>&1; then
+    fail "Không tìm thấy gpg để import PPA key. Cài gói gnupg rồi chạy lại."
     exit 1
   fi
 
-  chmod 0644 "${KEYRING_FILE}"
+  TMP_GNUPG_HOME="$(mktemp -d)"
+  chmod 0700 "${TMP_GNUPG_HOME}"
+  GNUPGHOME="${TMP_GNUPG_HOME}" gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${PPA_KEY_FPR}"
+  GNUPGHOME="${TMP_GNUPG_HOME}" gpg --batch --export "${PPA_KEY_FPR}" > "${KEYRING_FILE}.tmp"
+  chmod 0644 "${KEYRING_FILE}.tmp"
+  mv -f "${KEYRING_FILE}.tmp" "${KEYRING_FILE}"
   ok "Đã ghi ${KEYRING_FILE}"
 }
 
 write_ppa_source() {
   info "Thêm/cập nhật CaramOS PPA source..."
   cleanup_conflicting_ppa_sources
-  cat > "${SOURCE_FILE}" <<EOF
+  if [[ ! -s "${KEYRING_FILE}" ]]; then
+    fail "Thiếu keyring ${KEYRING_FILE}; không ghi APT source để tránh repo unsigned."
+    exit 1
+  fi
+  cat > "${SOURCE_FILE}.tmp" <<EOF
 Types: deb
 URIs: ${PPA_URL}
 Suites: ${PPA_SUITE}
 Components: ${PPA_COMPONENT}
 Signed-By: ${KEYRING_FILE}
 EOF
+  chmod 0644 "${SOURCE_FILE}.tmp"
+  mv -f "${SOURCE_FILE}.tmp" "${SOURCE_FILE}"
   ok "Đã ghi ${SOURCE_FILE}"
 }
 
@@ -147,7 +159,17 @@ launch_notifier() {
   info "Mở CaramOS OTA Notifier để user đọc nội dung cập nhật..."
   if command -v caramos-ota-notifier >/dev/null 2>&1; then
     if [[ -n "${SUDO_USER:-}" && "${SUDO_USER}" != "root" ]] && command -v runuser >/dev/null 2>&1; then
-      runuser -u "${SUDO_USER}" -- env DISPLAY="${DISPLAY:-:0}" XAUTHORITY="/home/${SUDO_USER}/.Xauthority" caramos-ota-notifier >/dev/null 2>&1 &
+      local user_home user_uid user_env
+      user_home="$(getent passwd "${SUDO_USER}" | cut -d: -f6 || true)"
+      user_uid="$(id -u "${SUDO_USER}" 2>/dev/null || true)"
+      user_env=("HOME=${user_home}" "USER=${SUDO_USER}" "LOGNAME=${SUDO_USER}" "DISPLAY=${DISPLAY:-:0}")
+      if [[ -n "${user_uid}" && -S "/run/user/${user_uid}/bus" ]]; then
+        user_env+=("DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/${user_uid}/bus")
+      fi
+      if [[ -n "${user_home}" && -f "${user_home}/.Xauthority" ]]; then
+        user_env+=("XAUTHORITY=${user_home}/.Xauthority")
+      fi
+      runuser -u "${SUDO_USER}" -- env "${user_env[@]}" caramos-ota-notifier >/dev/null 2>&1 &
     else
       caramos-ota-notifier >/dev/null 2>&1 &
     fi

@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import html
+from pathlib import Path
 from typing import Any
 
 from .state import format_value, normalize_package
+
+CARAMOS_ICON = Path("/usr/share/pixmaps/caramos-logo.png")
 
 
 def import_gtk():
@@ -17,6 +20,15 @@ def import_gtk():
     from gi.repository import Gdk, GLib, Gtk
 
     return Gtk, Gdk, GLib
+
+
+def set_caramos_icon(dialog, Gtk) -> None:
+    """Use the CaramOS brand icon for OTA dialogs when available."""
+
+    if CARAMOS_ICON.exists():
+        dialog.set_icon_from_file(str(CARAMOS_ICON))
+    else:
+        dialog.set_icon_name("caramos-logo")
 
 
 def apply_theme(Gtk, Gdk) -> None:
@@ -124,7 +136,7 @@ def build_update_dialog(update_info: dict[str, Any]):
     dialog.set_size_request(620, 500)
     dialog.set_resizable(True)
     dialog.set_position(Gtk.WindowPosition.CENTER)
-    dialog.set_icon_name("system-software-update")
+    set_caramos_icon(dialog, Gtk)
 
     content = dialog.get_content_area()
     content.set_spacing(0)
@@ -313,7 +325,7 @@ def build_progress_dialog():
     dialog.set_resizable(True)
     dialog.set_position(Gtk.WindowPosition.CENTER)
     dialog.set_deletable(False)
-    dialog.set_icon_name("system-software-update")
+    set_caramos_icon(dialog, Gtk)
 
     content = dialog.get_content_area()
     content.set_spacing(0)
@@ -392,7 +404,7 @@ def build_result_dialog(success: bool, detail: str = ""):
     dialog.set_default_size(*_screen_dialog_size(Gdk))
     dialog.set_resizable(True)
     dialog.set_position(Gtk.WindowPosition.CENTER)
-    dialog.set_icon_name("system-software-update")
+    set_caramos_icon(dialog, Gtk)
 
     content = dialog.get_content_area()
     content.set_spacing(0)
@@ -457,17 +469,22 @@ def build_result_dialog(success: bool, detail: str = ""):
     return dialog
 
 
-def build_no_update_dialog():
+def build_no_update_dialog(status: dict[str, str] | None = None):
     """Build a visible dialog for manual launches when no update is available."""
 
     Gtk, Gdk, _ = import_gtk()
     apply_theme(Gtk, Gdk)
+    status = status or {}
+    current_version = format_value(status.get("current_version"))
+    latest_version = format_value(status.get("latest_version"))
+    channel = format_value(status.get("channel"), "stable")
+
     dialog = Gtk.Dialog()
     dialog.set_title("CaramOS - Trung tâm cập nhật")
     dialog.set_default_size(*_screen_dialog_size(Gdk))
     dialog.set_resizable(True)
     dialog.set_position(Gtk.WindowPosition.CENTER)
-    dialog.set_icon_name("system-software-update")
+    set_caramos_icon(dialog, Gtk)
 
     content = dialog.get_content_area()
     content.set_spacing(0)
@@ -497,7 +514,7 @@ def build_no_update_dialog():
     header.set_xalign(0)
     hero.pack_start(header, False, False, 0)
 
-    summary = Gtk.Label(label="Hiện không có bản cập nhật OTA nào khả dụng cho hệ thống này.")
+    summary = Gtk.Label(label="Hệ thống đang dùng phiên bản mới nhất trong kênh cập nhật stable.")
     summary.set_xalign(0)
     summary.set_line_wrap(True)
     hero.pack_start(summary, False, False, 0)
@@ -510,6 +527,14 @@ def build_no_update_dialog():
     title.set_markup("<span weight='bold'>Trạng thái cập nhật</span>")
     title.set_xalign(0)
     card.pack_start(title, False, False, 0)
+
+    version_grid = Gtk.Grid()
+    version_grid.set_column_spacing(12)
+    version_grid.set_row_spacing(8)
+    card.pack_start(version_grid, False, False, 0)
+    add_info_row(Gtk, version_grid, 0, "Phiên bản hiện tại", current_version)
+    add_info_row(Gtk, version_grid, 1, "Phiên bản mới nhất", latest_version)
+    add_info_row(Gtk, version_grid, 2, "Kênh cập nhật", channel)
 
     body = Gtk.Label()
     body.set_xalign(0)

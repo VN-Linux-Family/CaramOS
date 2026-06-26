@@ -20,30 +20,38 @@
 
 ### What is CaramOS?
 
-**CaramOS** is a Linux distribution based on [Linux Mint](https://linuxmint.com/), designed specifically for **Vietnamese users**. The name comes from *Carambola* — the starfruit. Its 5-pointed cross-section mirrors the star on Vietnam's flag, and it is a fruit deeply tied to Vietnamese childhood and culture.
+**CaramOS** is a Linux distribution based on **Linux Mint 22.3 Cinnamon**
+(Ubuntu 24.04 LTS), designed specifically for **Vietnamese users**. The project
+is built as an **ISO remaster**: extract the official Linux Mint ISO, customize
+the root filesystem with packages/overlays/hooks, then repack it as CaramOS.
 
 > [!IMPORTANT]
-> **Current version:** `1.0.1` — **Open Beta**.
+> **Current ISO version:** `1.0.1` — **Open Beta**.  
+> **Latest OTA update target:** `1.0.10` via `caramos-ota`.
 > CaramOS is currently in open beta to gather feedback from the community.
-> We warmly welcome all suggestions, bug reports, UI/package improvements,
-> installation experience feedback, and ideas that can make CaramOS friendlier
-> for Vietnamese users and the wider Linux community.
+> We warmly welcome suggestions, bug reports, UI/package improvements,
+> installation feedback, and ideas that make CaramOS friendlier for Vietnamese
+> users and the wider Linux community.
 
-> Our mission is to **make Linux accessible for everyone** — everything is kept as simple as possible, software comes pre-installed and ready to use, and we strive to bring familiar Windows applications to our users.
+Our mission is to make Linux easier for Vietnamese users moving from Windows:
+familiar desktop defaults, Vietnamese input ready out of the box, a browser,
+office tools, and practical daily-use utilities.
 
 ### Key Features
 
 | Feature | Description |
 |---|---|
-| **Chrome OS-style UI** | Clean, modern, rounded icons, grid launcher |
-| **Caram Center** | One-click Windows app installer (Zalo, Photoshop, Office, games) |
-| **Vietnamese-first** | Vietnamese locale by default, fcitx5-lotus input method, Vietnamese fonts |
-| **Offline AI** | Local AI assistant — chat, translate, summarize, spell-check |
-| **Safe updates** | mintupdate with risk-level classification — never breaks your system |
-| **One-click backup** | Timeshift snapshots — restore in 2 minutes |
-| **Auto driver detection** | Wi-Fi, GPU (NVIDIA/AMD/Intel) detected and installed automatically |
-| **LAN file sharing** | Warpinator — AirDrop-like file transfer |
-| **Lightweight** | Runs smoothly on low-spec hardware |
+| **Linux Mint 22.3 base** | Stable Ubuntu 24.04 LTS foundation with the familiar Cinnamon desktop |
+| **CaramOS branding** | Customized boot menu, Plymouth, logo, wallpaper, panel and theme |
+| **Vietnamese-first defaults** | Vietnamese locale, Asia/Ho_Chi_Minh timezone and Be Vietnam Pro fonts |
+| **Vietnamese input** | Fcitx5 + Lotus installed and configured by default |
+| **Google Chrome** | Popular browser included out of the box |
+| **WPS Office** | Office suite friendly to users migrating from Windows |
+| **Zalo** | Zalo AppImage included with a desktop shortcut |
+| **Cinnamon Delight + Tela/Bibata** | Modern theme, icons and cursor with a clean desktop experience |
+| **Neofetch/Fastfetch identity** | CaramOS ASCII logo and synchronized OS identity/version metadata |
+| **OTA updates** | `caramos-ota` delivers post-ISO updates through reviewed version migrations |
+| **Flexible builds** | Fast dev builds with `lz4`, smaller release builds with `xz`, Docker supported |
 
 <p align="center">
   <img src="assets/caramos_vietnam_banner.png" alt="CaramOS Open Beta banner" width="900">
@@ -65,45 +73,58 @@ modern, and ready for Vietnamese users out of the box.
 
 1. Download ISO from [caramos.vietnamlinuxfamily.net](https://caramos.vietnamlinuxfamily.net)
 2. Flash to USB with [Balena Etcher](https://etcher.balena.io) or `dd`
-3. Boot from USB, follow the installer (available in Vietnamese & English)
+3. Boot from USB, follow the installer
 
-### Caram Center — Windows Apps Made Easy
+### OTA Updates
 
-Caram Center is CaramOS's signature application that routes users to the right engine behind the scenes:
+CaramOS uses the `caramos-ota` package for updates after an ISO has shipped. An
+installed machine can start from ISO version `1.0.1` and later move to a newer
+CaramOS version such as `1.0.10` through an ordered migration chain.
 
+```text
+systemd timer
+  └── caramos-ota --check
+      ├── updates the caramos-ota package when the repository has a newer build
+      ├── resolves the migration chain
+      └── writes /var/lib/caramos-ota/state.json
+
+Update Center
+  └── user confirms the update
+      └── pkexec caramos-ota --upgrade --yes
+          └── caramos-ota-update runs each migration
 ```
-+------------------------------------------+
-|            Caram Center                   |
-+----------+----------+--------------------+
-|   Apps   |  Games   |   Web Apps         |
-+----------+----------+--------------------+
-| Bottles  | Lutris   | Webapp Manager     |
-| (Wine)   | (Wine)   | (PWA)              |
-+----------+----------+--------------------+
-```
 
-| App | Method | Status |
-|---|---|---|
-| **Zalo** | Snap / PWA | Works well |
-| **Photoshop CS6** | Bottles (Wine) | Works well |
-| **MS Office 2016** | Bottles (Wine) | Basic OK |
-| **Windows Games** | Lutris / Steam Proton | Varies |
+Important rules:
+
+- The timer checks/prepares state; it does not open the GUI or apply migrations.
+- Migrations run only after user confirmation or an explicit admin CLI command.
+- System-changing logic lives in `packages/caramos-ota`, not in documentation.
+- Developers adding post-release changes must write versioned OTA migrations.
+
+See [packages/caramos-ota/README.md](packages/caramos-ota/README.md) for the OTA
+architecture and developer workflow.
 
 ### Tech Stack
 
 | Component | Technology |
 |---|---|
-| **Base** | Linux Mint (Cinnamon) |
-| **GTK Theme** | ChromeOS-theme by vinceliuice |
-| **Icons** | Tela Circle |
-| **Launcher** | Cinnamenu (grid layout) |
-| **Windows Apps** | Bottles + Wine |
-| **Windows Games** | Lutris + Wine |
-| **Web Apps** | Webapp Manager (PWA) |
-| **Input Method** | fcitx5-lotus (Vietnamese) |
-| **AI** | Ollama (Gemma 2B / Phi-3 Mini) |
-| **Backup** | Timeshift |
-| **Updates** | mintupdate |
+| **Base ISO** | Linux Mint 22.3 Cinnamon 64-bit |
+| **Ubuntu base** | Ubuntu 24.04 LTS / noble |
+| **Desktop** | Cinnamon |
+| **Display manager** | LightDM from the Linux Mint base |
+| **Build method** | ISO remaster: extract → customize → repack |
+| **Build scripts** | Bash + Makefile |
+| **Dev compression** | SquashFS `lz4` |
+| **Release compression** | SquashFS `xz` |
+| **Theme** | Cinnamon Delight |
+| **Icons** | Tela circle / Cinnamon Delight Icons |
+| **Cursor** | Bibata |
+| **Font** | Be Vietnam Pro |
+| **Input Method** | Fcitx5 + Lotus |
+| **Browser** | Google Chrome |
+| **Office** | WPS Office |
+| **Chat** | Zalo AppImage |
+| **OTA** | `caramos-ota`, `caramos-ota-notifier`, `caramos-ota-update` |
 
 ### Build ISO
 
@@ -166,10 +187,10 @@ We welcome contributions! See [CONTRIBUTING_EN.md](CONTRIBUTING_EN.md) for guide
 
 **You can help with:**
 - Bug reports and feature suggestions via [Issues](https://github.com/VN-Linux-Family/CaramOS/issues)
-- Wallpaper, icon, and theme design
-- Testing on different hardware
+- Wallpaper, icon, theme, and branding design
+- Testing ISO and OTA updates on different hardware or VM snapshots
 - Documentation and translations
-- Writing Windows app install scripts for Caram Center
+- Writing safe hooks, overlays, package changes, and OTA migrations
 
 ### Contributors
 
@@ -188,11 +209,10 @@ CaramOS is open-source software licensed under [GPL-3.0](LICENSE).
 ### Acknowledgments
 
 - [Linux Mint](https://linuxmint.com/) — Outstanding base distribution
+- [Ubuntu](https://ubuntu.com/) — Stable LTS foundation through Linux Mint
 - [VNLF (Vietnam Linux Family)](https://vietnamlinuxfamily.net) — Vietnamese Linux community
-- [vinceliuice](https://github.com/vinceliuice) — ChromeOS-theme, Tela Circle icons
-- [Bottles](https://usebottles.com/) — Run Windows apps on Linux
-- [Lutris](https://lutris.net/) — Run Windows games on Linux
-- [Ollama](https://ollama.com/) — Offline AI
+- [vinceliuice](https://github.com/vinceliuice) — Tela icons and Linux desktop theming ecosystem
+- Fcitx5 and Lotus contributors — Vietnamese input method support
 
 ---
 

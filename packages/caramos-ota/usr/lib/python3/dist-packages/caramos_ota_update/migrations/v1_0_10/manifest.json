@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "version": "1.0.10",
+  "from_version": "1.0.9",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "cinnamon settings",
+  "title": "Sửa kích thước icon panel Cinnamon",
+  "summary": "Áp dụng cấu hình icon vùng phải của panel Cinnamon từ PR #62.",
+  "changes": [
+    "Đổi panel-zone-icon-sizes sang cấu hình vùng phải 18px theo PR #62.",
+    "Cập nhật dconf defaults cho user mới và cấu hình theme apply.",
+    "Chỉ cập nhật user hiện tại nếu cấu hình vẫn khớp mặc định CaramOS cũ để tránh ghi đè tuỳ chỉnh cá nhân."
+  ]
+}

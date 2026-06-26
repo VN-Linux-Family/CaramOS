@@ -171,9 +171,9 @@ sudo ./build.sh --clean
 
 | Vai trò | Công việc | Yêu cầu |
 |---|---|---|
-| **Tester** | Test ISO trên nhiều loại máy, báo lỗi | Có máy tính để test |
+| **Tester** | Test ISO/OTA trên nhiều loại máy, báo lỗi | Có máy tính hoặc VM để test |
 | **Designer** | Wallpaper, icon, theme, branding | Biết thiết kế đồ hoạ |
-| **Developer** | Script, hook, config | Bash |
+| **Developer** | Script, hook, config, Debian package, OTA migration | Bash/Python cơ bản |
 | **Writer** | Tài liệu hướng dẫn, dịch thuật | Viết tiếng Việt/Anh tốt |
 
 ### Quy trình đóng góp code
@@ -206,6 +206,89 @@ main            ← Bản ổn định, build ISO phát hành
 CaramOS X.Y.Z
 X = Major   Y = Minor   Z = Patch
 ```
+
+---
+
+## Viết OTA migration
+
+Sau khi ISO đã phát hành, các thay đổi hệ thống không nên yêu cầu user tải lại
+ISO. Developer cần thêm migration trong package `caramos-ota` để Update Center
+có thể nâng máy user theo version.
+
+### Khi nào cần migration?
+
+Tạo OTA migration khi thay đổi ảnh hưởng tới máy đã cài CaramOS, ví dụ:
+
+- sửa branding, desktop defaults, dconf, panel, icon, theme;
+- thêm/sửa package do CaramOS quản lý;
+- sửa `/etc/skel`, `/etc/caramos-release`, config hệ thống;
+- cần chạy command một lần trên máy user sau release.
+
+Nếu thay đổi chỉ ảnh hưởng ISO build mới, sửa `config/includes.chroot/`,
+`config/hooks/live/` hoặc `config/packages.txt` là đủ.
+
+### Vị trí file
+
+```text
+packages/caramos-ota/
+├── debian/changelog
+└── usr/lib/python3/dist-packages/caramos_ota_update/migrations/
+    ├── migration.json
+    └── vX_Y_Z/
+        ├── manifest.json
+        ├── __init__.py
+        └── *.py
+```
+
+Một migration version phải có:
+
+- entry version trong `migration.json`;
+- thư mục `vX_Y_Z/` tương ứng;
+- `manifest.json` mô tả title/summary/changelog cho UI;
+- code khai báo `FROM_VERSION`, `TO_VERSION`, `DESCRIPTION`;
+- hàm `run(context)` để apply thay đổi.
+
+### Quy tắc an toàn
+
+- Mỗi migration chỉ nâng một bước version liền kề.
+- Migration phải idempotent hoặc có guard chống chạy lặp.
+- Không tải/chạy script từ internet trong migration.
+- Không tải `.deb` thủ công; dùng APT/PPA đã cấu hình sẵn.
+- Không tự thêm PPA/keyring trong OTA; PPA/keyring phải đến từ ISO/package đã review.
+- Phải log rõ từng action qua `context.log(...)`.
+- `dry-run` không được sửa hệ thống.
+- Nếu gọi process GUI/user-session như `systemctl --user`, `gsettings`, `fcitx5`,
+  phải có timeout ngắn và fallback; không được để Update Center treo vô hạn.
+- Nếu migration cần restart service/desktop component, ưu tiên best-effort và báo
+  user logout/login khi cần.
+
+### Test bắt buộc trước PR
+
+```bash
+cd packages/caramos-ota
+make compile
+make build
+make ship
+```
+
+Trong VM:
+
+```bash
+cd /tmp/caramos-ota-e2e
+make test
+make test-notifier
+```
+
+Checklist PR:
+
+- [ ] Migration mới có version path rõ ràng.
+- [ ] `migration.json` và `manifest.json` hợp lệ.
+- [ ] `make compile` và `make build` pass.
+- [ ] Đã test upgrade từ version cũ trong VM snapshot.
+- [ ] Update Center không treo khi migration lỗi hoặc command timeout.
+- [ ] Log trong `/var/log/caramos-ota/` đủ để debug.
+
+Xem thêm: [packages/caramos-ota/README.md](packages/caramos-ota/README.md).
 
 ---
 

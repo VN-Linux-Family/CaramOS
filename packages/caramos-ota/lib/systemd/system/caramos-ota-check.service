@@ -6,3 +6,8 @@ Wants=network-online.target
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/caramos-ota --check
+PrivateTmp=true
+ProtectHome=true
+LockPersonality=true
+RestrictRealtime=true
+SystemCallArchitectures=native

@@ -30,7 +30,8 @@ Dự án được build theo hướng **ISO remaster**: bung ISO Linux Mint gố
 tuỳ biến rootfs bằng packages/overlay/hooks, rồi đóng gói lại thành ISO CaramOS.
 
 > [!IMPORTANT]
-> **Phiên bản hiện tại:** `1.0.1` — **Open Beta**.
+> **Phiên bản ISO hiện tại:** `1.0.1` — **Open Beta**.  
+> **Bản cập nhật OTA mới nhất:** `1.0.10` qua `caramos-ota`.
 > CaramOS đang mở beta để lấy ý kiến từ cộng đồng. Dự án rất hoan nghênh
 > mọi góp ý, báo lỗi, đề xuất cải tiến giao diện, package, trải nghiệm cài đặt
 > và các ý tưởng giúp CaramOS thân thiện hơn với người dùng Việt Nam.
@@ -150,6 +151,36 @@ v1.0.1
 ```
 
 Nếu tag không khớp, GitHub Actions sẽ fail trước khi build release.
+
+## Cập nhật OTA
+
+CaramOS dùng package `caramos-ota` để cập nhật hệ thống sau khi ISO đã phát hành.
+ISO có thể bắt đầu ở version `1.0.1`, sau đó Update Center/OTA sẽ nâng máy user
+lên version mới hơn như `1.0.10` bằng chuỗi migration đã review.
+
+Flow cập nhật:
+
+```text
+systemd timer
+  └── caramos-ota --check
+      ├── cập nhật package caramos-ota nếu repo có bản mới
+      ├── resolve migration chain
+      └── ghi /var/lib/caramos-ota/state.json
+
+Update Center
+  └── user xác nhận
+      └── pkexec caramos-ota --upgrade --yes
+          └── caramos-ota-update chạy từng migration
+```
+
+Nguyên tắc chính:
+
+- Timer chỉ check/chuẩn bị state, không tự mở GUI và không tự apply migration.
+- Migration chỉ chạy khi user xác nhận trong desktop session hoặc admin chạy CLI.
+- Logic thay đổi hệ thống nằm trong `packages/caramos-ota`, không nhét vào README.
+- Developer muốn thêm update sau release phải viết OTA migration có version rõ ràng.
+
+Xem chi tiết: [packages/caramos-ota/README.md](packages/caramos-ota/README.md).
 
 ## Build ISO local
 

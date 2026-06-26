@@ -1,3 +1,12 @@
+caramos-ota (1.0.10-0caramos1) noble; urgency=medium
+
+  * Apply Cinnamon panel icon size update from PR #62.
+  * Set right-side Cinnamon panel icons to 18px in dconf defaults.
+  * Update caramos-theme-apply so first-boot theme setup uses the same panel icon size.
+  * Preserve user-customized panel icon sizes during OTA migration.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 24 Jun 2026 21:31:00 +0700
+
 caramos-ota (1.0.9-0caramos1) noble; urgency=medium
 
   * Add stable Fcitx5 Lotus defaults for Vietnamese input.

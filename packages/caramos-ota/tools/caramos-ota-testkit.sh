@@ -29,8 +29,8 @@ Commands on CaramOS test machine:
   install-deb <deb> Install built caramos-ota .deb
   backup            Backup files touched by migration tests
   smoke             Check installed commands and compile installed modules
-  dry-run-1.0.12    Dry-run migration from 1.0.11 to 1.0.12
-  run-1.0.12        Run real migration 1.0.11 -> 1.0.12
+  dry-run-1.0.13    Dry-run migration from 1.0.11 to 1.0.13
+  run-1.0.13        Run real migration 1.0.11 -> 1.0.13
   verify-1.0.2      Verify VERSION metadata and selected branding changes
   restore           Restore backup made by backup command
 
@@ -46,9 +46,9 @@ Commands on CaramOS test machine:
   cd /tmp && tar -xzf caramos-ota-source-testkit.tar.gz
   cd caramos-ota
   sudo ./tools/caramos-ota-testkit.sh backup
-  sudo ./tools/caramos-ota-testkit.sh dry-run-1.0.12
-  sudo PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.12
-  sudo ./tools/caramos-ota-testkit.sh verify-1.0.12
+  sudo ./tools/caramos-ota-testkit.sh dry-run-1.0.13
+  sudo PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.13
+  sudo ./tools/caramos-ota-testkit.sh verify-1.0.13
 EOF
 }
 
@@ -176,22 +176,22 @@ smoke_installed() {
   echo "[OK] Installed smoke test passed"
 }
 
-dry_run_1_0_12() {
+dry_run_1_0_13() {
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.11 --target 1.0.12 --dry-run
+    caramos-ota-update --from 1.0.11 --target 1.0.13 --dry-run
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.12 --dry-run
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.13 --dry-run
   fi
 }
 
-run_1_0_12() {
+run_1_0_13() {
   require_root
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.11 --target 1.0.12
+    caramos-ota-update --from 1.0.11 --target 1.0.13
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.12
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.13
   fi
 }
 
@@ -229,9 +229,9 @@ case "${cmd}" in
   install-deb) install_deb "${1:-}" ;;
   backup) backup_system ;;
   smoke) smoke_installed ;;
-  dry-run-1.0.12) dry_run_1_0_12 ;;
-  run-1.0.12) run_1_0_12 ;;
-  verify-1.0.12) verify_1_0_2 ;;
+  dry-run-1.0.13) dry_run_1_0_13 ;;
+  run-1.0.13) run_1_0_13 ;;
+  verify-1.0.13) verify_1_0_2 ;;
   restore) restore_system ;;
   -h|--help|help|"") usage ;;
   *) echo "Unknown command: ${cmd}" >&2; usage; exit 1 ;;

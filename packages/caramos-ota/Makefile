@@ -9,8 +9,8 @@ export GPG_TTY
 REMOTE_USER ?= caram
 REMOTE_HOST ?= 127.0.0.1
 REMOTE_PORT ?= 2222
-TEST_RELEASE_FROM ?= 1.0.11
-TEST_RELEASE_TARGET ?= 1.0.12
+TEST_RELEASE_FROM ?= 1.0.12
+TEST_RELEASE_TARGET ?= 1.0.13
 
 .PHONY: help clean compile validate build release-deb source release-source ship test test-cli test-notifier smoke inspect status setup-gpg gpg-unlock upload release
 

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.11}"
-TEST_RELEASE_TARGET="${TEST_RELEASE_TARGET:-1.0.12}"
+TEST_RELEASE_TARGET="${TEST_RELEASE_TARGET:-1.0.13}"
 BACKUP_DIR="/root/caramos-ota-e2e-backup"
 
 usage() {
@@ -27,7 +27,7 @@ Commands:
 
 Environment:
   TEST_RELEASE_FROM=1.0.11
-  TEST_RELEASE_TARGET=1.0.12
+  TEST_RELEASE_TARGET=1.0.13
 EOF
 }
 

@@ -6,6 +6,15 @@ caramos-ota (1.0.13-0caramos1) noble; urgency=medium
 
  -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 01 Jul 2026 17:30:00 +0700
 
+caramos-ota (1.0.12-0caramos1) noble; urgency=medium
+
+  * Add 1.0.11 to 1.0.12 migration for the Fcitx5 Lotus auth prompt fix.
+  * Replace the desktop login helper with user-level Fcitx5/Lotus setup only.
+  * Move fcitx5-lotus-server@USER.service enablement to a root oneshot service
+    so users are not prompted by systemd/polkit at login.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Sun, 28 Jun 2026 20:45:00 +0700
+
 caramos-ota (1.0.11-0caramos1) noble; urgency=medium
 
   * Fix OTA migrations for systems using custom usernames.

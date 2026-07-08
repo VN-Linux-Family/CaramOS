@@ -7,3 +7,7 @@ override_dh_auto_build:
 
 override_dh_auto_test:
 	./tools/caramos-ota-testkit.sh validate
+
+override_dh_install:
+	chmod 0644 debian/install
+	dh_install

@@ -9,8 +9,10 @@ build_caramos_ota_deb() {
         error "Không tìm thấy OTA testkit: $ota_dir/tools/caramos-ota-testkit.sh"
     fi
 
-    info "  → Build package caramos-ota để nhúng vào ISO..."
-    (cd "$ota_dir" && ./tools/caramos-ota-testkit.sh build-deb)
+    info "  → Build package caramos-ota để nhúng vào ISO..." >&2
+    if ! (cd "$ota_dir" && ./tools/caramos-ota-testkit.sh build-deb) >&2; then
+        error "Build caramos-ota .deb thất bại. Cài build deps rồi chạy lại: sudo apt install build-essential debhelper"
+    fi
 
     local deb
     deb="$(find "$dist_dir" -maxdepth 1 -type f -name 'caramos-ota_*.deb' | sort | tail -n 1)"
@@ -73,6 +75,6 @@ install_caramos_ota_and_run_migrations() {
 
 step_ota_bootstrap() {
     local deb
-    deb="$(build_caramos_ota_deb | tail -n 1)"
+    deb="$(build_caramos_ota_deb)"
     install_caramos_ota_and_run_migrations "$deb"
 }

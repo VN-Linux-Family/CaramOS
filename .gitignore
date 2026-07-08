@@ -32,7 +32,7 @@ Thumbs.db
 linuxmint-*.iso
 
 # Local VM test notes
-packages/caramos-ota/VM_TEST_CHECKLIST.md
 openspec
 .claude
 .antigravity*
+landing

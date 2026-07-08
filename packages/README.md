@@ -593,11 +593,11 @@ Nói ngắn gọn: **CaramOS OTA không còn là package manifest manager; nó l
 
 ---
 
-## 13. Release hiện tại: `caramos-ota` 1.0.11
+## 13. Release hiện tại: `caramos-ota` 1.0.12
 
 Người release PPA: **dungleviet**.
 
-Mục tiêu release hiện tại là build ISO/OTA lên version mới nhất `1.0.11`; máy CaramOS cũ vẫn có thể cài `caramos-ota` rồi tự nâng lên `1.0.11`:
+Mục tiêu release hiện tại là build ISO/OTA lên version mới nhất `1.0.12`; máy CaramOS cũ vẫn có thể cài `caramos-ota` rồi tự nâng lên `1.0.12`:
 
 ```bash
 sudo apt update
@@ -608,13 +608,13 @@ sudo caramos-ota
 Chuỗi migration được đóng gói trong `caramos-ota`:
 
 ```text
-1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.0.10 → 1.0.11
+1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.0.10 → 1.0.11 → 1.0.12
 ```
 
 Checklist release nhanh:
 
 ```bash
-cd /home/dungleviet/Documents/CaramOS/packages/caramos-ota
+cd packages/caramos-ota
 python3 -m py_compile \
   usr/bin/caramos-ota \
   usr/bin/caramos-ota-notifier \
@@ -639,11 +639,11 @@ sudo rm -f /etc/apt/sources.list.d/*mozillateam*
 sudo apt update
 ```
 
-Upload PPA sau khi bump `debian/changelog` lên `1.0.11-0caramos1`:
+Upload PPA sau khi bump `debian/changelog` lên `1.0.12-0caramos1`:
 
 ```bash
 debuild -S -sa
-dput ppa:vietnamlinuxfamily/caram-os ../caramos-ota_1.0.11-0caramos1_source.changes
+dput ppa:vietnamlinuxfamily/caram-os ../caramos-ota_1.0.12-0caramos1_source.changes
 ```
 
 Sau khi PPA publish, kiểm tra candidate:
@@ -653,4 +653,4 @@ sudo apt update
 apt-cache policy caramos-ota
 ```
 
-ISO build dùng `CARAMOS_VERSION=1.0.11` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs.
+ISO build dùng `CARAMOS_VERSION=1.0.12` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs.

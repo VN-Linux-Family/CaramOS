@@ -12,10 +12,10 @@ else
 fi
 
 # CaramOS release version — source of truth cho tên ISO/tag release.
-# Khi release, Git tag phải khớp với version này (ví dụ: CARAMOS_VERSION=1.0.11 → tag v1.0.11).
+# Khi release, Git tag phải khớp với version này (ví dụ: CARAMOS_VERSION=1.0.12 → tag v1.0.12).
 CARAMOS_VERSION_MAJOR=1
 CARAMOS_VERSION_MINOR=0
-CARAMOS_VERSION_PATCH=11
+CARAMOS_VERSION_PATCH=12
 CARAMOS_VERSION_EXTRA=""
 CARAMOS_CODENAME="Open Beta"
 CARAMOS_VERSION="${CARAMOS_VERSION_MAJOR}.${CARAMOS_VERSION_MINOR}.${CARAMOS_VERSION_PATCH}${CARAMOS_VERSION_EXTRA}"

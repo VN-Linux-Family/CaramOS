@@ -343,7 +343,7 @@ Example release `1.0.2`:
 
 ---
 
-## 11. Release workflow for OTA through 1.0.11
+## 11. Release workflow for OTA through 1.0.12
 
 Release owner: **dungleviet**. Contributors prepare migrations, tests and PRs; the final PPA upload/release is performed by the maintainer.
 
@@ -368,17 +368,17 @@ caramos-ota-notifier
 The updater resolves and runs the full migration chain:
 
 ```text
-1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.0.10 → 1.0.11
+1.0.1 → 1.0.2 → 1.0.3 → 1.0.4 → 1.0.5 → 1.0.6 → 1.0.7 → 1.0.8 → 1.0.9 → 1.0.10 → 1.0.11 → 1.0.12
 ```
 
 ### Package version
 
-Publish `caramos-ota` as `1.0.11-0caramos1` or newer. The packaged migration index points to latest target `1.0.11`. Technical codename must be `wilma`; Ubuntu codename remains `noble`.
+Prepare `caramos-ota` as `1.0.12-0caramos1`. The packaged migration index points to latest target `1.0.12` in source. Technical codename must be `wilma`; Ubuntu codename remains `noble`.
 
 ### Build and local VM test
 
 ```bash
-cd /home/dungleviet/Documents/CaramOS/packages/caramos-ota
+cd packages/caramos-ota
 python3 -m py_compile \
   usr/bin/caramos-ota \
   usr/bin/caramos-ota-notifier \
@@ -404,19 +404,19 @@ sudo rm -f /etc/apt/sources.list.d/*mozillateam*
 sudo apt update
 ```
 
-Expected result: CaramOS is `1.0.11`, `VERSION_CODENAME=wilma`, `UBUNTU_CODENAME=noble`, and `add-apt-repository` no longer fails with codename `caram`.
+Expected result: CaramOS is `1.0.12`, `VERSION_CODENAME=wilma`, `UBUNTU_CODENAME=noble`, and `add-apt-repository` no longer fails with codename `caram`.
 
 ### PPA upload
 
-Maintainer `dungleviet` bumps `debian/changelog`, builds a source upload and publishes it:
+Maintainer `mrd9999` builds a source upload and publishes it:
 
 ```bash
-cd /home/dungleviet/Documents/CaramOS/packages/caramos-ota
+cd packages/caramos-ota
 debuild -S -sa
-dput ppa:vietnamlinuxfamily/caram-os ../caramos-ota_1.0.11-0caramos1_source.changes
+dput ppa:vietnamlinuxfamily/caram-os ../caramos-ota_1.0.12-0caramos1_source.changes
 ```
 
-After Launchpad publishes the package, verify from a `1.0.1` VM:
+After Launchpad publishes the package, verify from a `1.0.1` or `1.0.12` VM:
 
 ```bash
 sudo apt update
@@ -425,6 +425,8 @@ sudo apt install caramos-ota
 sudo caramos-ota
 ```
 
+`apt-cache policy` should show candidate `1.0.12-0caramos1` or newer.
+
 ### ISO build
 
-The ISO release version is `CARAMOS_VERSION=1.0.11`, while the bootstrap starting point is `CARAMOS_MIGRATION_BASE_VERSION=1.0.1`. During ISO build, OTA bootstrap runs the full migration chain and the finished rootfs metadata becomes `1.0.11`.
+The ISO source version is now `CARAMOS_VERSION=1.0.12`; the bootstrap starting point remains `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` so OTA bootstrap runs the full migration chain and the finished rootfs metadata becomes `1.0.12`.

@@ -10,7 +10,7 @@ REMOTE_PORT="${REMOTE_PORT:-2222}"
 REMOTE_DIR="${REMOTE_DIR:-/tmp/caramos-ota-e2e}"
 TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.11}"
 # Test-only live-boot VM password. Override with REMOTE_PASSWORD=... if needed.
-REMOTE_PASSWORD="${REMOTE_PASSWORD:-caram}"
+REMOTE_PASSWORD="${REMOTE_PASSWORD:-caram123}"
 
 usage() {
   cat <<EOF

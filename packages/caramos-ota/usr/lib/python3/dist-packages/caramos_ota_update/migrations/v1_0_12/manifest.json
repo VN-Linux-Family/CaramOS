@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "version": "1.0.12",
+  "from_version": "1.0.11",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "fcitx5 lotus fix",
+  "title": "Sửa lỗi hỏi mật khẩu khi đăng nhập",
+  "summary": "Chuyển bước kích hoạt service Fcitx5 Lotus sang root oneshot service để không hiện hộp thoại xác thực systemd/polkit trong phiên desktop.",
+  "changes": [
+    "Gỡ systemctl enable --now khỏi helper autostart của desktop user.",
+    "Thêm root oneshot service để bật fcitx5-lotus-server@USER.service một lần cho các user desktop thật.",
+    "Giữ cấu hình Fcitx5 Lotus, Telex và Preedit trong helper đăng nhập ở mức user."
+  ]
+}

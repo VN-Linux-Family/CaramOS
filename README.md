@@ -30,7 +30,7 @@ Dự án vẫn build theo hướng **ISO remaster**, nhưng từ giai đoạn `1
 trở đi mọi thay đổi sau phát hành được chuẩn hoá qua **CaramOS OTA**.
 
 > [!IMPORTANT]
-> **Phiên bản hiện tại:** `1.0.11` — **Open Beta**.
+> **Phiên bản hiện tại:** `1.0.12` — **Open Beta**.
 > CaramOS đã chuyển sang mô hình cập nhật bằng OTA. Nếu bạn đang dùng
 > CaramOS `1.0.1`, hãy cài Trung tâm cập nhật bằng lệnh:
 >
@@ -367,7 +367,7 @@ Tải ISO từ trang GitHub Releases của dự án sau khi có bản phát hàn
 Linux/macOS:
 
 ```bash
-sudo dd if=CaramOS-1.0.11-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.0.12-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 Hoặc dùng Balena Etcher/Ventoy trên mọi hệ điều hành.

@@ -26,7 +26,7 @@ is still built as an **ISO remaster**, but starting with `1.0.11`, all
 post-release system changes are standardized through **CaramOS OTA**.
 
 > [!IMPORTANT]
-> **Current version:** `1.0.11` — **Open Beta**.
+> **Current version:** `1.0.12` — **Open Beta**.
 > CaramOS has moved to an OTA update model. If you are currently running
 > CaramOS `1.0.1`, install the Update Center with:
 >

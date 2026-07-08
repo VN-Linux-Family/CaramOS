@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "version": "1.0.12",
+  "from_version": "1.0.11",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "ota feature",
+  "title": "Thêm Trung tâm điều khiển CaramOS",
+  "summary": "Cài applet Control Center thử nghiệm để gom các thao tác nhanh ở góc phải panel.",
+  "changes": [
+    "Thêm applet caramos-control-center@caramos cho Cinnamon panel.",
+    "Bật applet Control Center trên panel cho user desktop hiện tại và user mới.",
+    "Giữ các applet mạng, âm thanh, pin và lịch làm fallback trong bản đầu tiên."
+  ]
+}

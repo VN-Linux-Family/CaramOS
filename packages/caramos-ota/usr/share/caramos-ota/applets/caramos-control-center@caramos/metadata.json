@@ -1,0 +1,7 @@
+{
+  "uuid": "caramos-control-center@caramos",
+  "name": "CaramOS Control Center",
+  "description": "Compact quick settings popup for CaramOS Cinnamon panel",
+  "version": "1.0.12",
+  "max-instances": 1
+}

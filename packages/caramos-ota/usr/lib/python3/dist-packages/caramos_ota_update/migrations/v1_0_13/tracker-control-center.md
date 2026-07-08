@@ -1,6 +1,6 @@
 # 🧾 TRACKER — CaramOS Control Center Applet giống Ubuntu Quick Settings
 
-> Tracker triển khai cho `v1_0_12`: nâng applet `caramos-control-center@caramos`
+> Tracker triển khai cho `v1_0_13\`: nâng applet `caramos-control-center@caramos`
 > từ menu tile tạm bợ sang trung tâm điều khiển giống Ubuntu Quick Settings.
 >
 > Nguyên tắc quan trọng: migration chỉ cài/thêm applet, không rewrite layout panel,
@@ -23,7 +23,7 @@
 | **Reviewer** | TBD |
 | **Ngày tạo** | 2026-07-02 |
 | **Cập nhật lần cuối** | 2026-07-02 |
-| **Target release** | CaramOS OTA 1.0.12 |
+| **Target release** | CaramOS OTA 1.0.13\ |
 | **Branch / PR** | TBD |
 
 ### 1.1 Trạng thái phase
@@ -72,7 +72,7 @@ Làm Control Center giống Ubuntu Quick Settings:
 
 Không được dùng migration để cấu hình lại toàn bộ panel.
 
-Migration `v1_0_12` chỉ được phép:
+Migration `v1_0_13\` chỉ được phép:
 
 1. copy applet vào `/usr/share/cinnamon/applets/`;
 2. append đúng applet mới vào `org.cinnamon enabled-applets` nếu chưa có;
@@ -126,7 +126,7 @@ Panel indicator compact
 | `usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js` | Logic applet Cinnamon/GJS |
 | `usr/share/caramos-ota/applets/caramos-control-center@caramos/stylesheet.css` | Style popup/panel |
 | `usr/share/caramos-ota/applets/caramos-control-center@caramos/metadata.json` | Metadata Cinnamon applet |
-| `usr/lib/python3/dist-packages/caramos_ota_update/migrations/v1_0_12/install_control_center.py` | Cài applet tối thiểu |
+| `usr/lib/python3/dist-packages/caramos_ota_update/migrations/v1_0_13\/install_control_center.py` | Cài applet tối thiểu |
 
 ### 4.1 Nguyên tắc applet.js
 
@@ -176,7 +176,7 @@ Không copy code GNOME Shell nếu license/API không phù hợp; chỉ tham kh�
 - [x] Applet chỉ bổ sung Control Center, không thay panel layout.
 - [x] Migration không ghi dconf defaults.
 - [x] Migration không xoá icon cũ.
-- [x] Không gỡ `sound@cinnamon.org`, `network@cinnamon.org`, `power@cinnamon.org` trong v1.0.12.
+- [x] Không gỡ `sound@cinnamon.org`, `network@cinnamon.org`, `power@cinnamon.org` trong v1.0.13\.
 
 ### Phase 1 — Scan CaramOS applets hiện có
 
@@ -243,7 +243,7 @@ Không copy code GNOME Shell nếu license/API không phù hợp; chỉ tham kh�
 - [ ] Sau reboot, panel vẫn đủ icon cũ + Control Center.
 - [ ] Kiểm tra `~/.xsession-errors` không có lỗi applet.
 
-### Phase 8 — Sau v1.0.12, nếu applet đủ ổn
+### Phase 8 — Sau v1.0.13\, nếu applet đủ ổn
 
 - [ ] Cân nhắc full Wi-Fi list bằng `NM.Client`.
 - [ ] Cân nhắc VPN list/toggle bằng `NM.Client`.
@@ -340,7 +340,7 @@ nohup cinnamon --replace >/tmp/cinnamon-replace.log 2>&1 &
 
 ## 🚧 10. VIỆC CẦN LÀM NGAY TIẾP THEO
 
-1. Review tracker và chốt scope v1.0.12.
+1. Review tracker và chốt scope v1.0.13\.
 2. Prototype UI Quick Settings trong `applet.js`/`stylesheet.css`.
 3. Kết nối backend ít rủi ro theo thứ tự: battery → Night Light → volume → mic → brightness.
 4. Giữ Wi-Fi/VPN/Bluetooth ở mức tile mở settings/manager trong vòng đầu.

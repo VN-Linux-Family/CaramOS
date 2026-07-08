@@ -1,4 +1,4 @@
-"""Migration for 1.0.12: install CaramOS Control Center applet."""
+"""Migration for 1.0.13: install CaramOS Control Center applet."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pathlib import Path
 from caramos_ota_update.context import MigrationContext
 
 FROM_VERSION = "1.0.11"
-TO_VERSION = "1.0.12"
+TO_VERSION = "1.0.13"
 DESCRIPTION = "Install CaramOS Control Center Cinnamon applet"
 
 APPLET_UUID = "caramos-control-center@caramos"

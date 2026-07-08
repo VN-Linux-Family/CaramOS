@@ -1,8 +1,8 @@
-caramos-ota (1.0.12-0caramos1) noble; urgency=medium
+caramos-ota (1.0.13-0caramos1) noble; urgency=medium
 
   * Add CaramOS Control Center Cinnamon applet prototype.
-  * Add 1.0.11 to 1.0.12 migration to install and enable the applet.
-  * Update VM OTA test defaults to validate from stable 1.0.11 to 1.0.12.
+  * Add 1.0.11 to 1.0.13 migration to install and enable the applet.
+  * Update VM OTA test defaults to validate from stable 1.0.11 to 1.0.13.
 
  -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 01 Jul 2026 17:30:00 +0700
 
@@ -53,7 +53,7 @@ caramos-ota (1.0.7-0caramos1) noble; urgency=medium
   * Remove weather and cornerbar from the default enabled applets.
   * Add a searchable Start menu launcher for CaramOS Update Center.
 
- -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 17 Jun 2026 15:12:00 +0700
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 17 Jun 2026 15:13:00 +0700
 
 caramos-ota (1.0.6-0caramos1) noble; urgency=medium
 

@@ -51,37 +51,32 @@ fi
 SYSTEM_ENABLE_HELPER_SCRIPT = r'''#!/bin/sh
 set -eu
 
-DONE_MARKER="/var/lib/caramos/fcitx5-lotus-system-enable.done"
 TEMPLATE_UNIT="/lib/systemd/system/fcitx5-lotus-server@.service"
 
-[ ! -f "$DONE_MARKER" ] || exit 0
 [ -f "$TEMPLATE_UNIT" ] || [ -f "/etc/systemd/system/fcitx5-lotus-server@.service" ] || exit 0
 command -v systemctl >/dev/null 2>&1 || exit 0
 
-mkdir -p /var/lib/caramos
-
-enabled_any=0
 while IFS=: read -r user _ uid _ _ home shell; do
     [ "$uid" -ge 1000 ] 2>/dev/null || continue
+    [ "$uid" -lt 60000 ] 2>/dev/null || continue
     [ -d "$home" ] || continue
+    case "$home" in
+        /home/*) ;;
+        *) continue ;;
+    esac
     case "$shell" in
         */nologin|*/false) continue ;;
     esac
 
-    if systemctl enable --now "fcitx5-lotus-server@${user}.service" >/dev/null 2>&1; then
-        enabled_any=1
+    if ! systemctl enable --now "fcitx5-lotus-server@${user}.service" >/dev/null 2>&1; then
+        echo "caramos-fcitx5-lotus-system-enable: failed to enable service for ${user}" >&2
     fi
 done < /etc/passwd
-
-if [ "$enabled_any" -eq 1 ]; then
-    date -u +"%Y-%m-%dT%H:%M:%SZ" > "$DONE_MARKER"
-fi
 '''
 
 SYSTEM_ENABLE_SERVICE_CONFIG = """[Unit]
 Description=Enable Fcitx5 Lotus server for CaramOS desktop users
 After=systemd-user-sessions.service
-ConditionPathExists=!/var/lib/caramos/fcitx5-lotus-system-enable.done
 
 [Service]
 Type=oneshot

@@ -45,7 +45,7 @@
 
 .caramos-cc-container {
   padding: 10px 12px;
-  min-width: 300px;
+  min-width: 326px;
   spacing: 8px;
 }
 
@@ -118,18 +118,18 @@
 }
 
 .caramos-cc-split-wrapper {
-  width: 138px;
-  min-width: 138px;
-  max-width: 138px;
+  width: 130px;
+  min-width: 130px;
+  max-width: 130px;
   min-height: 42px;
   spacing: 3px;
 }
 
 .caramos-cc-split-tile,
 .caramos-cc-simple-tile {
-  width: 138px;
-  min-width: 138px;
-  max-width: 138px;
+  width: 130px;
+  min-width: 130px;
+  max-width: 130px;
   min-height: 42px;
   border-radius: 999px;
   border: 1px solid transparent;

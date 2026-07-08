@@ -132,6 +132,7 @@
   max-width: 138px;
   min-height: 42px;
   border-radius: 999px;
+  border: 1px solid transparent;
   background-color: rgba(0, 0, 0, 0.06);
   color: rgba(38, 38, 38, 0.94);
 }
@@ -164,7 +165,10 @@
 }
 
 .caramos-cc-tile-icon-slot {
+  width: 22px;
   min-width: 22px;
+  max-width: 22px;
+  min-height: 22px;
   padding-right: 6px;
 }
 
@@ -193,6 +197,7 @@
 .caramos-cc-tile-active {
   background-color: #f59f22;
   color: #ffffff;
+  border-color: transparent;
 }
 
 .caramos-cc-tile-active:hover {
@@ -226,7 +231,7 @@
 
 .caramos-cc-loading {
   opacity: 0.75;
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border-color: rgba(0, 0, 0, 0.10);
 }
 
 .caramos-cc-loading .caramos-cc-tile-icon {
@@ -234,9 +239,13 @@
 }
 
 .caramos-cc-loading-label {
-  min-width: 21px;
-  font-size: 1.15em;
+  width: 22px;
+  min-width: 22px;
+  max-width: 22px;
+  min-height: 22px;
+  font-size: 1em;
   font-weight: bold;
+  line-height: 22px;
   text-align: center;
   color: rgba(48, 48, 48, 0.82);
 }

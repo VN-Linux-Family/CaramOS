@@ -769,6 +769,13 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         return Math.max(0, Math.min(100, Math.round(stream.volume / this._volumeNorm * 100)));
     }
 
+    _volumeIconName(percent, muted) {
+        if (muted || percent <= 0) return 'audio-volume-muted-symbolic';
+        if (percent < 34) return 'audio-volume-low-symbolic';
+        if (percent < 67) return 'audio-volume-medium-symbolic';
+        return 'audio-volume-high-symbolic';
+    }
+
     _onMixerStateChanged() {
         if (this._control.get_state() === Cvc.MixerControlState.READY) {
             this._readOutput();
@@ -1245,6 +1252,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
 
         const volume = this._streamPercent(this._output);
         const mic = this._streamPercent(this._input);
+        this._panelVolumeIcon.set_icon_name(this._volumeIconName(volume, this._output && this._output.is_muted));
         setSliderEnabled(this._volumeRow, this._output !== null);
         setSliderEnabled(this._micRow, this._input !== null);
         this._updatingSliders = true;
@@ -1302,7 +1310,14 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         return 'network-offline-symbolic';
     }
 
-    _fallbackBatteryIcon(percent) {
+    _batteryIconName(percent, charging) {
+        if (charging) {
+            if (percent <= 10) return 'battery-caution-charging-symbolic';
+            if (percent <= 30) return 'battery-low-charging-symbolic';
+            if (percent <= 60) return 'battery-good-charging-symbolic';
+            if (percent <= 90) return 'battery-good-charging-symbolic';
+            return 'battery-full-charging-symbolic';
+        }
         if (percent <= 10) return 'battery-empty-symbolic';
         if (percent <= 30) return 'battery-low-symbolic';
         if (percent <= 60) return 'battery-good-symbolic';
@@ -1313,7 +1328,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     _readBatteryStatus() {
         const output = safeCommandOutput(['upower', '-i', '/org/freedesktop/UPower/devices/DisplayDevice'], 1);
         const percentMatch = output.match(/percentage:\s*(\d+)%/);
-        const iconMatch = output.match(/icon-name:\s*'([^']+)'/);
+        const stateMatch = output.match(/state:\s*(\S+)/);
+        const charging = stateMatch ? ['charging', 'pending-charge', 'fully-charged'].indexOf(stateMatch[1]) !== -1 : output.indexOf('-charging-symbolic') !== -1;
         let percent = percentMatch ? parseInt(percentMatch[1], 10) : -1;
 
         // Some live/VM sessions do not expose UPower DisplayDevice properly.
@@ -1322,7 +1338,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
 
         return {
             percentText: percent >= 0 ? `${percent}%` : '--%',
-            icon: iconMatch ? iconMatch[1] : this._fallbackBatteryIcon(percent >= 0 ? percent : 0),
+            icon: this._batteryIconName(percent >= 0 ? percent : 0, charging),
         };
     }
 

@@ -248,6 +248,8 @@
 }
 
 .caramos-cc-inline-card {
+  width: 252px;
+  max-width: 252px;
   padding: 10px 12px;
   spacing: 6px;
   border-radius: 12px;
@@ -295,6 +297,8 @@
 }
 
 .caramos-cc-inline-list {
+  width: 252px;
+  max-width: 252px;
   spacing: 1px;
 }
 

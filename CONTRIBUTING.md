@@ -110,11 +110,11 @@ CaramOS/
 │           ├── caramos_ota/
 │           ├── caramos_ota_notifier/
 │           └── caramos_ota_update/migrations/
-│               ├── migration.json
-│               └── vX_Y_Z/
+│               ├── migration.json       # bridge lịch sử, không thêm entry mới
+│               ├── v1_0_*/              # legacy migrations tới 1.0.13
+│               └── YYYYMMDDHHMMSS_name/
 │                   ├── manifest.json
-│                   ├── __init__.py
-│                   └── *.py
+│                   └── migration.py
 ├── landing/                         # Website/landing page
 ├── docs/                            # Tài liệu vận hành/release tracking
 ├── assets/                          # Logo, banner, screenshot
@@ -196,30 +196,26 @@ Tạo OTA migration khi thay đổi ảnh hưởng tới máy đã cài CaramOS,
 
 Không dùng hook để thay thế migration cho các trường hợp trên.
 
-### File cần thêm/sửa cho một version OTA
+### File cần thêm cho một OTA migration
 
 ```text
-packages/caramos-ota/
-├── debian/changelog
-└── usr/lib/python3/dist-packages/caramos_ota_update/migrations/
-    ├── migration.json
-    └── vX_Y_Z/
-        ├── manifest.json
-        ├── __init__.py
-        └── migration_file.py
+packages/caramos-ota/usr/lib/python3/dist-packages/caramos_ota_update/migrations/
+└── YYYYMMDDHHMMSS_ten_migration/
+    ├── manifest.json
+    ├── migration.py
+    └── payload tùy chọn
 ```
 
-Một migration version phải có:
-
-- entry version mới trong `migration.json`;
-- thư mục `vX_Y_Z/` tương ứng;
-- `manifest.json` mô tả title/summary/changelog cho UI;
-- code khai báo `FROM_VERSION`, `TO_VERSION`, `DESCRIPTION`;
-- hàm `run(context)` để apply thay đổi.
+Lấy timestamp bằng `date -u +%Y%m%d%H%M%S`. `manifest.json` schema 2 khai báo
+`release`, metadata UI, `codename` và `channel`. `migration.py` khai báo
+`DESCRIPTION` và `run(context)`. Không thêm entry vào `migration.json`; file đó là
+bridge lịch sử tới `1.0.13`. Xem mẫu đầy đủ tại
+[packages/caramos-ota/MIGRATIONS.md](packages/caramos-ota/MIGRATIONS.md).
 
 ### Quy tắc migration
 
-- Mỗi migration chỉ nâng một bước version liền kề.
+- ID timestamp đã phát hành là bất biến; sửa tiếp bằng migration ID mới.
+- Nhiều migration được phép cùng một `release`; runner chạy theo thứ tự ID.
 - Migration phải idempotent hoặc có guard chống chạy lặp.
 - Không tải/chạy script từ internet trong migration.
 - Không tải `.deb` thủ công; dùng APT/PPA đã cấu hình sẵn.
@@ -253,9 +249,9 @@ make vm-test-notifier
 
 Checklist trước PR:
 
-- [ ] Migration mới có version path rõ ràng.
-- [ ] `migration.json` và `manifest.json` hợp lệ.
-- [ ] `make compile`, `make validate`, `make build` pass.
+- [ ] Migration mới có ID UTC timestamp duy nhất và release rõ ràng.
+- [ ] Không sửa `migration.json`; `manifest.json` schema 2 hợp lệ.
+- [ ] `make compile`, `make validate`, `./tools/caramos-ota-testkit.sh test`, `make build` pass.
 - [ ] Đã test upgrade từ version cũ trong VM snapshot nếu có thể.
 - [ ] Update Center không treo khi migration lỗi hoặc command timeout.
 - [ ] Log trong `/var/log/caramos-ota/` đủ để debug.

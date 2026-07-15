@@ -18,7 +18,8 @@ Usage:
 Commands on dev machine:
   clean-build      Remove local Debian build artifacts and Python cache
   compile          Compile all OTA Python files
-  validate         Validate bundled migration metadata JSON
+  validate         Auto-discover and validate all bundled migrations
+  test             Run OTA unit tests
   build-deb        Clean + validate + build caramos-ota binary .deb
   release-deb      Alias for build-deb
   build-source     Clean + validate + build source package for PPA upload
@@ -29,8 +30,8 @@ Commands on CaramOS test machine:
   install-deb <deb> Install built caramos-ota .deb
   backup            Backup files touched by migration tests
   smoke             Check installed commands and compile installed modules
-  dry-run-1.0.13    Dry-run migration from 1.0.11 to 1.0.13
-  run-1.0.13        Run real migration 1.0.11 -> 1.0.13
+  dry-run-1.0.13    Dry-run migration from 1.0.12 to 1.0.13
+  run-1.0.13        Run real migration 1.0.12 -> 1.0.13
   verify-1.0.2      Verify VERSION metadata and selected branding changes
   restore           Restore backup made by backup command
 
@@ -89,8 +90,19 @@ clean_build() {
 
 validate_manifest() {
   cd "${PKG_DIR}"
-  python3 -m json.tool usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json >/dev/null
-  echo "[OK] Migration metadata JSON is valid"
+  PYTHONPATH=usr/lib/python3/dist-packages python3 - <<'PY'
+from caramos_ota_update.registry import discover_migrations, latest_release
+
+migrations = discover_migrations()
+print(f"[OK] Discovered {len(migrations)} migration(s); latest release: {latest_release(migrations)}")
+for migration in migrations:
+    print(f"  {migration.migration_id}: release {migration.release}")
+PY
+}
+
+run_tests() {
+  cd "${PKG_DIR}"
+  PYTHONPATH=usr/lib/python3/dist-packages python3 -m unittest discover -s tests -v
 }
 
 build_deb() {
@@ -178,20 +190,20 @@ smoke_installed() {
 
 dry_run_1_0_13() {
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.11 --target 1.0.13 --dry-run
+    caramos-ota-update --from 1.0.12 --target 1.0.13 --dry-run
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.13 --dry-run
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.12 --target 1.0.13 --dry-run
   fi
 }
 
 run_1_0_13() {
   require_root
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.11 --target 1.0.13
+    caramos-ota-update --from 1.0.12 --target 1.0.13
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.13
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.12 --target 1.0.13
   fi
 }
 
@@ -222,6 +234,7 @@ case "${cmd}" in
   clean-build) clean_build ;;
   compile) compile_sources ;;
   validate) validate_manifest ;;
+  test) run_tests ;;
   build-deb|release-deb) build_deb ;;
   build-source) build_source ;;
   bundle-source) bundle_source ;;

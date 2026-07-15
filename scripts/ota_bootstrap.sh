@@ -24,16 +24,10 @@ build_caramos_ota_deb() {
 }
 
 latest_caramos_ota_migration() {
-    python3 - <<'PY'
-import json
-from pathlib import Path
+    PYTHONPATH="packages/caramos-ota/usr/lib/python3/dist-packages" python3 - <<'PY'
+from caramos_ota_update.registry import discover_migrations, latest_release
 
-path = Path("packages/caramos-ota/usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json")
-data = json.loads(path.read_text(encoding="utf-8"))
-versions = data.get("versions")
-if not isinstance(versions, list) or not versions:
-    raise SystemExit("migration.json không có versions hợp lệ")
-print(versions[-1])
+print(latest_release(discover_migrations()))
 PY
 }
 
@@ -58,11 +52,7 @@ install_caramos_ota_and_run_migrations() {
     '
     ok "Đã cài caramos-ota vào ISO rootfs."
 
-    if [ "$target_version" = "$from_version" ]; then
-        info "  → ISO đã ở target OTA $target_version, bỏ qua migration."
-        return 0
-    fi
-
+    # Always invoke updater: same-release timestamp migrations may still be pending.
     info "  → Chạy OTA migrations trong ISO rootfs: $from_version -> $target_version"
     CARAMOS_VERSION="$from_version" TARGET_VERSION="$target_version" \
     chroot "$WORK_DIR/squashfs" /bin/bash -c '

@@ -41,6 +41,8 @@ status:
 	@systemctl status caramos-ota-check.timer --no-pager --lines=0 2>/dev/null || true
 	@printf '\nState:\n'
 	@sudo cat /var/lib/caramos-ota/state.json 2>/dev/null || true
+	@printf '\nLedger:\n'
+	@sudo cat /var/lib/caramos-ota/migrations.json 2>/dev/null || true
 	@printf '\n'
 
 clean:

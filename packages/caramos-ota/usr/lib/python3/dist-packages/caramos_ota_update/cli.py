@@ -8,6 +8,7 @@ from pathlib import Path
 
 from caramos_ota.constants import EXIT_ERROR, EXIT_OK
 from caramos_ota.logging_utils import init_log, log_error, log_info
+from caramos_ota.privilege import acquire_lock
 from caramos_ota.release import detect_caramos, parse_key_value_file
 
 from .context import MigrationContext
@@ -23,8 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--target",
-        required=True,
-        help="Target CaramOS version to migrate to, for example 1.0.4.",
+        help="Target CaramOS release. Defaults to latest auto-discovered release.",
     )
     parser.add_argument(
         "--from",
@@ -40,6 +40,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--dry-run",
         action="store_true",
         help="Print the migration path and planned actions without modifying the system.",
+    )
+    parser.add_argument(
+        "--lock-fd",
+        type=int,
+        help=argparse.SUPPRESS,
     )
     return parser
 
@@ -69,6 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     if not args.dry_run:
         init_log()
+        acquire_lock(args.lock_fd)
 
     try:
         target_version = args.to_version or args.target

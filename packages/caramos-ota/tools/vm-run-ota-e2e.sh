@@ -223,6 +223,9 @@ run_check_and_show_state() {
   echo
   echo "== /var/lib/caramos-ota/state.json =="
   cat /var/lib/caramos-ota/state.json
+  echo
+  echo "== /var/lib/caramos-ota/migrations.json =="
+  cat /var/lib/caramos-ota/migrations.json
 }
 
 install_shipped() {

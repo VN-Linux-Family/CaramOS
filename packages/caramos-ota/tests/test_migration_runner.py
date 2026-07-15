@@ -1,0 +1,59 @@
+"""Tests for migration execution and release metadata recovery."""
+
+from __future__ import annotations
+
+import unittest
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+from caramos_ota_update.registry import MigrationDescriptor
+from caramos_ota_update.runner import MigrationRunner
+
+
+class MigrationRunnerTests(unittest.TestCase):
+    def test_finalizes_release_when_target_migrations_are_already_applied(self) -> None:
+        migration = MigrationDescriptor(
+            migration_id="20260714090000_first_change",
+            release="1.0.3",
+            description="First change",
+            source="test",
+            directory=Path("/tmp/20260714090000_first_change"),
+            module_path=Path("/tmp/20260714090000_first_change/migration.py"),
+            schema=2,
+            codename="noble",
+            channel="stable",
+            severity="normal",
+            size="migration update",
+            title="Update",
+            summary="First change",
+            release_notes_vi=[],
+            release_notes_en=[],
+        )
+        ledger = {
+            "schema": 1,
+            "applied_migrations": [
+                {"id": migration.migration_id, "release": migration.release},
+            ],
+        }
+        context = MagicMock()
+        context.dry_run = False
+        runner = MigrationRunner(context=context)
+        runner.discover = MagicMock(return_value=[migration])
+
+        with (
+            patch("caramos_ota_update.runner.bootstrap_ledger", return_value=ledger),
+            patch("caramos_ota_update.runner.start_transaction", return_value="recovery") as start,
+            patch("caramos_ota_update.runner.mark_transaction_success") as success,
+        ):
+            runner.run(current_version="1.0.2", target_version="1.0.3")
+
+        start.assert_called_once_with(target_version="1.0.3", migration_ids=[])
+        context.update_release_file.assert_called_once_with("1.0.3")
+        success.assert_called_once_with(
+            transaction_id="recovery",
+            installed_version="1.0.3",
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

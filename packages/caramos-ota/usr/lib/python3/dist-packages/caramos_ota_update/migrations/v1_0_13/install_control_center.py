@@ -10,7 +10,7 @@ from pathlib import Path
 
 from caramos_ota_update.context import MigrationContext
 
-FROM_VERSION = "1.0.11"
+FROM_VERSION = "1.0.12"
 TO_VERSION = "1.0.13"
 DESCRIPTION = "Install CaramOS Control Center Cinnamon applet"
 

@@ -21,7 +21,7 @@ Giữ nguyên:
 |---|---|---|
 | [scripts/config.sh](../scripts/config.sh) | `CARAMOS_MIGRATION_BASE_VERSION="1.0.1"` | base để build ISO chạy đủ migration chain từ đầu |
 | [install-caramos-ota.sh](../install-caramos-ota.sh) | fallback `1.0.1` | bootstrap cho máy từ ISO 1.0.1 trước khi OTA nâng lên latest |
-| migration cũ `v1_0_*` | version lịch sử | không sửa migration đã phát hành, trừ khi có lý do migration-fix rõ ràng |
+| migration cũ `v1_0_*` và `migration.json` | bridge lịch sử tới `1.0.13` | frozen; migration mới dùng thư mục timestamp và không sửa index |
 
 ### 2. Tài liệu chính
 

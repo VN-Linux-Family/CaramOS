@@ -1,4 +1,4 @@
-"""APT/dpkg operations for CaramOS OTA."""
+"""APT/dpkg operations and migration update detection for CaramOS OTA."""
 
 from __future__ import annotations
 
@@ -7,17 +7,15 @@ import subprocess
 from pathlib import Path
 from typing import Any
 
-from .constants import EXIT_APT, TOOL_NAME
+from .constants import EXIT_APT
 from .errors import OtaError
 from .logging_utils import current_log_file, log_error, log_info, now_iso, print_fail, print_ok
-from .manifest import load_migration_manifest, parse_manifest, resolve_migration_chain
+from .manifest import manifest_for_plan, resolve_update_plan
 from .models import Manifest, ReleaseInfo, UpdatePackage
 from .state import save_state
 
 
 def run_command(args: list[str], *, capture: bool = False, allow_fail: bool = False) -> subprocess.CompletedProcess[str]:
-    """Run a system command safely without a shell."""
-
     log_info("Running: " + " ".join(args))
     stderr_target: Any = subprocess.PIPE if capture else None
     stdout_target: Any = subprocess.PIPE if capture else None
@@ -25,13 +23,7 @@ def run_command(args: list[str], *, capture: bool = False, allow_fail: bool = Fa
     with (active_log.open("a", encoding="utf-8") if active_log and not capture else open(os.devnull, "a", encoding="utf-8")) as log_handle:
         if not capture:
             stderr_target = log_handle
-        result = subprocess.run(
-            args,
-            check=False,
-            text=True,
-            stdout=stdout_target,
-            stderr=stderr_target,
-        )
+        result = subprocess.run(args, check=False, text=True, stdout=stdout_target, stderr=stderr_target)
     if result.returncode != 0 and not allow_fail:
         raise subprocess.CalledProcessError(result.returncode, args, output=result.stdout, stderr=result.stderr)
     return result
@@ -42,12 +34,9 @@ APT_SOURCES_DIR = Path("/etc/apt/sources.list.d")
 
 
 def disable_cdrom_sources() -> None:
-    """Disable live ISO cdrom APT sources that break apt-get update."""
-
     source_files = [APT_SOURCES_LIST]
     if APT_SOURCES_DIR.exists():
         source_files.extend(sorted(APT_SOURCES_DIR.glob("*.list")))
-
     for source_file in source_files:
         try:
             if not source_file.exists() or not source_file.is_file():
@@ -74,8 +63,6 @@ def disable_cdrom_sources() -> None:
 
 
 def apt_update() -> None:
-    """Refresh APT metadata."""
-
     print_ok("Updating package index...")
     disable_cdrom_sources()
     try:
@@ -90,15 +77,11 @@ def apt_update() -> None:
 
 
 def installed_version(package: str) -> str:
-    """Return the installed version for a package, or an empty string."""
-
     result = run_command(["dpkg-query", "-W", "-f=${Version}", package], capture=True, allow_fail=True)
     return (result.stdout or "").strip() if result.returncode == 0 else ""
 
 
 def candidate_version(package: str) -> str:
-    """Return APT candidate version for a package, or an empty string."""
-
     result = run_command(["apt-cache", "policy", package], capture=True, allow_fail=True)
     for line in (result.stdout or "").splitlines():
         stripped = line.strip()
@@ -108,58 +91,36 @@ def candidate_version(package: str) -> str:
 
 
 def version_ge(left: str, right: str) -> bool:
-    """Return True when Debian version `left` is greater or equal to `right`."""
-
-    result = run_command(["dpkg", "--compare-versions", left, "ge", right], allow_fail=True)
-    return result.returncode == 0
+    return run_command(["dpkg", "--compare-versions", left, "ge", right], allow_fail=True).returncode == 0
 
 
-def detect_updates(release_info: ReleaseInfo, state: dict[str, Any]) -> tuple[Manifest, list[UpdatePackage]]:
-    """Detect whether the migration manifest targets a newer CaramOS release."""
+def detect_updates(
+    release_info: ReleaseInfo,
+    state: dict[str, Any],
+    *,
+    persist_ledger: bool = True,
+    persist_state: bool = True,
+) -> tuple[Manifest, list[UpdatePackage]]:
+    """Detect pending migration IDs, including same-release migrations."""
 
     try:
-        manifest = parse_manifest(release_info)
+        plan = resolve_update_plan(release_info, persist_ledger=persist_ledger)
+        manifest = manifest_for_plan(plan, release_info)
     except OtaError as exc:
         print(str(exc))
-        log_error("Manifest parse failed")
+        log_error("Migration registry parse failed")
         raise SystemExit(exc.exit_code)
 
-    updates: list[UpdatePackage] = []
-    chain = resolve_migration_chain(release_info.version, manifest.release)
-    chain_manifests = [load_migration_manifest(version, release_info) for version in chain]
-
-    if release_info.version != manifest.release:
-        previous_version = release_info.version
-        for item in chain_manifests:
-            updates.append(
-                UpdatePackage(
-                    name=TOOL_NAME,
-                    current_version=previous_version,
-                    available_version=item.release,
-                    description=item.summary,
-                    required=True,
-                )
-            )
-            previous_version = item.release
-
-    if chain_manifests:
-        manifest_sizes = [item.size for item in chain_manifests if item.size]
-        manifest_notes_vi: list[str] = []
-        manifest_notes_en: list[str] = []
-        previous_version = release_info.version
-        for item in chain_manifests:
-            label = f"{previous_version} → {item.release}"
-            notes_vi = item.release_notes_vi or [item.summary]
-            notes_en = item.release_notes_en or [item.summary]
-            manifest_notes_vi.extend(f"{label}: {note}" for note in notes_vi)
-            manifest_notes_en.extend(f"{label}: {note}" for note in notes_en)
-            previous_version = item.release
-        display_size = " + ".join(manifest_sizes) if manifest_sizes else manifest.size
-    else:
-        manifest_notes_vi = manifest.release_notes_vi
-        manifest_notes_en = manifest.release_notes_en
-        display_size = manifest.size
-
+    updates = [
+        UpdatePackage(
+            name=item.migration_id,
+            current_version="pending",
+            available_version=item.release,
+            description=item.summary,
+            required=True,
+        )
+        for item in plan.migrations
+    ]
     if updates:
         state["available_update"] = {
             "detected_at": now_iso(),
@@ -170,26 +131,26 @@ def detect_updates(release_info: ReleaseInfo, state: dict[str, Any]) -> tuple[Ma
             "from_version": release_info.version,
             "channel": manifest.channel,
             "severity": manifest.severity,
-            "size": display_size,
+            "size": manifest.size,
             "title": manifest.title,
             "summary": manifest.summary,
-            "release_notes_vi": manifest_notes_vi,
-            "release_notes_en": manifest_notes_en,
+            "release_notes_vi": manifest.release_notes_vi,
+            "release_notes_en": manifest.release_notes_en,
+            "migration_ids": [item.migration_id for item in plan.migrations],
             "packages": [update.__dict__ for update in updates],
         }
     else:
         state["available_update"] = None
-    save_state(state)
+    if persist_state:
+        save_state(state)
     log_info(
-        f"Migration update detection complete: {len(updates)} update marker(s) for release {manifest.release} "
-        f"using manifest {manifest.source}"
+        f"Migration update detection complete: {len(updates)} pending migration(s) "
+        f"through release {manifest.release}"
     )
     return manifest, updates
 
 
 def install_packages(packages: list[str]) -> bool:
-    """Install packages with APT."""
-
     try:
         run_command(["apt-get", "install", "--yes", "--", *packages])
         return True
@@ -198,32 +159,22 @@ def install_packages(packages: list[str]) -> bool:
 
 
 def remove_package(package: str) -> bool:
-    """Remove one package with APT."""
-
     return run_command(["apt-get", "remove", "--yes", "--", package], allow_fail=True).returncode == 0
 
 
 def downgrade_package(package: str, old_version: str) -> bool:
-    """Downgrade one package to an older version with APT."""
-
     return run_command(["apt-get", "install", "--yes", "--allow-downgrades", "--", f"{package}={old_version}"], allow_fail=True).returncode == 0
 
 
 def repair_dpkg() -> bool:
-    """Run dpkg --configure -a."""
-
     return run_command(["dpkg", "--configure", "-a"], allow_fail=True).returncode == 0
 
 
 def repair_apt() -> bool:
-    """Run apt-get --fix-broken install."""
-
     return run_command(["apt-get", "--fix-broken", "install", "--yes"], allow_fail=True).returncode == 0
 
 
 def print_repair_result(ok: bool, success_message: str, failure_message: str) -> None:
-    """Print and log a repair step result."""
-
     if ok:
         print_ok(success_message)
         log_info(success_message)

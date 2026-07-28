@@ -1,7 +1,7 @@
 SHELL := /usr/bin/env bash
 .SHELLFLAGS := -euo pipefail -c
 
-TEST_RELEASE_FROM ?= 1.0.11
+TEST_RELEASE_FROM ?= 1.0.12
 TEST_RELEASE_TARGET ?= 1.0.13
 
 .PHONY: help install test test-cli prepare-check notifier test-notifier status clean

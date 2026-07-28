@@ -113,7 +113,7 @@ CaramOS/
 │           ├── caramos_ota_notifier/
 │           └── caramos_ota_update/migrations/
 │               ├── migration.json       # frozen historical bridge
-│               ├── v1_0_*/              # legacy migrations through 1.0.13
+│               ├── v1_0_*/              # legacy migrations through 1.0.12
 │               └── YYYYMMDDHHMMSS_name/
 │                   ├── manifest.json
 │                   └── migration.py
@@ -213,7 +213,7 @@ packages/caramos-ota/usr/lib/python3/dist-packages/caramos_ota_update/migrations
 Generate the timestamp with `date -u +%Y%m%d%H%M%S`. Schema-2 `manifest.json`
 declares `release`, UI metadata, `codename`, and `channel`. `migration.py` declares
 `DESCRIPTION` and `run(context)`. Do not edit `migration.json`; it is the frozen
-historical bridge through `1.0.13`. See
+historical bridge through `1.0.12`; timestamp migrations start with release `1.0.13`. See
 [packages/caramos-ota/MIGRATIONS.md](packages/caramos-ota/MIGRATIONS.md).
 
 ### Migration rules

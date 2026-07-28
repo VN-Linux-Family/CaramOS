@@ -1,16 +1,20 @@
 {
-  "schema": 1,
-  "version": "1.0.13",
-  "from_version": "1.0.12",
+  "schema": 2,
+  "release": "1.0.13",
   "codename": "noble",
   "channel": "stable",
   "severity": "feature",
   "size": "ota feature",
   "title": "Thêm Trung tâm điều khiển CaramOS",
   "summary": "Cài applet Control Center thử nghiệm để gom các thao tác nhanh ở góc phải panel.",
-  "changes": [
+  "release_notes_vi": [
     "Thêm applet caramos-control-center@caramos cho Cinnamon panel.",
     "Bật applet Control Center trên panel cho user desktop hiện tại và user mới.",
     "Giữ các applet mạng, âm thanh, pin và lịch làm fallback trong bản đầu tiên."
+  ],
+  "release_notes_en": [
+    "Add the caramos-control-center@caramos applet to the Cinnamon panel.",
+    "Enable Control Center for current desktop users and new users.",
+    "Keep network, sound, power, and calendar applets as fallbacks in the first release."
   ]
 }

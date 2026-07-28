@@ -49,7 +49,7 @@ Multiple migrations may share one release. Runner orders them lexically by times
 
 ## Legacy bridge
 
-`migration.json` and `v1_0_2` through `v1_0_13` remain as historical compatibility bridge. Runtime auto-discovers both legacy and timestamp migrations. Historical index is frozen at `1.0.13`.
+`migration.json` and `v1_0_2` through `v1_0_12` remain as historical compatibility bridge. Runtime auto-discovers both legacy and timestamp migrations. Historical index is frozen at `1.0.12`; timestamp migrations start with release `1.0.13`.
 
 Initial ledger bootstrap marks legacy migrations at or below installed version as applied. Timestamp migrations are never inferred from product version.
 

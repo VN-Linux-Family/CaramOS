@@ -11,6 +11,45 @@ from caramos_ota_update.runner import MigrationRunner
 
 
 class MigrationRunnerTests(unittest.TestCase):
+    def test_runs_bundled_timestamp_migration_and_finalizes_release(self) -> None:
+        context = MagicMock()
+        context.dry_run = False
+        runner = MigrationRunner(context=context)
+        legacy_ids = {f"v1_0_{version}" for version in range(2, 13)}
+        ledger = {
+            "schema": 1,
+            "applied_migrations": [
+                {"id": migration_id, "release": "1.0.12"}
+                for migration_id in sorted(legacy_ids)
+            ],
+        }
+
+        with (
+            patch("caramos_ota_update.runner.bootstrap_ledger", return_value=ledger),
+            patch("caramos_ota_update.runner.start_transaction", return_value="timestamp-batch") as start,
+            patch("caramos_ota_update.runner.mark_transaction_success") as success,
+            patch("caramos_ota_update.runner.mark_migration_running"),
+            patch("caramos_ota_update.runner.mark_migration_complete"),
+            patch("caramos_ota_update.runner.mark_applied"),
+            patch.object(runner, "_run_one") as run_one,
+        ):
+            runner.run(current_version="1.0.12", target_version="1.0.13")
+
+        start.assert_called_once_with(
+            target_version="1.0.13",
+            migration_ids=["20260715090258_install_control_center"],
+        )
+        run_one.assert_called_once()
+        self.assertEqual(
+            "20260715090258_install_control_center",
+            run_one.call_args.args[0].migration_id,
+        )
+        context.update_release_file.assert_called_once_with("1.0.13")
+        success.assert_called_once_with(
+            transaction_id="timestamp-batch",
+            installed_version="1.0.13",
+        )
+
     def test_finalizes_release_when_target_migrations_are_already_applied(self) -> None:
         migration = MigrationDescriptor(
             migration_id="20260714090000_first_change",

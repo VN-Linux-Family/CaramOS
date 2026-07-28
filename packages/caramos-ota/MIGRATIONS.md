@@ -69,7 +69,7 @@ Không khai báo `FROM_VERSION`, `TO_VERSION` hoặc ID trong Python. ID lấy t
 - Migration đã apply không chạy lại.
 - Migration thêm muộn cho release hiện tại vẫn được nhận là pending.
 - Ledger chỉ ghi ID sau khi `run()` thành công. Nếu batch fail, lần sau resume phần chưa apply.
-- `migration.json` và `v1_0_*` là bridge lịch sử, frozen tại `1.0.13`.
+- `migration.json` và `v1_0_2`–`v1_0_12` là bridge lịch sử, frozen tại `1.0.12`. Timestamp migrations bắt đầu từ release `1.0.13`.
 
 ## Quy tắc
 

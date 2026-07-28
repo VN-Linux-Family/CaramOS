@@ -78,7 +78,7 @@ Hướng dẫn đầy đủ: [MIGRATIONS.md](MIGRATIONS.md).
 
 ## Legacy bridge
 
-`migration.json` và các folder `v1_0_2`–`v1_0_13` giữ nguyên để máy cũ nâng cấp theo chain version. Runtime mới auto-discover cả legacy và timestamp migration. Index lịch sử frozen tại `1.0.13`.
+`migration.json` và các folder `v1_0_2`–`v1_0_12` giữ nguyên để máy cũ nâng cấp theo chain version. Runtime mới auto-discover cả legacy và timestamp migration. Index lịch sử frozen tại `1.0.12`; timestamp migrations bắt đầu từ release `1.0.13`.
 
 Khi ledger được tạo lần đầu, migration legacy có target không lớn hơn version đang cài được đánh dấu applied. Timestamp migration không bao giờ được đoán applied từ product version.
 

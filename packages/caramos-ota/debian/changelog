@@ -1,7 +1,7 @@
 caramos-ota (1.0.13-0caramos1) noble; urgency=medium
 
   * Add CaramOS Control Center Cinnamon applet prototype.
-  * Add 1.0.12 to 1.0.13 migration to install and enable the applet.
+  * Add timestamp migration for release 1.0.13 to install and enable the applet.
   * Add timestamp-based migration auto-discovery and applied-ID ledger.
   * Update VM OTA test defaults to validate from stable 1.0.12 to 1.0.13.
 

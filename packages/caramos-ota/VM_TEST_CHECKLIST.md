@@ -29,6 +29,7 @@ Mở terminal trong VM, cài SSH server:
 sudo apt update
 sudo apt install -y openssh-server
 sudo systemctl enable --now ssh
+passwd
 ```
 
 Nếu user live chưa có password hoặc cần đổi password để SSH:

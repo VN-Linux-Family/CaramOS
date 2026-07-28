@@ -111,7 +111,7 @@ CaramOS/
 │           ├── caramos_ota_notifier/
 │           └── caramos_ota_update/migrations/
 │               ├── migration.json       # bridge lịch sử, không thêm entry mới
-│               ├── v1_0_*/              # legacy migrations tới 1.0.13
+│               ├── v1_0_*/              # legacy migrations tới 1.0.12
 │               └── YYYYMMDDHHMMSS_name/
 │                   ├── manifest.json
 │                   └── migration.py
@@ -209,7 +209,7 @@ packages/caramos-ota/usr/lib/python3/dist-packages/caramos_ota_update/migrations
 Lấy timestamp bằng `date -u +%Y%m%d%H%M%S`. `manifest.json` schema 2 khai báo
 `release`, metadata UI, `codename` và `channel`. `migration.py` khai báo
 `DESCRIPTION` và `run(context)`. Không thêm entry vào `migration.json`; file đó là
-bridge lịch sử tới `1.0.13`. Xem mẫu đầy đủ tại
+bridge lịch sử tới `1.0.12`; timestamp migrations bắt đầu từ release `1.0.13`. Xem mẫu đầy đủ tại
 [packages/caramos-ota/MIGRATIONS.md](packages/caramos-ota/MIGRATIONS.md).
 
 ### Quy tắc migration

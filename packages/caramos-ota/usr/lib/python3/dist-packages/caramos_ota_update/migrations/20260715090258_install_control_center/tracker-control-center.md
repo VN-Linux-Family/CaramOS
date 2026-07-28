@@ -1,6 +1,6 @@
 # 🧾 TRACKER — CaramOS Control Center Applet giống Ubuntu Quick Settings
 
-> Tracker triển khai cho `v1_0_13\`: nâng applet `caramos-control-center@caramos`
+> Tracker triển khai cho `20260715090258_install_control_center\`: nâng applet `caramos-control-center@caramos`
 > từ menu tile tạm bợ sang trung tâm điều khiển giống Ubuntu Quick Settings.
 >
 > Nguyên tắc quan trọng: migration chỉ cài/thêm applet, không rewrite layout panel,
@@ -72,7 +72,7 @@ Làm Control Center giống Ubuntu Quick Settings:
 
 Không được dùng migration để cấu hình lại toàn bộ panel.
 
-Migration `v1_0_13\` chỉ được phép:
+Migration `20260715090258_install_control_center\` chỉ được phép:
 
 1. copy applet vào `/usr/share/cinnamon/applets/`;
 2. append đúng applet mới vào `org.cinnamon enabled-applets` nếu chưa có;
@@ -126,7 +126,7 @@ Panel indicator compact
 | `usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js` | Logic applet Cinnamon/GJS |
 | `usr/share/caramos-ota/applets/caramos-control-center@caramos/stylesheet.css` | Style popup/panel |
 | `usr/share/caramos-ota/applets/caramos-control-center@caramos/metadata.json` | Metadata Cinnamon applet |
-| `usr/lib/python3/dist-packages/caramos_ota_update/migrations/v1_0_13\/install_control_center.py` | Cài applet tối thiểu |
+| `usr/lib/python3/dist-packages/caramos_ota_update/migrations/20260715090258_install_control_center\/migration.py` | Cài applet tối thiểu |
 
 ### 4.1 Nguyên tắc applet.js
 

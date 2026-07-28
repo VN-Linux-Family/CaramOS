@@ -11,6 +11,7 @@ from caramos_ota_update.ledger import applied_ids, bootstrap_ledger, mark_applie
 from caramos_ota_update.registry import (
     MigrationRegistryError,
     discover_migrations,
+    latest_legacy_release,
     resolve_plan,
 )
 
@@ -67,6 +68,50 @@ class MigrationRegistryTests(unittest.TestCase):
             "def run(context):\n    context.log('timestamp')\n",
             encoding="utf-8",
         )
+
+    def test_bundled_catalog_starts_timestamp_migrations_at_1_0_13(self) -> None:
+        catalog = discover_migrations()
+        descriptors = {item.migration_id: item for item in catalog}
+
+        self.assertEqual(12, len(catalog))
+        self.assertNotIn("v1_0_13", descriptors)
+        self.assertEqual("1.0.12", latest_legacy_release(catalog))
+
+        migration = descriptors["20260715090258_install_control_center"]
+        self.assertEqual(2, migration.schema)
+        self.assertEqual("1.0.13", migration.release)
+        self.assertFalse(migration.legacy)
+
+        plan = resolve_plan(
+            "1.0.12",
+            target_version="1.0.13",
+            applied_ids={item.migration_id for item in catalog if item.legacy},
+            descriptors=catalog,
+        )
+        self.assertEqual(
+            ["20260715090258_install_control_center"],
+            [item.migration_id for item in plan.migrations],
+        )
+
+        applied_plan = resolve_plan(
+            "1.0.12",
+            target_version="1.0.13",
+            applied_ids={item.migration_id for item in catalog},
+            descriptors=catalog,
+        )
+        self.assertEqual([], applied_plan.migrations)
+
+    def test_bundled_ledger_bootstrap_at_1_0_12_does_not_infer_timestamp_ids(self) -> None:
+        catalog = discover_migrations()
+        ledger_path = self.root / "bundled-ledger.json"
+
+        ledger = bootstrap_ledger("1.0.12", catalog, path=ledger_path)
+
+        self.assertEqual(
+            {f"v1_0_{version}" for version in range(2, 13)},
+            applied_ids(ledger),
+        )
+        self.assertNotIn("20260715090258_install_control_center", applied_ids(ledger))
 
     def test_auto_discovers_two_migrations_for_same_release(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")

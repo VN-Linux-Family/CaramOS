@@ -5,14 +5,16 @@ from __future__ import annotations
 import os
 import subprocess
 import threading
+from typing import Any
 
 from .constants import OTA_COMMAND, PKEXEC_COMMAND, UPGRADE_TIMEOUT_SECONDS
 from .state import read_available_update, read_no_update_status, resolve_available_update_now
 from .ui import (
-    build_no_update_dialog,
-    build_progress_dialog,
-    build_result_dialog,
-    build_update_dialog,
+    build_no_update_page,
+    build_progress_page,
+    build_result_page,
+    build_update_page,
+    build_update_window,
     import_gtk,
 )
 
@@ -87,6 +89,120 @@ def run_upgrade_stream(on_line) -> tuple[bool, str]:
         return False, str(exc)
 
 
+class UpdateWindowController:
+    """Drive every OTA state inside one top-level GTK window."""
+
+    def __init__(self, Gtk, GLib, update_info: dict[str, Any] | None, no_update_status: dict[str, str] | None):
+        self.Gtk = Gtk
+        self.GLib = GLib
+        self.window, self.stack = build_update_window()
+        self.upgrade_running = False
+        self.pulse_source_id: int | None = None
+        self.thread: threading.Thread | None = None
+
+        self.window.connect("delete-event", self._on_delete_event)
+
+        if update_info is None:
+            page = build_no_update_page(no_update_status, self.close)
+            self.stack.add_named(page, "no-update")
+            self.stack.set_visible_child_name("no-update")
+            self.progress_bar = None
+            self.stage_label = None
+            self.log_view = None
+        else:
+            info_page = build_update_page(update_info, self.start_upgrade, self.close)
+            progress_page, self.progress_bar, self.stage_label, self.log_view = build_progress_page()
+            self.stack.add_named(info_page, "info")
+            self.stack.add_named(progress_page, "progress")
+            self.stack.set_visible_child_name("info")
+
+    def show(self) -> None:
+        """Show the update center and start its single GTK loop."""
+
+        self.window.show_all()
+
+    def close(self) -> bool:
+        """Close the window unless an upgrade is active."""
+
+        if self.upgrade_running:
+            return True
+        self.window.destroy()
+        self.Gtk.main_quit()
+        return False
+
+    def _on_delete_event(self, _window, _event) -> bool:
+        if self.upgrade_running:
+            return True
+        self.Gtk.main_quit()
+        return False
+
+    def start_upgrade(self) -> None:
+        """Switch to progress and launch the privileged updater once."""
+
+        if self.upgrade_running or self.progress_bar is None:
+            return
+
+        self.upgrade_running = True
+        self.window.set_deletable(False)
+        self.window.set_title("CaramOS - Đang cập nhật...")
+        self.stack.set_visible_child_name("progress")
+        self.pulse_source_id = self.GLib.timeout_add(100, self.pulse)
+
+        self.thread = threading.Thread(target=self._do_upgrade, daemon=True)
+        self.thread.start()
+
+    def _do_upgrade(self) -> None:
+        def on_line(line: str) -> None:
+            self.GLib.idle_add(self.append_log_line, line)
+
+        success, detail = run_upgrade_stream(on_line)
+        self.GLib.idle_add(self.on_upgrade_done, success, detail)
+
+    def append_log_line(self, line: str) -> bool:
+        """Append one updater line from the GTK main thread."""
+
+        if self.log_view is None or self.stage_label is None:
+            return False
+        buffer = self.log_view.get_buffer()
+        end_iter = buffer.get_end_iter()
+        buffer.insert(end_iter, line + "\n")
+        mark = buffer.create_mark(None, buffer.get_end_iter(), False)
+        self.log_view.scroll_to_mark(mark, 0.0, True, 0.0, 1.0)
+        self.stage_label.set_text(stage_for_line(line))
+        return False
+
+    def pulse(self) -> bool:
+        """Pulse while the updater has no numeric progress value."""
+
+        if not self.upgrade_running or self.progress_bar is None:
+            return False
+        self.progress_bar.pulse()
+        return True
+
+    def on_upgrade_done(self, success: bool, detail: str) -> bool:
+        """Replace progress with the result inside the same window."""
+
+        self.upgrade_running = False
+        if self.pulse_source_id is not None:
+            self.GLib.source_remove(self.pulse_source_id)
+            self.pulse_source_id = None
+        if self.progress_bar is not None:
+            self.progress_bar.set_fraction(1.0)
+        if self.stage_label is not None:
+            self.stage_label.set_text("Cập nhật hoàn tất." if success else "Cập nhật thất bại.")
+
+        result_page = build_result_page(success, detail, self.close)
+        old_result = self.stack.get_child_by_name("result")
+        if old_result is not None:
+            self.stack.remove(old_result)
+        self.stack.add_named(result_page, "result")
+        result_page.show_all()
+        self.stack.set_visible_child_name("result")
+        self.window.set_title("CaramOS - Cập nhật thành công!" if success else "CaramOS - Cập nhật thất bại")
+        self.window.set_deletable(True)
+        return False
+
+
 def main(argv: list[str] | None = None) -> int:
     """Run the desktop notifier."""
 
@@ -113,64 +229,11 @@ def main(argv: list[str] | None = None) -> int:
     if not args.autostart:
         update_info, no_update_status = resolve_available_update_now()
 
-    if update_info is None:
-        if args.autostart:
-            return 0
-        dialog = build_no_update_dialog(no_update_status)
-        dialog.run()
-        dialog.destroy()
+    if args.autostart and update_info is None:
         return 0
 
-    dialog = build_update_dialog(update_info)
-    response = dialog.run()
-    dialog.destroy()
-
-    if response != Gtk.ResponseType.ACCEPT:
-        return 0
-
-    progress_dialog, progress_bar, stage_label, log_view = build_progress_dialog()
-    pulse_running = True
-
-    def append_log_line(line: str) -> None:
-        buffer = log_view.get_buffer()
-        end_iter = buffer.get_end_iter()
-        buffer.insert(end_iter, line + "\n")
-        mark = buffer.create_mark(None, buffer.get_end_iter(), False)
-        log_view.scroll_to_mark(mark, 0.0, True, 0.0, 1.0)
-        stage_label.set_text(stage_for_line(line))
-
-    def pulse() -> bool:
-        if pulse_running:
-            progress_bar.pulse()
-            return True
-        return False
-
-    GLib.timeout_add(100, pulse)
-    upgrade_result: list[object] = [False, ""]
-
-    def do_upgrade() -> None:
-        def on_line(line: str) -> None:
-            GLib.idle_add(append_log_line, line)
-
-        success, detail = run_upgrade_stream(on_line)
-        upgrade_result[0] = success
-        upgrade_result[1] = detail
-        GLib.idle_add(on_upgrade_done)
-
-    def on_upgrade_done() -> None:
-        nonlocal pulse_running
-        pulse_running = False
-        progress_bar.set_fraction(1.0)
-        stage_label.set_text("Cập nhật hoàn tất." if upgrade_result[0] else "Cập nhật thất bại.")
-        progress_dialog.destroy()
-
-        result_dialog = build_result_dialog(bool(upgrade_result[0]), str(upgrade_result[1]))
-        result_dialog.run()
-        result_dialog.destroy()
-        Gtk.main_quit()
-
-    thread = threading.Thread(target=do_upgrade, daemon=True)
-    thread.start()
+    controller = UpdateWindowController(Gtk, GLib, update_info, no_update_status)
+    controller.show()
     Gtk.main()
     return 0
 

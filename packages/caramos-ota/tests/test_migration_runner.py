@@ -23,18 +23,9 @@ class MigrationRunnerTests(unittest.TestCase):
                 for migration_id in sorted(legacy_ids)
             ]
             + [
-                {
-                    "id": "20260715090258_install_control_center",
-                    "release": "1.0.13",
-                },
-                {
-                    "id": "20260803120000_apply_three_dock_taskbar",
-                    "release": "1.0.14",
-                },
-                {
-                    "id": "20260804223346_change_default_wallpaper",
-                    "release": "1.0.15",
-                },
+                {"id": "20260715090258_install_control_center"},
+                {"id": "20260803120000_apply_three_dock_taskbar"},
+                {"id": "20260804223346_change_default_wallpaper"},
             ],
         }
 
@@ -58,6 +49,7 @@ class MigrationRunnerTests(unittest.TestCase):
             "20260805111120_update_taskbar_pins_cleanup_desktop",
             run_one.call_args.args[0].migration_id,
         )
+        self.assertIsNone(run_one.call_args.args[0].release)
         context.update_release_file.assert_called_once_with("1.0.16")
         success.assert_called_once_with(
             transaction_id="timestamp-batch",
@@ -67,7 +59,7 @@ class MigrationRunnerTests(unittest.TestCase):
     def test_finalizes_release_when_target_migrations_are_already_applied(self) -> None:
         migration = MigrationDescriptor(
             migration_id="20260714090000_first_change",
-            release="1.0.3",
+            release=None,
             description="First change",
             source="test",
             directory=Path("/tmp/20260714090000_first_change"),
@@ -85,7 +77,7 @@ class MigrationRunnerTests(unittest.TestCase):
         ledger = {
             "schema": 1,
             "applied_migrations": [
-                {"id": migration.migration_id, "release": migration.release},
+                {"id": migration.migration_id},
             ],
         }
         context = MagicMock()

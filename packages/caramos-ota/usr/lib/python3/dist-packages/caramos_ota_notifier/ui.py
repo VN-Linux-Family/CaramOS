@@ -153,9 +153,6 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
         "Bản cập nhật này sẽ chạy migration CaramOS cần thiết cho phiên bản mới.",
     )
     packages = [normalize_package(pkg) for pkg in update_info.get("packages", [])]
-    release_notes = update_info.get("release_notes_vi") or update_info.get("release_notes") or []
-    visible_notes = release_notes
-    hidden_notes = 0
 
     outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     outer.set_margin_top(12)
@@ -222,48 +219,12 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
     add_info_row(Gtk, meta_card, 1, "Mức độ", severity)
     add_info_row(Gtk, meta_card, 2, "Dung lượng", size)
 
-    body = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
-    outer.pack_start(body, True, True, 0)
-
-    notes_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-    notes_panel.get_style_context().add_class("card")
-    body.pack1(notes_panel, resize=True, shrink=False)
-
-    notes_title = Gtk.Label()
-    notes_title.set_markup("<span weight='bold'>Nội dung cập nhật</span>")
-    notes_title.set_xalign(0)
-    notes_panel.pack_start(notes_title, False, False, 0)
-
-    notes_scroll = Gtk.ScrolledWindow()
-    notes_scroll.set_min_content_height(95)
-    notes_scroll.set_max_content_height(170)
-    notes_panel.pack_start(notes_scroll, True, True, 0)
-
-    if visible_notes:
-        notes_text = "\n\n".join(f"• {format_value(note)}" for note in visible_notes)
-        if hidden_notes:
-            notes_text += f"\n\n• Và {hidden_notes} thay đổi khác..."
-    else:
-        notes_text = "• Chạy migration CaramOS theo manifest OTA."
-
-    notes_view = Gtk.TextView()
-    notes_view.get_style_context().add_class("notes-view")
-    notes_view.set_editable(False)
-    notes_view.set_cursor_visible(False)
-    notes_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-    notes_view.set_left_margin(0)
-    notes_view.set_right_margin(6)
-    notes_view.set_top_margin(0)
-    notes_view.set_bottom_margin(0)
-    notes_view.get_buffer().set_text(notes_text)
-    notes_scroll.add(notes_view)
-
     pkg_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     pkg_panel.get_style_context().add_class("card")
-    body.pack2(pkg_panel, resize=True, shrink=False)
+    outer.pack_start(pkg_panel, True, True, 0)
 
     pkg_title = Gtk.Label()
-    pkg_title.set_markup(f"<span weight='bold'>Migration sẽ chạy ({len(packages)})</span>")
+    pkg_title.set_markup(f"<span weight='bold'>Nội dung sẽ cập nhật ({len(packages)})</span>")
     pkg_title.set_xalign(0)
     pkg_panel.pack_start(pkg_title, False, False, 0)
 
@@ -275,24 +236,11 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
     pkg_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     for pkg in packages:
         item = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
-        name_lbl = Gtk.Label()
-        badge = "bắt buộc" if pkg["required"] is True else "tùy chọn" if pkg["required"] is False else "gói"
-        name_lbl.set_markup(
-            f"<span weight='bold'>{html.escape(str(pkg['name']))}</span>  "
-            f"<span foreground='#657064'>({html.escape(badge)})</span>"
-        )
-        name_lbl.set_xalign(0)
-        item.pack_start(name_lbl, False, False, 0)
-
-        ver_lbl = Gtk.Label()
-        ver_lbl.set_text(f"{pkg['current']}  →  {pkg['available']}")
-        ver_lbl.set_xalign(0)
-        ver_lbl.set_selectable(True)
-        item.pack_start(ver_lbl, False, False, 0)
-
-        if pkg["description"]:
-            item.set_tooltip_text(str(pkg["description"]))
-
+        description = format_value(pkg.get("description") or pkg.get("name"), "Cập nhật CaramOS")
+        description_lbl = Gtk.Label(label=description)
+        description_lbl.set_xalign(0)
+        description_lbl.set_line_wrap(True)
+        item.pack_start(description_lbl, False, False, 0)
         pkg_box.pack_start(item, False, False, 0)
 
     scroll.add(pkg_box)

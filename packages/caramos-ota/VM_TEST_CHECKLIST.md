@@ -29,7 +29,6 @@ Mở terminal trong VM, cài SSH server:
 sudo apt update
 sudo apt install -y openssh-server
 sudo systemctl enable --now ssh
-passwd
 ```
 
 Nếu user live chưa có password hoặc cần đổi password để SSH:
@@ -159,17 +158,7 @@ Chạy full default test:
 make test
 ```
 
-Hoặc chạy migration cụ thể, ví dụ `1.0.7 -> 1.0.8`:
-
-```bash
-sudo TEST_RELEASE_FROM=1.0.7 TEST_RELEASE_TARGET=1.0.8 ./vm-run-ota-e2e.sh install-and-cli
-```
-
-Ví dụ test `1.0.6 -> 1.0.7`:
-
-```bash
-sudo TEST_RELEASE_FROM=1.0.6 TEST_RELEASE_TARGET=1.0.7 ./vm-run-ota-e2e.sh install-and-cli
-```
+Hoặc chạy ledger flow với trạng thái test riêng nếu testkit hỗ trợ biến đó. Không hardcode target release cho migration mới; timestamp migrations chạy theo ledger.
 
 ## 5. Test notifier GUI
 

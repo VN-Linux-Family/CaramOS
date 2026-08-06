@@ -41,7 +41,7 @@ def format_value(value: object, fallback: str = "Chưa rõ") -> str:
 def normalize_package(pkg: object) -> dict[str, object]:
     if isinstance(pkg, dict):
         name = format_value(pkg.get("name") or pkg.get("package"), "Không rõ migration")
-        current = format_value(pkg.get("current_version") or pkg.get("installed_version"), "pending")
+        current = format_value(pkg.get("current_version") or pkg.get("installed_version"))
         available = format_value(
             pkg.get("available_version") or pkg.get("candidate_version") or pkg.get("min_version"),
             "Chưa rõ",
@@ -55,7 +55,7 @@ def normalize_package(pkg: object) -> dict[str, object]:
         }
     return {
         "name": format_value(pkg, "Không rõ migration"),
-        "current": "pending",
+        "current": "Chưa rõ",
         "available": "Chưa rõ",
         "description": "",
         "required": None,
@@ -123,11 +123,11 @@ def resolve_available_update_now() -> tuple[dict[str, Any] | None, dict[str, str
     status["latest_version"] = plan.target_version
     packages = [
         {
-            "name": item.migration_id,
-            "current_version": "pending",
-            "available_version": item.release,
+            "name": item.title,
+            "current_version": "",
+            "available_version": "",
             "description": item.summary,
-            "required": True,
+            "required": False,
         }
         for item in plan.migrations
     ]

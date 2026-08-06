@@ -7,12 +7,13 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from caramos_ota_update.ledger import applied_ids, bootstrap_ledger, mark_applied
+from caramos_ota_update.ledger import applied_ids, bootstrap_ledger, load_ledger, mark_applied
 from caramos_ota_update.registry import (
     MigrationRegistryError,
     discover_migrations,
     latest_legacy_release,
     resolve_plan,
+    version_le,
 )
 
 
@@ -48,19 +49,25 @@ class MigrationRegistryTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def write_timestamp(self, migration_id: str, release: str) -> None:
-        directory = self.root / migration_id
+    def write_timestamp(
+        self,
+        migration_id: str,
+        extra_manifest: dict[str, object] | None = None,
+        *,
+        root: Path | None = None,
+    ) -> None:
+        directory = (root or self.root) / migration_id
         directory.mkdir()
+        manifest = {
+            "schema": 2,
+            "codename": "noble",
+            "channel": "stable",
+            "summary": migration_id,
+        }
+        if extra_manifest:
+            manifest.update(extra_manifest)
         (directory / "manifest.json").write_text(
-            json.dumps(
-                {
-                    "schema": 2,
-                    "release": release,
-                    "codename": "noble",
-                    "channel": "stable",
-                    "summary": migration_id,
-                }
-            ),
+            json.dumps(manifest),
             encoding="utf-8",
         )
         (directory / "migration.py").write_text(
@@ -69,7 +76,7 @@ class MigrationRegistryTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def test_bundled_catalog_assigns_timestamp_migrations_to_releases(self) -> None:
+    def test_bundled_catalog_uses_schema2_timestamps_without_release(self) -> None:
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
@@ -78,65 +85,49 @@ class MigrationRegistryTests(unittest.TestCase):
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
 
-        control_center = descriptors["20260715090258_install_control_center"]
-        self.assertEqual(2, control_center.schema)
-        self.assertEqual("1.0.13", control_center.release)
-        self.assertFalse(control_center.legacy)
+        timestamp_ids = [item.migration_id for item in catalog if not item.legacy]
+        self.assertEqual(
+            [
+                "20260715090258_install_control_center",
+                "20260803120000_apply_three_dock_taskbar",
+                "20260804223346_change_default_wallpaper",
+                "20260805111120_update_taskbar_pins_cleanup_desktop",
+            ],
+            timestamp_ids,
+        )
+        for migration_id in timestamp_ids:
+            descriptor = descriptors[migration_id]
+            self.assertEqual(2, descriptor.schema)
+            self.assertIsNone(descriptor.release)
+            self.assertFalse(descriptor.legacy)
 
-        taskbar = descriptors["20260803120000_apply_three_dock_taskbar"]
-        self.assertEqual(2, taskbar.schema)
-        self.assertEqual("1.0.14", taskbar.release)
-        self.assertFalse(taskbar.legacy)
-
-        wallpaper = descriptors["20260804223346_change_default_wallpaper"]
-        self.assertEqual(2, wallpaper.schema)
-        self.assertEqual("1.0.15", wallpaper.release)
-        self.assertFalse(wallpaper.legacy)
-
-        taskbar_pins = descriptors["20260805111120_update_taskbar_pins_cleanup_desktop"]
-        self.assertEqual(2, taskbar_pins.schema)
-        self.assertEqual("1.0.16", taskbar_pins.release)
-        self.assertFalse(taskbar_pins.legacy)
-
+    def test_unapplied_timestamps_run_lexically_independent_of_target(self) -> None:
+        catalog = discover_migrations()
         legacy_ids = {item.migration_id for item in catalog if item.legacy}
-        plan_1_0_13 = resolve_plan(
+
+        plan = resolve_plan(
             "1.0.12",
             target_version="1.0.13",
             applied_ids=legacy_ids,
             descriptors=catalog,
         )
-        self.assertEqual(
-            ["20260715090258_install_control_center"],
-            [item.migration_id for item in plan_1_0_13.migrations],
-        )
 
-        plan_1_0_14 = resolve_plan(
-            "1.0.13",
-            target_version="1.0.14",
-            applied_ids=legacy_ids | {"20260715090258_install_control_center"},
-            descriptors=catalog,
-        )
+        self.assertEqual("1.0.13", plan.target_version)
         self.assertEqual(
-            ["20260803120000_apply_three_dock_taskbar"],
-            [item.migration_id for item in plan_1_0_14.migrations],
-        )
-
-        plan_1_0_15 = resolve_plan(
-            "1.0.14",
-            target_version="1.0.15",
-            applied_ids=legacy_ids
-            | {
+            [
                 "20260715090258_install_control_center",
                 "20260803120000_apply_three_dock_taskbar",
-            },
-            descriptors=catalog,
-        )
-        self.assertEqual(
-            ["20260804223346_change_default_wallpaper"],
-            [item.migration_id for item in plan_1_0_15.migrations],
+                "20260804223346_change_default_wallpaper",
+                "20260805111120_update_taskbar_pins_cleanup_desktop",
+            ],
+            [item.migration_id for item in plan.migrations],
         )
 
-        plan_1_0_16 = resolve_plan(
+    def test_applied_timestamps_do_not_run_again_even_when_target_is_newer(self) -> None:
+        catalog = discover_migrations()
+        legacy_ids = {item.migration_id for item in catalog if item.legacy}
+
+        plan = resolve_plan(
             "1.0.15",
             target_version="1.0.16",
             applied_ids=legacy_ids
@@ -147,18 +138,11 @@ class MigrationRegistryTests(unittest.TestCase):
             },
             descriptors=catalog,
         )
+
         self.assertEqual(
             ["20260805111120_update_taskbar_pins_cleanup_desktop"],
-            [item.migration_id for item in plan_1_0_16.migrations],
+            [item.migration_id for item in plan.migrations],
         )
-
-        applied_plan = resolve_plan(
-            "1.0.13",
-            target_version="1.0.14",
-            applied_ids={item.migration_id for item in catalog},
-            descriptors=catalog,
-        )
-        self.assertEqual([], applied_plan.migrations)
 
     def test_bundled_ledger_bootstrap_at_1_0_12_does_not_infer_timestamp_ids(self) -> None:
         catalog = discover_migrations()
@@ -172,38 +156,59 @@ class MigrationRegistryTests(unittest.TestCase):
         )
         self.assertNotIn("20260715090258_install_control_center", applied_ids(ledger))
 
-    def test_auto_discovers_two_migrations_for_same_release(self) -> None:
+    def test_vm_ledger_seed_filters_out_versionless_timestamps(self) -> None:
+        catalog = discover_migrations()
+        selected = [
+            item
+            for item in catalog
+            if item.legacy and item.release is not None and version_le(item.release, "1.0.12")
+        ]
+
+        self.assertEqual(
+            {f"v1_0_{version}" for version in range(2, 13)},
+            {item.migration_id for item in selected},
+        )
+        self.assertTrue(all(item.legacy for item in selected))
+
+    def test_auto_discovers_two_timestamps_without_release(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")
-        self.write_timestamp("20260714090000_first_change", "1.0.3")
-        self.write_timestamp("20260714090100_second_change", "1.0.3")
+        self.write_timestamp("20260714090000_first_change")
+        self.write_timestamp("20260714090100_second_change")
 
         catalog = discover_migrations(self.root)
-        plan = resolve_plan("1.0.2", applied_ids={"v1_0_2"}, descriptors=catalog)
+        plan = resolve_plan(
+            "1.0.2",
+            target_version="1.0.2",
+            applied_ids={"v1_0_2"},
+            descriptors=catalog,
+        )
 
-        self.assertEqual("1.0.3", plan.target_version)
+        self.assertEqual("1.0.2", plan.target_version)
         self.assertEqual(
             ["20260714090000_first_change", "20260714090100_second_change"],
             [item.migration_id for item in plan.migrations],
         )
+        self.assertTrue(all(item.release is None for item in plan.migrations))
 
     def test_applied_timestamp_migration_does_not_run_again(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")
-        self.write_timestamp("20260714090000_first_change", "1.0.3")
-        self.write_timestamp("20260714090100_second_change", "1.0.3")
+        self.write_timestamp("20260714090000_first_change")
+        self.write_timestamp("20260714090100_second_change")
         catalog = discover_migrations(self.root)
 
         plan = resolve_plan(
             "1.0.3",
+            target_version="1.0.3",
             applied_ids={"v1_0_2", "20260714090000_first_change"},
             descriptors=catalog,
         )
 
         self.assertEqual(["20260714090100_second_change"], [item.migration_id for item in plan.migrations])
 
-    def test_applied_timestamp_migrations_still_cover_target_release(self) -> None:
+    def test_applied_timestamp_migrations_keep_target_for_finalization(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")
-        self.write_timestamp("20260714090000_first_change", "1.0.3")
-        self.write_timestamp("20260714090100_second_change", "1.0.3")
+        self.write_timestamp("20260714090000_first_change")
+        self.write_timestamp("20260714090100_second_change")
         catalog = discover_migrations(self.root)
 
         plan = resolve_plan(
@@ -220,19 +225,22 @@ class MigrationRegistryTests(unittest.TestCase):
         self.assertEqual("1.0.3", plan.target_version)
         self.assertEqual([], plan.migrations)
 
-    def test_late_migration_for_current_release_is_pending(self) -> None:
+    def test_downgrade_target_fails_even_when_timestamps_are_pending(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")
-        self.write_timestamp("20260714090000_late_fix", "1.0.2")
+        self.write_timestamp("20260714090000_pending_fix")
         catalog = discover_migrations(self.root)
 
-        plan = resolve_plan("1.0.2", applied_ids={"v1_0_2"}, descriptors=catalog)
+        with self.assertRaisesRegex(MigrationRegistryError, "older than installed version"):
+            resolve_plan(
+                "1.0.2",
+                target_version="1.0.1",
+                applied_ids={"v1_0_2"},
+                descriptors=catalog,
+            )
 
-        self.assertEqual("1.0.2", plan.target_version)
-        self.assertEqual(["20260714090000_late_fix"], [item.migration_id for item in plan.migrations])
-
-    def test_bootstrap_marks_only_legacy_migrations(self) -> None:
+    def test_bootstrap_marks_only_legacy_migrations_and_timestamp_record_omits_release(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")
-        self.write_timestamp("20260714090000_late_fix", "1.0.2")
+        self.write_timestamp("20260714090000_late_fix")
         catalog = discover_migrations(self.root)
         ledger_path = self.root / "ledger.json"
 
@@ -245,6 +253,33 @@ class MigrationRegistryTests(unittest.TestCase):
             {"v1_0_2", "20260714090000_late_fix"},
             applied_ids(ledger),
         )
+        timestamp_record = ledger["applied_migrations"][-1]
+        self.assertEqual("20260714090000_late_fix", timestamp_record["id"])
+        self.assertNotIn("release", timestamp_record)
+
+    def test_old_ledger_records_with_release_remain_readable(self) -> None:
+        ledger_path = self.root / "old-ledger.json"
+        ledger_path.write_text(
+            json.dumps(
+                {
+                    "schema": 1,
+                    "applied_migrations": [
+                        {
+                            "id": "20260714090000_old_timestamp",
+                            "release": "1.0.13",
+                            "applied_at": "2026-07-14T09:00:00+00:00",
+                            "source": "old",
+                        }
+                    ],
+                }
+            ),
+            encoding="utf-8",
+        )
+
+        ledger = load_ledger(ledger_path)
+
+        self.assertIsNotNone(ledger)
+        self.assertEqual({"20260714090000_old_timestamp"}, applied_ids(ledger or {}))
 
     def test_invalid_directory_fails_closed(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")
@@ -262,7 +297,6 @@ class MigrationRegistryTests(unittest.TestCase):
             json.dumps(
                 {
                     "schema": 2,
-                    "release": "1.0.3",
                     "codename": "noble",
                     "channel": "stable",
                 }
@@ -272,6 +306,20 @@ class MigrationRegistryTests(unittest.TestCase):
 
         with self.assertRaisesRegex(MigrationRegistryError, "missing migration.py"):
             discover_migrations(self.root)
+
+    def test_timestamp_manifest_must_not_contain_version_fields(self) -> None:
+        for field in ("release", "version", "from_version", "to_version"):
+            with self.subTest(field=field):
+                root = self.root / field
+                root.mkdir()
+                self.write_timestamp(
+                    "20260714090000_bad_timestamp",
+                    {field: "1.0.3"},
+                    root=root,
+                )
+
+                with self.assertRaisesRegex(MigrationRegistryError, f"must not contain: {field}"):
+                    discover_migrations(root)
 
     def test_legacy_manifest_and_module_must_match(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")

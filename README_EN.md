@@ -132,7 +132,7 @@ architecture and developer workflow.
 | **Build method** | ISO remaster: extract → customize → OTA bootstrap → repack |
 | **Build scripts** | Bash + Makefile, split into modules under `scripts/` |
 | **OTA model** | `caramos-ota` version migration-driven OTA |
-| **Migration runner** | `caramos-ota-update` runs `FROM_VERSION -> TO_VERSION` migrations in order |
+| **Migration runner** | `caramos-ota-update` runs unapplied timestamp migrations using the ledger |
 | **Update Center** | `caramos-ota-notifier` + `pkexec caramos-ota --upgrade --yes` |
 | **Developer workflow** | Post-release system changes go into `packages/caramos-ota` migrations |
 | **Legacy hooks** | `config/hooks/live/` is for bootstrap/build-time foundations, not new OTA features |
@@ -169,7 +169,7 @@ make build
 Run a release build:
 
 ```bash
-make release
+make release VERSION=x.y.z
 ```
 
 Build from an existing Mint ISO:
@@ -193,7 +193,7 @@ Common `make` targets:
 | Command | Purpose |
 |---|---|
 | `make build` | Full dev build with fast `lz4` compression |
-| `make release` | Release build with smaller but slower `xz` compression |
+| `make release VERSION=x.y.z` | Release build with smaller but slower `xz` compression |
 | `make prepare` | Extract the ISO/rootfs into `build/` for fast iteration |
 | `make customize-only` | Run package installation, overlay copy, and chroot hooks |
 | `make boot-only` | Apply only boot menu, GRUB, and Plymouth branding |

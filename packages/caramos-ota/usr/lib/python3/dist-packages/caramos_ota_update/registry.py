@@ -27,7 +27,7 @@ class MigrationDescriptor:
     """Validated metadata and entrypoint for one migration."""
 
     migration_id: str
-    release: str
+    release: str | None
     description: str
     source: str
     directory: Path
@@ -171,7 +171,13 @@ def _descriptor(directory: Path) -> MigrationDescriptor:
     if TIMESTAMP_ID_RE.fullmatch(migration_id):
         if schema != 2:
             raise MigrationRegistryError(f"timestamp migration {migration_id} requires manifest schema 2")
-        release = _required_string(raw, "release", manifest_path)
+        forbidden = sorted({"release", "version", "from_version", "to_version"}.intersection(raw))
+        if forbidden:
+            raise MigrationRegistryError(
+                f"timestamp migration {migration_id} manifest schema 2 must not contain: "
+                f"{', '.join(forbidden)}"
+            )
+        release = None
         module_path = directory / "migration.py"
         if not module_path.is_file():
             raise MigrationRegistryError(f"timestamp migration {migration_id} is missing migration.py")
@@ -189,7 +195,7 @@ def _descriptor(directory: Path) -> MigrationDescriptor:
             f"invalid migration directory {migration_id!r}; expected vX_Y_Z or YYYYMMDDHHMMSS_name"
         )
 
-    if not VERSION_RE.fullmatch(release):
+    if release is not None and not VERSION_RE.fullmatch(release):
         raise MigrationRegistryError(f"invalid migration release {release!r} in {manifest_path}")
     if from_version is not None and not VERSION_RE.fullmatch(from_version):
         raise MigrationRegistryError(f"invalid from_version {from_version!r} in {manifest_path}")
@@ -293,15 +299,16 @@ def _validate_registry(descriptors: list[MigrationDescriptor]) -> None:
                 raise MigrationRegistryError(f"legacy migration cycle detected at {cursor}")
             seen.add(cursor)
             descriptor = next(item for item in descriptors if item.legacy and item.from_version == cursor)
+            assert descriptor.release is not None
             cursor = descriptor.release
 
 
 def latest_release(descriptors: list[MigrationDescriptor]) -> str:
-    return max_version([item.release for item in descriptors])
+    return max_version([item.release for item in descriptors if item.release is not None])
 
 
 def latest_legacy_release(descriptors: list[MigrationDescriptor]) -> str:
-    legacy = [item.release for item in descriptors if item.legacy]
+    legacy = [item.release for item in descriptors if item.legacy and item.release is not None]
     return max_version(legacy)
 
 
@@ -312,11 +319,14 @@ def resolve_plan(
     target_version: str | None = None,
     descriptors: list[MigrationDescriptor] | None = None,
 ) -> MigrationPlan:
-    """Resolve legacy bridge plus pending timestamp migrations."""
+    """Resolve legacy bridge plus all pending timestamp migrations."""
 
     catalog = descriptors or discover_migrations()
-    latest = latest_release(catalog)
-    target = target_version or (latest if version_lt(current_version, latest) else current_version)
+    if target_version is None:
+        raise MigrationRegistryError("target_version is required for migration plan finalization")
+    target = target_version
+    legacy_releases = [item.release for item in catalog if item.legacy and item.release is not None]
+    latest_legacy = max_version(legacy_releases) if legacy_releases else current_version
     if version_lt(target, current_version):
         raise MigrationRegistryError(
             f"target version {target} is older than installed version {current_version}"
@@ -335,30 +345,25 @@ def resolve_plan(
             raise MigrationRegistryError(f"legacy migration cycle detected at {cursor}")
         seen.add(cursor)
         item = legacy_by_from[cursor]
+        assert item.release is not None
         if not version_le(item.release, target):
             break
         legacy_path.append(item)
         cursor = item.release
 
-    timestamp_candidates = [
-        item
-        for item in catalog
-        if not item.legacy and version_le(item.release, target)
-    ]
+    if legacy_releases and version_lt(cursor, target) and version_lt(cursor, latest_legacy):
+        raise MigrationRegistryError(
+            f"missing legacy migrations to target {target}; migration coverage stops at {cursor}"
+        )
+
     timestamp_path = sorted(
         (
             item
-            for item in timestamp_candidates
-            if item.migration_id not in applied_ids
+            for item in catalog
+            if not item.legacy and item.migration_id not in applied_ids
         ),
         key=lambda item: item.migration_id,
     )
-
-    highest = max_version([item.release for item in timestamp_candidates] + [cursor])
-    if version_lt(highest, target):
-        raise MigrationRegistryError(
-            f"missing timestamp migrations to target {target}; migration coverage stops at {highest}"
-        )
 
     return MigrationPlan(
         current_version=current_version,

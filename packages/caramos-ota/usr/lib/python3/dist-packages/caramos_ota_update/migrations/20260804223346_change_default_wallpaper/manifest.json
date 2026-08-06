@@ -1,20 +1,21 @@
 {
   "schema": 2,
-  "release": "1.0.15",
   "codename": "noble",
   "channel": "stable",
   "severity": "feature",
-  "size": "1.5 MB wallpaper payload",
-  "title": "Hình nền mặc định mới cho CaramOS",
-  "summary": "Cài hình nền CaramOS mới và cập nhật an toàn hình nền mặc định cho desktop và màn hình đăng nhập.",
+  "size": "5 wallpapers (728 KB)",
+  "title": "Bộ hình nền CaramOS mới",
+  "summary": "Cài năm hình nền CaramOS, đặt Paper Dawn làm mặc định và thay nguồn Linux Mint trong ứng dụng Hình nền.",
   "release_notes_vi": [
-    "Cài hình nền wallpaper2 mới cho CaramOS.",
-    "Cập nhật hình nền mặc định cho desktop và màn hình đăng nhập qua đường dẫn ổn định default.png.",
-    "Giữ nguyên hình nền tùy chỉnh của người dùng."
+    "Cài năm hình nền CaramOS độ phân giải 2048×1152.",
+    "Đặt Paper Dawn làm hình nền mặc định cho desktop và màn hình đăng nhập qua đường dẫn ổn định default.png.",
+    "Thay các bộ sưu tập Linux Mint trong Cinnamon Backgrounds bằng bộ sưu tập CaramOS.",
+    "Giữ nguyên hình nền và nguồn slideshow tùy chỉnh của người dùng."
   ],
   "release_notes_en": [
-    "Install the new wallpaper2 image for CaramOS.",
-    "Update the default desktop and login-screen wallpaper through the stable default.png path.",
-    "Preserve user-selected custom wallpapers."
+    "Install five 2048×1152 CaramOS wallpapers.",
+    "Set Paper Dawn as the default desktop and login-screen wallpaper through the stable default.png path.",
+    "Replace Linux Mint collections in Cinnamon Backgrounds with the CaramOS collection.",
+    "Preserve user-selected custom wallpapers and slideshow sources."
   ]
 }

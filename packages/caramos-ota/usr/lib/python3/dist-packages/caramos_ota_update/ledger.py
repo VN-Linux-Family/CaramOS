@@ -7,10 +7,12 @@ import os
 from pathlib import Path
 from typing import Any
 
-from caramos_ota.constants import MIGRATION_LEDGER_FILE, STATE_DIR
+from caramos_ota.constants import STATE_DIR
 from caramos_ota.logging_utils import now_iso
 
 from .registry import MigrationDescriptor, MigrationRegistryError, max_version, version_le
+
+MIGRATION_LEDGER_FILE = STATE_DIR / "migrations.json"
 
 
 class MigrationLedgerError(RuntimeError):
@@ -70,15 +72,17 @@ def bootstrap_ledger(
     if existing is not None:
         return existing
 
-    legacy = [
-        item
-        for item in descriptors
-        if item.legacy and version_le(item.release, installed_version)
-    ]
-    legacy_releases = [item.release for item in descriptors if item.legacy]
+    legacy = []
+    for item in descriptors:
+        if not item.legacy:
+            continue
+        assert item.release is not None
+        if version_le(item.release, installed_version):
+            legacy.append(item)
+    legacy_releases = [item.release for item in descriptors if item.legacy and item.release is not None]
     latest_legacy = max_version(legacy_releases) if legacy_releases else None
-    timestamp_releases = [item.release for item in descriptors if not item.legacy]
-    if latest_legacy and timestamp_releases:
+    has_timestamps = any(not item.legacy for item in descriptors)
+    if latest_legacy and has_timestamps:
         try:
             beyond_legacy = not version_le(installed_version, latest_legacy)
         except MigrationRegistryError as exc:
@@ -122,12 +126,12 @@ def mark_applied(
 
     if descriptor.migration_id in applied_ids(ledger):
         return
-    ledger.setdefault("applied_migrations", []).append(
-        {
-            "id": descriptor.migration_id,
-            "release": descriptor.release,
-            "applied_at": now_iso(),
-            "source": descriptor.source,
-        }
-    )
+    record = {
+        "id": descriptor.migration_id,
+        "applied_at": now_iso(),
+        "source": descriptor.source,
+    }
+    if descriptor.release is not None:
+        record["release"] = descriptor.release
+    ledger.setdefault("applied_migrations", []).append(record)
     save_ledger(ledger, path)

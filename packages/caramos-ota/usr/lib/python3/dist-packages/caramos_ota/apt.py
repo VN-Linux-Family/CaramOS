@@ -11,6 +11,7 @@ from .constants import EXIT_APT
 from .errors import OtaError
 from .logging_utils import current_log_file, log_error, log_info, now_iso, print_fail, print_ok
 from .manifest import manifest_for_plan, resolve_update_plan
+from caramos_ota_update.registry import version_lt
 from .models import Manifest, ReleaseInfo, UpdatePackage
 from .state import save_state
 
@@ -113,14 +114,25 @@ def detect_updates(
 
     updates = [
         UpdatePackage(
-            name=item.migration_id,
-            current_version="pending",
-            available_version=item.release,
+            name=item.title,
+            current_version="",
+            available_version="",
             description=item.summary,
-            required=True,
+            required=False,
         )
         for item in plan.migrations
     ]
+    target_newer = version_lt(release_info.version, manifest.release)
+    if target_newer and not updates:
+        updates.append(
+            UpdatePackage(
+                name="CaramOS release metadata",
+                current_version=release_info.version,
+                available_version=manifest.release,
+                description="Update CaramOS release metadata to packaged target.",
+                required=True,
+            )
+        )
     if updates:
         state["available_update"] = {
             "detected_at": now_iso(),
@@ -144,8 +156,8 @@ def detect_updates(
     if persist_state:
         save_state(state)
     log_info(
-        f"Migration update detection complete: {len(updates)} pending migration(s) "
-        f"through release {manifest.release}"
+        f"Migration update detection complete: {len(plan.migrations)} pending migration(s); "
+        f"target {manifest.release}; available={bool(updates)}"
     )
     return manifest, updates
 

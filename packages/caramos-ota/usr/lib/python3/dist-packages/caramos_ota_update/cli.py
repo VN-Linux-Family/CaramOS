@@ -10,6 +10,7 @@ from caramos_ota.constants import EXIT_ERROR, EXIT_OK
 from caramos_ota.logging_utils import init_log, log_error, log_info
 from caramos_ota.privilege import acquire_lock
 from caramos_ota.release import detect_caramos, parse_key_value_file
+from caramos_ota.release_metadata import PRODUCT_VERSION
 
 from .context import MigrationContext
 from .runner import MigrationRunner, MigrationRunnerError
@@ -24,7 +25,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--target",
-        help="Target CaramOS release. Defaults to latest auto-discovered release.",
+        default=PRODUCT_VERSION,
+        help=f"Target CaramOS release to migrate/finalize to (default: {PRODUCT_VERSION}).",
     )
     parser.add_argument(
         "--from",

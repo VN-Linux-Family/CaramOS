@@ -7,6 +7,10 @@ WORKSPACE_DIR="$(cd "${PKG_DIR}/../.." && pwd)"
 DIST_DIR="${PKG_DIR}/dist-testkit"
 BUNDLE_NAME="caramos-ota-source-testkit.tar.gz"
 BACKUP_DIR="/root/caramos-ota-test-backup"
+TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.12}"
+if [[ -z "${TEST_RELEASE_TARGET:-}" ]]; then
+  TEST_RELEASE_TARGET="$(PYTHONPATH="${PKG_DIR}/usr/lib/python3/dist-packages" python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)')"
+fi
 
 usage() {
   cat <<'EOF'
@@ -30,9 +34,9 @@ Commands on CaramOS test machine:
   install-deb <deb> Install built caramos-ota .deb
   backup            Backup files touched by migration tests
   smoke             Check installed commands and compile installed modules
-  dry-run-1.0.16    Dry-run migration from 1.0.15 to 1.0.16
-  run-1.0.16        Run real migration 1.0.15 -> 1.0.16
-  verify-1.0.2      Verify VERSION metadata and selected branding changes
+  dry-run-target    Dry-run pending migrations to TEST_RELEASE_TARGET
+  run-target        Run pending migrations to TEST_RELEASE_TARGET
+  verify-target     Verify VERSION metadata and selected branding changes
   restore           Restore backup made by backup command
 
   # Dev machine
@@ -47,9 +51,9 @@ Commands on CaramOS test machine:
   cd /tmp && tar -xzf caramos-ota-source-testkit.tar.gz
   cd caramos-ota
   sudo ./tools/caramos-ota-testkit.sh backup
-  sudo ./tools/caramos-ota-testkit.sh dry-run-1.0.16
-  sudo PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.15 --target 1.0.16
-  sudo ./tools/caramos-ota-testkit.sh verify-1.0.16
+  sudo TEST_RELEASE_FROM=1.0.16 TEST_RELEASE_TARGET=1.0.17 ./tools/caramos-ota-testkit.sh dry-run-target
+  sudo TEST_RELEASE_FROM=1.0.16 TEST_RELEASE_TARGET=1.0.17 ./tools/caramos-ota-testkit.sh run-target
+  sudo TEST_RELEASE_TARGET=1.0.17 ./tools/caramos-ota-testkit.sh verify-target
 EOF
 }
 
@@ -97,12 +101,19 @@ clean_build() {
 validate_manifest() {
   cd "${PKG_DIR}"
   PYTHONPATH=usr/lib/python3/dist-packages python3 - <<'PY'
-from caramos_ota_update.registry import discover_migrations, latest_release
+from caramos_ota.release_metadata import PRODUCT_VERSION
+from caramos_ota_update.registry import discover_migrations
 
 migrations = discover_migrations()
-print(f"[OK] Discovered {len(migrations)} migration(s); latest release: {latest_release(migrations)}")
+timestamps = [migration for migration in migrations if not migration.legacy]
+legacy = [migration for migration in migrations if migration.legacy]
+print(
+    f"[OK] Discovered {len(migrations)} migration(s): "
+    f"{len(legacy)} legacy, {len(timestamps)} timestamp; product target: {PRODUCT_VERSION}"
+)
 for migration in migrations:
-    print(f"  {migration.migration_id}: release {migration.release}")
+    kind = f"legacy {migration.release}" if migration.legacy else "timestamp (ledger ordered)"
+    print(f"  {migration.migration_id}: {kind}")
 PY
 }
 
@@ -196,22 +207,22 @@ smoke_installed() {
   echo "[OK] Installed smoke test passed"
 }
 
-dry_run_1_0_16() {
+dry_run_target() {
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.15 --target 1.0.16 --dry-run
+    caramos-ota-update --from "${TEST_RELEASE_FROM}" --target "${TEST_RELEASE_TARGET}" --dry-run
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.15 --target 1.0.16 --dry-run
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from "${TEST_RELEASE_FROM}" --target "${TEST_RELEASE_TARGET}" --dry-run
   fi
 }
 
-run_1_0_16() {
+run_target() {
   require_root
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.15 --target 1.0.16
+    caramos-ota-update --from "${TEST_RELEASE_FROM}" --target "${TEST_RELEASE_TARGET}"
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.15 --target 1.0.16
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from "${TEST_RELEASE_FROM}" --target "${TEST_RELEASE_TARGET}"
   fi
 }
 
@@ -250,9 +261,9 @@ case "${cmd}" in
   install-deb) install_deb "${1:-}" ;;
   backup) backup_system ;;
   smoke) smoke_installed ;;
-  dry-run-1.0.16) dry_run_1_0_16 ;;
-  run-1.0.16) run_1_0_16 ;;
-  verify-1.0.16) verify_1_0_2 ;;
+  dry-run-target) dry_run_target ;;
+  run-target) run_target ;;
+  verify-target) verify_1_0_2 ;;
   restore) restore_system ;;
   -h|--help|help|"") usage ;;
   *) echo "Unknown command: ${cmd}" >&2; usage; exit 1 ;;

@@ -1,122 +1,86 @@
-# CaramOS release/version bump tracker
+# CaramOS release/version tracker
 
-Tài liệu này ghi lại các vị trí cần kiểm tra sau mỗi lần bump release CaramOS/OTA.
+Tài liệu này ghi lại nơi còn cần product version và nơi không được hardcode version sau khi OTA chuyển sang **schema 2 timestamp migrations**.
 
-> Quy ước: không phải mọi dòng `1.0.1` đều cần đổi. `1.0.1` vẫn là base ISO/Open Beta và là điểm bắt đầu migration chain.
+> Quy ước hiện tại: timestamp migration không có product version. Version sản phẩm chỉ được truyền khi maintainer đóng release bằng `make release VERSION=x.y.z`.
 
-## Khi release OTA version mới
+## Model OTA hiện tại
 
-Ví dụ release mới là `1.0.12`, version trước là `1.0.11`.
+- Migration mới dùng thư mục timestamp lexical, ví dụ `YYYYMMDDHHMMSS_slug/`.
+- Manifest schema 2 không chứa `release`, `version`, `from_version`, hoặc `to_version`.
+- Runner chạy mọi timestamp migration chưa apply theo thứ tự lexical dựa trên ledger.
+- Local build/validate không cần product version.
+- Legacy `v1_0_2..v1_0_12` giữ nguyên để tương thích và coi như frozen.
 
-### 1. Source version ISO/tag
+## Khi thêm OTA migration mới
 
-| File | Cần đổi/kiểm tra |
+| File/vị trí | Cần làm |
 |---|---|
-| [scripts/config.sh](../scripts/config.sh) | bump `CARAMOS_VERSION_PATCH` hoặc major/minor tương ứng |
-| [scripts/config.sh](../scripts/config.sh) | cập nhật comment ví dụ tag `vX.Y.Z` nếu có |
+| `packages/caramos-ota/usr/lib/python3/dist-packages/caramos_ota_update/migrations/YYYYMMDDHHMMSS_slug/` | thêm timestamp migration mới |
+| `manifest.json` schema 2 | chỉ metadata UI/log; không có `release`, `version`, `from_version`, `to_version` |
+| `migration.py` | logic apply đã review |
+| `packages/caramos-ota/MIGRATIONS.md` | cập nhật quy tắc nếu model đổi |
+| `packages/caramos-ota/README.md` | cập nhật hướng dẫn contributor nếu flow đổi |
+| `packages/caramos-ota/README_EN.md` | cập nhật bản tiếng Anh tương ứng |
 
-Giữ nguyên:
+Không làm:
 
-| File | Version | Lý do giữ |
+- Không thêm legacy version folder mới kiểu `v1_0_13`.
+- Không sửa legacy `v1_0_2..v1_0_12` nếu không có migration-fix bắt buộc.
+- Không hardcode product version vào manifest schema 2.
+- Không hardcode target release trong test local/validate.
+
+## Local build/validate
+
+Local workflow không nhận `VERSION`:
+
+```bash
+cd packages/caramos-ota
+make compile
+make validate
+make build
+```
+
+VM test local cũng không nên phụ thuộc target release hardcode. Nếu cần test một case legacy frozen, ghi rõ đó là compatibility test, không dùng làm template cho migration mới.
+
+## Release product version
+
+Chỉ maintainer chọn product version tại thời điểm release:
+
+```bash
+cd packages/caramos-ota
+make release VERSION=x.y.z
+```
+
+`VERSION=x.y.z` dùng cho package/release artifact. Nó không biến timestamp migration thành version migration.
+
+## Tài liệu chính cần kiểm tra khi release
+
+| File | Cần kiểm tra |
+|---|---|
+| `README.md` | current version user-facing, ISO name nếu có phát hành ISO |
+| `README_EN.md` | current version user-facing, ISO name nếu có phát hành ISO |
+| `packages/caramos-ota/README.md` | đảm bảo local build không yêu cầu version; release dùng `make release VERSION=x.y.z` |
+| `packages/caramos-ota/README_EN.md` | giống bản tiếng Việt |
+| `packages/caramos-ota/MIGRATIONS.md` | schema 2 + ledger rules vẫn đúng |
+| `packages/caramos-ota/VM_TEST_CHECKLIST.md` | không còn target release stale trong ví dụ test mới |
+| `CONTRIBUTING.md` | contributor workflow vẫn hướng về timestamp migration |
+
+## Version cần giữ nguyên
+
+| File/vị trí | Version | Lý do giữ |
 |---|---|---|
-| [scripts/config.sh](../scripts/config.sh) | `CARAMOS_MIGRATION_BASE_VERSION="1.0.1"` | base để build ISO chạy đủ migration chain từ đầu |
-| [install-caramos-ota.sh](../install-caramos-ota.sh) | fallback `1.0.1` | bootstrap cho máy từ ISO 1.0.1 trước khi OTA nâng lên latest |
-| migration cũ `v1_0_2`–`v1_0_12` và `migration.json` | bridge lịch sử tới `1.0.12` | frozen; timestamp migration bắt đầu từ release `1.0.13` và không sửa index |
+| `scripts/config.sh` | `CARAMOS_MIGRATION_BASE_VERSION="1.0.1"` | base bootstrap lịch sử cho ISO/rootfs |
+| `install-caramos-ota.sh` | fallback `1.0.1` nếu có | bootstrap cho máy từ ISO Open Beta đầu tiên |
+| legacy migrations `v1_0_2..v1_0_12` | version lịch sử | compatibility frozen |
 
-### 2. Tài liệu chính
+## Landing page
 
-| File | Cần đổi/kiểm tra |
-|---|---|
-| [README.md](../README.md) | chỉ đổi dòng `> **Phiên bản hiện tại:** \`X.Y.Z\` — **Open Beta**.` và lệnh `sudo dd if=CaramOS-X.Y.Z-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync` |
-| [README_EN.md](../README_EN.md) | chỉ đổi dòng `> **Current version:** \`X.Y.Z\` — **Open Beta**.` nếu bản tiếng Anh có current version |
-| [packages/README.md](../packages/README.md) | release hiện tại, migration chain, command upload PPA, `CARAMOS_VERSION` |
-| [packages/caramos-ota/README.md](../packages/caramos-ota/README.md) | cập nhật các dòng trong mục release workflow theo version mới; xem checklist chi tiết bên dưới |
-| [packages/caramos-ota/README_EN.md](../packages/caramos-ota/README_EN.md) | giống bản tiếng Việt |
-
-Checklist chi tiết cho [packages/caramos-ota/README.md](../packages/caramos-ota/README.md), lấy theo diff release `1.0.11 -> 1.0.12`:
-
-- Đổi tiêu đề release workflow:
-
-  ```diff
-  - ## 13. Quy trình release OTA đến 1.0.11
-  + ## 13. Quy trình release OTA đến 1.0.12
-  ```
-
-- Thêm version mới vào cuối migration chain:
-
-  ```diff
-  - 1.0.1 → ... → 1.0.10 → 1.0.11
-  + 1.0.1 → ... → 1.0.10 → 1.0.11 → 1.0.12
-  ```
-
-- Đổi package version và latest target:
-
-  ```diff
-  - Package cần release qua PPA: `caramos-ota` version `1.0.11-0caramos1`.
-  - Latest CaramOS migration target: `1.0.11`.
-  + Package chuẩn bị release qua PPA: `caramos-ota` version `1.0.12-0caramos1`.
-  + Latest CaramOS migration target trong source: `1.0.12`.
-  ```
-
-- Đổi command path local nếu docs còn hardcode máy cá nhân:
-
-  ```diff
-  - cd /home/<user>/Documents/CaramOS/packages/caramos-ota
-  + cd packages/caramos-ota
-  ```
-
-- Đổi expected result trong VM:
-
-  ```diff
-  - CaramOS version: 1.0.11
-  + CaramOS version: 1.0.12
-  ```
-
-- Đổi maintainer/upload command:
-
-  ```diff
-  - Maintainer `<old-maintainer>` bump `debian/changelog` lên `1.0.11-0caramos1`, build source package và upload PPA:
-  + Maintainer `<maintainer>` bump `debian/changelog` lên `1.0.12-0caramos1`, build source package và upload PPA:
-
-  - dput ppa:vietnamlinuxfamily/caram-os ../caramos-ota_1.0.11-0caramos1_source.changes
-  + dput ppa:vietnamlinuxfamily/caram-os ../caramos-ota_1.0.12-0caramos1_source.changes
-  ```
-
-- Đổi expected PPA candidate:
-
-  ```diff
-  - `apt-cache policy` phải thấy candidate là `1.0.11-0caramos1` hoặc version mới hơn.
-  + `apt-cache policy` phải thấy candidate là `1.0.12-0caramos1` hoặc version mới hơn.
-  ```
-
-- Đổi ISO version/output trong phần build ISO:
-
-  ```diff
-  - ISO release dùng `CARAMOS_VERSION=1.0.11` ...
-  + ISO source version hiện là `CARAMOS_VERSION=1.0.12` ...
-
-  - CaramOS-1.0.11-cinnamon-amd64.iso
-  + CaramOS-1.0.12-cinnamon-amd64.iso
-  ```
-
-- Đổi câu kỳ vọng rootfs sau bootstrap:
-
-  ```diff
-  - Bên trong ISO/rootfs sau bootstrap phải là `1.0.11`, không phải `1.0.1` hay version trung gian cũ.
-  + Bên trong ISO/rootfs sau bootstrap phải là `1.0.12`, không phải `1.0.1` hay version trung gian cũ.
-  ```
-
-### 3. Landing page
-
-| File | Cần đổi/kiểm tra |
-|---|---|
-| [landing/src/main.jsx](../landing/src/main.jsx) | hero badge, SEO title/description, download title/lead |
-| [landing/src/main.jsx](../landing/src/main.jsx) | thêm release note mới vào `releaseNotes` cho tiếng Việt và tiếng Anh |
-| [landing/src/main.jsx](../landing/src/main.jsx) | cập nhật `releaseNotesLead` để range kết thúc ở version mới |
-
-Sau khi sửa landing:
+Nếu release có thay đổi user-facing hoặc ISO mới, kiểm tra landing page:
 
 ```bash
 cd landing
 yarn build
 ```
+
+Chỉ cập nhật nội dung release/user-facing. Không dùng landing page để mô tả migration internals.

@@ -1,92 +1,108 @@
 # CaramOS OTA migrations
 
-Migration mới dùng ID theo UTC timestamp và được tự discover. Contributor chỉ thêm một thư mục; không sửa `migration.json`.
+Tài liệu này mô tả model migration hiện tại cho `caramos-ota`.
 
-## Tạo migration
+## Model hiện tại
 
-Lấy timestamp UTC:
+CaramOS OTA dùng **schema 2 timestamp migrations**:
 
-```bash
-date -u +%Y%m%d%H%M%S
-```
+- Mỗi migration mới là một thư mục có ID timestamp lexical, ví dụ `20260806120000_install_control_center/`.
+- Runner lấy mọi timestamp migration chưa apply, sort theo tên thư mục, rồi chạy theo thứ tự lexical.
+- Ledger lưu timestamp ID đã apply. Migration đã có trong ledger không chạy lại.
+- Timestamp migration không có product version riêng.
+- Manifest schema 2 không chứa `release`, `version`, `from_version`, hoặc `to_version`.
+- Legacy migrations `v1_0_2` đến `v1_0_12` được giữ để tương thích và coi như frozen.
 
-Tạo thư mục:
+## Layout
 
 ```text
 usr/lib/python3/dist-packages/caramos_ota_update/migrations/
-└── 20260714143022_ten_migration/
-    ├── manifest.json
-    ├── migration.py
-    └── payload tùy chọn
+├── v1_0_2/ ... v1_0_12/      # legacy compatibility, frozen
+├── 20260806120000_example/
+│   ├── manifest.json         # schema 2 metadata, no release/version/from/to
+│   └── migration.py          # logic apply đã review
+└── ...
 ```
 
-Tên phải khớp:
+## Manifest schema 2
 
-```text
-YYYYMMDDHHMMSS_ten_snake_case
-```
-
-`manifest.json`:
+Ví dụ:
 
 ```json
 {
   "schema": 2,
-  "release": "1.0.14",
-  "codename": "noble",
-  "channel": "stable",
+  "title": "Cập nhật CaramOS",
+  "summary": "Áp dụng thay đổi hệ thống đã được review.",
   "severity": "normal",
-  "size": "migration update",
-  "title": "CaramOS có bản cập nhật mới",
-  "summary": "Mô tả ngắn thay đổi.",
   "release_notes_vi": [
-    "Chi tiết tiếng Việt."
+    "Cập nhật cấu hình desktop."
   ],
   "release_notes_en": [
-    "English details."
+    "Update desktop configuration."
   ]
 }
 ```
 
-`migration.py`:
+Quy tắc:
 
-```python
-from caramos_ota_update.context import MigrationContext
+- Không thêm `release`, `version`, `from_version`, `to_version` vào manifest schema 2.
+- Không thêm command, shell script inline, URL tải `.deb`, hoặc package list điều khiển runtime vào manifest.
+- Manifest chỉ phục vụ UI/log/check metadata.
+- Logic thay đổi hệ thống nằm trong `migration.py` hoặc module migration đã review.
+- Không chạy shell từ dữ liệu JSON.
 
-DESCRIPTION = "Mô tả migration"
+## Ledger
 
+Runner dùng ledger để biết timestamp migration nào đã chạy thành công.
 
-def run(context: MigrationContext) -> None:
-    context.log("apply change")
-```
+Quy tắc:
 
-Không khai báo `FROM_VERSION`, `TO_VERSION` hoặc ID trong Python. ID lấy từ tên thư mục; release lấy từ manifest. Nhiều migration được phép cùng `release`.
+- Migration chỉ được ghi vào ledger sau khi chạy thành công.
+- Nếu migration fail, ID không được ghi vào ledger.
+- Lần chạy sau tiếp tục từ timestamp chưa apply đầu tiên.
+- Thứ tự chạy là lexical theo ID timestamp, không theo product version.
+- Timestamp ID và ledger là đủ để xác định migration chưa apply.
 
-## Cơ chế chạy
+## Legacy compatibility
 
-- Registry scan mọi thư mục migration khi package chạy.
-- Timestamp migrations chạy theo lexical ID, tương đương thứ tự UTC timestamp.
-- `/var/lib/caramos-ota/migrations.json` lưu migration ID đã apply.
-- Migration đã apply không chạy lại.
-- Migration thêm muộn cho release hiện tại vẫn được nhận là pending.
-- Ledger chỉ ghi ID sau khi `run()` thành công. Nếu batch fail, lần sau resume phần chưa apply.
-- `migration.json` và `v1_0_2`–`v1_0_12` là bridge lịch sử, frozen tại `1.0.12`. Timestamp migrations bắt đầu từ release `1.0.13`.
+Các migration legacy `v1_0_2` đến `v1_0_12` tồn tại để hỗ trợ máy đã phát hành trước model timestamp.
 
-## Quy tắc
+Quy tắc:
 
-- ID đã phát hành bất biến; không rename hoặc sửa migration cũ. Tạo ID mới để sửa tiếp.
-- Migration phải idempotent và dùng `MigrationContext` cho dry-run-aware operations.
-- Không chạy command từ JSON, không dùng `shell=True`, không tải `.deb` thủ công.
-- Dùng `Path(__file__).parent` cho payload nằm cạnh `migration.py`.
-- `--dry-run` không được ghi state, ledger, log hoặc sửa hệ thống.
+- Không đổi manifest/code legacy nếu không có migration-fix bắt buộc.
+- Không thêm version legacy mới kiểu `v1_0_13`.
+- Migration mới phải dùng timestamp ID và schema 2 manifest.
+- Tài liệu hoặc test có thể nhắc legacy `v1_0_2..v1_0_12`, nhưng không dùng chúng làm template cho migration mới.
 
-## Kiểm tra
+## Build và validate
+
+Local build/validate không cần product version:
 
 ```bash
 cd packages/caramos-ota
-./tools/caramos-ota-testkit.sh compile
-./tools/caramos-ota-testkit.sh validate
-./tools/caramos-ota-testkit.sh test
-./tools/caramos-ota-testkit.sh build-deb
+make compile
+make validate
+make build
 ```
 
-`validate` fail closed khi tên folder, manifest, entrypoint hoặc legacy chain sai.
+Release mới là lúc duy nhất cung cấp product version:
+
+```bash
+cd packages/caramos-ota
+make release VERSION=x.y.z
+```
+
+Không hardcode target release vào manifest, docs test local, hoặc script validate.
+
+## Checklist migration mới
+
+- [ ] Thư mục migration dùng timestamp ID lexical.
+- [ ] `manifest.json` dùng `schema: 2`.
+- [ ] Manifest không có `release`, `version`, `from_version`, `to_version`.
+- [ ] Không thêm cơ chế chọn migration theo product version.
+- [ ] Migration idempotent hoặc có guard rõ.
+- [ ] `dry-run` không sửa hệ thống.
+- [ ] `make compile` pass.
+- [ ] `make validate` pass.
+- [ ] `make build` pass.
+- [ ] VM test chạy qua ledger, không phụ thuộc hardcoded target.

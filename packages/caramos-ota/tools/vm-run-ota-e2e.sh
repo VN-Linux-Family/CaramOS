@@ -1,8 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.14}"
-TEST_RELEASE_TARGET="${TEST_RELEASE_TARGET:-1.0.16}"
+TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.12}"
+if [[ -z "${TEST_RELEASE_TARGET:-}" ]]; then
+  TEST_RELEASE_TARGET="$(python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)' 2>/dev/null || printf '1.0.16')"
+fi
 BACKUP_DIR="/root/caramos-ota-e2e-backup"
 
 usage() {
@@ -26,8 +28,8 @@ Commands:
   purge            Purge caramos-ota and remove OTA repo/keyring/state/test leftovers
 
 Environment:
-  TEST_RELEASE_FROM=1.0.14
-  TEST_RELEASE_TARGET=1.0.16
+  TEST_RELEASE_FROM=1.0.16
+  TEST_RELEASE_TARGET=1.0.17
 EOF
 }
 
@@ -124,7 +126,11 @@ from caramos_ota_update.registry import discover_migrations, version_le
 
 installed_version = os.environ["TEST_RELEASE_FROM"]
 catalog = discover_migrations()
-applied = [item for item in catalog if version_le(item.release, installed_version)]
+applied = [
+    item
+    for item in catalog
+    if item.legacy and item.release is not None and version_le(item.release, installed_version)
+]
 save_ledger(
     {
         "schema": 1,

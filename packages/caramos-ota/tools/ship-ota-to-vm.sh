@@ -8,8 +8,10 @@ REMOTE_USER="${REMOTE_USER:-caram}"
 REMOTE_HOST="${REMOTE_HOST:-127.0.0.1}"
 REMOTE_PORT="${REMOTE_PORT:-2222}"
 REMOTE_DIR="${REMOTE_DIR:-/tmp/caramos-ota-e2e}"
-TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.14}"
-TEST_RELEASE_TARGET="${TEST_RELEASE_TARGET:-1.0.16}"
+TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.12}"
+if [[ -z "${TEST_RELEASE_TARGET:-}" ]]; then
+  TEST_RELEASE_TARGET="$(PYTHONPATH="${PKG_DIR}/usr/lib/python3/dist-packages" python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)')"
+fi
 # Test-only live-boot VM password. Override with REMOTE_PASSWORD=... if needed.
 REMOTE_PASSWORD="${REMOTE_PASSWORD:-caram123}"
 

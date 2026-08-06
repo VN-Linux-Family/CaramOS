@@ -1,8 +1,8 @@
 SHELL := /usr/bin/env bash
 .SHELLFLAGS := -euo pipefail -c
 
-TEST_RELEASE_FROM ?= 1.0.14
-TEST_RELEASE_TARGET ?= 1.0.16
+TEST_RELEASE_FROM ?= 1.0.12
+TEST_RELEASE_TARGET ?= $(shell python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)' 2>/dev/null || printf '1.0.16')
 
 .PHONY: help install test test-cli prepare-check notifier test-notifier status clean
 

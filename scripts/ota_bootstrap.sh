@@ -23,11 +23,11 @@ build_caramos_ota_deb() {
     printf '%s\n' "$deb"
 }
 
-latest_caramos_ota_migration() {
+packaged_caramos_product_version() {
     PYTHONPATH="packages/caramos-ota/usr/lib/python3/dist-packages" python3 - <<'PY'
-from caramos_ota_update.registry import discover_migrations, latest_release
+from caramos_ota.release_metadata import PRODUCT_VERSION
 
-print(latest_release(discover_migrations()))
+print(PRODUCT_VERSION)
 PY
 }
 
@@ -35,8 +35,8 @@ install_caramos_ota_and_run_migrations() {
     local deb="$1"
     local target_version
     local from_version
-    target_version="$(latest_caramos_ota_migration)"
-    from_version="${CARAMOS_MIGRATION_BASE_VERSION:-$CARAMOS_VERSION}"
+    target_version="$(packaged_caramos_product_version)"
+    from_version="${CARAMOS_MIGRATION_BASE_VERSION:-1.0.1}"
 
     info "  → Cài caramos-ota vào ISO rootfs..."
     cp "$deb" "$WORK_DIR/squashfs/tmp/caramos-ota-local.deb"

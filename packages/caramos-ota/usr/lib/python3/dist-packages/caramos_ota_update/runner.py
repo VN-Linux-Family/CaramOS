@@ -42,7 +42,7 @@ class MigrationRunner:
         except MigrationRegistryError as exc:
             raise MigrationRunnerError(str(exc)) from exc
 
-    def resolve_path(self, current_version: str, target_version: str | None = None) -> MigrationPlan:
+    def resolve_path(self, current_version: str, target_version: str) -> MigrationPlan:
         """Resolve pending migrations from current state to target."""
 
         descriptors = self.discover()
@@ -61,7 +61,7 @@ class MigrationRunner:
         except Exception as exc:
             raise MigrationRunnerError(str(exc)) from exc
 
-    def run(self, *, current_version: str, target_version: str | None = None) -> None:
+    def run(self, *, current_version: str, target_version: str) -> None:
         """Run all pending migrations through target."""
 
         descriptors = self.discover()
@@ -89,7 +89,7 @@ class MigrationRunner:
             self.context.log("Migration plan:")
             for migration in plan.migrations:
                 self.context.log(
-                    f"- {migration.migration_id} [release {migration.release}]: {migration.description}"
+                    f"- {migration.migration_id}: {migration.description}"
                 )
         else:
             self.context.log(
@@ -110,7 +110,7 @@ class MigrationRunner:
             mark_migration_running(transaction_id=transaction_id, migration_id=migration.migration_id)
             try:
                 self._run_one(migration)
-                if migration.legacy:
+                if migration.legacy and migration.release is not None:
                     self.context.update_release_file(migration.release)
                     cursor = migration.release
                 mark_applied(ledger, migration)

@@ -26,6 +26,16 @@ REPLACED_APPLET_UUIDS = frozenset(
 SOURCE_APPLET_DIR = Path("/usr/share/caramos-ota/applets") / APPLET_UUID
 TARGET_APPLET_DIR = Path("/usr/share/cinnamon/applets") / APPLET_UUID
 REQUIRED_APPLET_FILES = ("applet.js", "metadata.json", "stylesheet.css")
+PANEL_DCONF_FILE = Path("/etc/dconf/db/local.d/01-caramos-task17-panel")
+CINNAMON_SECTION = "org/cinnamon"
+DEFAULT_ENABLED_APPLETS = (
+    "['panel1:left:0:Cinnamenu@json:0', "
+    "'panel1:center:0:grouped-window-list@cinnamon.org:1', "
+    "'panel1:right:0:systray@cinnamon.org:2', "
+    "'panel1:right:1:notifications@cinnamon.org:5', "
+    "'panel1:right:2:calendar@cinnamon.org:7', "
+    "'panel1:right:3:caramos-control-center@caramos:0']"
+)
 
 
 def _validate_applet(directory: Path) -> None:
@@ -199,6 +209,74 @@ def _update_enabled_applets(enabled_applets: str) -> str | None:
     return f"[{', '.join(quoted)}]"
 
 
+def _updated_dconf_text(source: str) -> str:
+    """Update Control Center defaults while preserving unrelated config."""
+
+    lines = source.splitlines()
+    section_start = None
+    section_end = len(lines)
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == f"[{CINNAMON_SECTION}]":
+            section_start = index
+            continue
+        if section_start is not None and index > section_start and stripped.startswith("[") and stripped.endswith("]"):
+            section_end = index
+            break
+
+    if section_start is None:
+        if lines and lines[-1].strip():
+            lines.append("")
+        lines.extend((f"[{CINNAMON_SECTION}]", f"enabled-applets={DEFAULT_ENABLED_APPLETS}"))
+        return "\n".join(lines) + "\n"
+
+    key_index = None
+    for index in range(section_start + 1, section_end):
+        if lines[index].strip().startswith("enabled-applets="):
+            key_index = index
+            break
+    if key_index is None:
+        lines.insert(section_end, f"enabled-applets={DEFAULT_ENABLED_APPLETS}")
+        return "\n".join(lines) + "\n"
+
+    current = lines[key_index].split("=", 1)[1].strip()
+    updated = _update_enabled_applets(current)
+    if updated is None:
+        raise RuntimeError(f"unexpected enabled-applets format in {PANEL_DCONF_FILE}")
+    lines[key_index] = f"enabled-applets={updated}"
+    return "\n".join(lines) + "\n"
+
+
+def _atomic_write_text(path: Path, content: str, mode: int) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, staging_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    os.close(descriptor)
+    staging = Path(staging_name)
+    try:
+        staging.write_text(content, encoding="utf-8")
+        staging.chmod(mode)
+        os.replace(staging, path)
+    finally:
+        staging.unlink(missing_ok=True)
+
+
+def _update_system_defaults(context: MigrationContext) -> bool:
+    if PANEL_DCONF_FILE.is_symlink():
+        raise RuntimeError(f"dconf defaults must not be a symlink: {PANEL_DCONF_FILE}")
+    if PANEL_DCONF_FILE.exists() and not PANEL_DCONF_FILE.is_file():
+        raise RuntimeError(f"dconf defaults must be a regular file: {PANEL_DCONF_FILE}")
+    source = PANEL_DCONF_FILE.read_text(encoding="utf-8") if PANEL_DCONF_FILE.exists() else ""
+    updated = _updated_dconf_text(source)
+    if updated == source:
+        context.log("Control Center already enabled in system dconf defaults")
+        return False
+    context.log(f"enable Control Center in system dconf defaults: {PANEL_DCONF_FILE}")
+    if not context.dry_run:
+        mode = PANEL_DCONF_FILE.stat().st_mode & 0o777 if PANEL_DCONF_FILE.exists() else 0o644
+        _atomic_write_text(PANEL_DCONF_FILE, updated, mode)
+    return True
+
+
 def _apply_to_live_user(context: MigrationContext, username: str, uid: int) -> None:
     env = _session_environment(uid)
     if env is None:
@@ -229,10 +307,14 @@ def run(context: MigrationContext) -> None:
 
     if context.dry_run:
         context.log(f"[dry-run] copy {SOURCE_APPLET_DIR} to {TARGET_APPLET_DIR}")
+        _update_system_defaults(context)
         context.log("[dry-run] enable Control Center and remove redundant network, sound, and power applets for live desktop users")
         return
 
     _install_applet(context)
+    defaults_changed = _update_system_defaults(context)
+    if defaults_changed:
+        context.run_command(["dconf", "update"], allow_fail=True)
 
     for username, uid in _live_desktop_users():
         _apply_to_live_user(context, username, uid)

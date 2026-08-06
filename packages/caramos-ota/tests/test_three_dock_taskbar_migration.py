@@ -47,6 +47,39 @@ class TaskbarZoneOnlyMigrationTests(unittest.TestCase):
             migration._arrange_applets(current),
         )
 
+    def test_moves_four_field_fresh_iso_entries(self) -> None:
+        current = (
+            "['panel1:left:4:Cinnamenu@json', "
+            "'panel1:left:5:grouped-window-list@cinnamon.org', "
+            "'panel1:right:1:calendar@cinnamon.org']"
+        )
+
+        self.assertEqual(
+            "['panel1:left:0:Cinnamenu@json', "
+            "'panel1:center:0:grouped-window-list@cinnamon.org', "
+            "'panel1:right:1:calendar@cinnamon.org']",
+            migration._arrange_applets(current),
+        )
+
+    def test_system_defaults_update_without_live_users(self) -> None:
+        source = (
+            "[org/cinnamon]\n"
+            "enabled-applets=['panel1:left:4:Cinnamenu@json', "
+            "'panel1:left:5:grouped-window-list@cinnamon.org', "
+            "'panel1:right:3:caramos-control-center@caramos:0']\n"
+            "panels-height=['1:32']\n"
+            "panel-zone-icon-sizes='[{\"panelId\": 1, \"maxSize\": 18}]'\n"
+            "custom-key='keep-me'\n"
+        )
+
+        updated = migration._updated_dconf_defaults(migration.PANEL_DCONF_FILE, source)
+
+        self.assertIn("panel1:center:0:grouped-window-list@cinnamon.org", updated)
+        self.assertIn("panels-height=['1:48']", updated)
+        self.assertIn('"left": 32', updated)
+        self.assertIn("custom-key='keep-me'", updated)
+        self.assertEqual(updated, migration._updated_dconf_defaults(migration.PANEL_DCONF_FILE, updated))
+
     def test_arrangement_is_idempotent(self) -> None:
         current = (
             "['panel1:left:0:Cinnamenu@json:0', "

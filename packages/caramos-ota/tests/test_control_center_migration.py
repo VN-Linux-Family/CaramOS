@@ -111,6 +111,35 @@ class ControlCenterMigrationTests(unittest.TestCase):
     def test_append_rejects_unknown_format(self) -> None:
         self.assertIsNone(migration._update_enabled_applets("not-a-gsettings-list"))
 
+    def test_system_defaults_update_without_live_users(self) -> None:
+        source = (
+            "[org/cinnamon]\n"
+            "enabled-applets=['panel1:left:0:Cinnamenu@json', "
+            "'panel1:left:1:grouped-window-list@cinnamon.org', "
+            "'panel1:right:1:network@cinnamon.org', "
+            "'panel1:right:2:sound@cinnamon.org', "
+            "'panel1:right:3:power@cinnamon.org', "
+            "'panel1:right:4:custom@example']\n"
+            "panels-height=['1:32']\n"
+        )
+
+        updated = migration._updated_dconf_text(source)
+
+        self.assertNotIn("network@cinnamon.org", updated)
+        self.assertNotIn("sound@cinnamon.org", updated)
+        self.assertNotIn("power@cinnamon.org", updated)
+        self.assertIn("custom@example", updated)
+        self.assertEqual(1, updated.count(migration.APPLET_UUID))
+        self.assertEqual(updated, migration._updated_dconf_text(updated))
+
+    def test_missing_system_defaults_get_canonical_control_center_layout(self) -> None:
+        updated = migration._updated_dconf_text("")
+
+        self.assertIn("[org/cinnamon]", updated)
+        self.assertIn("enabled-applets=", updated)
+        self.assertIn(migration.APPLET_UUID, updated)
+        self.assertIn("panel1:center:0:grouped-window-list@cinnamon.org", updated)
+
     def test_live_user_update_uses_one_atomic_set(self) -> None:
         context = MagicMock()
         current = (

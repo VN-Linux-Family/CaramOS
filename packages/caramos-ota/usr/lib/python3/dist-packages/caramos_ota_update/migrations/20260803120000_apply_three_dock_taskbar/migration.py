@@ -28,6 +28,12 @@ PREVIOUS_DOCK_PANEL_HEIGHT = "['1:40']"
 DOCK_PANEL_HEIGHT = "['1:48']"
 BAD_ICON_SIZES_NORMALIZED = '[{"panelId":1,"left":22,"center":24,"right":18}]'
 LEFT_DOCK_ICON_SIZES = '[{"panelId": 1, "left": 32, "right": 18}]'
+SYMBOLIC_ICON_SIZES = '[{"panelId": 1, "left": 20, "center": 20, "right": 16}]'
+DCONF_DEFAULT_FILES = (
+    Path("/etc/dconf/db/local.d/00-caramos-theme"),
+    Path("/etc/dconf/db/local.d/01-caramos-task17-panel"),
+)
+PANEL_DCONF_FILE = DCONF_DEFAULT_FILES[1]
 CINNAMENU_SCALE_MARKER = "CaramOS dynamic panel icon scaling 20260803120000"
 SYSTRAY_HOVER_MARKER = "CaramOS right-dock tray hover 20260803120000"
 SYSTRAY_TARGET = Path("/usr/share/cinnamon/applets/systray@cinnamon.org/applet.js")
@@ -152,7 +158,7 @@ def _arrange_applets(value: str) -> str | None:
     updated: list[str] = []
     for entry in entries:
         parts = entry.split(":", 4)
-        if len(parts) != 5 or parts[0] != "panel1":
+        if len(parts) not in (4, 5) or parts[0] != "panel1":
             updated.append(entry)
             continue
         if parts[3] == APPLET_MENU:
@@ -163,6 +169,102 @@ def _arrange_applets(value: str) -> str | None:
             parts[2] = "0"
         updated.append(":".join(parts))
     return "[" + ", ".join(repr(entry) for entry in updated) + "]"
+
+
+def _replace_dconf_keys(source: str, replacements: dict[str, str]) -> str:
+    """Replace keys in [org/cinnamon], preserving unrelated config."""
+
+    lines = source.splitlines()
+    section_start = None
+    section_end = len(lines)
+    for index, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped == "[org/cinnamon]":
+            section_start = index
+            continue
+        if section_start is not None and index > section_start and stripped.startswith("[") and stripped.endswith("]"):
+            section_end = index
+            break
+    if section_start is None:
+        if lines and lines[-1].strip():
+            lines.append("")
+        section_start = len(lines)
+        lines.append("[org/cinnamon]")
+        section_end = len(lines)
+
+    found: set[str] = set()
+    for index in range(section_start + 1, section_end):
+        stripped = lines[index].strip()
+        for key, value in replacements.items():
+            if stripped.startswith(f"{key}="):
+                lines[index] = f"{key}={value}"
+                found.add(key)
+                break
+    insert_at = section_end
+    for key, value in replacements.items():
+        if key not in found:
+            lines.insert(insert_at, f"{key}={value}")
+            insert_at += 1
+    return "\n".join(lines) + "\n"
+
+
+def _updated_dconf_defaults(path: Path, source: str) -> str:
+    replacements = {
+        "panels-height": DOCK_PANEL_HEIGHT,
+        "panel-zone-icon-sizes": repr(LEFT_DOCK_ICON_SIZES),
+        "panel-zone-symbolic-icon-sizes": repr(SYMBOLIC_ICON_SIZES),
+    }
+    if path == PANEL_DCONF_FILE:
+        current_enabled = None
+        in_section = False
+        for line in source.splitlines():
+            stripped = line.strip()
+            if stripped == "[org/cinnamon]":
+                in_section = True
+                continue
+            if in_section and stripped.startswith("[") and stripped.endswith("]"):
+                break
+            if in_section and stripped.startswith("enabled-applets="):
+                current_enabled = stripped.split("=", 1)[1].strip()
+                break
+        if current_enabled is not None:
+            arranged = _arrange_applets(current_enabled)
+            if arranged is None:
+                raise RuntimeError(f"unexpected enabled-applets format in {path}")
+            replacements["enabled-applets"] = arranged
+    return _replace_dconf_keys(source, replacements)
+
+
+def _atomic_write_text(path: Path, content: str, mode: int) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    descriptor, staging_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    os.close(descriptor)
+    staging = Path(staging_name)
+    try:
+        staging.write_text(content, encoding="utf-8")
+        staging.chmod(mode)
+        os.replace(staging, path)
+    finally:
+        staging.unlink(missing_ok=True)
+
+
+def _update_system_defaults(context: MigrationContext) -> bool:
+    changed = False
+    for path in DCONF_DEFAULT_FILES:
+        if path.is_symlink():
+            raise RuntimeError(f"dconf defaults must not be a symlink: {path}")
+        if path.exists() and not path.is_file():
+            raise RuntimeError(f"dconf defaults must be a regular file: {path}")
+        source = path.read_text(encoding="utf-8") if path.exists() else ""
+        updated = _updated_dconf_defaults(path, source)
+        if updated == source:
+            continue
+        context.log(f"update three-dock system defaults: {path}")
+        changed = True
+        if not context.dry_run:
+            mode = path.stat().st_mode & 0o777 if path.exists() else 0o644
+            _atomic_write_text(path, updated, mode)
+    return changed
 
 
 def _remove_old_css(context: MigrationContext) -> bool:
@@ -654,6 +756,7 @@ def run(context: MigrationContext) -> None:
     if context.dry_run:
         context.log("[dry-run] remove all previous taskbar CSS and applet patches")
         context.log("[dry-run] remove previous taskbar panel-setting overrides")
+        _update_system_defaults(context)
         context.log("[dry-run] move only Start Menu left and grouped-window-list center")
         context.log("[dry-run] install paint-only shells for left, center, and right zones")
         context.log("[dry-run] normalize right-dock system, tray, and Control Center hover")
@@ -664,6 +767,7 @@ def run(context: MigrationContext) -> None:
     _install_systray_hover(context)
     running_dot_result = _install_running_dot(context)
     dconf_changed = _remove_bad_dconf(context)
+    dconf_changed = _update_system_defaults(context) or dconf_changed
     live_users = _live_desktop_users()
     for user, uid, home in live_users:
         _apply_layout(context, user, uid, home)

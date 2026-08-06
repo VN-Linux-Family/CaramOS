@@ -3,9 +3,9 @@ app-menu-icon-name='/usr/share/pixmaps/caramos-logo.png'
 system-icon='/usr/share/pixmaps/caramos-logo.png'
 panels-enabled=['1:0:bottom']
 panels-autohide=['1:false']
-panels-height=['1:32']
-panel-zone-icon-sizes='[{"panelId": 1, "left": 20, "center": 20, "right": 20}]'
-panel-zone-symbolic-icon-sizes='[{"panelId": 1, "left": 20, "center": 20, "right": 20}]'
+panels-height=['1:48']
+panel-zone-icon-sizes='[{"panelId": 1, "left": 32, "right": 18}]'
+panel-zone-symbolic-icon-sizes='[{"panelId": 1, "left": 20, "center": 20, "right": 16}]'
 
 [org/cinnamon/theme]
 name='Cinnamon-Delight'

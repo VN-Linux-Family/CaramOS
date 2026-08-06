@@ -1,11 +1,15 @@
 # CaramOS Control Center — Implementation Standard
 
 > **Loại tài liệu:** Product specification + engineering standard + state matrix + test plan  
-> **Baseline:** 2026-07-28  
-> **Target release:** CaramOS `1.0.13` prototype, production hardening tiếp theo  
-> **Phạm vi:** `caramos-control-center@caramos` trên Cinnamon  
-> **Ngôn ngữ:** Tiếng Việt trước; code symbol/API/DBus/command giữ nguyên tên gốc  
-> **Trạng thái:** `DRAFT / FOLLOW DURING IMPLEMENTATION`
+> **Baseline:** 2026-07-29
+> **Target release:** CaramOS `1.0.13`
+> **Phạm vi:** `caramos-control-center@caramos` trên Cinnamon
+> **Ngôn ngữ:** Tiếng Việt trước; code symbol/API/DBus/command giữ nguyên tên gốc
+> **Trạng thái:** `CODE COMPLETE — TEST/FIX ONLY`
+>
+> **Evidence hiện có:** `node --check`, `git diff --check`, 13 unit/static tests, `validate`, Cinnamon 6.6.4 reload pass.
+> **Evidence còn thiếu:** `compile` bị chặn bởi root-owned `__pycache__`; full `test`, `make ship`, hardware/manual matrix và package lifecycle chưa hoàn tất.
+> **Quy tắc status:** `DONE` trong inventory nghĩa code/static evidence pass; release chỉ chốt sau hardware/package gates.
 
 Tài liệu này là checklist bắt buộc khi tiếp tục phát triển Control Center. Không đánh dấu feature `DONE` chỉ vì UI đã xuất hiện hoặc syntax pass. Mỗi feature phải có:
 
@@ -21,6 +25,9 @@ Requirement
 ---
 
 ## 1. Cách dùng tài liệu
+
+**Cập nhật trạng thái:** 2026-07-29. Code complete, chuyển test/fix-only; release gate chưa pass.
+
 
 ### 1.1 Người dùng tài liệu
 
@@ -138,17 +145,17 @@ ID | status | priority | code ref | test ID | evidence | owner
 
 | Feature | Code hiện tại | Status baseline |
 |---|---|---|
-| Panel indicator | Network, VPN, mic-in-use, volume, battery icon/percentage. | `PARTIAL` |
-| Popup | Battery pill, screenshot, settings, lock, power, volume, mic, brightness, Wi-Fi/VPN, Bluetooth/Night Light. | `PARTIAL` |
-| Volume | `Cvc.MixerControl`, default sink, slider debounce 90 ms, live notify. | `PARTIAL` |
-| Microphone | Default source, slider, recording stream count. | `PARTIAL` |
-| Brightness | Cinnamon Power DBus `GetPercentageRemote`/`SetPercentageRemote`, changed signal. | `PARTIAL` |
-| Night Light | `Gio.Settings` schema `org.cinnamon.settings-daemon.plugins.color`. | `PARTIAL` |
-| Wi-Fi | `nmcli` radio/list/profile/connect/disconnect/password dialog. | `PARTIAL`, P0 gaps |
-| VPN | Detect first active VPN/WireGuard-like row; opens settings. | `PARTIAL` |
-| Bluetooth | Blueman private DBus status + `bluetoothctl` devices/connect/disconnect. | `PARTIAL`, P0 gaps |
-| Battery | UPower `DisplayDevice`, sysfs fallback for selected names. | `PARTIAL` |
-| Power/session | Suspend, restart, poweroff, logout, switch user. | `PARTIAL` |
+| Panel indicator | Network, VPN, mic-in-use, volume, battery icon/percentage. | `DONE` code; hardware evidence `BLOCKED` |
+| Popup | Battery pill, screenshot, settings, lock, power, volume, mic, brightness, network/VPN/Bluetooth/Night Light. | `DONE` code |
+| Volume | `Cvc.MixerControl`, default sink, mute, selector, slider debounce 90 ms, live notify. | `DONE` |
+| Microphone | Default source, mute, selector, slider, recording stream count. | `DONE` |
+| Brightness | Cinnamon Power DBus `GetPercentageRemote`/`SetPercentageRemote`, changed signal. | `BLOCKED` hardware |
+| Night Light | `Gio.Settings` schema `org.cinnamon.settings-daemon.plugins.color`. | `DONE` |
+| Wi-Fi | libnm radio/AP/profile/connect/disconnect; secured-unsaved delegates native Settings/keyring. | `BLOCKED` hardware/auth matrix |
+| VPN | Async UUID profile list/actions, multi-active state and settings fallback. | `DONE` code; signal confirmation `DEFERRED` |
+| Bluetooth | BlueZ Adapter1/Device1/Battery1 with owner reconnect and discovery. | `BLOCKED` hardware/pairing matrix |
+| Battery | UPower DisplayDevice/BATTERY/UPS/LINE_POWER, signals and estimates. | `BLOCKED` laptop/UPS matrix |
+| Power/session | Capability-gated native Cinnamon confirmation for restart/shutdown/logout; suspend/hibernate direct native backend. | `BLOCKED` destructive/cancel/inhibitor test |
 | Popup positioning | Monitor bounds, right-edge alignment, retry positioning while open. | `PARTIAL` |
 | Mock mode | `~/.caramos-cc-mock` canned Wi-Fi/Bluetooth output. | `PARTIAL`, dev only |
 
@@ -156,20 +163,20 @@ ID | status | priority | code ref | test ID | evidence | owner
 
 | ID | Mismatch | Ref | Priority | Required action |
 |---|---|---|---:|---|
-| `CC-PACK-001` | `metadata.json` còn version `1.0.12`, migration release là `1.0.13`. | [`metadata.json`](caramos-control-center@caramos/metadata.json), [`manifest.json`](../../../lib/python3/dist-packages/caramos_ota_update/migrations/20260715090258_install_control_center/manifest.json) | P0 | Chọn policy version và đồng bộ trước release. |
-| `CC-PACK-002` | Manifest nói enable current users và new users; migration chỉ scan `/run/user` live users. | [`migration.py`](../../../lib/python3/dist-packages/caramos_ota_update/migrations/20260715090258_install_control_center/migration.py) | P0 | Implement default/profile path hoặc sửa claim. |
-| `CC-PACK-003` | Migration xóa target bằng `shutil.rmtree()` trước `copytree()`. | [`migration.py`](../../../lib/python3/dist-packages/caramos_ota_update/migrations/20260715090258_install_control_center/migration.py) | P0 | Stage/validate/atomic replace hoặc backup/restore. |
-| `CC-PACK-004` | Source applet missing chỉ log warning; runner vẫn có thể mark migration applied. | [`migration.py`](../../../lib/python3/dist-packages/caramos_ota_update/migrations/20260715090258_install_control_center/migration.py) | P0 | Payload missing/copy failure phải raise failure. |
-| `CC-PACK-005` | `_append_applet()` insert trước calendar và renumber right entries; tracker nói không reorder applet cũ. | Migration + tracker | P0 | Chốt policy; không đổi unrelated panel entries. |
-| `CC-NET-001` | `_readNetworkIcon()` ưu tiên Ethernet icon nhưng popup chỉ có Wi-Fi tile. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | Popup phải phân biệt wired/Wi-Fi/default route. |
-| `CC-WIFI-001` | Parser `split(':')` không an toàn cho SSID escaped/Unicode edge cases. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | NetworkManager DBus/libnm primary source. |
-| `CC-WIFI-002` | Password truyền vào `nmcli` argv; không được giữ ở production secret path. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | Secret Agent/keyring/NetworkManager API. |
-| `CC-BT-001` | Primary toggle phụ thuộc Blueman private API, không phải BlueZ. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | BlueZ DBus primary, Blueman fallback only. |
-| `CC-AUDIO-001` | `Cvc.MixerControl` khởi tạo không có guard đầy đủ nếu Cvc/backend thiếu. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | Disable audio domain, không crash toàn applet. |
-| `CC-UX-001` | CSS disabled class không luôn làm widget non-reactive. | [`applet.js`](caramos-control-center@caramos/applet.js), [`stylesheet.css`](caramos-control-center@caramos/stylesheet.css) | P0 | Disabled phải chặn action và nói rõ lý do. |
-| `CC-DISPLAY-001` | Có Night Light nhưng chưa có Dark Style/Power Mode dù tracker yêu cầu nếu hỗ trợ. | Applet + tracker | P1 | Implement hoặc ghi deferred rõ. |
-| `CC-POWER-001` | Desktop/no battery có thể hiện `--%`. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | Ẩn battery section khi không có battery. |
-| `CC-A11Y-001` | Chưa khai báo accessible name/role/state cho icon-only controls. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | Add accessible metadata và keyboard test. |
+| `CC-PACK-001` | Metadata, manifest và target release đều là `1.0.13`; policy hiện theo CaramOS release version. | [`metadata.json`](caramos-control-center@caramos/metadata.json), [`manifest.json`](../../../lib/python3/dist-packages/caramos_ota_update/migrations/20260715090258_install_control_center/manifest.json) | P0 | `DONE` cho mismatch; còn package lifecycle evidence trong inventory. |
+| `CC-PACK-002` | Manifest chỉ claim active-session users, khớp migration scan `/run/user`; logged-out/new users chưa auto-enable. | Migration + manifest | P1 | `DONE` cho claim; lifecycle khác `DEFERRED`. |
+| `CC-PACK-003` | Migration stage, validate, backup và `os.replace()`; restore target cũ nếu install lỗi. | [`migration.py`](../../../lib/python3/dist-packages/caramos_ota_update/migrations/20260715090258_install_control_center/migration.py) | P0 | `DONE`, unit test copy failure pass. |
+| `CC-PACK-004` | Source/payload thiếu hoặc metadata sai raise `RuntimeError`; không silent success. | Migration + [`test_control_center_migration.py`](../../../../tests/test_control_center_migration.py) | P0 | `DONE`. |
+| `CC-PACK-005` | `_append_applet()` giữ nguyên entry/order/position cũ và append exact UUID ở position mới. | Migration + migration tests | P0 | `DONE` cho single-panel policy. |
+| `CC-NET-001` | Popup có Ethernet và Wi-Fi tile riêng; panel dùng NetworkManager `PrimaryConnection`. Carrier/IP details còn thiếu. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | `PARTIAL`. |
+| `CC-WIFI-001` | Wi-Fi AP list dùng libnm object model và `NM.utils_ssid_to_utf8()`, không còn text `split(':')`. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | `PARTIAL`; cần hardware/fixture evidence. |
+| `CC-WIFI-002` | Wi-Fi action không truyền password argv; saved/open dùng libnm, secured unsaved mở Cinnamon Settings/keyring. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | `PARTIAL`; Secret Agent nội bộ deferred. |
+| `CC-BT-001` | BlueZ Adapter1/Device1 là primary; Blueman/`bluetoothctl` chỉ fallback. Owner-watch reconnect đã thêm. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | `PARTIAL`; cần hardware evidence. |
+| `CC-AUDIO-001` | Cvc import/constructor có guard, no-sink/no-source disabled thật; lifecycle disconnect + close khi unload. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | `PARTIAL`; cần Cvc-unavailable test. |
+| `CC-UX-001` | Disabled tile/slider set `reactive=false`, `can_focus=false`, đồng thời có visual state. | Applet + stylesheet | P0 | `DONE` cho interaction lock; error coverage còn partial. |
+| `CC-DISPLAY-001` | Brightness chỉ hiện khi backend trả percentage hợp lệ; no-backlight VM ẩn row. Dark Style vẫn thiếu. | Applet + CaramOS VM evidence | P1 | `PARTIAL`. |
+| `CC-POWER-001` | Desktop/no battery ẩn panel icon, label và battery pill; không hiện `--%`. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | `PARTIAL`; laptop/multiple-battery evidence còn thiếu. |
+| `CC-A11Y-001` | Core icon buttons, tiles, sliders và dialogs có accessible name; role/state/screen-reader evidence còn thiếu. | [`applet.js`](caramos-control-center@caramos/applet.js) | P0 | `PARTIAL`. |
 
 ---
 
@@ -247,15 +254,15 @@ click toggle + đổi màu tile = action thành công
 
 Action thành công chỉ sau signal/backend xác nhận.
 
-### 4.4 Native fallback
+### 4.4 Panel replacement policy
 
-Giữ `network@cinnamon.org`, `sound@cinnamon.org`, `power@cinnamon.org` cho tới khi:
+Control Center thay `network@cinnamon.org`, `sound@cinnamon.org`, `power@cinnamon.org` trên panel vì đã cover network, audio và battery status/control. Migration chỉ bỏ đúng ba UUID này bằng một lần cập nhật `enabled-applets`.
 
-- Control Center cover same core actions;
-- fallback được kiểm tra;
-- no-device states đúng;
-- reboot/login/upgrade pass;
-- rollback path có bằng chứng.
+- giữ mọi applet khác và position hiện có;
+- không rewrite layout hardcode hoặc dconf global;
+- native Cinnamon Settings vẫn là fallback cho cấu hình nâng cao;
+- format lạ thì skip, không sửa panel;
+- reboot/login/upgrade và rollback vẫn là release gate.
 
 ---
 
@@ -326,46 +333,49 @@ Bắt buộc:
 
 | ID | Nhóm | Requirement | Current | Target | Priority | Test |
 |---|---|---|---|---|---:|---|
-| `CC-ARCH-001` | Architecture | Normalized state coordinator | `MISSING` | One state snapshot, domain adapters | P0 | `CC-TEST-ARCH-001` |
-| `CC-ARCH-002` | Architecture | Signal/reconnect/dispose lifecycle | `PARTIAL` | No timer/signal leak | P0 | `CC-TEST-ARCH-002` |
-| `CC-NET-001` | Network | Wired tile and link state | `MISSING` | Ethernet tile with carrier/IP state | P0 | `CC-TEST-NET-001` |
-| `CC-NET-002` | Network | Wi-Fi + Ethernet simultaneously | `PARTIAL` | Show both and active default route | P0 | `CC-TEST-NET-002` |
-| `CC-NET-003` | Network | Connectivity quality | `MISSING` | Connected/limited/offline/captive portal | P0 | `CC-TEST-NET-003` |
-| `CC-NET-004` | Network | Multiple adapters | `MISSING` | Device list and deterministic ordering | P1 | `CC-TEST-NET-004` |
-| `CC-NET-005` | Network | IP/DNS/link details | `MISSING` | Details, full Settings handoff | P1 | `CC-TEST-NET-005` |
-| `CC-WIFI-001` | Wi-Fi | Radio state | `PARTIAL` | Off/on/rfkill/airplane/no adapter | P0 | `CC-TEST-WIFI-001` |
-| `CC-WIFI-002` | Wi-Fi | Scan/AP grouping | `PARTIAL` | NM AP model, escaped SSID safe | P0 | `CC-TEST-WIFI-002` |
-| `CC-WIFI-003` | Wi-Fi | Connect/auth/error | `PARTIAL` | Secret Agent, retry and errors | P0 | `CC-TEST-WIFI-003` |
-| `CC-WIFI-004` | Wi-Fi | Disconnect correct profile/device | `PARTIAL` | UUID/device based | P0 | `CC-TEST-WIFI-004` |
-| `CC-WIFI-005` | Wi-Fi | Hidden/enterprise/WPA3 | `MISSING` | Settings fallback or complete flow | P1 | `CC-TEST-WIFI-005` |
-| `CC-WIFI-006` | Wi-Fi | Hotspot/captive portal | `MISSING` | Explicit state/action | P2 | `CC-TEST-WIFI-006` |
-| `CC-VPN-001` | VPN | Detect all active tunnels | `PARTIAL` | All VPN/WireGuard connections | P1 | `CC-TEST-VPN-001` |
-| `CC-VPN-002` | VPN | Connect/disconnect profiles | `MISSING` | Action + pending/error | P1 | `CC-TEST-VPN-002` |
-| `CC-BT-001` | Bluetooth | Adapter powered state | `PARTIAL` | BlueZ Adapter1 `Powered` | P0 | `CC-TEST-BT-001` |
-| `CC-BT-002` | Bluetooth | Discovery lifecycle | `PARTIAL` | Start/stop/filter/cleanup | P1 | `CC-TEST-BT-002` |
-| `CC-BT-003` | Bluetooth | Pair/connect/disconnect | `PARTIAL` | Device1 state/error handling | P0 | `CC-TEST-BT-003` |
-| `CC-BT-004` | Bluetooth | Trust/block/forget | `MISSING` | Device management | P1 | `CC-TEST-BT-004` |
-| `CC-BT-005` | Bluetooth | Device battery/class/profile | `MISSING` | Battery1 and device type | P2 | `CC-TEST-BT-005` |
-| `CC-AUDIO-001` | Audio | Output volume/mute | `PARTIAL` | Confirmed async state | P0 | `CC-TEST-AUDIO-001` |
-| `CC-AUDIO-002` | Audio | Output device selector | `MISSING` | Sink list/hotplug | P1 | `CC-TEST-AUDIO-002` |
-| `CC-AUDIO-003` | Audio | Cvc unavailable fallback | `MISSING` | Domain disabled, applet survives | P0 | `CC-TEST-AUDIO-003` |
-| `CC-MIC-001` | Mic | Input volume/mute | `PARTIAL` | Explicit mute and source selector | P0 | `CC-TEST-MIC-001` |
-| `CC-MIC-002` | Mic | Recording privacy state | `PARTIAL` | app indicator/count/details | P1 | `CC-TEST-MIC-002` |
-| `CC-DISPLAY-001` | Display | Brightness supported/absent | `PARTIAL` | Hide/disable correctly | P0 | `CC-TEST-DISPLAY-001` |
-| `CC-DISPLAY-002` | Display | Night Light | `PARTIAL` | On/off/schema/schedule fallback | P1 | `CC-TEST-DISPLAY-002` |
-| `CC-DISPLAY-003` | Display | Dark/high contrast | `MISSING` | Theme-aware surfaces/tokens | P0 | `CC-TEST-DISPLAY-003` |
-| `CC-POWER-001` | Power | Battery/AC/no battery | `PARTIAL` | Correct visibility and policy | P0 | `CC-TEST-POWER-001` |
-| `CC-POWER-002` | Power | Estimate/low/critical | `MISSING` | UPower state + native policy | P1 | `CC-TEST-POWER-002` |
-| `CC-POWER-003` | Power | Power profile | `MISSING` | Availability-aware control | P1 | `CC-TEST-POWER-003` |
-| `CC-SESSION-001` | Session | Lock/restart/shutdown/etc. | `PARTIAL` | Capability, confirmation, failure | P0 | `CC-TEST-SESSION-001` |
-| `CC-UX-001` | UX | Loading/error/empty/retry | `PARTIAL` | Every backend has explicit states | P0 | `CC-TEST-UX-001` |
+| `CC-ARCH-001` | Architecture | Normalized state coordinator | `PARTIAL` | Network/UPower/BlueZ/audio/session snapshots exist; renderer still has inline domain coordination | P0 | `CC-TEST-ARCH-001` |
+| `CC-ARCH-002` | Architecture | Signal/reconnect/dispose lifecycle | `DONE` code; evidence pending | NetworkManager/BlueZ/UPower/Cvc/session lifecycle cleanup and owner/signal paths implemented | P0 | `CC-TEST-ARCH-002` |
+| `CC-NET-001` | Network | Wired tile and link state | `DONE` | Ethernet tile + NetworkManager Device state, carrier/IP details and Settings handoff | P0 | `CC-TEST-NET-001` |
+| `CC-NET-002` | Network | Wi-Fi + Ethernet simultaneously | `DONE` | Both shown; NetworkManager `PrimaryConnection` selects panel icon; hardware evidence remains test phase | P0 | `CC-TEST-NET-002` |
+| `CC-NET-003` | Network | Connectivity quality | `DONE` | NetworkManager connectivity mapping + captive/limited handoff; hardware portal evidence remains test phase | P0 | `CC-TEST-NET-003` |
+| `CC-NET-004` | Network | Multiple adapters | `DONE` | All devices, primary/default preference and deterministic ordering | P1 | `CC-TEST-NET-004` |
+| `CC-NET-005` | Network | IP/DNS/link details | `DONE` | Interface/profile/carrier/speed/IP/gateway/DNS + Settings handoff | P1 | `CC-TEST-NET-005` |
+| `CC-WIFI-001` | Wi-Fi | Radio state | `BLOCKED` | libnm `wireless_enabled`/`wireless_hardware_enabled` complete; hardware/rfkill evidence pending | P0 | `CC-TEST-WIFI-001` |
+| `CC-WIFI-002` | Wi-Fi | Scan/AP grouping | `BLOCKED` | libnm AP objects, SSID decode/grouping implemented; hardware/SSID fixture evidence pending | P0 | `CC-TEST-WIFI-002` |
+| `CC-WIFI-003` | Wi-Fi | Connect/auth/error | `BLOCKED` | Saved/open activation implemented; secured-unsaved delegates Settings/keyring; hardware auth-failure evidence pending | P0 | `CC-TEST-WIFI-003` |
+| `CC-WIFI-004` | Wi-Fi | Disconnect correct profile/device | `BLOCKED` | Device active-connection object used; hardware evidence pending | P0 | `CC-TEST-WIFI-004` |
+| `CC-WIFI-005` | Wi-Fi | Hidden/enterprise/WPA3 | `DEFERRED` | Native Cinnamon Settings/keyring handoff is v1 fallback; full internal UI deferred | P1 | `CC-TEST-WIFI-005` |
+| `CC-WIFI-006` | Wi-Fi | Hotspot/WWAN/airplane orchestration | `DEFERRED` | Ngoài v1.0.13; captive-portal handoff đã có trong network domain | P2 | `CC-TEST-WIFI-006` |
+| `CC-VPN-001` | VPN | Detect all active tunnels | `BLOCKED` | Async VPN/WireGuard profile and active-tunnel list complete; hardware evidence pending | P1 | `CC-TEST-VPN-001` |
+| `CC-VPN-002` | VPN | Connect/disconnect profiles | `DEFERRED` | UUID action/pending/error complete; NetworkManager active-signal confirmation deferred | P1 | `CC-TEST-VPN-002` |
+| `CC-BT-001` | Bluetooth | Adapter powered state | `BLOCKED` | BlueZ Adapter1 primary + owner reconnect complete; hardware evidence pending | P0 | `CC-TEST-BT-001` |
+| `CC-BT-002` | Bluetooth | Discovery lifecycle | `BLOCKED` | BlueZ Start/StopDiscovery and object updates implemented; hardware evidence pending | P1 | `CC-TEST-BT-002` |
+| `CC-BT-003` | Bluetooth | Pair/connect/disconnect | `BLOCKED` | Known Device1 connect/disconnect implemented; pairing agent/error matrix deferred/blocked | P0 | `CC-TEST-BT-003` |
+| `CC-BT-004` | Bluetooth | Trust/block/forget | `DEFERRED` | Advanced device management ngoài v1.0.13 | P1 | `CC-TEST-BT-004` |
+| `CC-BT-005` | Bluetooth | Device battery/class/profile | `DEFERRED` | Battery1 shown; class/profile UI ngoài v1.0.13 | P2 | `CC-TEST-BT-005` |
+| `CC-AUDIO-001` | Audio | Output volume/mute | `DONE` | Cvc default sink volume/mute with stream notifications | P0 | `CC-TEST-AUDIO-001` |
+| `CC-AUDIO-002` | Audio | Output device selector | `DONE` | Cvc output/input add/remove/update and `change_output`/`change_input` | P1 | `CC-TEST-AUDIO-002` |
+| `CC-AUDIO-003` | Audio | Cvc unavailable fallback | `BLOCKED` | Import/constructor guarded, controls disabled and lifecycle closed; missing-Cvc fixture evidence pending | P0 | `CC-TEST-AUDIO-003` |
+| `CC-MIC-001` | Mic | Input volume/mute | `DONE` code; evidence pending | Cvc default source, explicit mute and source selector | P0 | `CC-TEST-MIC-001` |
+| `CC-MIC-002` | Mic | Recording privacy state | `DEFERRED` | Recording stream count/indicator implemented; app-name privacy details deferred | P1 | `CC-TEST-MIC-002` |
+| `CC-DISPLAY-001` | Display | Brightness supported/absent | `BLOCKED` | Capability-gated DBus row/hide path complete; physical backlight evidence pending | P0 | `CC-TEST-DISPLAY-001` |
+| `CC-DISPLAY-002` | Display | Night Light | `DONE` code; evidence pending | Gio.Settings on/off and unavailable schema path; schedule remains Settings-owned | P1 | `CC-TEST-DISPLAY-002` |
+| `CC-DISPLAY-003` | Display | Dark/high contrast | `DONE` | Theme-scoped light/dark/high-contrast surfaces and focus styling | P0 | `CC-TEST-DISPLAY-003` |
+| `CC-POWER-001` | Power | Battery/AC/no battery | `BLOCKED` | UPower DisplayDevice/BATTERY/UPS/LINE_POWER state complete; laptop/UPS evidence pending | P0 | `CC-TEST-POWER-001` |
+| `CC-POWER-002` | Power | Estimate/low/critical | `BLOCKED` | UPower time/state/warning snapshot complete; hardware warning evidence pending | P1 | `CC-TEST-POWER-002` |
+| `CC-POWER-003` | Power | Power profile | `DEFERRED` | Capability-gated future control; CaramOS VM image hiện tại không có backend/tool | P2 | `CC-TEST-POWER-003` |
+| `CC-SESSION-001` | Session | Lock/restart/shutdown/etc. | `BLOCKED` | Capability gating + native Cinnamon confirmation implemented; cancel/inhibitor/destructive evidence pending | P0 | `CC-TEST-SESSION-001` |
+| `CC-UX-001` | UX | Loading/error/empty/retry | `DONE` | Domain-specific disabled, pending, empty, error and settings fallback states | P0 | `CC-TEST-UX-001` |
 | `CC-UX-002` | UX | Responsive/multi-monitor/orientation | `PARTIAL` | Four panel orientations + HiDPI | P1 | `CC-TEST-UX-002` |
-| `CC-A11Y-001` | Accessibility | Keyboard/focus/labels | `PARTIAL` | Keyboard-only and screen reader | P0 | `CC-TEST-A11Y-001` |
-| `CC-A11Y-002` | Accessibility | Contrast/target/reduced motion | `MISSING` | WCAG/HIG checks | P0 | `CC-TEST-A11Y-002` |
-| `CC-SEC-001` | Security | Safe system actions/secrets | `PARTIAL` | No secret argv/log/shell injection | P0 | `CC-TEST-SEC-001` |
-| `CC-PERF-001` | Performance | No UI blocking/fan-out | `PARTIAL` | Async/signal-driven | P0 | `CC-TEST-PERF-001` |
+| `CC-A11Y-001` | Accessibility | Keyboard/focus/labels | `BLOCKED` | Accessible names, ordered Escape close and focus restoration implemented; screen-reader evidence pending | P0 | `CC-TEST-A11Y-001` |
+| `CC-A11Y-002` | Accessibility | Contrast/target/reduced motion | `BLOCKED` | Focus rings, high-contrast and `enable-animations` reduced-motion path implemented; visual evidence pending | P0 | `CC-TEST-A11Y-002` |
+| `CC-SEC-001` | Security | Safe system actions/secrets | `DONE` | No Wi-Fi secret argv; UUID/object-path identity; argv allowlists | P0 | `CC-TEST-SEC-001` |
+| `CC-PERF-001` | Performance | No UI blocking/fan-out | `DONE` | Network/BlueZ/UPower signal-driven; VPN subprocess async; no `spawn_sync` runtime path | P0 | `CC-TEST-PERF-001` |
 | `CC-PACK-001` | Packaging | Atomic install/upgrade/purge | `PARTIAL` | Safe package lifecycle | P0 | `CC-TEST-PACK-001` |
-| `CC-TEST-001` | QA | Full state matrix evidence | `MISSING` | Reproducible VM/hardware evidence | P0 | `CC-TEST-RELEASE-001` |
+| `CC-TEST-001` | QA | Full state matrix evidence | `IN PROGRESS` | Static/unit/validate/reload pass; compile/package/hardware/manual evidence pending | P0 | `CC-TEST-RELEASE-001` |
+| `CC-TEST-002` | QA | Release gates | `BLOCKED` | `compile` blocked by root-owned `__pycache__`; `test`, `make ship`, package lifecycle not yet evidenced | P0 | `CC-TEST-RELEASE-002` |
+| `CC-TEST-003` | QA | VM reload smoke | `DONE` | Cinnamon 6.6.4 reload pass, no new applet error in latest checkpoint | P0 | `CC-TEST-RELEASE-003` |
+| `CC-TEST-004` | QA | Unit/static checks | `DONE` | 13 tests pass; `node --check`, `git diff --check` pass | P0 | `CC-TEST-RELEASE-004` |
 
 ---
 
@@ -373,21 +383,21 @@ Bắt buộc:
 
 | ID | Scenario | Panel expected | Popup expected | Action | Current |
 |---|---|---|---|---|---|
-| `CC-NET-010` | Ethernet only, carrier up, Internet available | Wired icon, tooltip interface/Internet | Ethernet tile marked active | Open details/disconnect/settings | `PARTIAL` |
-| `CC-NET-011` | Wi-Fi only | Wi-Fi icon with signal | Wi-Fi tile + SSID | Scan/disconnect/settings | `PARTIAL` |
-| `CC-NET-012` | Ethernet + Wi-Fi | Show active/default route; optional secondary badge | Both devices visible; no Wi-Fi-only label | Per-device details | `MISSING` |
-| `CC-NET-013` | Ethernet link up, no IP | Wired/link icon with limited state | `Đang lấy IP`/`Không có địa chỉ` | Retry/settings | `MISSING` |
-| `CC-NET-014` | Local network, Internet unavailable | Connected-local/limited icon | `Đã kết nối mạng cục bộ` | Details/retry | `MISSING` |
-| `CC-NET-015` | Captive portal | Warning/portal indicator | `Cần đăng nhập mạng` | Open portal | `MISSING` |
-| `CC-NET-016` | No network adapter | Offline/hidden per policy | Empty state with explanation | Open network settings | `PARTIAL` |
-| `CC-NET-017` | NetworkManager restarting | Loading, not offline immediately | Reconnecting | Retry disabled while pending | `MISSING` |
-| `CC-VPN-010` | VPN active over Wi-Fi | VPN badge plus base Wi-Fi | VPN name and base device | Disconnect VPN | `PARTIAL` |
-| `CC-VPN-011` | VPN active over Ethernet | VPN badge plus wired base | VPN and Ethernet visible | Disconnect VPN | `MISSING` |
-| `CC-AUDIO-010` | Volume muted | Muted icon | Slider + explicit unmute | Click mute/unmute | `PARTIAL` |
-| `CC-MIC-010` | Microphone in use | Mic privacy indicator | Recording source/app details | Open sound/privacy | `PARTIAL` |
-| `CC-POWER-010` | Laptop charging | Charging icon/percentage | Charging + estimate | Power settings | `PARTIAL` |
-| `CC-POWER-011` | Desktop no battery | No battery indicator | No empty battery row | Power/settings | `MISSING` |
-| `CC-UX-010` | Backend unavailable | Neutral/unavailable icon | Disabled control + reason | Open settings/retry | `PARTIAL` |
+| `CC-NET-010` | Ethernet only, carrier up, Internet available | Wired icon, tooltip interface/Internet | Ethernet tile marked active | Open details/settings | `DONE` code; VM evidence pass |
+| `CC-NET-011` | Wi-Fi only | Wi-Fi icon with signal | Wi-Fi tile + SSID | Scan/disconnect/settings | `BLOCKED` hardware |
+| `CC-NET-012` | Ethernet + Wi-Fi | Show active/default route | Both devices visible | Per-device details | `BLOCKED` hardware |
+| `CC-NET-013` | Ethernet link up, no IP | Wired/link limited state | Acquiring/limited text | Settings | `DONE` code; scenario evidence pending |
+| `CC-NET-014` | Local network, Internet unavailable | Limited/local state | Connectivity explanation | Details/settings | `DONE` code; scenario evidence pending |
+| `CC-NET-015` | Captive portal | Portal state | `Cần đăng nhập mạng` | Open portal/settings | `DONE` code; portal evidence pending |
+| `CC-NET-016` | No network adapter | Offline | Empty/unavailable state | Open network settings | `DONE` code; no-device smoke pass |
+| `CC-NET-017` | NetworkManager restarting | Unavailable/reconnecting state | Backend recovers on owner return | Disabled while absent | `DONE` code; restart evidence pending |
+| `CC-VPN-010` | VPN active over Wi-Fi | VPN badge plus base Wi-Fi | VPN name and base device | Disconnect VPN | `BLOCKED` hardware/profile |
+| `CC-VPN-011` | VPN active over Ethernet | VPN badge plus wired base | VPN and Ethernet visible | Disconnect VPN | `BLOCKED` profile evidence |
+| `CC-AUDIO-010` | Volume muted | Muted icon | Slider + explicit unmute | Click mute/unmute | `DONE` code; manual evidence pending |
+| `CC-MIC-010` | Microphone in use | Mic privacy indicator | Recording count; app details deferred | Open sound settings | `DEFERRED` app-details |
+| `CC-POWER-010` | Laptop charging | Charging icon/percentage | Charging + estimate | Power settings | `BLOCKED` laptop hardware |
+| `CC-POWER-011` | Desktop no battery | No battery indicator | No empty battery row | Power settings | `DONE`; VM no-device path |
+| `CC-UX-010` | Backend unavailable | Neutral/unavailable icon | Disabled control + reason | Settings/retry | `DONE` code; domain matrix pending |
 
 ### 7.1 Network icon rule
 
@@ -520,7 +530,7 @@ Parser/integration test phải cover:
 - wrong password;
 - AP disappears during click.
 
-Current code dùng `rows[i].split(':')`; đây là `P0` cần thay bằng NM API hoặc parser escaping được chứng minh bằng test.
+Current code dùng libnm `NM.Client`, `NM.DeviceWifi`/AccessPoint objects và `NM.utils_ssid_to_utf8()`; không còn parse AP list bằng `split(':')`. SSID/BSSID grouping ưu tiên active AP rồi strongest signal. Phần còn thiếu: hardware fixture cho SSID edge cases, state-reason mapping và full hidden/enterprise flow.
 
 ### 9.3 Secret rules
 
@@ -566,7 +576,7 @@ click
 | WireGuard | Explicit type and same pending/error model. |
 | Split tunnel | Details link; không giả định VPN route toàn bộ traffic. |
 
-Current implementation chỉ detect một active row và `VPN` click mở Settings. Status `PARTIAL/P1`.
+Current implementation liệt kê saved VPN/WireGuard profiles, đánh dấu mọi active tunnel, và connect/disconnect bằng UUID. Main tile ngắt tunnel khi chỉ có một active tunnel; khi có nhiều tunnel, mở danh sách để tránh ngắt nhầm. NetworkManager owner loss chuyển control sang unavailable và owner reacquire tạo lại backend proxy. Backend vẫn dùng bounded `nmcli` cho profile/actions; confirmation hiện dựa process result + refresh thay vì NetworkManager active-connection signal. Status `PARTIAL/P1`.
 
 ---
 
@@ -977,7 +987,7 @@ Không gọi `GLib.spawn_sync` cho refresh thường xuyên. Nếu fallback comm
 ### 20.1 Version policy
 
 - `metadata.json` version phải có policy rõ: package version, applet version hoặc release version.
-- Hiện migration release là `1.0.13`, metadata đang `1.0.12`; phải resolve trước production.
+- Migration release và applet metadata hiện đều là `1.0.13`; policy dùng CaramOS release version.
 - Tracker, manifest, changelog, applet metadata và test target không được mâu thuẫn.
 
 ### 20.2 User lifecycle
@@ -1016,6 +1026,20 @@ Phải phân biệt:
 ## 21. Test strategy
 
 ### 21.1 Static/unit gate
+
+Trạng thái hiện tại:
+
+| Gate | Result | Evidence/note |
+|---|---|---|
+| `node --check` | `PASS` | Applet syntax valid. |
+| `git diff --check` | `PASS` | No whitespace errors. |
+| Control Center unit/static | `PASS` | 13 tests. |
+| `validate` | `PASS` | 12 migrations; latest release `1.0.13`. |
+| Cinnamon 6.6.4 reload | `PASS` | Latest checkpoint loaded applet, no new applet error. |
+| `compile` | `BLOCKED` | Root-owned `usr/**/__pycache__` prevents bytecode output. |
+| Full testkit `test` | `PENDING` | Run after compile ownership fix. |
+| `make ship` / `.deb` audit | `PENDING` | No release evidence yet. |
+| Hardware/manual matrix | `PENDING` | Wi-Fi/Bluetooth/power/backlight/audio/session/a11y. |
 
 Chạy từ `packages/caramos-ota`:
 
@@ -1209,11 +1233,14 @@ Notes:
 - external monitor brightness;
 - advanced network details.
 
-### Phase 8 — Release hardening
+### Phase 8 — Release hardening (`IN PROGRESS`)
+
+Code phase đã freeze. Remaining work:
 
 - full VM/hardware matrix;
 - reboot/new-user/upgrade/purge;
 - package content audit;
+- compile ownership fix;
 - tracker/manifest/changelog sync;
 - rollback evidence;
 - release signoff.
@@ -1240,6 +1267,8 @@ Notes:
 - [ ] Tracker updated.
 
 ### 23.2 Applet release candidate gate
+
+Current decision: **NOT READY FOR RELEASE**. Code complete; test/package evidence incomplete.
 
 - [ ] No P0 open.
 - [ ] No unowned P1.
@@ -1377,25 +1406,41 @@ Ubuntu/GNOME references ở trên chỉ là UX/backend design reference. Chúng 
 
 ---
 
-## 26. Immediate next actions
+## 26. Current release status and next actions
 
-Thực hiện theo thứ tự, không nhảy thẳng vào thêm tile:
+Feature freeze đã bật. Không thêm tile hoặc feature mới cho v1.0.13. Chỉ test/fix.
 
-1. [ ] Chốt `CC-ARCH-001`: normalized state model.
-2. [ ] Chốt metadata version policy (`1.0.12` hay `1.0.13`) và sửa mismatch.
-3. [ ] Chốt manifest claim về logged-out/new users.
-4. [ ] Sửa migration atomic install/fail-closed/no-reorder policy.
-5. [ ] Viết unit tests cho `_append_applet()` và migration failure paths.
-6. [ ] Thiết kế NetworkManager backend trước khi thêm UI Ethernet.
-7. [ ] Làm state matrix Ethernet/Wi-Fi đồng thời.
-8. [ ] Thay Wi-Fi text parser bằng object model hoặc parser escape có test P0.
-9. [ ] Làm BlueZ backend primary.
-10. [ ] Thêm Cvc/no-sink/no-source guard.
-11. [ ] Sửa disabled state thành disabled thật, không chỉ opacity.
-12. [ ] Sửa no-battery behavior.
-13. [ ] Thêm accessible name/role/state và keyboard tests.
-14. [ ] Làm theme-aware light/dark/high contrast tokens.
-15. [ ] Chạy static/unit rồi VM matrix.
-16. [ ] Cập nhật tracker sau mỗi phase, không để tracker tụt sau code.
+### Đã xác nhận
 
-**Quy tắc:** Nếu một task không có requirement ID, state matrix row và test ID, task chưa sẵn sàng để implement.
+- [x] `node --check` applet pass.
+- [x] `git diff --check` pass.
+- [x] 13 unit/static tests pass.
+- [x] `./tools/caramos-ota-testkit.sh validate` pass.
+- [x] Cinnamon 6.6.4 VM reload pass; latest checkpoint không có applet error mới.
+- [x] Migration atomic/fail-closed/append-preserve tests pass.
+
+### Cần làm trước release
+
+1. [ ] Sửa compile cache ownership: `usr/**/__pycache__` đang `root:root`; chạy lại `./tools/caramos-ota-testkit.sh compile`.
+2. [ ] Chạy `./tools/caramos-ota-testkit.sh test`.
+3. [ ] Chạy `make ship` và audit `.deb` content.
+4. [ ] Chạy install/dry-run/real migration/rerun/reboot/purge/rollback.
+5. [ ] Test Wi-Fi hardware, SSID edge cases, auth failure, captive portal.
+6. [ ] Test Bluetooth discovery/connect/disconnect/pairing.
+7. [ ] Test laptop battery, AC, low/critical, backlight, UPS/multiple devices.
+8. [ ] Test audio hotplug, multiple sink/source, Cvc unavailable.
+9. [ ] Test session cancel/inhibitor/logout/restart/shutdown; destructive actions manual only.
+10. [ ] Test keyboard, Escape/focus restore, screen reader, dark/high-contrast, large text.
+11. [ ] Test four panel orientations, multi-monitor and HiDPI.
+12. [ ] Record evidence per `CC-TEST-*`; release only when no unowned P0/P1 remains.
+
+### Explicitly deferred
+
+- NetworkManager Secret Agent/password UI nội bộ.
+- Hidden/enterprise/802.1X full UI.
+- VPN active-connection signal confirmation.
+- Bluetooth pairing agent/trust/block/forget.
+- Hotspot/WWAN/airplane orchestration.
+- Power Profiles, MPRIS/DND/notification history, DDC brightness.
+
+**Quy tắc:** Mọi lỗi mới tạo test/evidence rồi fix. Không đánh dấu release pass chỉ từ syntax hoặc VM reload.

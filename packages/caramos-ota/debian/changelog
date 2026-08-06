@@ -1,3 +1,27 @@
+caramos-ota (1.0.16-0caramos1) noble; urgency=medium
+
+  * Pin Zalo and Software Manager to the Cinnamon taskbar while keeping WPS pinned.
+  * Remove stock WPS, Zalo and Software Manager shortcuts from user desktops.
+  * Preserve customized taskbar pins and desktop launcher files.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 05 Aug 2026 11:40:00 +0700
+
+caramos-ota (1.0.15-0caramos1) noble; urgency=medium
+
+  * Add the CaramOS default wallpaper migration for release 1.0.15.
+  * Install wallpaper2.png and atomically update the stable default.png link.
+  * Preserve user-selected custom wallpapers while refreshing active defaults.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Tue, 04 Aug 2026 22:55:00 +0700
+
+caramos-ota (1.0.14-0caramos1) noble; urgency=medium
+
+  * Add the CaramOS three-dock taskbar migration for release 1.0.14.
+  * Normalize running indicators and hover geometry across panel docks.
+  * Preserve the 1.0.13 Control Center migration as its own release step.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Tue, 04 Aug 2026 18:20:00 +0700
+
 caramos-ota (1.0.13-0caramos1) noble; urgency=medium
 
   * Add CaramOS Control Center Cinnamon applet prototype.

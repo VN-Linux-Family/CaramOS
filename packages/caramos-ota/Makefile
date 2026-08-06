@@ -10,7 +10,7 @@ REMOTE_USER ?= caram
 REMOTE_HOST ?= 127.0.0.1
 REMOTE_PORT ?= 2222
 TEST_RELEASE_FROM ?= 1.0.12
-TEST_RELEASE_TARGET ?= 1.0.13
+TEST_RELEASE_TARGET ?= 1.0.16
 
 .PHONY: help clean compile validate build release-deb source release-source ship test test-cli test-notifier smoke inspect status setup-gpg gpg-unlock upload release
 
@@ -58,7 +58,7 @@ inspect: build
 	  dpkg-deb -c "$$deb" | sed -n '1,220p'
 
 ship:
-	REMOTE_USER='$(REMOTE_USER)' REMOTE_HOST='$(REMOTE_HOST)' REMOTE_PORT='$(REMOTE_PORT)' TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' ./tools/ship-ota-to-vm.sh
+	REMOTE_USER='$(REMOTE_USER)' REMOTE_HOST='$(REMOTE_HOST)' REMOTE_PORT='$(REMOTE_PORT)' TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)' ./tools/ship-ota-to-vm.sh
 
 test test-cli:
 	ssh -p '$(REMOTE_PORT)' '$(REMOTE_USER)@$(REMOTE_HOST)' \

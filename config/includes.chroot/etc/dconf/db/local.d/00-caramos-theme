@@ -29,4 +29,4 @@ font-name='Be Vietnam Pro 10'
 theme='Cinnamon-Delight'
 
 [org/cinnamon/applets/grouped-window-list]
-pinned-apps=['google-chrome.desktop','wps-office-prometheus.desktop','cinnamon-settings.desktop']
+pinned-apps=['google-chrome.desktop','wps-office-prometheus.desktop','zalo.desktop','mintinstall.desktop','cinnamon-settings.desktop']

@@ -21,6 +21,20 @@ class MigrationRunnerTests(unittest.TestCase):
             "applied_migrations": [
                 {"id": migration_id, "release": "1.0.12"}
                 for migration_id in sorted(legacy_ids)
+            ]
+            + [
+                {
+                    "id": "20260715090258_install_control_center",
+                    "release": "1.0.13",
+                },
+                {
+                    "id": "20260803120000_apply_three_dock_taskbar",
+                    "release": "1.0.14",
+                },
+                {
+                    "id": "20260804223346_change_default_wallpaper",
+                    "release": "1.0.15",
+                },
             ],
         }
 
@@ -33,21 +47,21 @@ class MigrationRunnerTests(unittest.TestCase):
             patch("caramos_ota_update.runner.mark_applied"),
             patch.object(runner, "_run_one") as run_one,
         ):
-            runner.run(current_version="1.0.12", target_version="1.0.13")
+            runner.run(current_version="1.0.15", target_version="1.0.16")
 
         start.assert_called_once_with(
-            target_version="1.0.13",
-            migration_ids=["20260715090258_install_control_center"],
+            target_version="1.0.16",
+            migration_ids=["20260805111120_update_taskbar_pins_cleanup_desktop"],
         )
         run_one.assert_called_once()
         self.assertEqual(
-            "20260715090258_install_control_center",
+            "20260805111120_update_taskbar_pins_cleanup_desktop",
             run_one.call_args.args[0].migration_id,
         )
-        context.update_release_file.assert_called_once_with("1.0.13")
+        context.update_release_file.assert_called_once_with("1.0.16")
         success.assert_called_once_with(
             transaction_id="timestamp-batch",
-            installed_version="1.0.13",
+            installed_version="1.0.16",
         )
 
     def test_finalizes_release_when_target_migrations_are_already_applied(self) -> None:

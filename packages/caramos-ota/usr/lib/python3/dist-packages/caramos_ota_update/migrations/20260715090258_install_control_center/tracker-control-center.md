@@ -3,8 +3,9 @@
 > Tracker triển khai cho `20260715090258_install_control_center\`: nâng applet `caramos-control-center@caramos`
 > từ menu tile tạm bợ sang trung tâm điều khiển giống Ubuntu Quick Settings.
 >
-> Nguyên tắc quan trọng: migration chỉ cài/thêm applet, không rewrite layout panel,
-> không ghi đè dconf toàn cục, không xoá icon cũ.
+> Nguyên tắc quan trọng: migration cài Control Center và bỏ đúng ba applet mặc định
+> `network@cinnamon.org`, `sound@cinnamon.org`, `power@cinnamon.org`; không rewrite
+> layout panel, không ghi đè dconf toàn cục, giữ nguyên mọi applet khác và position hiện có.
 
 ---
 
@@ -17,12 +18,12 @@
 | **Loại** | Desktop UX / Cinnamon Applet / OTA Migration |
 | **Độ ưu tiên** | High |
 | **Mức ảnh hưởng** | Medium-High |
-| **Trạng thái tổng thể** | Planning |
+| **Trạng thái tổng thể** | Code Complete — chuyển sang test/fix-only |
 | **Người phụ trách** | dungleviet |
 | **Người yêu cầu** | CaramOS maintainer |
 | **Reviewer** | TBD |
 | **Ngày tạo** | 2026-07-02 |
-| **Cập nhật lần cuối** | 2026-07-02 |
+| **Cập nhật lần cuối** | 2026-07-29 |
 | **Target release** | CaramOS OTA 1.0.13\ |
 | **Branch / PR** | TBD |
 
@@ -30,18 +31,18 @@
 
 | Phase | Tên phase | Trạng thái | Ghi chú |
 | --- | --- | --- | --- |
-| 0 | Chốt scope và nguyên tắc an toàn | Done | Control Center là applet mới, không đụng layout panel cũ. |
+| 0 | Chốt scope và nguyên tắc an toàn | Done | Control Center thay đúng network/sound/power; giữ applet và layout còn lại. |
 | 1 | Trace Ubuntu Quick Settings / CaramOS applets | Done | Đã scan VM CaramOS và source applet Cinnamon có sẵn. |
-| 2 | Thiết kế kiến trúc applet Cinnamon | In Progress | Đã chốt backend ưu tiên cho v1 an toàn. |
-| 3 | Implement panel indicator gộp | In Progress | Có cụm icon pin, mic, Wi-Fi/VPN, volume; đang cần VM verify. |
-| 4 | Implement popup Quick Settings | In Progress | Có sliders + tiles + fallback actions; đang giảm rủi ro network/Bluetooth. |
-| 5 | Kết nối audio/mic | In Progress | Dùng `Cvc.MixerControl`, có guard khi thiếu sink/source. |
-| 6 | Kết nối brightness | In Progress | Dùng DBus Cinnamon Settings Daemon Power, disabled nếu backend thiếu. |
-| 7 | Kết nối Wi-Fi/VPN/network | In Progress | v1 read-only/status + mở settings; không connect/disconnect trực tiếp. |
-| 8 | Kết nối power/battery/night light | In Progress | Battery qua `upower`, Night Light qua Gio.Settings. |
-| 9 | Style giống Ubuntu nhưng hợp CaramOS | In Progress | Giảm màu cam, giữ cam làm active accent. |
-| 10 | Packaging + migration an toàn | Todo | Migration chỉ copy applet và append entry. |
-| 11 | Verification trên VM | Todo | Không mất icon cũ, applet ổn sau reboot. |
+| 2 | Thiết kế kiến trúc applet Cinnamon | Done | Backend contract và lifecycle đã chốt cho v1.0.13. |
+| 3 | Implement panel indicator gộp | Done | Cụm network/VPN/mic/volume/battery reload pass trên Cinnamon 6.6.4. |
+| 4 | Implement popup Quick Settings | Done | Sliders, tiles, inline details, empty/error fallback code complete. |
+| 5 | Kết nối audio/mic | Done | Cvc volume/mute, output/input selector, hotplug signals và no-device guard. |
+| 6 | Kết nối brightness | Blocked | Code DBus + capability gating xong; VM không có backlight thật. |
+| 7 | Kết nối Wi-Fi/VPN/network | Blocked | NetworkManager details/libnm/async VPN xong; hardware/auth/captive matrix còn cần test. |
+| 8 | Kết nối power/battery/night light | Blocked | UPower signals/estimate/AC/UPS summary xong; laptop/UPS thật còn cần test. |
+| 9 | Style giống Ubuntu nhưng hợp CaramOS | Blocked | Light/dark/high-contrast/focus code xong; visual/a11y matrix còn cần test. |
+| 10 | Packaging + migration an toàn | Blocked | Atomic/fail-closed + unit tests pass; full `.deb` lifecycle chưa chạy. |
+| 11 | Verification trên VM | In Progress | Reload pass; static/unit pass; chuyển sang test/fix-only. |
 
 ---
 
@@ -75,11 +76,12 @@ Không được dùng migration để cấu hình lại toàn bộ panel.
 Migration `20260715090258_install_control_center\` chỉ được phép:
 
 1. copy applet vào `/usr/share/cinnamon/applets/`;
-2. append đúng applet mới vào `org.cinnamon enabled-applets` nếu chưa có;
-3. không sửa `panels-height`;
-4. không sửa `panel-zone-*`;
-5. không ghi `/etc/dconf/db/local.d/...` cho layout panel;
-6. không xoá hoặc reorder applet cũ.
+2. atomically bỏ đúng `network@cinnamon.org`, `sound@cinnamon.org`, `power@cinnamon.org` và append Control Center nếu chưa có;
+3. giữ nguyên text, thứ tự và position của mọi applet khác;
+4. không sửa `panels-height`;
+5. không sửa `panel-zone-*`;
+6. không ghi `/etc/dconf/db/local.d/...` cho layout panel;
+7. không reload Cinnamon cưỡng bức.
 
 ---
 
@@ -147,9 +149,9 @@ Kết quả scan read-only trong CaramOS VM cho thấy không nên nhúng nguyê
 | Brightness | DBus `org.cinnamon.SettingsDaemon.Power.Screen` | disabled/mở `cinnamon-settings display` | `brightnessctl` không có trong VM; `power@cinnamon.org` dùng `GetPercentageRemote/SetPercentageRemote`. |
 | Battery | `UPowerGlib` | `upower`/ẩn nếu không có pin | VM có `/org/freedesktop/UPower/devices/battery_BAT0`. |
 | Night Light | `Gio.Settings` schema `org.cinnamon.settings-daemon.plugins.color` | mở settings | key: `night-light-enabled`. |
-| Wi-Fi | v1 mở `cinnamon-settings network`, status đơn giản nếu an toàn | chỉ mở settings | `network@cinnamon.org` rất lớn, dùng `NM.Client`; full list để phase sau. |
-| VPN | v1 mở network settings, status active nếu an toàn | chỉ mở settings | `network@cinnamon.org` có category `VPN/WIREGUARD`; toggle để phase sau. |
-| Bluetooth | mở `blueman-manager` | disabled nếu thiếu command | VM có `bluetoothctl` và `blueman-manager`. |
+| Wi-Fi | libnm `NM.Client`, AP objects và active connection | `cinnamon-settings network` cho secured-unsaved/enterprise/hidden | Reuse API/pattern từ `network@cinnamon.org`; không parse `nmcli` text. |
+| VPN | async bounded `nmcli` profile query/action theo UUID | mở network settings | Multi-profile VPN/WireGuard; background refresh không kích spinner. |
+| Bluetooth | BlueZ Adapter1/Device1/Battery1 | `blueman-manager`/`bluetoothctl` fallback | Owner watch reconnect; pairing agent vẫn deferred. |
 | Lock | `cinnamon-screensaver-command --lock` | disabled nếu thiếu command | command cố định, không nhận input user. |
 | Power | `cinnamon-session-quit --power-off` | disabled nếu thiếu command | command cố định, không nhận input user. |
 
@@ -175,8 +177,8 @@ Không copy code GNOME Shell nếu license/API không phù hợp; chỉ tham kh�
 
 - [x] Applet chỉ bổ sung Control Center, không thay panel layout.
 - [x] Migration không ghi dconf defaults.
-- [x] Migration không xoá icon cũ.
-- [x] Không gỡ `sound@cinnamon.org`, `network@cinnamon.org`, `power@cinnamon.org` trong v1.0.13\.
+- [x] Migration bỏ đúng icon `sound@cinnamon.org`, `network@cinnamon.org`, `power@cinnamon.org` đã được Control Center thay thế.
+- [x] Mọi applet khác giữ nguyên thứ tự và position.
 
 ### Phase 1 — Scan CaramOS applets hiện có
 
@@ -199,40 +201,44 @@ Không copy code GNOME Shell nếu license/API không phù hợp; chỉ tham kh�
 
 ### Phase 3 — Prototype UI Quick Settings
 
-- [ ] Dựng panel indicator compact.
-- [ ] Dựng popup quick settings giống Ubuntu.
-- [ ] Dựng volume slider.
-- [ ] Dựng mic slider.
-- [ ] Dựng brightness slider.
-- [ ] Dựng Wi-Fi/VPN/Bluetooth tiles.
-- [ ] Dựng Lock/Settings/Power buttons.
-- [ ] Style giống Ubuntu nhưng dùng màu CaramOS.
-- [ ] Test Cinnamon không crash.
+- [x] Dựng panel indicator compact.
+- [x] Dựng popup quick settings giống Ubuntu.
+- [x] Dựng volume slider.
+- [x] Dựng mic slider.
+- [x] Dựng brightness slider capability-gated.
+- [x] Dựng Wi-Fi/VPN/Bluetooth tiles và inline lists.
+- [x] Dựng Lock/Settings/Power buttons.
+- [x] Style giống Ubuntu nhưng dùng màu CaramOS.
+- [x] Reload applet trên Cinnamon 6.6.4 không có lỗi mới.
 
 ### Phase 4 — Kết nối backend ít rủi ro
 
-- [ ] Volume output bằng `Cvc.MixerControl`.
-- [ ] Microphone bằng `Cvc.MixerControl`.
-- [ ] Battery percent bằng `UPowerGlib`.
-- [ ] Night Light toggle bằng `Gio.Settings`.
-- [ ] Brightness bằng DBus `org.cinnamon.SettingsDaemon.Power.Screen`, fallback disabled nếu không có proxy.
+- [x] Volume output bằng `Cvc.MixerControl`.
+- [x] Microphone bằng `Cvc.MixerControl`.
+- [x] Battery percent bằng UPower command + sysfs fallback; UPower DBus còn roadmap.
+- [x] Night Light toggle bằng `Gio.Settings`.
+- [x] Brightness bằng DBus `org.cinnamon.SettingsDaemon.Power.Screen`, ẩn nếu no-backlight/proxy.
 
-### Phase 5 — Network / Wi-Fi / VPN tối giản
+### Phase 5 — Network / Wi-Fi / VPN
 
-- [x] Wi-Fi tile hiển thị trạng thái đơn giản nếu lấy được an toàn.
-- [x] Wi-Fi tile mở `cinnamon-settings network`.
-- [x] VPN tile hiển thị active status nếu lấy được an toàn.
-- [x] VPN tile mở `cinnamon-settings network`.
-- [x] Không implement Wi-Fi connect trong vòng này.
-- [x] Không implement VPN connect/disconnect trong vòng này.
+- [x] Wi-Fi radio/AP/SSID state dùng libnm `NM.Client` object model.
+- [x] Wi-Fi scan dùng `request_scan()` và AP signals.
+- [x] Saved/open Wi-Fi action dùng libnm connection/AP objects.
+- [x] Secured-unsaved/enterprise/hidden mở native Cinnamon Settings/keyring flow.
+- [x] Disconnect Wi-Fi dùng active connection object, không SSID text.
+- [x] VPN/WireGuard list nhiều profile, action theo UUID và async refresh.
+- [x] Ethernet/multiple-adapter details, default route, IP/gateway/DNS/carrier/speed.
+- [x] Captive/limited connectivity state và native browser/settings handoff.
+- [ ] BLOCKED — Wi-Fi hardware/SSID edge-case/auth-failure matrix.
+- [ ] DEFERRED — VPN confirmation bằng NetworkManager active-connection signal; v1 dùng bounded async refresh.
 
 ### Phase 6 — Packaging + migration
 
 - [ ] Đóng gói applet files vào `.deb`.
-- [ ] Migration chỉ copy applet.
-- [ ] Migration append applet nếu chưa có.
-- [ ] Không ghi dconf layout.
-- [ ] Không reload Cinnamon cưỡng bức.
+- [x] Migration cài applet bằng staging, validate và restore khi lỗi.
+- [x] Migration atomically bỏ stock network/sound/power và append Control Center nếu chưa có.
+- [x] Không ghi dconf layout.
+- [x] Không reload Cinnamon cưỡng bức.
 
 ### Phase 7 — Verification
 
@@ -240,20 +246,20 @@ Không copy code GNOME Shell nếu license/API không phù hợp; chỉ tham kh�
 - [ ] `./tools/caramos-ota-testkit.sh validate` pass.
 - [ ] `make ship` pass trên VM sạch.
 - [ ] `make test` pass.
-- [ ] Sau reboot, panel vẫn đủ icon cũ + Control Center.
+- [ ] Sau reboot, panel có Control Center, không còn stock network/sound/power, applet khác giữ nguyên.
 - [ ] Kiểm tra `~/.xsession-errors` không có lỗi applet.
 
 ### Phase 8 — Sau v1.0.13\, nếu applet đủ ổn
 
 - [ ] Cân nhắc full Wi-Fi list bằng `NM.Client`.
 - [ ] Cân nhắc VPN list/toggle bằng `NM.Client`.
-- [ ] Cân nhắc thay thế một số icon cũ, nhưng chỉ khi có migration riêng và rollback rõ.
+- [x] Stock network/sound/power đã được thay trong migration Control Center đang phát triển; không đụng icon khác.
 
 ## ✅ 6. ACCEPTANCE CRITERIA
 
 ### 6.1 Không phá hệ thống
 
-- [ ] Không mất systray/network/sound/notifications/power/battery/calendar.
+- [ ] Chỉ mất stock network/sound/power; systray/notifications/calendar/custom applet giữ nguyên.
 - [ ] Không đổi chiều cao panel.
 - [ ] Không đổi icon size panel toàn cục.
 
@@ -269,10 +275,11 @@ Không copy code GNOME Shell nếu license/API không phù hợp; chỉ tham kh�
 
 ### 6.3 Migration an toàn
 
-- [ ] Chỉ thêm `caramos-control-center@caramos` nếu chưa có.
-- [ ] Không rewrite toàn bộ `enabled-applets` bằng layout hardcode.
-- [ ] Nếu `enabled-applets` format lạ thì skip, không sửa.
-- [ ] Dry-run không sửa hệ thống.
+- [x] Chỉ thêm `caramos-control-center@caramos` nếu chưa có.
+- [x] Bỏ đúng UUID stock network/sound/power bằng một lần `gsettings set`.
+- [x] Không rewrite toàn bộ `enabled-applets` bằng layout hardcode.
+- [x] Nếu `enabled-applets` format lạ thì skip, không sửa.
+- [x] Dry-run không sửa hệ thống.
 
 ---
 
@@ -334,14 +341,18 @@ nohup cinnamon --replace >/tmp/cinnamon-replace.log 2>&1 &
 | 2026-07-02 | Tạo tracker cho Control Center giống Ubuntu Quick Settings. | Planning |
 | 2026-07-02 | Scan CaramOS VM: panel cũ có `systray`, `network`, `sound`, `notifications`, `power`, `calendar`; backend có `pactl`, `nmcli`, `bluetoothctl`, `blueman-manager`, `upower`; không có `brightnessctl`, `powerprofilesctl`. | Done |
 | 2026-07-02 | Scan source Cinnamon applets: chọn `Cvc.MixerControl` cho volume/mic, Cinnamon Power DBus + `UPowerGlib` cho brightness/battery, `Gio.Settings` cho Night Light; Wi-Fi/VPN full submenu để phase sau. | Done |
-| 2026-07-03 | Stabilize applet v1: thêm guard thiếu backend, chuyển Wi-Fi/VPN/Bluetooth sang read-only/settings fallback, giảm màu cam trong style. | In Progress |
+| 2026-07-03 | Stabilize applet v1: thêm guard thiếu backend, chuyển Wi-Fi/VPN/Bluetooth sang read-only/settings fallback, giảm màu cam trong style. | Done |
+| 2026-07-29 | Thêm NetworkManager/BlueZ state, async VPN, libnm Wi-Fi AP/actions, brightness capability gating, lifecycle cleanup và migration atomic/fail-closed. Reload pass trên Cinnamon 6.6.4; VM không có Wi-Fi/backlight hardware. | In Progress |
+| 2026-07-29 | Code freeze: Ethernet/multi-adapter details, UPower signal backend, audio mute/selectors, session capability/native confirmation, theme/a11y/focus, static tests. `node --check`, `git diff --check`, 13 unit/static tests và VM reload pass. | Code Complete |
 
 ---
 
 ## 🚧 10. VIỆC CẦN LÀM NGAY TIẾP THEO
 
-1. Review tracker và chốt scope v1.0.13\.
-2. Prototype UI Quick Settings trong `applet.js`/`stylesheet.css`.
-3. Kết nối backend ít rủi ro theo thứ tự: battery → Night Light → volume → mic → brightness.
-4. Giữ Wi-Fi/VPN/Bluetooth ở mức tile mở settings/manager trong vòng đầu.
-5. Chạy compile/validate trước khi ship vào VM.
+Feature freeze. Chỉ test/fix:
+
+1. Chạy `compile`, `validate`, package content và full `.deb` lifecycle.
+2. Test hardware matrix: Wi-Fi/auth/captive portal, Bluetooth, laptop battery/backlight/UPS, audio hotplug.
+3. Test session cancel/inhibitor/logout/restart/shutdown; không tự kích hoạt destructive action trong smoke tự động.
+4. Test keyboard/screen reader/high-contrast/large text, bốn orientation, multi-monitor/HiDPI.
+5. Mọi lỗi mới ghi test/evidence rồi fix; không thêm feature P2/optional vào v1.0.13\.

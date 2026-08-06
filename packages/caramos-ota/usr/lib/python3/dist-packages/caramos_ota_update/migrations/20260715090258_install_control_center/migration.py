@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import ast
+import json
 import os
 import pwd
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 from caramos_ota_update.context import MigrationContext
@@ -13,18 +16,88 @@ from caramos_ota_update.context import MigrationContext
 DESCRIPTION = "Install CaramOS Control Center Cinnamon applet"
 
 APPLET_UUID = "caramos-control-center@caramos"
+REPLACED_APPLET_UUIDS = frozenset(
+    {
+        "network@cinnamon.org",
+        "sound@cinnamon.org",
+        "power@cinnamon.org",
+    }
+)
 SOURCE_APPLET_DIR = Path("/usr/share/caramos-ota/applets") / APPLET_UUID
 TARGET_APPLET_DIR = Path("/usr/share/cinnamon/applets") / APPLET_UUID
+REQUIRED_APPLET_FILES = ("applet.js", "metadata.json", "stylesheet.css")
+
+
+def _validate_applet(directory: Path) -> None:
+    if not directory.is_dir():
+        raise RuntimeError(f"applet source directory not found: {directory}")
+    if directory.is_symlink():
+        raise RuntimeError(f"applet source must not be a symlink: {directory}")
+
+    for name in REQUIRED_APPLET_FILES:
+        path = directory / name
+        if not path.is_file() or path.is_symlink():
+            raise RuntimeError(f"applet source requires regular file: {path}")
+
+    try:
+        metadata = json.loads((directory / "metadata.json").read_text(encoding="utf-8"))
+    except Exception as exc:
+        raise RuntimeError(f"cannot read applet metadata: {exc}") from exc
+    if not isinstance(metadata, dict) or metadata.get("uuid") != APPLET_UUID:
+        raise RuntimeError(f"applet metadata UUID must be {APPLET_UUID!r}")
+
+
+def _clear_directory(directory: Path) -> None:
+    for child in directory.iterdir():
+        if child.is_dir() and not child.is_symlink():
+            shutil.rmtree(child)
+        else:
+            child.unlink()
+
+
+def _copy_directory_contents(source: Path, target: Path) -> None:
+    target.mkdir(parents=True, exist_ok=True)
+    for child in source.iterdir():
+        destination = target / child.name
+        if child.is_dir() and not child.is_symlink():
+            shutil.copytree(child, destination)
+        else:
+            shutil.copy2(child, destination, follow_symlinks=False)
 
 
 def _install_applet(context: MigrationContext) -> None:
-    if not SOURCE_APPLET_DIR.exists():
-        context.log(f"warning: applet source not found: {SOURCE_APPLET_DIR}")
-        return
+    _validate_applet(SOURCE_APPLET_DIR)
+    TARGET_APPLET_DIR.parent.mkdir(parents=True, exist_ok=True)
+    if TARGET_APPLET_DIR.is_symlink():
+        raise RuntimeError(f"applet target must not be a symlink: {TARGET_APPLET_DIR}")
+    if TARGET_APPLET_DIR.exists() and not TARGET_APPLET_DIR.is_dir():
+        raise RuntimeError(f"applet target must be a directory: {TARGET_APPLET_DIR}")
 
-    if TARGET_APPLET_DIR.exists():
-        shutil.rmtree(TARGET_APPLET_DIR)
-    shutil.copytree(SOURCE_APPLET_DIR, TARGET_APPLET_DIR)
+    staging_root = Path(tempfile.mkdtemp(prefix=f".{APPLET_UUID}.", dir=TARGET_APPLET_DIR.parent))
+    staging_dir = staging_root / APPLET_UUID
+    backup_dir = staging_root / "previous"
+    target_existed = TARGET_APPLET_DIR.exists()
+    try:
+        shutil.copytree(SOURCE_APPLET_DIR, staging_dir)
+        _validate_applet(staging_dir)
+        if target_existed:
+            shutil.copytree(TARGET_APPLET_DIR, backup_dir, symlinks=True)
+
+        TARGET_APPLET_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            _clear_directory(TARGET_APPLET_DIR)
+            _copy_directory_contents(staging_dir, TARGET_APPLET_DIR)
+            _validate_applet(TARGET_APPLET_DIR)
+        except Exception:
+            _clear_directory(TARGET_APPLET_DIR)
+            if target_existed:
+                _copy_directory_contents(backup_dir, TARGET_APPLET_DIR)
+            else:
+                TARGET_APPLET_DIR.rmdir()
+            raise
+    finally:
+        shutil.rmtree(staging_root, ignore_errors=True)
+
     context.log(f"installed Cinnamon applet: {TARGET_APPLET_DIR}")
 
 
@@ -75,58 +148,54 @@ def _run_gsettings(user: str, env: dict[str, str], args: list[str]) -> subproces
     )
 
 
-def _append_applet(enabled_applets: str) -> str | None:
-    """Insert Control Center immediately before calendar@cinnamon.org.
+def _update_enabled_applets(enabled_applets: str) -> str | None:
+    """Replace redundant stock indicators with Control Center atomically.
 
-    Falls back to appending at the end when calendar is absent.
-    Renumbers position field of all panel1:right entries in ascending order.
+    Existing entries keep their text, order, and position fields. Both the
+    four-field and five-field Cinnamon formats are accepted; unknown top-level
+    list formats are rejected without changing user settings.
     """
 
     value = enabled_applets.strip()
-    if APPLET_UUID in value:
-        return value
     if not value.startswith("[") or not value.endswith("]"):
         return None
 
+    try:
+        parsed = ast.literal_eval(value)
+    except (SyntaxError, ValueError):
+        return None
+    if not isinstance(parsed, list) or any(not isinstance(entry, str) for entry in parsed):
+        return None
+
     inner = value[1:-1].strip()
+    if inner and not parsed:
+        return None
+
     entries: list[str] = []
-    if inner:
-        for raw in inner.split(","):
-            e = raw.strip().strip("'").strip('"')
-            if e:
-                entries.append(e)
-
-    right_entries: list[str] = []
-    other_entries: list[str] = []
-    for e in entries:
-        if e.startswith("panel1:right:"):
-            right_entries.append(e)
-        else:
-            other_entries.append(e)
-
-    calendar_idx = -1
-    for i, e in enumerate(right_entries):
-        parts = e.split(":", 4)
-        if len(parts) >= 4 and parts[3] == "calendar@cinnamon.org":
-            calendar_idx = i
-            break
-
-    new_uuid_entry_tail = f"{APPLET_UUID}:0"
-    if calendar_idx == -1:
-        right_entries.append(f"panel1:right:X:{new_uuid_entry_tail}")
-    else:
-        right_entries.insert(calendar_idx, f"panel1:right:X:{new_uuid_entry_tail}")
-
-    renumbered: list[str] = []
-    for i, e in enumerate(right_entries):
-        parts = e.split(":", 4)
-        if len(parts) < 5:
-            renumbered.append(e)
+    has_control_center = False
+    for entry in parsed:
+        parts = entry.split(":", 4)
+        uuid = parts[3] if len(parts) >= 4 else None
+        if uuid in REPLACED_APPLET_UUIDS:
             continue
-        parts[2] = str(i)
-        renumbered.append(":".join(parts))
+        entries.append(entry)
+        if uuid == APPLET_UUID:
+            has_control_center = True
 
-    quoted = [f"'{e}'" for e in other_entries + renumbered]
+    if not has_control_center:
+        positions = [
+            int(parts[2])
+            for entry in entries
+            for parts in [entry.split(":", 4)]
+            if len(parts) >= 4
+            and parts[0] == "panel1"
+            and parts[1] == "right"
+            and parts[2].isdigit()
+        ]
+        next_position = max(positions, default=-1) + 1
+        entries.append(f"panel1:right:{next_position}:{APPLET_UUID}:0")
+
+    quoted = [repr(entry) for entry in entries]
     return f"[{', '.join(quoted)}]"
 
 
@@ -140,19 +209,19 @@ def _apply_to_live_user(context: MigrationContext, username: str, uid: int) -> N
         context.log(f"warning: could not read Cinnamon applets for {username}: {current.stderr.strip()}")
         return
 
-    updated_applets = _append_applet(current.stdout)
+    updated_applets = _update_enabled_applets(current.stdout)
     if updated_applets is None:
-        context.log(f"warning: unexpected enabled-applets format for {username}; skip Control Center enable")
+        context.log(f"warning: unexpected enabled-applets format for {username}; skip Control Center panel update")
         return
     if updated_applets == current.stdout.strip():
-        context.log(f"kept existing Control Center applet for user: {username}")
+        context.log(f"kept existing Control Center panel layout for user: {username}")
         return
 
     result = _run_gsettings(username, env, ["set", "org.cinnamon", "enabled-applets", updated_applets])
     if result.returncode == 0:
-        context.log(f"enabled CaramOS Control Center for live user: {username}")
+        context.log(f"enabled Control Center and removed redundant network, sound, and power applets for: {username}")
     else:
-        context.log(f"warning: could not enable Control Center for {username}: {result.stderr.strip()}")
+        context.log(f"warning: could not update Control Center panel for {username}: {result.stderr.strip()}")
 
 
 def run(context: MigrationContext) -> None:
@@ -160,7 +229,7 @@ def run(context: MigrationContext) -> None:
 
     if context.dry_run:
         context.log(f"[dry-run] copy {SOURCE_APPLET_DIR} to {TARGET_APPLET_DIR}")
-        context.log("[dry-run] append Control Center applet for live desktop users")
+        context.log("[dry-run] enable Control Center and remove redundant network, sound, and power applets for live desktop users")
         return
 
     _install_applet(context)

@@ -8,7 +8,8 @@ REMOTE_USER="${REMOTE_USER:-caram}"
 REMOTE_HOST="${REMOTE_HOST:-127.0.0.1}"
 REMOTE_PORT="${REMOTE_PORT:-2222}"
 REMOTE_DIR="${REMOTE_DIR:-/tmp/caramos-ota-e2e}"
-TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.12}"
+TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.14}"
+TEST_RELEASE_TARGET="${TEST_RELEASE_TARGET:-1.0.16}"
 # Test-only live-boot VM password. Override with REMOTE_PASSWORD=... if needed.
 REMOTE_PASSWORD="${REMOTE_PASSWORD:-caram123}"
 
@@ -30,7 +31,8 @@ What it does:
   2. Clean and recreate REMOTE_DIR on the VM
   3. Copy .deb, guest runner scripts, and VM Makefile to the VM
   4. Install the shipped .deb in the VM
-  5. Print the commands to run inside the VM
+  5. Seed the VM at CaramOS ${TEST_RELEASE_FROM} and detect the ${TEST_RELEASE_TARGET} migration
+  6. Print the commands to run inside the VM
 
 Password automation:
   Uses sshpass with REMOTE_PASSWORD=${REMOTE_PASSWORD} when sshpass is installed.
@@ -89,9 +91,10 @@ ID_LIKE=\"linuxmint ubuntu debian\"
 PRETTY_NAME=\"CaramOS ${TEST_RELEASE_FROM}\"
 EOF'"
 remote_ssh "cd '${REMOTE_DIR}' && printf '%s\\n' '${REMOTE_PASSWORD}' | sudo -S ./vm-run-ota-e2e.sh install-shipped"
+remote_ssh "cd '${REMOTE_DIR}' && printf '%s\\n' '${REMOTE_PASSWORD}' | sudo -S env TEST_RELEASE_FROM='${TEST_RELEASE_FROM}' TEST_RELEASE_TARGET='${TEST_RELEASE_TARGET}' ./vm-run-ota-e2e.sh prepare-check"
 
 cat <<EOF
-[OK] Shipped and installed OTA test artifacts to ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}
+[OK] Shipped OTA test artifacts and prepared the ${TEST_RELEASE_TARGET} Update Center state at ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}
 
 Run this in the VM SSH session to execute the full default E2E flow:
   cd ${REMOTE_DIR}

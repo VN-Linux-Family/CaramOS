@@ -30,8 +30,8 @@ Commands on CaramOS test machine:
   install-deb <deb> Install built caramos-ota .deb
   backup            Backup files touched by migration tests
   smoke             Check installed commands and compile installed modules
-  dry-run-1.0.13    Dry-run migration from 1.0.12 to 1.0.13
-  run-1.0.13        Run real migration 1.0.12 -> 1.0.13
+  dry-run-1.0.16    Dry-run migration from 1.0.15 to 1.0.16
+  run-1.0.16        Run real migration 1.0.15 -> 1.0.16
   verify-1.0.2      Verify VERSION metadata and selected branding changes
   restore           Restore backup made by backup command
 
@@ -47,9 +47,9 @@ Commands on CaramOS test machine:
   cd /tmp && tar -xzf caramos-ota-source-testkit.tar.gz
   cd caramos-ota
   sudo ./tools/caramos-ota-testkit.sh backup
-  sudo ./tools/caramos-ota-testkit.sh dry-run-1.0.13
-  sudo PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.11 --target 1.0.13
-  sudo ./tools/caramos-ota-testkit.sh verify-1.0.13
+  sudo ./tools/caramos-ota-testkit.sh dry-run-1.0.16
+  sudo PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.15 --target 1.0.16
+  sudo ./tools/caramos-ota-testkit.sh verify-1.0.16
 EOF
 }
 
@@ -62,11 +62,17 @@ require_root() {
 
 compile_sources() {
   cd "${PKG_DIR}"
-  python3 -m py_compile \
+  local pycache_prefix
+  pycache_prefix="$(mktemp -d)"
+  trap 'rm -rf "${pycache_prefix}"' RETURN
+  PYTHONPYCACHEPREFIX="${pycache_prefix}" python3 -m py_compile \
     usr/bin/caramos-ota \
+    usr/bin/caramos-ota-audit \
     usr/bin/caramos-ota-notifier \
     usr/bin/caramos-ota-update \
     $(find usr/lib/python3/dist-packages -name '*.py' | sort)
+  rm -rf "${pycache_prefix}"
+  trap - RETURN
   echo "[OK] Python compile passed"
 }
 
@@ -178,32 +184,34 @@ restore_system() {
 
 smoke_installed() {
   command -v caramos-ota
+  command -v caramos-ota-audit
   command -v caramos-ota-notifier
   command -v caramos-ota-update
   python3 -m py_compile \
     /usr/bin/caramos-ota \
+    /usr/bin/caramos-ota-audit \
     /usr/bin/caramos-ota-notifier \
     /usr/bin/caramos-ota-update \
-    $(find /usr/lib/python3/dist-packages/caramos_ota /usr/lib/python3/dist-packages/caramos_ota_notifier /usr/lib/python3/dist-packages/caramos_ota_update -name '*.py' 2>/dev/null | sort)
+    $(find /usr/lib/python3/dist-packages/caramos_ota /usr/lib/python3/dist-packages/caramos_ota_audit /usr/lib/python3/dist-packages/caramos_ota_notifier /usr/lib/python3/dist-packages/caramos_ota_update -name '*.py' 2>/dev/null | sort)
   echo "[OK] Installed smoke test passed"
 }
 
-dry_run_1_0_13() {
+dry_run_1_0_16() {
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.12 --target 1.0.13 --dry-run
+    caramos-ota-update --from 1.0.15 --target 1.0.16 --dry-run
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.12 --target 1.0.13 --dry-run
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.15 --target 1.0.16 --dry-run
   fi
 }
 
-run_1_0_13() {
+run_1_0_16() {
   require_root
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.12 --target 1.0.13
+    caramos-ota-update --from 1.0.15 --target 1.0.16
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.12 --target 1.0.13
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.15 --target 1.0.16
   fi
 }
 
@@ -242,9 +250,9 @@ case "${cmd}" in
   install-deb) install_deb "${1:-}" ;;
   backup) backup_system ;;
   smoke) smoke_installed ;;
-  dry-run-1.0.13) dry_run_1_0_13 ;;
-  run-1.0.13) run_1_0_13 ;;
-  verify-1.0.13) verify_1_0_2 ;;
+  dry-run-1.0.16) dry_run_1_0_16 ;;
+  run-1.0.16) run_1_0_16 ;;
+  verify-1.0.16) verify_1_0_2 ;;
   restore) restore_system ;;
   -h|--help|help|"") usage ;;
   *) echo "Unknown command: ${cmd}" >&2; usage; exit 1 ;;

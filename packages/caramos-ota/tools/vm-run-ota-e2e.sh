@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.12}"
-TEST_RELEASE_TARGET="${TEST_RELEASE_TARGET:-1.0.13}"
+TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.14}"
+TEST_RELEASE_TARGET="${TEST_RELEASE_TARGET:-1.0.16}"
 BACKUP_DIR="/root/caramos-ota-e2e-backup"
 
 usage() {
@@ -26,8 +26,8 @@ Commands:
   purge            Purge caramos-ota and remove OTA repo/keyring/state/test leftovers
 
 Environment:
-  TEST_RELEASE_FROM=1.0.11
-  TEST_RELEASE_TARGET=1.0.13
+  TEST_RELEASE_FROM=1.0.14
+  TEST_RELEASE_TARGET=1.0.16
 EOF
 }
 
@@ -112,6 +112,35 @@ smoke() {
   command -v caramos-ota-notifier
   command -v caramos-ota-update
   echo "[OK] OTA commands installed"
+}
+
+bootstrap_test_ledger() {
+  require_root
+  TEST_RELEASE_FROM="${TEST_RELEASE_FROM}" PYTHONPATH=/usr/lib/python3/dist-packages python3 - <<'PY'
+import os
+
+from caramos_ota_update.ledger import save_ledger
+from caramos_ota_update.registry import discover_migrations, version_le
+
+installed_version = os.environ["TEST_RELEASE_FROM"]
+catalog = discover_migrations()
+applied = [item for item in catalog if version_le(item.release, installed_version)]
+save_ledger(
+    {
+        "schema": 1,
+        "applied_migrations": [
+            {
+                "id": item.migration_id,
+                "release": item.release,
+                "applied_at": None,
+                "source": "vm-test-release-bootstrap",
+            }
+            for item in applied
+        ],
+    }
+)
+PY
+  echo "[OK] Bootstrapped migration ledger through ${TEST_RELEASE_FROM}"
 }
 
 run_cli_migration() {
@@ -239,6 +268,7 @@ prepare_check() {
   require_root
   disable_live_cdrom_source
   set_test_release
+  bootstrap_test_ledger
   run_check_and_show_state
 }
 

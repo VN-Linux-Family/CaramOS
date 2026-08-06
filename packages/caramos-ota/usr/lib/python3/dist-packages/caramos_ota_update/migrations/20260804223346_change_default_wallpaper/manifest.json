@@ -1,0 +1,20 @@
+{
+  "schema": 2,
+  "release": "1.0.15",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "1.5 MB wallpaper payload",
+  "title": "Hình nền mặc định mới cho CaramOS",
+  "summary": "Cài hình nền CaramOS mới và cập nhật an toàn hình nền mặc định cho desktop và màn hình đăng nhập.",
+  "release_notes_vi": [
+    "Cài hình nền wallpaper2 mới cho CaramOS.",
+    "Cập nhật hình nền mặc định cho desktop và màn hình đăng nhập qua đường dẫn ổn định default.png.",
+    "Giữ nguyên hình nền tùy chỉnh của người dùng."
+  ],
+  "release_notes_en": [
+    "Install the new wallpaper2 image for CaramOS.",
+    "Update the default desktop and login-screen wallpaper through the stable default.png path.",
+    "Preserve user-selected custom wallpapers."
+  ]
+}

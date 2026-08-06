@@ -27,20 +27,26 @@
 }
 
 /* -------- Popup surface (light, self-owned) -------- */
-.caramos-cc-popup {
+.menu.caramos-cc-popup,
+.menu.caramos-cc-popup.top,
+.menu.caramos-cc-popup.bottom,
+.menu.caramos-cc-popup.left,
+.menu.caramos-cc-popup.right {
   background-color: rgba(240, 238, 237, 0.99);
   color: rgba(48, 48, 48, 0.94);
-  border-radius: 16px;
+  border-radius: 28px;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .caramos-cc-popup .popup-menu-content {
   padding: 0;
   background-color: transparent;
+  border-radius: 28px;
 }
 
 .caramos-cc-popup-box {
   padding: 0;
+  border-radius: 28px;
 }
 
 .caramos-cc-container {
@@ -250,6 +256,61 @@
   color: rgba(48, 48, 48, 0.82);
 }
 
+/* -------- Audio controls -------- */
+.caramos-cc-audio-group {
+  spacing: 0;
+  padding: 2px 0;
+}
+
+.caramos-cc-audio-disclosure {
+  width: 28px;
+  min-width: 28px;
+  max-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  background-color: transparent;
+}
+
+.caramos-cc-audio-disclosure:hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+.caramos-cc-audio-disclosure:focus {
+  background-color: transparent;
+  outline: 2px solid #f59f22;
+  outline-offset: 1px;
+}
+
+.caramos-cc-audio-disclosure:active {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.caramos-cc-audio-disclosure:insensitive {
+  opacity: 0.38;
+}
+
+.caramos-cc-audio-disclosure-icon {
+  icon-size: 14px;
+  color: rgba(48, 48, 48, 0.68);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-audio-disclosure:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-audio-disclosure:active {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-audio-disclosure-icon {
+  color: rgba(225, 225, 228, 0.82);
+}
+
+.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-audio-disclosure:focus {
+  outline-width: 3px;
+}
+
 /* -------- Inline card (Wi‑Fi / Bluetooth expanded panel) -------- */
 .caramos-cc-expanded-panel {
   padding-top: 2px;
@@ -287,13 +348,26 @@
 }
 
 .caramos-cc-inline-close {
-  min-width: 22px;
-  min-height: 22px;
+  min-width: 28px;
+  min-height: 28px;
   border-radius: 999px;
+  background-color: transparent;
 }
 
 .caramos-cc-inline-close:hover {
   background-color: rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-inline-close:focus {
+  background-color: rgba(245, 159, 34, 0.10);
+}
+
+.caramos-cc-inline-close:active {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.caramos-cc-inline-close:insensitive {
+  opacity: 0.42;
 }
 
 .caramos-cc-inline-close-icon {
@@ -323,6 +397,16 @@
 
 .caramos-cc-inline-card .caramos-cc-list-row:hover {
   background-color: rgba(0, 0, 0, 0.04);
+}
+
+.caramos-cc-list-row.caramos-cc-audio-pointer-selection:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-list-row.caramos-cc-audio-pointer-selection:focus {
+  outline: none;
+  box-shadow: none;
 }
 
 .caramos-cc-inline-card .caramos-cc-expand-empty {
@@ -370,10 +454,23 @@
   min-width: 28px;
   min-height: 28px;
   border-radius: 999px;
+  background-color: transparent;
 }
 
 .caramos-cc-overlay-close:hover {
   background-color: rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-overlay-close:focus {
+  background-color: rgba(245, 159, 34, 0.10);
+}
+
+.caramos-cc-overlay-close:active {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.caramos-cc-overlay-close:insensitive {
+  opacity: 0.42;
 }
 
 .caramos-cc-overlay-close-icon {
@@ -487,4 +584,91 @@
 
 .caramos-cc-dialog-btn-primary:hover {
   background-color: #ffb642;
+}
+
+/* -------- Theme and accessibility overrides -------- */
+.caramos-cc-popup.caramos-cc-light {
+  /* Light theme uses base Control Center surfaces. */
+}
+
+.menu.caramos-cc-popup.caramos-cc-dark {
+  background-color: rgba(35, 35, 38, 0.99);
+  color: rgba(245, 245, 247, 0.96);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-battery-pill,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-round-button,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-split-tile,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-simple-tile {
+  background-color: rgba(255, 255, 255, 0.10);
+  color: rgba(245, 245, 247, 0.96);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-title,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-pill-label,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-list-label,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-title,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-title {
+  color: rgba(245, 245, 247, 0.96);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-subtitle,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-expand-empty {
+  color: rgba(220, 220, 224, 0.72);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-card,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-card {
+  background-color: rgba(48, 48, 52, 0.98);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.caramos-cc-popup.caramos-cc-high-contrast {
+  border: 2px solid currentColor;
+}
+
+.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-round-button:focus,
+.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-list-row:focus,
+.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-split-main:focus,
+.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-split-arrow:focus,
+.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-slider-icon-button:focus {
+  outline: 3px solid #f59f22;
+  outline-offset: 2px;
+}
+
+.caramos-cc-slider-icon-button:focus,
+.caramos-cc-round-button:focus,
+.caramos-cc-split-main:focus,
+.caramos-cc-split-arrow:focus,
+.caramos-cc-inline-close:focus,
+.caramos-cc-overlay-close:focus {
+  outline: 2px solid #f59f22;
+  outline-offset: 2px;
+}
+
+/* Mouse-activated list actions must not retain a distracting keyboard ring. */
+.caramos-cc-list-row:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-list-row:focus {
+  outline: 3px solid #f59f22;
+  outline-offset: 2px;
+}
+
+.caramos-cc-slider-icon-button {
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 999px;
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-slider-item {
+  -slider-background-color: rgba(255, 255, 255, 0.24);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-card .caramos-cc-list-row:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-list-row:hover {
+  background-color: rgba(255, 255, 255, 0.10);
 }

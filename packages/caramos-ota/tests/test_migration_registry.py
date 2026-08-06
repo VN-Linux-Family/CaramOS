@@ -69,33 +69,92 @@ class MigrationRegistryTests(unittest.TestCase):
             encoding="utf-8",
         )
 
-    def test_bundled_catalog_starts_timestamp_migrations_at_1_0_13(self) -> None:
+    def test_bundled_catalog_assigns_timestamp_migrations_to_releases(self) -> None:
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(12, len(catalog))
+        self.assertEqual(15, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
+        self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
 
-        migration = descriptors["20260715090258_install_control_center"]
-        self.assertEqual(2, migration.schema)
-        self.assertEqual("1.0.13", migration.release)
-        self.assertFalse(migration.legacy)
+        control_center = descriptors["20260715090258_install_control_center"]
+        self.assertEqual(2, control_center.schema)
+        self.assertEqual("1.0.13", control_center.release)
+        self.assertFalse(control_center.legacy)
 
-        plan = resolve_plan(
+        taskbar = descriptors["20260803120000_apply_three_dock_taskbar"]
+        self.assertEqual(2, taskbar.schema)
+        self.assertEqual("1.0.14", taskbar.release)
+        self.assertFalse(taskbar.legacy)
+
+        wallpaper = descriptors["20260804223346_change_default_wallpaper"]
+        self.assertEqual(2, wallpaper.schema)
+        self.assertEqual("1.0.15", wallpaper.release)
+        self.assertFalse(wallpaper.legacy)
+
+        taskbar_pins = descriptors["20260805111120_update_taskbar_pins_cleanup_desktop"]
+        self.assertEqual(2, taskbar_pins.schema)
+        self.assertEqual("1.0.16", taskbar_pins.release)
+        self.assertFalse(taskbar_pins.legacy)
+
+        legacy_ids = {item.migration_id for item in catalog if item.legacy}
+        plan_1_0_13 = resolve_plan(
             "1.0.12",
             target_version="1.0.13",
-            applied_ids={item.migration_id for item in catalog if item.legacy},
+            applied_ids=legacy_ids,
             descriptors=catalog,
         )
         self.assertEqual(
             ["20260715090258_install_control_center"],
-            [item.migration_id for item in plan.migrations],
+            [item.migration_id for item in plan_1_0_13.migrations],
+        )
+
+        plan_1_0_14 = resolve_plan(
+            "1.0.13",
+            target_version="1.0.14",
+            applied_ids=legacy_ids | {"20260715090258_install_control_center"},
+            descriptors=catalog,
+        )
+        self.assertEqual(
+            ["20260803120000_apply_three_dock_taskbar"],
+            [item.migration_id for item in plan_1_0_14.migrations],
+        )
+
+        plan_1_0_15 = resolve_plan(
+            "1.0.14",
+            target_version="1.0.15",
+            applied_ids=legacy_ids
+            | {
+                "20260715090258_install_control_center",
+                "20260803120000_apply_three_dock_taskbar",
+            },
+            descriptors=catalog,
+        )
+        self.assertEqual(
+            ["20260804223346_change_default_wallpaper"],
+            [item.migration_id for item in plan_1_0_15.migrations],
+        )
+
+        plan_1_0_16 = resolve_plan(
+            "1.0.15",
+            target_version="1.0.16",
+            applied_ids=legacy_ids
+            | {
+                "20260715090258_install_control_center",
+                "20260803120000_apply_three_dock_taskbar",
+                "20260804223346_change_default_wallpaper",
+            },
+            descriptors=catalog,
+        )
+        self.assertEqual(
+            ["20260805111120_update_taskbar_pins_cleanup_desktop"],
+            [item.migration_id for item in plan_1_0_16.migrations],
         )
 
         applied_plan = resolve_plan(
-            "1.0.12",
-            target_version="1.0.13",
+            "1.0.13",
+            target_version="1.0.14",
             applied_ids={item.migration_id for item in catalog},
             descriptors=catalog,
         )

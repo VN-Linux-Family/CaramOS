@@ -9,8 +9,6 @@ INSTALL_DIR="/usr/local/bin"
 APPIMAGE_PATH="$INSTALL_DIR/Zalo.AppImage"
 
 DESKTOP_FILE="/usr/share/applications/zalo.desktop"
-SKEL_DESKTOP_DIR="/etc/skel/Desktop"
-SKEL_DESKTOP_FILE="$SKEL_DESKTOP_DIR/zalo.desktop"
 ICON_PATH="/usr/share/pixmaps/zalo.png"
 
 echo "==> Kiểm tra quyền root"
@@ -21,7 +19,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 echo "==> Tạo thư mục"
-mkdir -p "$INSTALL_DIR" "$SKEL_DESKTOP_DIR"
+mkdir -p "$INSTALL_DIR"
 
 echo "==> Tải AppImage"
 wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
@@ -48,17 +46,9 @@ EOF
 
 chmod +x "$DESKTOP_FILE"
 
-echo "==> Đưa Zalo ra Desktop cho user mặc định"
-cp "$DESKTOP_FILE" "$SKEL_DESKTOP_FILE"
-chmod +x "$SKEL_DESKTOP_FILE"
-gio set "$SKEL_DESKTOP_FILE" metadata::trusted true 2>/dev/null || true
-
-# Cinnamon/Nemo nhận shortcut desktop là trusted nếu có attribute này.
-# Nếu gio metadata không khả dụng trong chroot, chmod +x vẫn đảm bảo có thể mở shortcut.
-
 echo "==> Cập nhật database ứng dụng"
 update-desktop-database /usr/share/applications 2>/dev/null || true
 
 echo ""
 echo "Cài đặt hoàn tất."
-echo "Mở Zalo từ Desktop hoặc menu ứng dụng."
+echo "Mở Zalo từ taskbar hoặc menu ứng dụng."

@@ -10,6 +10,9 @@ draw-user-backgrounds=false
 cursor-theme-name='Bibata-Modern-Classic'
 cursor-theme-size=24
 
+[org.blueman.general]
+plugin-list=['!ShowConnected', '!StatusIcon']
+
 [org.cinnamon]
 panel-scale-text-icons=true
 workspace-expo-view-as-grid=true

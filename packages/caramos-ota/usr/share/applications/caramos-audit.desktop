@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Audit
+Name[vi]=CaramOS Audit — Thu thập báo cáo lỗi
+Comment=Create an offline CaramOS bug report bundle
+Comment[vi]=Tạo báo cáo lỗi CaramOS offline để gửi cho maintainer
+Exec=/usr/bin/caramos-ota-audit
+Icon=utilities-terminal
+Terminal=false
+Categories=System;Utility;
+Keywords=CaramOS;Audit;Bug;Hardware;Báo lỗi;Phần cứng;
+StartupNotify=true

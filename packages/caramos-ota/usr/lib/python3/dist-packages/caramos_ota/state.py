@@ -12,29 +12,51 @@ from .constants import STATE_DIR, STATE_FILE
 
 
 def default_state() -> dict[str, Any]:
-    """Return a fresh schema-v1 state object."""
+    """Return a fresh state object."""
 
     return {
-        "schema": 1,
+        "schema": 2,
         "last_check": None,
         "last_successful_upgrade": None,
         "installed_release": None,
         "available_update": None,
+        "transaction": None,
         "transactions": [],
     }
 
 
+def _upgrade_state(state: dict[str, Any]) -> dict[str, Any]:
+    schema = state.get("schema")
+    if schema == 1:
+        state["schema"] = 2
+        state.setdefault("transaction", None)
+    elif schema != 2:
+        raise ValueError("unsupported state schema")
+    state.setdefault("last_check", None)
+    state.setdefault("last_successful_upgrade", None)
+    state.setdefault("installed_release", state.pop("installed_version", None))
+    state.setdefault("available_update", None)
+    state.setdefault("transaction", None)
+    state.setdefault("transactions", [])
+    if not isinstance(state["transactions"], list):
+        state["transactions"] = []
+    return state
+
+
 def load_state() -> dict[str, Any]:
-    """Load state.json, backing up corrupt/unsupported state before resetting."""
+    """Load state.json, upgrading v1 and backing up corrupt state."""
 
     if STATE_FILE.exists():
         try:
             with STATE_FILE.open("r", encoding="utf-8") as handle:
                 state = json.load(handle)
-            if isinstance(state, dict) and state.get("schema") == 1:
-                state.setdefault("transactions", [])
-                return state
-            raise ValueError("unsupported state schema")
+            if not isinstance(state, dict):
+                raise ValueError("state root is not an object")
+            original_schema = state.get("schema")
+            upgraded = _upgrade_state(state)
+            if original_schema == 1:
+                save_state(upgraded)
+            return upgraded
         except Exception:
             backup = STATE_FILE.with_name(f"{STATE_FILE.name}.corrupt.{int(datetime.now().timestamp())}")
             try:
@@ -47,8 +69,9 @@ def load_state() -> dict[str, Any]:
 
 
 def save_state(state: dict[str, Any]) -> None:
-    """Atomically write state.json with user-readable permissions for notifier."""
+    """Atomically write state.json with user-readable permissions."""
 
+    state = _upgrade_state(state)
     STATE_DIR.mkdir(parents=True, exist_ok=True)
     temp_file = STATE_FILE.with_suffix(".json.tmp")
     with temp_file.open("w", encoding="utf-8") as handle:
@@ -59,26 +82,21 @@ def save_state(state: dict[str, Any]) -> None:
 
 
 def state_field(state: dict[str, Any], field: str) -> Any:
-    """Return a printable state field value."""
-
     value = state.get(field)
     return "(none)" if value is None else value
 
 
 def add_transaction(state: dict[str, Any], transaction: dict[str, Any]) -> None:
-    """Append one transaction and keep only the latest 20 entries."""
-
     transactions = state.setdefault("transactions", [])
     if not isinstance(transactions, list):
         transactions = []
     transactions.append(transaction)
     state["transactions"] = transactions[-20:]
+    state["transaction"] = transaction
     save_state(state)
 
 
 def update_transaction_status(state: dict[str, Any], txn_id: str, status: str, finished_at: str) -> None:
-    """Update transaction status and success metadata."""
-
     selected: dict[str, Any] | None = None
     for txn in state.get("transactions", []):
         if isinstance(txn, dict) and txn.get("id") == txn_id:
@@ -86,16 +104,16 @@ def update_transaction_status(state: dict[str, Any], txn_id: str, status: str, f
             txn["finished_at"] = finished_at
             selected = txn
             break
+    if selected is not None:
+        state["transaction"] = selected
     if status == "success" and selected:
-        state["installed_release"] = selected.get("manifest_release")
+        state["installed_release"] = selected.get("target_version") or selected.get("manifest_release")
         state["last_successful_upgrade"] = finished_at
         state["available_update"] = None
     save_state(state)
 
 
 def latest_success_transaction(state: dict[str, Any]) -> dict[str, Any] | None:
-    """Return the newest successful transaction, if one exists."""
-
     for txn in reversed(state.get("transactions", [])):
         if isinstance(txn, dict) and txn.get("status") == "success":
             return txn

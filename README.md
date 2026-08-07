@@ -92,7 +92,7 @@ thân thiện, hiện đại và sẵn sàng cho người dùng Việt Nam.
 | **Build method** | ISO remaster: extract → customize → OTA bootstrap → repack |
 | **Build scripts** | Bash + Makefile, tách module trong `scripts/` |
 | **OTA model** | `caramos-ota` version migration-driven OTA |
-| **Migration runner** | `caramos-ota-update` chạy migration tuần tự `FROM_VERSION -> TO_VERSION` |
+| **Migration runner** | `caramos-ota-update` chạy timestamp migrations chưa apply theo ledger |
 | **Update Center** | `caramos-ota-notifier` + `pkexec caramos-ota --upgrade --yes` |
 | **Developer workflow** | Thay đổi hệ thống sau release phải vào `packages/caramos-ota` migration |
 | **Legacy hooks** | `config/hooks/live/` chỉ dùng cho bootstrap/build-time nền tảng, không là nơi phát triển feature OTA mới |
@@ -243,7 +243,7 @@ make build
 Build release local, nén `xz` để ISO nhỏ hơn:
 
 ```bash
-make release
+make release VERSION=x.y.z
 ```
 
 Build từ ISO Mint có sẵn:
@@ -267,7 +267,7 @@ extract base ISO
 | Lệnh | Mục đích |
 |---|---|
 | `make build` | Build dev đầy đủ, nén `lz4` |
-| `make release` | Build release, nén `xz` |
+| `make release VERSION=x.y.z` | Build release, nén `xz` |
 | `make prepare` | Bung ISO/rootfs ra `build/` để sửa nhanh |
 | `make customize-only` | Chạy packages, overlay và hooks trong rootfs |
 | `make overlay` | Chỉ copy `config/includes.chroot` vào rootfs |

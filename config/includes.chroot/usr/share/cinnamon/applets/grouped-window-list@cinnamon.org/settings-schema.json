@@ -155,6 +155,8 @@
     "default": [
       "google-chrome.desktop",
       "wps-office-prometheus.desktop",
+      "zalo.desktop",
+      "mintinstall.desktop",
       "cinnamon-settings.desktop"
     ]
   },

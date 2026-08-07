@@ -1,11 +1,17 @@
 usr/bin/caramos-ota usr/bin/
+usr/bin/caramos-ota-audit usr/bin/
 usr/bin/caramos-ota-notifier usr/bin/
 usr/bin/caramos-ota-update usr/bin/
 usr/lib/python3/dist-packages/caramos_ota usr/lib/python3/dist-packages/
+usr/lib/python3/dist-packages/caramos_ota_audit usr/lib/python3/dist-packages/
 usr/lib/python3/dist-packages/caramos_ota_notifier usr/lib/python3/dist-packages/
 usr/lib/python3/dist-packages/caramos_ota_update usr/lib/python3/dist-packages/
 usr/share/caramos-ota/slideshow usr/share/caramos-ota/
+usr/share/caramos-ota/applets usr/share/caramos-ota/
 usr/share/applications/caramos-update-center.desktop usr/share/applications/
+usr/share/applications/caramos-audit.desktop usr/share/applications/
+usr/share/pixmaps/caramos-logo.png usr/share/pixmaps/
+usr/share/pixmaps/caramos-logo.png usr/share/icons/hicolor/512x512/apps/
 usr/share/keyrings/caramos-archive-keyring.gpg usr/share/keyrings/
 usr/share/polkit-1/actions/net.vietnamlinuxfamily.caramos-ota.policy usr/share/polkit-1/actions/
 etc/apt/sources.list.d/caramos-ppa.sources etc/apt/sources.list.d/

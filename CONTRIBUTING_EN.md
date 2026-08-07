@@ -112,11 +112,11 @@ CaramOS/
 │           ├── caramos_ota/
 │           ├── caramos_ota_notifier/
 │           └── caramos_ota_update/migrations/
-│               ├── migration.json
-│               └── vX_Y_Z/
+│               ├── migration.json       # frozen historical bridge
+│               ├── v1_0_*/              # legacy migrations through 1.0.12
+│               └── YYYYMMDDHHMMSS_name/
 │                   ├── manifest.json
-│                   ├── __init__.py
-│                   └── *.py
+│                   └── migration.py
 ├── landing/                         # Website/landing page
 ├── docs/                            # Operations/release tracking docs
 ├── assets/                          # Logo, banner, screenshots
@@ -200,30 +200,26 @@ for example:
 
 Do not use hooks as a replacement for migrations in these cases.
 
-### Files to add/update for an OTA version
+### Files to add for an OTA migration
 
 ```text
-packages/caramos-ota/
-├── debian/changelog
-└── usr/lib/python3/dist-packages/caramos_ota_update/migrations/
-    ├── migration.json
-    └── vX_Y_Z/
-        ├── manifest.json
-        ├── __init__.py
-        └── migration_file.py
+packages/caramos-ota/usr/lib/python3/dist-packages/caramos_ota_update/migrations/
+└── YYYYMMDDHHMMSS_migration_name/
+    ├── manifest.json
+    ├── migration.py
+    └── optional payload
 ```
 
-A migration version must include:
-
-- a new version entry in `migration.json`;
-- the matching `vX_Y_Z/` directory;
-- `manifest.json` with UI title/summary/changelog metadata;
-- code declaring `FROM_VERSION`, `TO_VERSION`, and `DESCRIPTION`;
-- a `run(context)` function that applies the change.
+Generate the timestamp with `date -u +%Y%m%d%H%M%S`. Schema-2 `manifest.json`
+declares `release`, UI metadata, `codename`, and `channel`. `migration.py` declares
+`DESCRIPTION` and `run(context)`. Do not edit `migration.json`; it is the frozen
+historical bridge through `1.0.12`; timestamp migrations start with release `1.0.13`. See
+[packages/caramos-ota/MIGRATIONS.md](packages/caramos-ota/MIGRATIONS.md).
 
 ### Migration rules
 
-- Each migration should upgrade exactly one adjacent version step.
+- Published timestamp IDs are immutable; make a new migration for follow-up fixes.
+- Multiple migrations may share one `release`; the runner orders them by ID.
 - Migrations must be idempotent or include explicit rerun guards.
 - Do not download or execute scripts from the internet inside migrations.
 - Do not download `.deb` files manually; use the configured APT/PPA path.
@@ -258,9 +254,9 @@ make vm-test-notifier
 
 PR checklist:
 
-- [ ] New migration has a clear version path.
-- [ ] `migration.json` and `manifest.json` are valid.
-- [ ] `make compile`, `make validate`, and `make build` pass.
+- [ ] New migration has a unique UTC timestamp ID and clear release.
+- [ ] `migration.json` is unchanged; schema-2 `manifest.json` is valid.
+- [ ] `make compile`, `make validate`, `./tools/caramos-ota-testkit.sh test`, and `make build` pass.
 - [ ] Upgrade from an older version was tested in a VM snapshot if possible.
 - [ ] Update Center does not hang when a migration fails or a command times out.
 - [ ] Logs in `/var/log/caramos-ota/` are sufficient for debugging.

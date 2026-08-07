@@ -1,5 +1,6 @@
 """CaramOS OTA version migration runner package."""
 
-from .runner import Migration, MigrationRunner, MigrationRunnerError
+from .registry import MigrationDescriptor, MigrationPlan
+from .runner import MigrationRunner, MigrationRunnerError
 
-__all__ = ["Migration", "MigrationRunner", "MigrationRunnerError"]
+__all__ = ["MigrationDescriptor", "MigrationPlan", "MigrationRunner", "MigrationRunnerError"]

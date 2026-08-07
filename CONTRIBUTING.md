@@ -59,11 +59,9 @@ Linux Mint ISO
 
 Điểm quan trọng:
 
-- `scripts/config.sh` chứa version ISO và base migration version.
-- `CARAMOS_MIGRATION_BASE_VERSION="1.0.1"` được giữ để ISO build chạy đủ chain
-  migration từ bản Open Beta đầu tiên tới latest.
-- `scripts/ota_bootstrap.sh` build package `caramos-ota`, cài vào rootfs và chạy
-  migration trước khi repack ISO.
+- `scripts/config.sh` chứa version ISO và base migration version lịch sử.
+- `CARAMOS_MIGRATION_BASE_VERSION="1.0.1"` được giữ cho compatibility bootstrap từ bản Open Beta đầu tiên.
+- `scripts/ota_bootstrap.sh` build package `caramos-ota`, cài vào rootfs và chạy timestamp migrations chưa apply trước khi repack ISO.
 - Kết quả ISO build ra đã là version mới nhất trong source tree.
 - OTA là đường nâng cấp cho máy user đã cài từ ISO cũ.
 

@@ -2,11 +2,12 @@
 
 from pathlib import Path
 
-TOOL_VERSION = "1.0.12-0caramos1"
+TOOL_VERSION = "1.0.16-0caramos1"
 TOOL_NAME = "caramos-ota"
 
 STATE_DIR = Path("/var/lib/caramos-ota")
 STATE_FILE = STATE_DIR / "state.json"
+MIGRATION_LEDGER_FILE = STATE_DIR / "migrations.json"
 LOCK_FILE = STATE_DIR / "lock"
 LOG_DIR = Path("/var/log/caramos-ota")
 RELEASE_FILE = Path("/etc/caramos-release")

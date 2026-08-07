@@ -104,11 +104,43 @@ def add_info_row(Gtk, grid, row: int, label: str, value: object) -> None:
     grid.attach(val, 1, row, 1, 1)
 
 
-def build_update_dialog(update_info: dict[str, Any]):
-    """Build and show the GTK3 update dialog."""
+def _add_action_buttons(Gtk, outer, buttons: list[tuple[str, Any]]) -> None:
+    """Add right-aligned page actions."""
+
+    actions = Gtk.ButtonBox(orientation=Gtk.Orientation.HORIZONTAL)
+    actions.set_layout(Gtk.ButtonBoxStyle.END)
+    actions.set_spacing(8)
+    for label, callback in buttons:
+        button = Gtk.Button(label=label)
+        button.connect("clicked", callback)
+        actions.add(button)
+    outer.pack_start(actions, False, False, 0)
+
+
+def build_update_window():
+    """Build the single top-level window used by every notifier state."""
 
     Gtk, Gdk, _ = import_gtk()
     apply_theme(Gtk, Gdk)
+
+    window = Gtk.Window()
+    window.set_title("CaramOS - Trung tâm cập nhật")
+    window.set_default_size(*_screen_dialog_size(Gdk))
+    window.set_resizable(True)
+    window.set_position(Gtk.WindowPosition.CENTER)
+    set_caramos_icon(window, Gtk)
+
+    stack = Gtk.Stack()
+    stack.set_transition_type(Gtk.StackTransitionType.CROSSFADE)
+    stack.set_transition_duration(180)
+    window.add(stack)
+    return window, stack
+
+
+def build_update_page(update_info: dict[str, Any], on_accept, on_close):
+    """Build the available-update page."""
+
+    Gtk, _, _ = import_gtk()
 
     current_version = format_value(update_info.get("current_version") or update_info.get("from_version"))
     new_release = format_value(update_info.get("release") or update_info.get("to_version"))
@@ -121,36 +153,12 @@ def build_update_dialog(update_info: dict[str, Any]):
         "Bản cập nhật này sẽ chạy migration CaramOS cần thiết cho phiên bản mới.",
     )
     packages = [normalize_package(pkg) for pkg in update_info.get("packages", [])]
-    release_notes = update_info.get("release_notes_vi") or update_info.get("release_notes") or []
-    visible_notes = release_notes
-    hidden_notes = 0
-
-    dialog = Gtk.Dialog()
-    dialog.set_title("CaramOS - Trung tâm cập nhật")
-    screen = Gdk.Screen.get_default()
-    screen_width = screen.get_width() if screen is not None else 1024
-    screen_height = screen.get_height() if screen is not None else 768
-    dialog_width = min(760, max(620, int(screen_width * 0.74)))
-    dialog_height = min(max(520, int(screen_height * 0.72)), screen_height - 140)
-    dialog.set_default_size(dialog_width, dialog_height)
-    dialog.set_size_request(620, 500)
-    dialog.set_resizable(True)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    set_caramos_icon(dialog, Gtk)
-
-    content = dialog.get_content_area()
-    content.set_spacing(0)
-    content.set_margin_top(0)
-    content.set_margin_bottom(0)
-    content.set_margin_start(0)
-    content.set_margin_end(0)
 
     outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     outer.set_margin_top(12)
     outer.set_margin_bottom(10)
     outer.set_margin_start(14)
     outer.set_margin_end(14)
-    content.pack_start(outer, True, True, 0)
 
     hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     hero.get_style_context().add_class("hero")
@@ -211,48 +219,12 @@ def build_update_dialog(update_info: dict[str, Any]):
     add_info_row(Gtk, meta_card, 1, "Mức độ", severity)
     add_info_row(Gtk, meta_card, 2, "Dung lượng", size)
 
-    body = Gtk.Paned(orientation=Gtk.Orientation.HORIZONTAL)
-    outer.pack_start(body, True, True, 0)
-
-    notes_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
-    notes_panel.get_style_context().add_class("card")
-    body.pack1(notes_panel, resize=True, shrink=False)
-
-    notes_title = Gtk.Label()
-    notes_title.set_markup("<span weight='bold'>Nội dung cập nhật</span>")
-    notes_title.set_xalign(0)
-    notes_panel.pack_start(notes_title, False, False, 0)
-
-    notes_scroll = Gtk.ScrolledWindow()
-    notes_scroll.set_min_content_height(95)
-    notes_scroll.set_max_content_height(170)
-    notes_panel.pack_start(notes_scroll, True, True, 0)
-
-    if visible_notes:
-        notes_text = "\n\n".join(f"• {format_value(note)}" for note in visible_notes)
-        if hidden_notes:
-            notes_text += f"\n\n• Và {hidden_notes} thay đổi khác..."
-    else:
-        notes_text = "• Chạy migration CaramOS theo manifest OTA."
-
-    notes_view = Gtk.TextView()
-    notes_view.get_style_context().add_class("notes-view")
-    notes_view.set_editable(False)
-    notes_view.set_cursor_visible(False)
-    notes_view.set_wrap_mode(Gtk.WrapMode.WORD_CHAR)
-    notes_view.set_left_margin(0)
-    notes_view.set_right_margin(6)
-    notes_view.set_top_margin(0)
-    notes_view.set_bottom_margin(0)
-    notes_view.get_buffer().set_text(notes_text)
-    notes_scroll.add(notes_view)
-
     pkg_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     pkg_panel.get_style_context().add_class("card")
-    body.pack2(pkg_panel, resize=True, shrink=False)
+    outer.pack_start(pkg_panel, True, True, 0)
 
     pkg_title = Gtk.Label()
-    pkg_title.set_markup(f"<span weight='bold'>Migration sẽ chạy ({len(packages)})</span>")
+    pkg_title.set_markup(f"<span weight='bold'>Nội dung sẽ cập nhật ({len(packages)})</span>")
     pkg_title.set_xalign(0)
     pkg_panel.pack_start(pkg_title, False, False, 0)
 
@@ -264,24 +236,11 @@ def build_update_dialog(update_info: dict[str, Any]):
     pkg_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     for pkg in packages:
         item = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
-        name_lbl = Gtk.Label()
-        badge = "bắt buộc" if pkg["required"] is True else "tùy chọn" if pkg["required"] is False else "gói"
-        name_lbl.set_markup(
-            f"<span weight='bold'>{html.escape(str(pkg['name']))}</span>  "
-            f"<span foreground='#657064'>({html.escape(badge)})</span>"
-        )
-        name_lbl.set_xalign(0)
-        item.pack_start(name_lbl, False, False, 0)
-
-        ver_lbl = Gtk.Label()
-        ver_lbl.set_text(f"{pkg['current']}  →  {pkg['available']}")
-        ver_lbl.set_xalign(0)
-        ver_lbl.set_selectable(True)
-        item.pack_start(ver_lbl, False, False, 0)
-
-        if pkg["description"]:
-            item.set_tooltip_text(str(pkg["description"]))
-
+        description = format_value(pkg.get("description") or pkg.get("name"), "Cập nhật CaramOS")
+        description_lbl = Gtk.Label(label=description)
+        description_lbl.set_xalign(0)
+        description_lbl.set_line_wrap(True)
+        item.pack_start(description_lbl, False, False, 0)
         pkg_box.pack_start(item, False, False, 0)
 
     scroll.add(pkg_box)
@@ -296,11 +255,15 @@ def build_update_dialog(update_info: dict[str, Any]):
     warning.set_line_wrap(True)
     outer.pack_start(warning, False, False, 0)
 
-    dialog.add_button("Để sau", Gtk.ResponseType.CLOSE)
-    dialog.add_button("Cập nhật ngay", Gtk.ResponseType.ACCEPT)
-
-    dialog.show_all()
-    return dialog
+    _add_action_buttons(
+        Gtk,
+        outer,
+        [
+            ("Để sau", lambda _button: on_close()),
+            ("Cập nhật ngay", lambda _button: on_accept()),
+        ],
+    )
+    return outer
 
 
 def _screen_dialog_size(Gdk, *, width_ratio: float = 0.78, height_ratio: float = 0.80) -> tuple[int, int]:
@@ -314,32 +277,15 @@ def _screen_dialog_size(Gdk, *, width_ratio: float = 0.78, height_ratio: float =
     return width, height
 
 
-def build_progress_dialog():
-    """Build the progress dialog shown during update."""
+def build_progress_page():
+    """Build the progress page shown during update."""
 
-    Gtk, Gdk, _ = import_gtk()
-    apply_theme(Gtk, Gdk)
-    dialog = Gtk.Dialog()
-    dialog.set_title("CaramOS - Đang cập nhật...")
-    dialog.set_default_size(*_screen_dialog_size(Gdk))
-    dialog.set_resizable(True)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    dialog.set_deletable(False)
-    set_caramos_icon(dialog, Gtk)
-
-    content = dialog.get_content_area()
-    content.set_spacing(0)
-    content.set_margin_top(0)
-    content.set_margin_bottom(0)
-    content.set_margin_start(0)
-    content.set_margin_end(0)
-
+    Gtk, _, _ = import_gtk()
     outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     outer.set_margin_top(12)
     outer.set_margin_bottom(10)
     outer.set_margin_start(14)
     outer.set_margin_end(14)
-    content.pack_start(outer, True, True, 0)
 
     hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     hero.get_style_context().add_class("hero")
@@ -391,45 +337,27 @@ def build_progress_dialog():
     warning.set_line_wrap(True)
     outer.pack_start(warning, False, False, 0)
 
-    dialog.show_all()
-    return dialog, progress, stage_lbl, log_view
+    return outer, progress, stage_lbl, log_view
 
 
-def build_result_dialog(success: bool, detail: str = ""):
-    """Build the result dialog after update."""
+def build_result_page(success: bool, detail: str, on_close):
+    """Build the result page shown after update."""
 
-    Gtk, Gdk, _ = import_gtk()
-    apply_theme(Gtk, Gdk)
-    dialog = Gtk.Dialog()
-    dialog.set_default_size(*_screen_dialog_size(Gdk))
-    dialog.set_resizable(True)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    set_caramos_icon(dialog, Gtk)
-
-    content = dialog.get_content_area()
-    content.set_spacing(0)
-    content.set_margin_top(0)
-    content.set_margin_bottom(0)
-    content.set_margin_start(0)
-    content.set_margin_end(0)
-
+    Gtk, _, _ = import_gtk()
     outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     outer.set_margin_top(12)
     outer.set_margin_bottom(10)
     outer.set_margin_start(14)
     outer.set_margin_end(14)
-    content.pack_start(outer, True, True, 0)
 
     hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     hero.get_style_context().add_class("hero")
     outer.pack_start(hero, False, False, 0)
 
     if success:
-        dialog.set_title("CaramOS - Cập nhật thành công!")
         title = "Cập nhật thành công!"
         summary = "CaramOS đã được cập nhật thành công."
     else:
-        dialog.set_title("CaramOS - Cập nhật thất bại")
         title = "Cập nhật thất bại"
         summary = "Đã xảy ra lỗi khi cập nhật. Vui lòng thử lại hoặc chạy sudo caramos-ota --repair."
 
@@ -464,41 +392,24 @@ def build_result_dialog(success: bool, detail: str = ""):
     detail_view.get_buffer().set_text(detail or summary)
     scroll.add(detail_view)
 
-    dialog.add_button("Đóng", Gtk.ResponseType.CLOSE)
-    dialog.show_all()
-    return dialog
+    _add_action_buttons(Gtk, outer, [("Đóng", lambda _button: on_close())])
+    return outer
 
 
-def build_no_update_dialog(status: dict[str, str] | None = None):
-    """Build a visible dialog for manual launches when no update is available."""
+def build_no_update_page(status: dict[str, str] | None, on_close):
+    """Build the page shown after a manual check finds no update."""
 
-    Gtk, Gdk, _ = import_gtk()
-    apply_theme(Gtk, Gdk)
+    Gtk, _, _ = import_gtk()
     status = status or {}
     current_version = format_value(status.get("current_version"))
     latest_version = format_value(status.get("latest_version"))
     channel = format_value(status.get("channel"), "stable")
-
-    dialog = Gtk.Dialog()
-    dialog.set_title("CaramOS - Trung tâm cập nhật")
-    dialog.set_default_size(*_screen_dialog_size(Gdk))
-    dialog.set_resizable(True)
-    dialog.set_position(Gtk.WindowPosition.CENTER)
-    set_caramos_icon(dialog, Gtk)
-
-    content = dialog.get_content_area()
-    content.set_spacing(0)
-    content.set_margin_top(0)
-    content.set_margin_bottom(0)
-    content.set_margin_start(0)
-    content.set_margin_end(0)
 
     outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     outer.set_margin_top(12)
     outer.set_margin_bottom(10)
     outer.set_margin_start(14)
     outer.set_margin_end(14)
-    content.pack_start(outer, True, True, 0)
 
     hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     hero.get_style_context().add_class("hero")
@@ -545,6 +456,5 @@ def build_no_update_dialog(status: dict[str, str] | None = None):
     )
     card.pack_start(body, False, False, 0)
 
-    dialog.add_button("Đóng", Gtk.ResponseType.CLOSE)
-    dialog.show_all()
-    return dialog
+    _add_action_buttons(Gtk, outer, [("Đóng", lambda _button: on_close())])
+    return outer

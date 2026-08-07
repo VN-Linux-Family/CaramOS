@@ -7,12 +7,13 @@ GPG_KEY ?= ledungb11@gmail.com
 GPG_TTY ?= $(shell tty 2>/dev/null || true)
 export GPG_TTY
 REMOTE_USER ?= caram
-REMOTE_HOST ?= 127.0.0.1
-REMOTE_PORT ?= 2222
-TEST_RELEASE_FROM ?= 1.0.1
-TEST_RELEASE_TARGET ?= 1.0.10
+REMOTE_HOST ?= 192.168.122.13
+REMOTE_PORT ?= 22
+TEST_RELEASE_FROM ?= 1.0.12
+TEST_RELEASE_TARGET ?= $(shell PYTHONPATH=usr/lib/python3/dist-packages python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)' 2>/dev/null || printf 'dev')
+VERSION ?=
 
-.PHONY: help clean compile validate build release-deb source release-source ship test test-cli test-notifier smoke inspect status setup-gpg gpg-unlock upload release
+.PHONY: help clean compile validate build release-deb source release-source ship test test-cli test-notifier smoke inspect status prepare-release check-release setup-gpg gpg-unlock upload release
 
 help:
 	@printf '%s\n' 'CaramOS OTA package workflow'
@@ -28,7 +29,7 @@ help:
 	@printf '%s\n' '  make source          Build source package for PPA upload'
 	@printf '%s\n' '  make upload          Upload latest source changes to Launchpad PPA'
 	@printf '%s\n' '  make setup-gpg       Configure local GPG agent/pinentry for release signing'
-	@printf '%s\n' '  make release         Build source package and upload to PPA'
+	@printf '%s\n' '  make release VERSION=x  Stamp version, test, build, sign, and upload'
 	@printf '%s\n' ''
 	@printf '%s\n' 'Variables:'
 	@printf '%s\n' '  PPA=$(PPA)'
@@ -58,7 +59,7 @@ inspect: build
 	  dpkg-deb -c "$$deb" | sed -n '1,220p'
 
 ship:
-	REMOTE_USER='$(REMOTE_USER)' REMOTE_HOST='$(REMOTE_HOST)' REMOTE_PORT='$(REMOTE_PORT)' TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' ./tools/ship-ota-to-vm.sh
+	REMOTE_USER='$(REMOTE_USER)' REMOTE_HOST='$(REMOTE_HOST)' REMOTE_PORT='$(REMOTE_PORT)' TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)' ./tools/ship-ota-to-vm.sh
 
 test test-cli:
 	ssh -p '$(REMOTE_PORT)' '$(REMOTE_USER)@$(REMOTE_HOST)' \
@@ -76,6 +77,15 @@ status:
 	@git status --short
 	@printf '\nLatest package changelog:\n'
 	@dpkg-parsechangelog -S Version
+
+prepare-release:
+	@test -n '$(VERSION)' || { echo 'Usage: make prepare-release VERSION=1.0.17' >&2; exit 2; }
+	./tools/prepare-release.py '$(VERSION)'
+
+check-release:
+	@test -n '$(VERSION)' || { echo 'Usage: make check-release VERSION=1.0.17' >&2; exit 2; }
+	./tools/prepare-release.py --check '$(VERSION)'
+	@version="$$(dpkg-parsechangelog -S Version)"; test "$$version" = '$(VERSION)-0caramos1' || { echo "Error: changelog version $$version does not match $(VERSION)-0caramos1" >&2; exit 1; }
 
 setup-gpg:
 	@echo '== Installing release signing tools =='
@@ -120,9 +130,10 @@ gpg-unlock:
 	@echo '[OK] GPG signing key is unlocked: $(GPG_KEY)'
 
 upload:
-	@changes="$$(find .. -maxdepth 1 -type f -name '$(PACKAGE)_*_source.changes' | sort | tail -n 1)"; \
-	  if [[ -z "$$changes" ]]; then \
-	    echo 'Error: source .changes not found. Run: make source'; \
+	@version="$$(dpkg-parsechangelog -S Version)"; \
+	  changes="../$(PACKAGE)_$${version}_source.changes"; \
+	  if [[ ! -f "$$changes" ]]; then \
+	    echo "Error: source .changes not found for $$version. Run: make source"; \
 	    exit 1; \
 	  fi; \
 	  if ! gpg --verify "$$changes" >/dev/null 2>&1; then \
@@ -132,4 +143,14 @@ upload:
 	  echo "Uploading $$changes to $(PPA)"; \
 	  dput '$(PPA)' "$$changes"
 
-release: gpg-unlock build source upload
+release:
+	@test -n '$(VERSION)' || { echo 'Usage: make release VERSION=1.0.17' >&2; exit 2; }
+	./tools/prepare-release.py '$(VERSION)'
+	./tools/prepare-release.py --check '$(VERSION)'
+	$(MAKE) compile
+	$(MAKE) validate
+	PYTHONPATH=usr/lib/python3/dist-packages python3 -m unittest discover -s tests -v
+	$(MAKE) build
+	$(MAKE) source
+	$(MAKE) gpg-unlock
+	$(MAKE) upload

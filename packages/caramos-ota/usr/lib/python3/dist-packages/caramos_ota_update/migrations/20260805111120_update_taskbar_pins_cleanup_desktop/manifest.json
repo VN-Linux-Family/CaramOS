@@ -1,0 +1,19 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Taskbar and desktop configuration",
+  "title": "Ghim ứng dụng và dọn Desktop CaramOS",
+  "summary": "Ghim Zalo và Trình quản lý phần mềm vào taskbar, đồng thời gỡ các shortcut mặc định khỏi Desktop.",
+  "release_notes_vi": [
+    "Ghim Zalo và Trình quản lý phần mềm vào taskbar Cinnamon khi ứng dụng đã được cài.",
+    "Giữ WPS Office trên taskbar.",
+    "Gỡ shortcut mặc định của WPS Office, Zalo và Trình quản lý phần mềm khỏi Desktop nhưng giữ file đã được người dùng tùy chỉnh."
+  ],
+  "release_notes_en": [
+    "Pin Zalo and Software Manager to the Cinnamon taskbar when installed.",
+    "Keep WPS Office pinned to the taskbar.",
+    "Remove stock WPS Office, Zalo, and Software Manager shortcuts from the desktop while preserving user-modified files."
+  ]
+}

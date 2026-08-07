@@ -17,9 +17,10 @@ Depends: ${misc:Depends},
  python3-gi,
  gir1.2-gtk-3.0,
  pkexec
-Description: CaramOS over-the-air update helper
+Description: CaramOS over-the-air update and offline audit tools
  Provides a CaramOS-specific OTA update command, daily update check,
- desktop notifier, state tracking, logs, and best-effort rollback support.
+ desktop notifier, state tracking, logs, best-effort rollback support,
+ and an offline hardware/session audit bundle creator for bug reports.
  .
  Users only need to run: sudo caramos-ota
  .

@@ -5,7 +5,10 @@ build:
 	sudo ./build.sh $(ISO)
 
 release:
-	@echo "CaramOS Build — Release mode (xz, nhỏ)"
+	@test -n "$(VERSION)" || { echo "Usage: make release VERSION=1.0.17" >&2; exit 2; }
+	@echo "CaramOS Build — Release $(VERSION) (xz, nhỏ)"
+	$(MAKE) -C packages/caramos-ota prepare-release VERSION='$(VERSION)'
+	$(MAKE) -C packages/caramos-ota check-release VERSION='$(VERSION)'
 	sudo ./build.sh --release $(ISO)
 
 prepare:
@@ -58,7 +61,7 @@ help:
 	@echo ""
 	@echo "--- Local Build (Chỉ Ubuntu/Mint/Debian) ---"
 	@echo "  make build                — Full dev build (lz4), giống hành vi cũ"
-	@echo "  make release              — Release build (xz, ~10 phút, ISO nhỏ)"
+	@echo "  make release VERSION=x    — Stamp product version rồi build release ISO"
 	@echo "  make clean                — Xoá build/cache/output ISO (giữ Mint ISO)"
 	@echo "  Yêu cầu: sudo apt install squashfs-tools xorriso rsync wget curl isolinux"
 	@echo ""
@@ -92,7 +95,10 @@ docker-build:
 	docker compose run --rm builder sudo ./build.sh $(ISO)
 
 docker-release:
-	@echo "CaramOS Build — Docker Release mode (xz, nhỏ)"
+	@test -n "$(VERSION)" || { echo "Usage: make docker-release VERSION=1.0.17" >&2; exit 2; }
+	@echo "CaramOS Build — Docker Release $(VERSION) (xz, nhỏ)"
+	$(MAKE) -C packages/caramos-ota prepare-release VERSION='$(VERSION)'
+	$(MAKE) -C packages/caramos-ota check-release VERSION='$(VERSION)'
 	docker compose run --rm builder sudo ./build.sh --release $(ISO)
 
 docker-clean:

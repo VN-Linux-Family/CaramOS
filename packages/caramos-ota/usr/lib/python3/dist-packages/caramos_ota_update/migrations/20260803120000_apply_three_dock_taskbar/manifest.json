@@ -1,0 +1,19 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "OTA desktop feature",
+  "title": "Taskbar ba dock cho CaramOS",
+  "summary": "Chia taskbar Cinnamon thành ba cụm nổi cho Start Menu, ứng dụng và trạng thái hệ thống.",
+  "release_notes_vi": [
+    "Tách taskbar dưới màn hình thành ba dock trái, giữa và phải với khoảng cách đồng đều.",
+    "Đưa Start Menu CaramOS sang dock trái, ứng dụng pinned/đang chạy sang dock giữa và status applet sang dock phải.",
+    "Hiển thị chấm màu CaramOS dưới icon của ứng dụng đang chạy."
+  ],
+  "release_notes_en": [
+    "Split the bottom Cinnamon taskbar into evenly spaced left, center, and right docks.",
+    "Place the CaramOS Start Menu on the left, pinned/running apps in the center, and status applets on the right.",
+    "Show a CaramOS-colored dot below running application icons."
+  ]
+}

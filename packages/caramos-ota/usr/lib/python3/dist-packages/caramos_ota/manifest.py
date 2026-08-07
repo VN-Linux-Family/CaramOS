@@ -1,154 +1,176 @@
-"""Migration metadata loading for CaramOS OTA."""
+"""Auto-discovered migration metadata for CaramOS OTA."""
 
 from __future__ import annotations
 
-import json
 import re
-from importlib import resources
-from typing import Any
+from functools import cmp_to_key
+
+from caramos_ota_update.ledger import applied_ids, bootstrap_ledger
+from caramos_ota_update.registry import (
+    MigrationDescriptor,
+    MigrationPlan,
+    MigrationRegistryError,
+    compare_versions,
+    discover_migrations,
+    resolve_plan,
+    version_lt,
+)
 
 from .constants import EXIT_STATE, TOOL_VERSION
+from .release_metadata import PRODUCT_VERSION
 from .errors import OtaError
 from .models import Manifest, ReleaseInfo
 
 VALID_PACKAGE = re.compile(r"^[a-z0-9][a-z0-9+.-]+$")
 
-_VERSION_RE = re.compile(r"^\d+(?:\.\d+){1,4}(?:[-+~][A-Za-z0-9.+:~_-]+)?$")
-_MIGRATIONS_PACKAGE = "caramos_ota_update.migrations"
-
 
 def validate_package_name(package: str) -> bool:
-    """Return True when a package name is safe to pass as an APT argument."""
-
     return bool(VALID_PACKAGE.fullmatch(package))
 
 
-def _version_key(version: str) -> tuple[int | str, ...]:
-    """Return a comparable key for dotted CaramOS versions."""
-
-    parts: list[int | str] = []
-    for item in re.split(r"[.+:~_-]", version):
-        if item.isdigit():
-            parts.append(int(item))
-        elif item:
-            parts.append(item)
-    return tuple(parts)
+def _ota_error(exc: Exception) -> OtaError:
+    return OtaError(f"Error: Invalid bundled migration registry: {exc}", EXIT_STATE)
 
 
-def _migration_dir(version: str) -> str:
-    """Return the migration directory name for a target version."""
-
-    return "v" + version.replace(".", "_").replace("-", "_").replace("+", "_").replace("~", "_")
-
-
-def _load_json_resource(relative_path: str) -> dict[str, Any]:
-    """Load a bundled migration JSON resource."""
-
+def load_migration_catalog() -> list[MigrationDescriptor]:
     try:
-        root = resources.files(_MIGRATIONS_PACKAGE)
-        raw = json.loads((root / relative_path).read_text(encoding="utf-8"))
-    except Exception as exc:
-        raise OtaError(f"Error: Cannot read migration metadata {relative_path}: {exc}", EXIT_STATE) from exc
-    if not isinstance(raw, dict):
-        raise OtaError(f"Error: Migration metadata root must be an object: {relative_path}", EXIT_STATE)
-    return raw
+        return discover_migrations()
+    except MigrationRegistryError as exc:
+        raise _ota_error(exc) from exc
 
 
 def load_migration_versions() -> list[str]:
-    """Load ordered target versions from migrations/migration.json."""
+    """Return discovered releases for compatibility with older callers."""
 
-    raw = _load_json_resource("migration.json")
-    if raw.get("schema") != 1:
-        raise OtaError("Error: Unsupported migration index schema", EXIT_STATE)
-    versions = raw.get("versions")
-    if not isinstance(versions, list) or not versions:
-        raise OtaError("Error: migration.json must contain a non-empty versions list", EXIT_STATE)
+    versions = {item.release for item in load_migration_catalog() if item.release is not None}
+    versions.add(PRODUCT_VERSION)
+    return sorted(versions, key=cmp_to_key(compare_versions))
 
-    result: list[str] = []
-    for version in versions:
-        if not isinstance(version, str) or not _VERSION_RE.fullmatch(version):
-            raise OtaError(f"Error: Invalid migration version in migration.json: {version!r}", EXIT_STATE)
-        result.append(version)
-    return result
+
+def resolve_update_plan(release_info: ReleaseInfo, *, persist_ledger: bool = True) -> MigrationPlan:
+    """Resolve pending migration IDs for one installed release."""
+
+    catalog = load_migration_catalog()
+    try:
+        ledger = bootstrap_ledger(
+            release_info.version,
+            catalog,
+            persist=persist_ledger,
+        )
+        return resolve_plan(
+            release_info.version,
+            applied_ids=applied_ids(ledger),
+            target_version=PRODUCT_VERSION,
+            descriptors=catalog,
+        )
+    except Exception as exc:
+        raise _ota_error(exc) from exc
 
 
 def resolve_target_version(current_version: str) -> str | None:
-    """Return the latest migration target newer than current_version, if any."""
+    """Return latest discovered release newer than current version."""
 
-    chain = resolve_migration_chain(current_version)
-    return chain[-1] if chain else None
+    try:
+        return PRODUCT_VERSION if version_lt(current_version, PRODUCT_VERSION) else None
+    except Exception as exc:
+        raise _ota_error(exc) from exc
 
 
 def resolve_migration_chain(current_version: str, target_version: str | None = None) -> list[str]:
-    """Return ordered migration targets newer than current_version up to target_version."""
+    """Return discovered release boundaries for compatibility callers."""
 
-    current_key = _version_key(current_version)
-    target_key = _version_key(target_version) if target_version is not None else None
-    chain: list[str] = []
-    for version in load_migration_versions():
-        version_key = _version_key(version)
-        if version_key <= current_key:
-            continue
-        if target_key is not None and version_key > target_key:
-            continue
-        chain.append(version)
-    return chain
+    try:
+        versions = load_migration_versions()
+        target = target_version or PRODUCT_VERSION
+        return [
+            version
+            for version in versions
+            if version_lt(current_version, version) and not version_lt(target, version)
+        ]
+    except Exception as exc:
+        if isinstance(exc, OtaError):
+            raise
+        raise _ota_error(exc) from exc
 
-def load_migration_manifest(target_version: str, release_info: ReleaseInfo) -> Manifest:
-    """Load the manifest.json stored inside the selected migration directory."""
 
-    raw = _load_json_resource(f"{_migration_dir(target_version)}/manifest.json")
-    return validate_manifest(raw, release_info, f"{_MIGRATIONS_PACKAGE}/{_migration_dir(target_version)}/manifest.json")
+def _manifest_from_descriptors(
+    descriptors: list[MigrationDescriptor],
+    release_info: ReleaseInfo,
+    target_version: str,
+) -> Manifest:
+    if not descriptors:
+        target_newer = version_lt(release_info.version, target_version)
+        return Manifest(
+            release=target_version,
+            codename=release_info.codename,
+            source="packaged CaramOS release metadata",
+            min_client_version=TOOL_VERSION if target_newer else None,
+            channel=release_info.channel,
+            severity="normal" if target_newer else "none",
+            size="Release metadata" if target_newer else "Không có cập nhật",
+            title="Cập nhật CaramOS" if target_newer else "CaramOS đã được cập nhật",
+            summary=(
+                f"Cập nhật thông tin hệ thống từ {release_info.version} lên {target_version}."
+                if target_newer
+                else "Không có migration mới."
+            ),
+            release_notes_vi=["Cập nhật thông tin phiên bản CaramOS."] if target_newer else [],
+            release_notes_en=["Update CaramOS release metadata."] if target_newer else [],
+        )
+
+    for item in descriptors:
+        if item.codename != release_info.codename:
+            raise OtaError(
+                f"Error: Migration codename mismatch from {item.source}: "
+                f"{item.codename} vs {release_info.codename}",
+                EXIT_STATE,
+            )
+        if item.channel != release_info.channel:
+            raise OtaError(
+                f"Error: Migration channel mismatch from {item.source}: "
+                f"{item.channel} vs {release_info.channel}",
+                EXIT_STATE,
+            )
+
+    target_items = [item for item in descriptors if item.release == target_version]
+    display = target_items[-1] if target_items else descriptors[-1]
+    notes_vi: list[str] = []
+    notes_en: list[str] = []
+    for item in descriptors:
+        label = item.migration_id
+        notes_vi.extend(f"{label}: {note}" for note in (item.release_notes_vi or [item.summary]))
+        notes_en.extend(f"{label}: {note}" for note in (item.release_notes_en or [item.summary]))
+
+    return Manifest(
+        release=target_version,
+        codename=display.codename,
+        source=", ".join(item.source for item in descriptors),
+        min_client_version=TOOL_VERSION,
+        channel=display.channel,
+        severity=display.severity,
+        size=" + ".join(item.size for item in descriptors if item.size) or "Migration update",
+        title=display.title,
+        summary=display.summary,
+        release_notes_vi=notes_vi,
+        release_notes_en=notes_en,
+    )
+
+
+def manifest_for_plan(plan: MigrationPlan, release_info: ReleaseInfo) -> Manifest:
+    return _manifest_from_descriptors(plan.migrations, release_info, plan.target_version)
 
 
 def parse_manifest(release_info: ReleaseInfo) -> Manifest:
-    """Resolve the next migration and load its local manifest metadata."""
-
-    target_version = resolve_target_version(release_info.version)
-    if target_version is None:
-        return Manifest(
-            release=release_info.version,
-            codename=release_info.codename,
-            source="migration.json",
-            min_client_version=None,
-            channel=release_info.channel,
-            severity="none",
-            size="Không có cập nhật",
-            title="CaramOS đã được cập nhật",
-            summary="Không có migration mới.",
-            release_notes_vi=[],
-            release_notes_en=[],
-        )
-    return load_migration_manifest(target_version, release_info)
+    plan = resolve_update_plan(release_info)
+    return manifest_for_plan(plan, release_info)
 
 
-def validate_manifest(raw: dict[str, Any], release_info: ReleaseInfo, source: str) -> Manifest:
-    """Validate one migration-local manifest object."""
+def load_migration_manifest(target_version: str, release_info: ReleaseInfo) -> Manifest:
+    """Aggregate pending migration metadata for compatibility callers."""
 
-    if raw.get("schema") != 1:
-        raise OtaError(f"Error: Unsupported migration manifest schema from {source}", EXIT_STATE)
-    version = raw.get("version")
-    if not isinstance(version, str) or not _VERSION_RE.fullmatch(version):
-        raise OtaError(f"Error: Invalid migration version from {source}: {version!r}", EXIT_STATE)
-    if raw.get("codename") != release_info.codename:
+    if target_version != PRODUCT_VERSION:
         raise OtaError(
-            f"Error: Migration codename mismatch from {source}: {raw.get('codename')} vs {release_info.codename}",
+            f"Error: Requested target {target_version} does not match packaged target {PRODUCT_VERSION}",
             EXIT_STATE,
         )
-    min_client_version = raw.get("min_client_version", TOOL_VERSION)
-    if min_client_version is not None and not isinstance(min_client_version, str):
-        raise OtaError(f"Error: Invalid min_client_version in {source}", EXIT_STATE)
-
-    return Manifest(
-        release=version,
-        codename=str(raw.get("codename", "")),
-        source=source,
-        min_client_version=min_client_version,
-        channel=str(raw.get("channel") or release_info.channel),
-        severity=str(raw.get("severity") or "normal"),
-        size=str(raw.get("size") or "Migration update"),
-        title=str(raw.get("title") or "CaramOS có bản cập nhật mới"),
-        summary=str(raw.get("summary") or "Bản cập nhật này sẽ chạy migration CaramOS."),
-        release_notes_vi=[str(note) for note in raw.get("release_notes_vi", []) if isinstance(note, str)],
-        release_notes_en=[str(note) for note in raw.get("release_notes_en", []) if isinstance(note, str)],
-    )
+    return parse_manifest(release_info)

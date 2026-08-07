@@ -1,0 +1,14 @@
+[org/cinnamon]
+enabled-applets=['panel1:left:0:Cinnamenu@json:0', 'panel1:center:0:grouped-window-list@cinnamon.org:1', 'panel1:right:0:systray@cinnamon.org:2', 'panel1:right:1:notifications@cinnamon.org:5', 'panel1:right:2:calendar@cinnamon.org:7', 'panel1:right:3:caramos-control-center@caramos:0']
+panels-height=['1:48']
+panel-scale-text-icons=false
+panel-zone-icon-sizes='[{"panelId": 1, "left": 32, "right": 18}]'
+panel-zone-symbolic-icon-sizes='[{"panelId": 1, "left": 20, "center": 20, "right": 16}]'
+panel-zone-text-sizes='[{"panelId": 1, "left":0.0, "center":0.0, "right":0.0}]'
+favorite-apps=@as []
+
+[org/cinnamon/applets/grouped-window-list]
+pinned-apps=['google-chrome.desktop','wps-office-prometheus.desktop','zalo.desktop','mintinstall.desktop','cinnamon-settings.desktop']
+title-display=1
+number-display=false
+group-apps=true

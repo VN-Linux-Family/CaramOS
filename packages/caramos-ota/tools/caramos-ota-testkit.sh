@@ -7,6 +7,10 @@ WORKSPACE_DIR="$(cd "${PKG_DIR}/../.." && pwd)"
 DIST_DIR="${PKG_DIR}/dist-testkit"
 BUNDLE_NAME="caramos-ota-source-testkit.tar.gz"
 BACKUP_DIR="/root/caramos-ota-test-backup"
+TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.12}"
+if [[ -z "${TEST_RELEASE_TARGET:-}" ]]; then
+  TEST_RELEASE_TARGET="$(PYTHONPATH="${PKG_DIR}/usr/lib/python3/dist-packages" python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)')"
+fi
 
 usage() {
   cat <<'EOF'
@@ -18,7 +22,8 @@ Usage:
 Commands on dev machine:
   clean-build      Remove local Debian build artifacts and Python cache
   compile          Compile all OTA Python files
-  validate         Validate bundled migration metadata JSON
+  validate         Auto-discover and validate all bundled migrations
+  test             Run OTA unit tests
   build-deb        Clean + validate + build caramos-ota binary .deb
   release-deb      Alias for build-deb
   build-source     Clean + validate + build source package for PPA upload
@@ -29,9 +34,9 @@ Commands on CaramOS test machine:
   install-deb <deb> Install built caramos-ota .deb
   backup            Backup files touched by migration tests
   smoke             Check installed commands and compile installed modules
-  dry-run-1.0.2     Dry-run migration from 1.0.1 to 1.0.2
-  run-1.0.2         Run real migration 1.0.1 -> 1.0.2
-  verify-1.0.2      Verify VERSION metadata and selected branding changes
+  dry-run-target    Dry-run pending migrations to TEST_RELEASE_TARGET
+  run-target        Run pending migrations to TEST_RELEASE_TARGET
+  verify-target     Verify VERSION metadata and selected branding changes
   restore           Restore backup made by backup command
 
   # Dev machine
@@ -46,9 +51,9 @@ Commands on CaramOS test machine:
   cd /tmp && tar -xzf caramos-ota-source-testkit.tar.gz
   cd caramos-ota
   sudo ./tools/caramos-ota-testkit.sh backup
-  sudo ./tools/caramos-ota-testkit.sh dry-run-1.0.2
-  sudo PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.1 --target 1.0.5
-  sudo ./tools/caramos-ota-testkit.sh verify-1.0.5
+  sudo TEST_RELEASE_FROM=1.0.16 TEST_RELEASE_TARGET=1.0.17 ./tools/caramos-ota-testkit.sh dry-run-target
+  sudo TEST_RELEASE_FROM=1.0.16 TEST_RELEASE_TARGET=1.0.17 ./tools/caramos-ota-testkit.sh run-target
+  sudo TEST_RELEASE_TARGET=1.0.17 ./tools/caramos-ota-testkit.sh verify-target
 EOF
 }
 
@@ -61,11 +66,17 @@ require_root() {
 
 compile_sources() {
   cd "${PKG_DIR}"
-  python3 -m py_compile \
+  local pycache_prefix
+  pycache_prefix="$(mktemp -d)"
+  trap 'rm -rf "${pycache_prefix}"' RETURN
+  PYTHONPYCACHEPREFIX="${pycache_prefix}" python3 -m py_compile \
     usr/bin/caramos-ota \
+    usr/bin/caramos-ota-audit \
     usr/bin/caramos-ota-notifier \
     usr/bin/caramos-ota-update \
     $(find usr/lib/python3/dist-packages -name '*.py' | sort)
+  rm -rf "${pycache_prefix}"
+  trap - RETURN
   echo "[OK] Python compile passed"
 }
 
@@ -89,8 +100,26 @@ clean_build() {
 
 validate_manifest() {
   cd "${PKG_DIR}"
-  python3 -m json.tool usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json >/dev/null
-  echo "[OK] Migration metadata JSON is valid"
+  PYTHONPATH=usr/lib/python3/dist-packages python3 - <<'PY'
+from caramos_ota.release_metadata import PRODUCT_VERSION
+from caramos_ota_update.registry import discover_migrations
+
+migrations = discover_migrations()
+timestamps = [migration for migration in migrations if not migration.legacy]
+legacy = [migration for migration in migrations if migration.legacy]
+print(
+    f"[OK] Discovered {len(migrations)} migration(s): "
+    f"{len(legacy)} legacy, {len(timestamps)} timestamp; product target: {PRODUCT_VERSION}"
+)
+for migration in migrations:
+    kind = f"legacy {migration.release}" if migration.legacy else "timestamp (ledger ordered)"
+    print(f"  {migration.migration_id}: {kind}")
+PY
+}
+
+run_tests() {
+  cd "${PKG_DIR}"
+  PYTHONPATH=usr/lib/python3/dist-packages python3 -m unittest discover -s tests -v
 }
 
 build_deb() {
@@ -166,32 +195,34 @@ restore_system() {
 
 smoke_installed() {
   command -v caramos-ota
+  command -v caramos-ota-audit
   command -v caramos-ota-notifier
   command -v caramos-ota-update
   python3 -m py_compile \
     /usr/bin/caramos-ota \
+    /usr/bin/caramos-ota-audit \
     /usr/bin/caramos-ota-notifier \
     /usr/bin/caramos-ota-update \
-    $(find /usr/lib/python3/dist-packages/caramos_ota /usr/lib/python3/dist-packages/caramos_ota_notifier /usr/lib/python3/dist-packages/caramos_ota_update -name '*.py' 2>/dev/null | sort)
+    $(find /usr/lib/python3/dist-packages/caramos_ota /usr/lib/python3/dist-packages/caramos_ota_audit /usr/lib/python3/dist-packages/caramos_ota_notifier /usr/lib/python3/dist-packages/caramos_ota_update -name '*.py' 2>/dev/null | sort)
   echo "[OK] Installed smoke test passed"
 }
 
-dry_run_1_0_2() {
+dry_run_target() {
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.1 --target 1.0.2 --dry-run
+    caramos-ota-update --from "${TEST_RELEASE_FROM}" --target "${TEST_RELEASE_TARGET}" --dry-run
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.1 --target 1.0.2 --dry-run
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from "${TEST_RELEASE_FROM}" --target "${TEST_RELEASE_TARGET}" --dry-run
   fi
 }
 
-run_1_0_2() {
+run_target() {
   require_root
   if command -v caramos-ota-update >/dev/null 2>&1; then
-    caramos-ota-update --from 1.0.1 --target 1.0.2
+    caramos-ota-update --from "${TEST_RELEASE_FROM}" --target "${TEST_RELEASE_TARGET}"
   else
     cd "${PKG_DIR}"
-    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from 1.0.1 --target 1.0.2
+    PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --from "${TEST_RELEASE_FROM}" --target "${TEST_RELEASE_TARGET}"
   fi
 }
 
@@ -222,6 +253,7 @@ case "${cmd}" in
   clean-build) clean_build ;;
   compile) compile_sources ;;
   validate) validate_manifest ;;
+  test) run_tests ;;
   build-deb|release-deb) build_deb ;;
   build-source) build_source ;;
   bundle-source) bundle_source ;;
@@ -229,9 +261,9 @@ case "${cmd}" in
   install-deb) install_deb "${1:-}" ;;
   backup) backup_system ;;
   smoke) smoke_installed ;;
-  dry-run-1.0.2) dry_run_1_0_2 ;;
-  run-1.0.2) run_1_0_2 ;;
-  verify-1.0.2|verify-1.0.5) verify_1_0_2 ;;
+  dry-run-target) dry_run_target ;;
+  run-target) run_target ;;
+  verify-target) verify_1_0_2 ;;
   restore) restore_system ;;
   -h|--help|help|"") usage ;;
   *) echo "Unknown command: ${cmd}" >&2; usage; exit 1 ;;

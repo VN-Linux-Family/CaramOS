@@ -1,0 +1,659 @@
+/* CaramOS Control Center — light-lock (Ubuntu Quick Settings reference) */
+
+/* -------- Panel button (inherits Cinnamon panel theme colors) -------- */
+.caramos-cc-panel-button {
+  padding: 0 4px;
+  border-radius: 999px;
+}
+
+.caramos-cc-panel-button:hover {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-indicator {
+  spacing: 5px;
+  padding: 2px 6px;
+  min-height: 22px;
+}
+
+.caramos-cc-panel-icon {
+  icon-size: 15px;
+}
+
+.caramos-cc-panel-battery {
+  font-weight: bold;
+  font-size: 0.86em;
+  line-height: 22px;
+}
+
+/* -------- Popup surface (light, self-owned) -------- */
+.menu.caramos-cc-popup,
+.menu.caramos-cc-popup.top,
+.menu.caramos-cc-popup.bottom,
+.menu.caramos-cc-popup.left,
+.menu.caramos-cc-popup.right {
+  background-color: rgba(240, 238, 237, 0.99);
+  color: rgba(48, 48, 48, 0.94);
+  border-radius: 28px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-popup .popup-menu-content {
+  padding: 0;
+  background-color: transparent;
+  border-radius: 28px;
+}
+
+.caramos-cc-popup-box {
+  padding: 0;
+  border-radius: 28px;
+}
+
+.caramos-cc-container {
+  padding: 10px 12px;
+  min-width: 326px;
+  spacing: 8px;
+}
+
+/* -------- Header (battery pill + round buttons) -------- */
+.caramos-cc-header {
+  spacing: 8px;
+  padding-bottom: 2px;
+}
+
+.caramos-cc-battery-pill,
+.caramos-cc-round-button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.06);
+  color: rgba(48, 48, 48, 0.94);
+}
+
+.caramos-cc-battery-pill:hover,
+.caramos-cc-round-button:hover {
+  background-color: rgba(0, 0, 0, 0.10);
+}
+
+.caramos-cc-pill-icon {
+  icon-size: 14px;
+  padding-right: 6px;
+  color: rgba(48, 48, 48, 0.86);
+}
+
+.caramos-cc-pill-label {
+  font-weight: bold;
+  font-size: 0.86em;
+  color: rgba(48, 48, 48, 0.94);
+}
+
+.caramos-cc-round-icon {
+  icon-size: 15px;
+  color: rgba(48, 48, 48, 0.86);
+}
+
+/* -------- Sliders (no text label) -------- */
+.caramos-cc-slider-row {
+  spacing: 10px;
+  padding: 4px 4px;
+}
+
+.caramos-cc-slider-icon {
+  icon-size: 16px;
+  min-width: 20px;
+  color: rgba(48, 48, 48, 0.78);
+}
+
+.caramos-cc-slider-item {
+  min-width: 210px;
+  -slider-active-background-color: #f59f22;
+  -slider-background-color: rgba(0, 0, 0, 0.14);
+  -slider-border-color: transparent;
+  -slider-active-border-color: transparent;
+  -slider-height: 0.35em;
+  -slider-handle-radius: 0.55em;
+}
+
+/* -------- Tile grid -------- */
+.caramos-cc-grid {
+  spacing: 8px;
+}
+
+.caramos-cc-grid-row {
+  spacing: 10px;
+}
+
+.caramos-cc-split-wrapper {
+  width: 130px;
+  min-width: 130px;
+  max-width: 130px;
+  min-height: 42px;
+  spacing: 3px;
+}
+
+.caramos-cc-split-tile,
+.caramos-cc-simple-tile {
+  width: 130px;
+  min-width: 130px;
+  max-width: 130px;
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  background-color: rgba(0, 0, 0, 0.06);
+  color: rgba(38, 38, 38, 0.94);
+}
+
+.caramos-cc-simple-tile {
+  padding: 0 10px;
+}
+
+.caramos-cc-simple-tile:hover {
+  background-color: rgba(0, 0, 0, 0.09);
+}
+
+.caramos-cc-split-main {
+  min-height: 42px;
+  padding: 0 6px 0 8px;
+  border-radius: 999px 0 0 999px;
+}
+
+.caramos-cc-split-main:hover,
+.caramos-cc-split-arrow:hover {
+  background-color: rgba(0, 0, 0, 0.09);
+}
+
+.caramos-cc-split-arrow {
+  min-width: 26px;
+  min-height: 42px;
+  padding: 0 5px;
+  border-radius: 0 999px 999px 0;
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-tile-icon-slot {
+  width: 22px;
+  min-width: 22px;
+  max-width: 22px;
+  min-height: 22px;
+  padding-right: 6px;
+}
+
+.caramos-cc-tile-icon {
+  icon-size: 16px;
+  color: rgba(48, 48, 48, 0.86);
+}
+
+.caramos-cc-tile-title {
+  font-weight: bold;
+  font-size: 0.86em;
+  color: rgba(38, 38, 38, 0.94);
+}
+
+.caramos-cc-tile-subtitle {
+  font-size: 0.74em;
+  color: rgba(60, 60, 60, 0.72);
+}
+
+.caramos-cc-arrow-icon {
+  icon-size: 14px;
+  color: rgba(48, 48, 48, 0.68);
+}
+
+/* Active tile — solid orange, white content */
+.caramos-cc-tile-active {
+  background-color: #f59f22;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.caramos-cc-tile-active:hover {
+  background-color: #ffb642;
+}
+
+.caramos-cc-tile-active .caramos-cc-tile-title,
+.caramos-cc-tile-active .caramos-cc-tile-subtitle,
+.caramos-cc-tile-active .caramos-cc-tile-icon,
+.caramos-cc-tile-active .caramos-cc-arrow-icon {
+  color: #ffffff;
+}
+
+.caramos-cc-tile-active .caramos-cc-tile-subtitle {
+  opacity: 0.85;
+}
+
+.caramos-cc-tile-active .caramos-cc-split-arrow {
+  border-left: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.caramos-cc-tile-active .caramos-cc-split-main:hover,
+.caramos-cc-tile-active .caramos-cc-split-arrow:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+/* States */
+.caramos-cc-disabled {
+  opacity: 0.45;
+}
+
+.caramos-cc-loading {
+  opacity: 0.75;
+  border-color: rgba(0, 0, 0, 0.10);
+}
+
+.caramos-cc-loading .caramos-cc-tile-icon {
+  color: rgba(48, 48, 48, 0.72);
+}
+
+.caramos-cc-loading-label {
+  width: 22px;
+  min-width: 22px;
+  max-width: 22px;
+  min-height: 22px;
+  font-size: 1em;
+  font-weight: bold;
+  line-height: 22px;
+  text-align: center;
+  color: rgba(48, 48, 48, 0.82);
+}
+
+/* -------- Audio controls -------- */
+.caramos-cc-audio-group {
+  spacing: 0;
+  padding: 2px 0;
+}
+
+.caramos-cc-audio-disclosure {
+  width: 28px;
+  min-width: 28px;
+  max-width: 28px;
+  min-height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  background-color: transparent;
+}
+
+.caramos-cc-audio-disclosure:hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+.caramos-cc-audio-disclosure:focus {
+  background-color: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.caramos-cc-audio-disclosure:active {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.caramos-cc-audio-disclosure:insensitive {
+  opacity: 0.38;
+}
+
+.caramos-cc-audio-disclosure-icon {
+  icon-size: 14px;
+  color: rgba(48, 48, 48, 0.68);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-audio-disclosure:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-audio-disclosure:active {
+  background-color: rgba(255, 255, 255, 0.18);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-audio-disclosure-icon {
+  color: rgba(225, 225, 228, 0.82);
+}
+
+/* -------- Inline card (Wi‑Fi / Bluetooth expanded panel) -------- */
+.caramos-cc-expanded-panel {
+  padding-top: 2px;
+  spacing: 0;
+}
+
+.caramos-cc-inline-card {
+  width: 252px;
+  max-width: 252px;
+  padding: 10px 12px;
+  spacing: 6px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-dimmed {
+  opacity: 0.5;
+}
+
+.caramos-cc-inline-head {
+  spacing: 8px;
+  padding: 0 2px 4px 2px;
+}
+
+.caramos-cc-inline-head-icon {
+  icon-size: 16px;
+  color: #f59f22;
+}
+
+.caramos-cc-inline-title {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: rgba(30, 30, 30, 0.94);
+}
+
+.caramos-cc-inline-close {
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  background-color: transparent;
+}
+
+.caramos-cc-inline-close:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-inline-close:focus {
+  background-color: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.caramos-cc-inline-close:active {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.caramos-cc-inline-close:insensitive {
+  opacity: 0.42;
+}
+
+.caramos-cc-inline-close-icon {
+  icon-size: 10px;
+  color: rgba(48, 48, 48, 0.62);
+}
+
+.caramos-cc-inline-body {
+  spacing: 4px;
+}
+
+.caramos-cc-inline-list {
+  width: 252px;
+  max-width: 252px;
+  spacing: 1px;
+}
+
+.caramos-cc-inline-card .caramos-cc-list-label {
+  color: rgba(38, 38, 38, 0.90);
+  font-size: 0.82em;
+}
+
+.caramos-cc-inline-card .caramos-cc-row-lead-icon,
+.caramos-cc-inline-card .caramos-cc-row-trail-icon {
+  color: rgba(48, 48, 48, 0.78);
+}
+
+.caramos-cc-inline-card .caramos-cc-list-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.caramos-cc-list-row.caramos-cc-audio-pointer-selection:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-list-row.caramos-cc-audio-pointer-selection:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.caramos-cc-inline-card .caramos-cc-expand-empty {
+  color: rgba(60, 60, 60, 0.60);
+}
+
+.caramos-cc-inline-card .caramos-cc-expand-separator {
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+/* -------- Overlay (password / power dialogs) -------- */
+.caramos-cc-overlay-backdrop {
+  background-color: rgba(0, 0, 0, 0.28);
+  border-radius: 16px;
+}
+
+.caramos-cc-overlay-card {
+  width: 284px;
+  max-width: 284px;
+  padding: 14px 16px 12px 16px;
+  spacing: 10px;
+  border-radius: 16px;
+  background-color: rgba(255, 255, 255, 1.0);
+  color: rgba(48, 48, 48, 0.94);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-overlay-head {
+  spacing: 10px;
+  padding: 0 1px 6px 1px;
+}
+
+.caramos-cc-overlay-head-icon {
+  icon-size: 24px;
+  color: #f59f22;
+}
+
+.caramos-cc-overlay-title {
+  font-size: 1.18em;
+  font-weight: bold;
+  color: rgba(30, 30, 30, 0.96);
+}
+
+.caramos-cc-overlay-close {
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+  background-color: transparent;
+}
+
+.caramos-cc-overlay-close:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-overlay-close:focus {
+  background-color: transparent;
+  outline: none;
+  box-shadow: none;
+}
+
+.caramos-cc-overlay-close:active {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.caramos-cc-overlay-close:insensitive {
+  opacity: 0.42;
+}
+
+.caramos-cc-overlay-close-icon {
+  icon-size: 13px;
+  color: rgba(48, 48, 48, 0.60);
+}
+
+.caramos-cc-overlay-body {
+  spacing: 6px;
+}
+
+.caramos-cc-overlay-list {
+  spacing: 2px;
+}
+
+.caramos-cc-expand-empty {
+  min-height: 42px;
+  text-align: left;
+  padding: 4px 6px;
+  font-size: 0.82em;
+  color: rgba(48, 48, 48, 0.60);
+}
+
+.caramos-cc-expand-separator {
+  min-height: 1px;
+  margin: 5px 2px 4px 2px;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-list-row {
+  min-height: 30px;
+  padding: 4px 6px;
+  border-radius: 10px;
+}
+
+.caramos-cc-list-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.caramos-cc-list-label {
+  font-size: 0.82em;
+  color: rgba(38, 38, 38, 0.90);
+}
+
+.caramos-cc-row-lead-icon {
+  icon-size: 15px;
+  min-width: 22px;
+  padding-right: 6px;
+  color: rgba(48, 48, 48, 0.78);
+}
+
+.caramos-cc-row-trail-icon {
+  icon-size: 12px;
+  min-width: 15px;
+  color: rgba(48, 48, 48, 0.78);
+}
+
+/* -------- Password dialog -------- */
+.caramos-cc-password-ssid {
+  font-size: 1.02em;
+  font-weight: bold;
+  color: rgba(30, 30, 30, 0.94);
+}
+
+.caramos-cc-password-entry {
+  min-height: 34px;
+  font-size: 0.94em;
+  padding: 8px 10px;
+  border-radius: 11px;
+  background-color: rgba(0, 0, 0, 0.05);
+  color: rgba(30, 30, 30, 0.96);
+  caret-color: rgba(30, 30, 30, 0.96);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-password-entry:focus {
+  background-color: rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(231, 71, 20, 0.50);
+}
+
+.caramos-cc-password-show {
+  padding: 6px 4px;
+  border-radius: 10px;
+}
+
+.caramos-cc-password-show:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.caramos-cc-dialog-actions {
+  spacing: 10px;
+  padding-top: 8px;
+}
+
+.caramos-cc-dialog-btn {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 11px;
+  background-color: rgba(0, 0, 0, 0.06);
+  color: rgba(38, 38, 38, 0.94);
+}
+
+.caramos-cc-dialog-btn:hover {
+  background-color: rgba(0, 0, 0, 0.10);
+}
+
+.caramos-cc-dialog-btn-primary {
+  background-color: #f59f22;
+  color: #ffffff;
+}
+
+.caramos-cc-dialog-btn-primary:hover {
+  background-color: #ffb642;
+}
+
+/* -------- Theme and accessibility overrides -------- */
+.caramos-cc-popup.caramos-cc-light {
+  /* Light theme uses base Control Center surfaces. */
+}
+
+.menu.caramos-cc-popup.caramos-cc-dark {
+  background-color: rgba(35, 35, 38, 0.99);
+  color: rgba(245, 245, 247, 0.96);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-battery-pill,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-round-button,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-split-tile,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-simple-tile {
+  background-color: rgba(255, 255, 255, 0.10);
+  color: rgba(245, 245, 247, 0.96);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-title,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-pill-label,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-list-label,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-title,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-title {
+  color: rgba(245, 245, 247, 0.96);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-subtitle,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-expand-empty {
+  color: rgba(220, 220, 224, 0.72);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-card,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-card {
+  background-color: rgba(48, 48, 52, 0.98);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.caramos-cc-popup.caramos-cc-high-contrast {
+  border: 2px solid currentColor;
+}
+
+/* CaramOS controls never use focus rings in normal contrast mode. */
+.caramos-cc-battery-pill:focus,
+.caramos-cc-round-button:focus,
+.caramos-cc-slider-icon-button:focus,
+.caramos-cc-audio-disclosure:focus,
+.caramos-cc-simple-tile:focus,
+.caramos-cc-split-main:focus,
+.caramos-cc-split-arrow:focus,
+.caramos-cc-inline-close:focus,
+.caramos-cc-overlay-close:focus,
+.caramos-cc-list-row:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.caramos-cc-slider-icon-button {
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 999px;
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-slider-item {
+  -slider-background-color: rgba(255, 255, 255, 0.24);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-card .caramos-cc-list-row:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-list-row:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+}

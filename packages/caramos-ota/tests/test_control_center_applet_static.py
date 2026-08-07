@@ -131,18 +131,28 @@ class ControlCenterAppletStaticTests(unittest.TestCase):
         )
         self.assertNotIn("caramos-cc-boxpointer", self.source + self.css)
 
-    def test_list_rows_do_not_show_default_focus_outline(self) -> None:
-        regular_focus = re.search(
-            r"\.caramos-cc-list-row:focus\s*\{([^}]*)\}",
+    def test_focusable_controls_do_not_show_focus_outline(self) -> None:
+        focus_rule = re.search(
+            r"\.caramos-cc-battery-pill:focus,[\s\S]*?\.caramos-cc-list-row:focus\s*\{([^}]*)\}",
             self.css,
         )
-        self.assertIsNotNone(regular_focus)
-        self.assertIn("outline: none", regular_focus.group(1))
-        self.assertIn("box-shadow: none", regular_focus.group(1))
-        self.assertRegex(
-            self.css,
-            r"\.caramos-cc-popup\.caramos-cc-high-contrast \.caramos-cc-list-row:focus\s*\{[^}]*outline: 3px solid #f59f22",
-        )
+        self.assertIsNotNone(focus_rule)
+        self.assertIn("outline: none", focus_rule.group(1))
+        self.assertIn("box-shadow: none", focus_rule.group(1))
+        for style_class in (
+            "caramos-cc-battery-pill",
+            "caramos-cc-round-button",
+            "caramos-cc-slider-icon-button",
+            "caramos-cc-audio-disclosure",
+            "caramos-cc-simple-tile",
+            "caramos-cc-split-main",
+            "caramos-cc-split-arrow",
+            "caramos-cc-inline-close",
+            "caramos-cc-overlay-close",
+            "caramos-cc-list-row",
+        ):
+            self.assertIn(f".{style_class}:focus", focus_rule.group(0))
+        self.assertNotRegex(self.css, r"outline:\s*[1-9][0-9]*px")
 
     def test_inline_close_debug_is_opt_in_and_bounded(self) -> None:
         for token in (

@@ -278,8 +278,8 @@
 
 .caramos-cc-audio-disclosure:focus {
   background-color: transparent;
-  outline: 2px solid #f59f22;
-  outline-offset: 1px;
+  outline: none;
+  box-shadow: none;
 }
 
 .caramos-cc-audio-disclosure:active {
@@ -305,10 +305,6 @@
 
 .caramos-cc-popup.caramos-cc-dark .caramos-cc-audio-disclosure-icon {
   color: rgba(225, 225, 228, 0.82);
-}
-
-.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-audio-disclosure:focus {
-  outline-width: 3px;
 }
 
 /* -------- Inline card (Wi‑Fi / Bluetooth expanded panel) -------- */
@@ -359,7 +355,9 @@
 }
 
 .caramos-cc-inline-close:focus {
-  background-color: rgba(245, 159, 34, 0.10);
+  background-color: transparent;
+  outline: none;
+  box-shadow: none;
 }
 
 .caramos-cc-inline-close:active {
@@ -462,7 +460,9 @@
 }
 
 .caramos-cc-overlay-close:focus {
-  background-color: rgba(245, 159, 34, 0.10);
+  background-color: transparent;
+  outline: none;
+  box-shadow: none;
 }
 
 .caramos-cc-overlay-close:active {
@@ -628,34 +628,19 @@
   border: 2px solid currentColor;
 }
 
-.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-round-button:focus,
-.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-list-row:focus,
-.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-split-main:focus,
-.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-split-arrow:focus,
-.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-slider-icon-button:focus {
-  outline: 3px solid #f59f22;
-  outline-offset: 2px;
-}
-
-.caramos-cc-slider-icon-button:focus,
+/* CaramOS controls never use focus rings in normal contrast mode. */
+.caramos-cc-battery-pill:focus,
 .caramos-cc-round-button:focus,
+.caramos-cc-slider-icon-button:focus,
+.caramos-cc-audio-disclosure:focus,
+.caramos-cc-simple-tile:focus,
 .caramos-cc-split-main:focus,
 .caramos-cc-split-arrow:focus,
 .caramos-cc-inline-close:focus,
-.caramos-cc-overlay-close:focus {
-  outline: 2px solid #f59f22;
-  outline-offset: 2px;
-}
-
-/* Mouse-activated list actions must not retain a distracting keyboard ring. */
+.caramos-cc-overlay-close:focus,
 .caramos-cc-list-row:focus {
   outline: none;
   box-shadow: none;
-}
-
-.caramos-cc-popup.caramos-cc-high-contrast .caramos-cc-list-row:focus {
-  outline: 3px solid #f59f22;
-  outline-offset: 2px;
 }
 
 .caramos-cc-slider-icon-button {

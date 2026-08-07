@@ -158,6 +158,25 @@ def _run_gsettings(user: str, env: dict[str, str], args: list[str]) -> subproces
     )
 
 
+def _update_blueman_plugins(plugin_list: str) -> str | None:
+    """Disable only Blueman's tray icon while preserving all other plugins."""
+
+    value = plugin_list.strip()
+    if value.startswith("@as "):
+        value = value[4:].lstrip()
+    try:
+        parsed = ast.literal_eval(value)
+    except (SyntaxError, ValueError):
+        return None
+    if not isinstance(parsed, list) or any(not isinstance(entry, str) for entry in parsed):
+        return None
+    for plugin in ("ShowConnected", "StatusIcon"):
+        disabled = f"!{plugin}"
+        if disabled not in parsed:
+            parsed.append(disabled)
+    return f"[{', '.join(repr(entry) for entry in parsed)}]"
+
+
 def _update_enabled_applets(enabled_applets: str) -> str | None:
     """Replace redundant stock indicators with Control Center atomically.
 
@@ -285,21 +304,35 @@ def _apply_to_live_user(context: MigrationContext, username: str, uid: int) -> N
     current = _run_gsettings(username, env, ["get", "org.cinnamon", "enabled-applets"])
     if current.returncode != 0:
         context.log(f"warning: could not read Cinnamon applets for {username}: {current.stderr.strip()}")
-        return
-
-    updated_applets = _update_enabled_applets(current.stdout)
-    if updated_applets is None:
-        context.log(f"warning: unexpected enabled-applets format for {username}; skip Control Center panel update")
-        return
-    if updated_applets == current.stdout.strip():
-        context.log(f"kept existing Control Center panel layout for user: {username}")
-        return
-
-    result = _run_gsettings(username, env, ["set", "org.cinnamon", "enabled-applets", updated_applets])
-    if result.returncode == 0:
-        context.log(f"enabled Control Center and removed redundant network, sound, and power applets for: {username}")
     else:
-        context.log(f"warning: could not update Control Center panel for {username}: {result.stderr.strip()}")
+        updated_applets = _update_enabled_applets(current.stdout)
+        if updated_applets is None:
+            context.log(f"warning: unexpected enabled-applets format for {username}; skip Control Center panel update")
+        elif updated_applets == current.stdout.strip():
+            context.log(f"kept existing Control Center panel layout for user: {username}")
+        else:
+            result = _run_gsettings(username, env, ["set", "org.cinnamon", "enabled-applets", updated_applets])
+            if result.returncode == 0:
+                context.log(f"enabled Control Center and removed redundant network, sound, and power applets for: {username}")
+            else:
+                context.log(f"warning: could not update Control Center panel for {username}: {result.stderr.strip()}")
+
+    plugins = _run_gsettings(username, env, ["get", "org.blueman.general", "plugin-list"])
+    if plugins.returncode != 0:
+        context.log(f"warning: could not read Blueman plugins for {username}: {plugins.stderr.strip()}")
+        return
+    updated_plugins = _update_blueman_plugins(plugins.stdout)
+    if updated_plugins is None:
+        context.log(f"warning: unexpected Blueman plugin-list format for {username}; keep current plugins")
+        return
+    if updated_plugins == plugins.stdout.strip():
+        context.log(f"kept Blueman tray icon disabled for user: {username}")
+        return
+    result = _run_gsettings(username, env, ["set", "org.blueman.general", "plugin-list", updated_plugins])
+    if result.returncode == 0:
+        context.log(f"disabled redundant Blueman tray icon for user: {username}")
+    else:
+        context.log(f"warning: could not disable Blueman tray icon for {username}: {result.stderr.strip()}")
 
 
 def run(context: MigrationContext) -> None:

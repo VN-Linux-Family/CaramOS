@@ -1,4 +1,4 @@
-"""Install the CaramOS wallpaper collection and make Paper Dawn the default."""
+"""Install the CaramOS wallpaper collection and force Sage Mist as default."""
 
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ MIGRATION_DIR = Path(__file__).resolve().parent
 PAYLOAD_DIR = MIGRATION_DIR / "payload"
 WALLPAPER_DIR = Path("/usr/share/backgrounds/caramos")
 DEFAULT_WALLPAPER = WALLPAPER_DIR / "default.png"
-DEFAULT_WALLPAPER_NAME = "01-paper-dawn-2k.jpg"
+DEFAULT_WALLPAPER_NAME = "03-sage-mist-2k.jpg"
 DEFAULT_URI = "file:///usr/share/backgrounds/caramos/default.png"
 DIRECT_DEFAULT_URI = f"file:///usr/share/backgrounds/caramos/{DEFAULT_WALLPAPER_NAME}"
 BACKGROUND_PROPERTIES_DIR = Path("/usr/share/cinnamon-background-properties")
@@ -498,16 +498,14 @@ def _apply_schema(context: MigrationContext, user: str, env: dict[str, str], sch
     success, current_uri = _gsettings_get(user, env, schema, "picture-uri")
     if not success:
         context.log(f"warning: could not read {schema} wallpaper for {user}: {current_uri}")
+    # Force every live desktop session to reload Sage Mist, even when the user
+    # previously selected another wallpaper.
+    if not _gsettings_set(context, user, env, schema, "picture-uri", DIRECT_DEFAULT_URI):
         return
-    if not _is_stock_wallpaper(current_uri):
-        context.log(f"kept custom {schema} wallpaper for live user: {user}")
+    if not _gsettings_set(context, user, env, schema, "picture-uri", DEFAULT_URI):
         return
-    reload_uri = DIRECT_DEFAULT_URI if current_uri == DEFAULT_URI else DEFAULT_URI
-    if current_uri == DEFAULT_URI and not _gsettings_set(context, user, env, schema, "picture-uri", reload_uri):
-        return
-    if _gsettings_set(context, user, env, schema, "picture-uri", DEFAULT_URI):
-        _gsettings_set(context, user, env, schema, "picture-options", "zoom")
-        context.log(f"updated {schema} stock wallpaper for live user: {user}")
+    _gsettings_set(context, user, env, schema, "picture-options", "zoom")
+    context.log(f"forced {schema} wallpaper to Sage Mist for live user: {user}")
 
 
 def _apply_slideshow(context: MigrationContext, user: str, env: dict[str, str]) -> None:
@@ -532,12 +530,12 @@ def _apply_to_live_user(context: MigrationContext, user: str, uid: int, home: Pa
 
 
 def run(context: MigrationContext) -> None:
-    """Install five CaramOS wallpapers while preserving custom user choices."""
+    """Install five CaramOS wallpapers and force Sage Mist for live users."""
 
     _validate_payloads()
     changed = _install_filesystem(context)
     if context.dry_run:
-        context.log("evaluate active users using stock CaramOS or Linux Mint wallpapers")
+        context.log("force Sage Mist for every active desktop user")
         return
     for user, uid, home in _live_desktop_users():
         _apply_to_live_user(context, user, uid, home)

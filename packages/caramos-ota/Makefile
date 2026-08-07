@@ -7,8 +7,8 @@ GPG_KEY ?= ledungb11@gmail.com
 GPG_TTY ?= $(shell tty 2>/dev/null || true)
 export GPG_TTY
 REMOTE_USER ?= caram
-REMOTE_HOST ?= 127.0.0.1
-REMOTE_PORT ?= 2222
+REMOTE_HOST ?= 192.168.122.13
+REMOTE_PORT ?= 22
 TEST_RELEASE_FROM ?= 1.0.12
 TEST_RELEASE_TARGET ?= $(shell PYTHONPATH=usr/lib/python3/dist-packages python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)' 2>/dev/null || printf 'dev')
 VERSION ?=

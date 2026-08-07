@@ -5,17 +5,15 @@
   "severity": "feature",
   "size": "5 wallpapers (728 KB)",
   "title": "Bộ hình nền CaramOS mới",
-  "summary": "Cài năm hình nền CaramOS, đặt Paper Dawn làm mặc định và thay nguồn Linux Mint trong ứng dụng Hình nền.",
+  "summary": "Cài năm hình nền CaramOS, buộc Sage Mist làm hình nền hiện tại và thay nguồn Linux Mint trong ứng dụng Hình nền.",
   "release_notes_vi": [
     "Cài năm hình nền CaramOS độ phân giải 2048×1152.",
-    "Đặt Paper Dawn làm hình nền mặc định cho desktop và màn hình đăng nhập qua đường dẫn ổn định default.png.",
-    "Thay các bộ sưu tập Linux Mint trong Cinnamon Backgrounds bằng bộ sưu tập CaramOS.",
-    "Giữ nguyên hình nền và nguồn slideshow tùy chỉnh của người dùng."
+    "Buộc Sage Mist làm hình nền cho mọi desktop user và màn hình đăng nhập qua đường dẫn ổn định default.png.",
+    "Thay bộ sưu tập Linux Mint trong Cinnamon Backgrounds bằng bộ sưu tập CaramOS."
   ],
   "release_notes_en": [
     "Install five 2048×1152 CaramOS wallpapers.",
-    "Set Paper Dawn as the default desktop and login-screen wallpaper through the stable default.png path.",
-    "Replace Linux Mint collections in Cinnamon Backgrounds with the CaramOS collection.",
-    "Preserve user-selected custom wallpapers and slideshow sources."
+    "Force Sage Mist as the wallpaper for every desktop user and the login screen through the stable default.png path.",
+    "Replace the Linux Mint collection in Cinnamon Backgrounds with the CaramOS collection."
   ]
 }

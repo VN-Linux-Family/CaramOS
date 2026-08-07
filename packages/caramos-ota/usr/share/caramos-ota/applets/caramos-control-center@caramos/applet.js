@@ -482,6 +482,7 @@ class BluezBackend {
         this._objectAddedId = 0;
         this._objectRemovedId = 0;
         this._objectSignals = [];
+        this._refreshId = 0;
         this._state = { available: false, adapter: null, devices: [] };
         this._nameWatchId = Gio.bus_watch_name(
             Gio.BusType.SYSTEM,
@@ -506,9 +507,9 @@ class BluezBackend {
                 if (this._disposed || generation !== this._generation) return;
                 try {
                     this._manager = Gio.DBusObjectManagerClient.new_for_bus_finish(result);
-                    this._objectAddedId = this._manager.connect('object-added', () => this.refresh());
-                    this._objectRemovedId = this._manager.connect('object-removed', () => this.refresh());
-                    this.refresh();
+                    this._objectAddedId = this._manager.connect('object-added', () => this._scheduleRefresh());
+                    this._objectRemovedId = this._manager.connect('object-removed', () => this._scheduleRefresh());
+                    this._scheduleRefresh();
                 } catch (e) {
                     global.logError(e);
                     this._serviceVanished();
@@ -542,7 +543,16 @@ class BluezBackend {
 
     _watch(proxy) {
         if (!proxy || this._objectSignals.some(pair => pair[0] === proxy)) return;
-        this._objectSignals.push([proxy, proxy.connect('g-properties-changed', () => this.refresh())]);
+        this._objectSignals.push([proxy, proxy.connect('g-properties-changed', () => this._scheduleRefresh())]);
+    }
+
+    _scheduleRefresh() {
+        if (this._disposed || this._refreshId) return;
+        this._refreshId = Mainloop.idle_add(() => {
+            this._refreshId = 0;
+            if (!this._disposed) this.refresh();
+            return false;
+        });
     }
 
     refresh() {
@@ -602,7 +612,7 @@ class BluezBackend {
                 null,
                 (_connection, result) => {
                     try { Gio.DBus.system.call_finish(result); } catch (e) { global.logError(e); }
-                    this.refresh();
+                    this._scheduleRefresh();
                 }
             );
             return true;
@@ -632,7 +642,7 @@ class BluezBackend {
                     } catch (e) {
                         global.logError(e);
                     }
-                    this.refresh();
+                    this._scheduleRefresh();
                 }
             );
             return true;
@@ -669,7 +679,7 @@ class BluezBackend {
                     } catch (e) {
                         global.logError(e);
                     }
-                    this.refresh();
+                    this._scheduleRefresh();
                 }
             );
             return true;
@@ -682,6 +692,10 @@ class BluezBackend {
     dispose() {
         this._disposed = true;
         this._generation++;
+        if (this._refreshId) {
+            Mainloop.source_remove(this._refreshId);
+            this._refreshId = 0;
+        }
         this._clearManager();
         if (this._nameWatchId) {
             Gio.bus_unwatch_name(this._nameWatchId);
@@ -1636,17 +1650,25 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._brightnessSignalId = 0;
         this._brightnessReady = false;
         this._brightnessRequestGeneration = 0;
-        this._brightnessChanging = false;
+        this._brightnessWriteGeneration = 0;
+        this._brightnessSliderDragging = false;
+        this._brightnessPending = null;
+        this._brightnessApplyId = 0;
+        this._brightnessSyncId = 0;
+        this._brightnessInFlight = false;
         this._powerMenuVisible = false;
         this._bluetoothPowered = null;
         this._bluetoothSignalId = 0;
+        this._bluetoothRefreshId = 0;
+        this._bluetoothRenderSignature = '';
+        this._inlineCloseButton = null;
         this._bluezBackend = new BluezBackend(state => this._onBluezStateChanged(state));
         this._bluezState = this._bluezBackend.snapshot();
         this._networkBackend = new NetworkManagerBackend(state => this._onNetworkStateChanged(state));
         this._networkState = null;
         this._wifiBackend = new NetworkManagerWifiBackend(state => this._onWifiStateChanged(state));
         this._wifiState = this._wifiBackend.snapshot();
-        this._wifiActionPending = false;
+        this._wifiPendingTarget = null;
         this._powerBackend = null;
         this._powerState = { available: false, devices: [], battery: null, onBattery: false };
         this._sessionBackend = null;
@@ -1866,6 +1888,9 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         if (this._outputVolumeApplyId) Mainloop.source_remove(this._outputVolumeApplyId);
         if (this._inputVolumeApplyId) Mainloop.source_remove(this._inputVolumeApplyId);
         if (this._audioSyncId) Mainloop.source_remove(this._audioSyncId);
+        if (this._brightnessApplyId) Mainloop.source_remove(this._brightnessApplyId);
+        if (this._brightnessSyncId) Mainloop.source_remove(this._brightnessSyncId);
+        if (this._bluetoothRefreshId) Mainloop.source_remove(this._bluetoothRefreshId);
         Object.keys(this._audioDeviceRefreshIds).forEach(type => {
             if (this._audioDeviceRefreshIds[type]) Mainloop.source_remove(this._audioDeviceRefreshIds[type]);
             this._audioDeviceRefreshIds[type] = 0;
@@ -1877,6 +1902,12 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._outputVolumeApplyId = 0;
         this._inputVolumeApplyId = 0;
         this._audioSyncId = 0;
+        this._brightnessApplyId = 0;
+        this._brightnessSyncId = 0;
+        this._brightnessPending = null;
+        this._brightnessInFlight = false;
+        this._bluetoothRefreshId = 0;
+        this._inlineCloseButton = null;
         this._menuAlignId = 0;
         this._inlineFocusTarget = null;
         this._vpnRefreshId = 0;
@@ -2048,7 +2079,16 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._audioPointerSelection.input = false;
             return Clutter.EVENT_PROPAGATE;
         });
-        this._brightnessRow = createSliderRow('display-brightness-symbolic', 'Ánh sáng', 50, value => this._setBrightness(value));
+        this._brightnessRow = createSliderRow(
+            'display-brightness-symbolic',
+            'Ánh sáng',
+            50,
+            value => {
+                if (!this._updatingSliders) this._setBrightness(value);
+            },
+            null,
+            dragging => this._setBrightnessSliderDragging(dragging)
+        );
         this._brightnessRow.actor.hide();
 
         this._audioOutputGroup = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-audio-group', x_expand: true });
@@ -2266,6 +2306,12 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._expandedBody = null;
         this._expandedKind = null;
         this._anchorRow = null;
+        this._inlineCloseButton = null;
+        this._bluetoothRenderSignature = '';
+        if (this._bluetoothRefreshId) {
+            Mainloop.source_remove(this._bluetoothRefreshId);
+            this._bluetoothRefreshId = 0;
+        }
     }
 
     _updateThemeClassesOnce() {
@@ -2311,6 +2357,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             ccDebug('inline-x-release-after', { kind: this._expandedKind, primary, ...ccEventDebug(event) });
             return primary ? Clutter.EVENT_STOP : Clutter.EVENT_PROPAGATE;
         });
+        this._inlineCloseButton = closeBtn;
         head.add_child(closeBtn);
         card.add_child(head);
 
@@ -2720,9 +2767,16 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     }
 
     _readBrightness() {
-        if (this._removed || !this._brightnessReady || !this._brightnessProxy || this._brightnessChanging) return;
+        if (this._removed || !this._brightnessReady || !this._brightnessProxy) return;
+        if (this._brightnessSliderDragging || this._brightnessApplyId || this._brightnessInFlight) {
+            this._scheduleBrightnessSync();
+            return;
+        }
+        const generation = this._brightnessWriteGeneration;
         this._brightnessProxy.GetPercentageRemote(Lang.bind(this, function (value, error) {
-            if (!error) this._updateBrightness(value);
+            if (this._removed || error || generation !== this._brightnessWriteGeneration) return;
+            this._brightnessPending = null;
+            this._updateBrightness(value);
         }));
     }
 
@@ -2735,7 +2789,24 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const percent = Math.max(0, Math.min(100, Math.round(numericValue)));
         setSliderEnabled(this._brightnessRow, true);
         this._brightnessRow.actor.show();
+        if (this._brightnessSliderDragging || this._brightnessApplyId || this._brightnessInFlight || this._brightnessPending !== null) return;
+        this._updatingSliders = true;
         this._brightnessRow.slider.setValue(percent / 100);
+        this._updatingSliders = false;
+    }
+
+    _setBrightnessSliderDragging(dragging) {
+        this._brightnessSliderDragging = dragging;
+        if (!dragging) this._scheduleBrightnessSync();
+    }
+
+    _scheduleBrightnessSync() {
+        if (this._brightnessSyncId) Mainloop.source_remove(this._brightnessSyncId);
+        this._brightnessSyncId = Mainloop.timeout_add(140, () => {
+            this._brightnessSyncId = 0;
+            if (!this._brightnessSliderDragging && !this._brightnessApplyId && !this._brightnessInFlight) this._readBrightness();
+            return false;
+        });
     }
 
     _setBrightness(value) {
@@ -2743,12 +2814,22 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._disableBrightness();
             return;
         }
-        this._brightnessChanging = true;
-        const percent = Math.max(0, Math.min(100, value));
-        this._brightnessProxy.SetPercentageRemote(percent, Lang.bind(this, function () {
-            this._brightnessChanging = false;
-            this._updateBrightness(percent);
-        }));
+        const percent = Math.max(0, Math.min(100, Math.round(value)));
+        this._brightnessPending = percent;
+        const generation = ++this._brightnessWriteGeneration;
+        if (this._brightnessApplyId) Mainloop.source_remove(this._brightnessApplyId);
+        this._brightnessApplyId = Mainloop.timeout_add(90, () => {
+            this._brightnessApplyId = 0;
+            if (this._removed || generation !== this._brightnessWriteGeneration || !this._brightnessProxy) return false;
+            this._brightnessInFlight = true;
+            this._brightnessProxy.SetPercentageRemote(percent, Lang.bind(this, function (_result, error) {
+                if (this._removed || generation !== this._brightnessWriteGeneration) return;
+                this._brightnessInFlight = false;
+                if (error) global.logError(error);
+                this._scheduleBrightnessSync();
+            }));
+            return false;
+        });
     }
 
     _setTileLoading(tile, loading) {
@@ -2813,10 +2894,12 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._openSettings('networkSettings');
             return;
         }
-        this._wifiActionPending = true;
-        this._setSplitTileState(this._wifiTile, !state.enabled, true);
-        if (!this._wifiBackend.setEnabled(!state.enabled)) {
-            this._wifiActionPending = false;
+        const target = !state.enabled;
+        this._wifiPendingTarget = target;
+        this._wifiTile.subtitleLabel.set_text(target ? _('Bật') : _('Tắt'));
+        this._setSplitTileState(this._wifiTile, target, true);
+        if (!this._wifiBackend.setEnabled(target)) {
+            this._wifiPendingTarget = null;
             this._onWifiStateChanged(state);
         }
     }
@@ -2824,16 +2907,23 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     _onWifiStateChanged(state) {
         this._wifiState = state;
         if (!this._wifiTile) return;
-        this._wifiActionPending = false;
+        if (this._wifiPendingTarget !== null && state.enabled === this._wifiPendingTarget) this._wifiPendingTarget = null;
         const active = state.networks.find(network => network.active) || null;
+        const pending = this._wifiPendingTarget !== null;
+        const renderedEnabled = pending ? this._wifiPendingTarget : state.enabled;
         setTileEnabled(this._wifiTile, state.available && state.hardwareEnabled);
         this._wifiTile.subtitleLabel.set_text(
             !state.available ? _('Không có thiết bị')
                 : !state.hardwareEnabled ? _('Bị chặn bởi phần cứng')
-                    : !state.enabled ? _('Đang tắt')
-                        : active ? active.ssid : _('Đang bật')
+                    : pending ? (this._wifiPendingTarget ? _('Bật') : _('Tắt'))
+                        : !state.enabled ? _('Tắt')
+                            : active ? active.ssid : _('Bật')
         );
-        this._setSplitTileState(this._wifiTile, !!(state.enabled && active), this._wifiActionPending || state.scanning);
+        this._setSplitTileState(
+            this._wifiTile,
+            !!(state.available && state.hardwareEnabled && renderedEnabled),
+            pending || state.scanning
+        );
         if (this._expandedKind === 'wifi' && this._expandedBody) this._fillWifiList(this._expandedBody);
     }
 
@@ -2843,9 +2933,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const powered = !!(state.available && state.adapter && state.adapter.powered);
         setTileEnabled(this._bluetoothTile, state.available);
         this._setBluetoothUi(powered);
-        if (this._expandedKind === 'bluetooth' && this._expandedBody) {
-            this._fillBluetoothList(this._expandedBody);
-        }
+        if (this._expandedKind === 'bluetooth' && this._expandedBody) this._scheduleBluetoothListRefresh();
     }
 
     _setBluetoothUi(powered) {
@@ -2878,6 +2966,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const bluezState = this._bluezBackend ? this._bluezBackend.snapshot() : null;
         if (bluezState && bluezState.available && bluezState.adapter) {
             const target = !bluezState.adapter.powered;
+            this._bluetoothTile.subtitleLabel.set_text(target ? _('Bật') : _('Tắt'));
             this._setSplitTileState(this._bluetoothTile, target, true);
             if (!this._bluezBackend.setPowered(target)) {
                 this._setBluetoothUi(bluezState.adapter.powered);
@@ -3230,7 +3319,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._wifiActionPending = true;
         this._setSplitTileState(this._wifiTile, !network.active, true);
         if (!this._wifiBackend.activate(network)) {
-            this._wifiActionPending = false;
+            this._wifiPendingTarget = null;
             this._openSettings('networkSettings');
         }
     }

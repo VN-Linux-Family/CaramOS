@@ -140,6 +140,20 @@ class ControlCenterMigrationTests(unittest.TestCase):
         self.assertIn(migration.APPLET_UUID, updated)
         self.assertIn("panel1:center:0:grouped-window-list@cinnamon.org", updated)
 
+    def test_blueman_status_icon_disable_preserves_plugins_and_is_idempotent(self) -> None:
+        current = "['Menu']"
+
+        updated = migration._update_blueman_plugins(current)
+
+        self.assertEqual("['Menu', '!ShowConnected', '!StatusIcon']", updated)
+        self.assertEqual(updated, migration._update_blueman_plugins(updated))
+
+    def test_blueman_status_icon_disable_accepts_gsettings_empty_array_annotation(self) -> None:
+        self.assertEqual(
+            "['!ShowConnected', '!StatusIcon']",
+            migration._update_blueman_plugins("@as []"),
+        )
+
     def test_live_user_update_uses_one_atomic_set(self) -> None:
         context = MagicMock()
         current = (
@@ -147,37 +161,59 @@ class ControlCenterMigrationTests(unittest.TestCase):
             "'panel1:right:2:sound@cinnamon.org:4', "
             "'panel1:right:3:power@cinnamon.org:6']\n"
         )
-        read_result = MagicMock(returncode=0, stdout=current, stderr="")
+        applet_read = MagicMock(returncode=0, stdout=current, stderr="")
+        plugin_read = MagicMock(returncode=0, stdout="['Menu']\n", stderr="")
         write_result = MagicMock(returncode=0, stdout="", stderr="")
 
         with (
             patch.object(migration, "_session_environment", return_value={"DISPLAY": ":0"}),
-            patch.object(migration, "_run_gsettings", side_effect=[read_result, write_result]) as run_gsettings,
+            patch.object(
+                migration,
+                "_run_gsettings",
+                side_effect=[applet_read, write_result, plugin_read, write_result],
+            ) as run_gsettings,
         ):
             migration._apply_to_live_user(context, "tester", 1000)
 
-        self.assertEqual(2, run_gsettings.call_count)
-        set_call = run_gsettings.call_args_list[1]
-        self.assertEqual("set", set_call.args[2][0])
-        self.assertEqual(1, set_call.args[2].count("set"))
-        final_value = set_call.args[2][-1]
+        self.assertEqual(4, run_gsettings.call_count)
+        applet_set = run_gsettings.call_args_list[1]
+        self.assertEqual(["set", "org.cinnamon", "enabled-applets"], applet_set.args[2][:-1])
+        final_value = applet_set.args[2][-1]
         self.assertNotIn("network@cinnamon.org", final_value)
         self.assertNotIn("sound@cinnamon.org", final_value)
         self.assertNotIn("power@cinnamon.org", final_value)
         self.assertIn(migration.APPLET_UUID, final_value)
 
+        plugin_set = run_gsettings.call_args_list[3]
+        self.assertEqual(["set", "org.blueman.general", "plugin-list"], plugin_set.args[2][:-1])
+        self.assertEqual("['Menu', '!ShowConnected', '!StatusIcon']", plugin_set.args[2][-1])
+
     def test_live_user_noop_does_not_set(self) -> None:
         context = MagicMock()
-        current = "['panel1:right:4:caramos-control-center@caramos:0']\n"
-        read_result = MagicMock(returncode=0, stdout=current, stderr="")
+        applet_read = MagicMock(
+            returncode=0,
+            stdout="['panel1:right:4:caramos-control-center@caramos:0']\n",
+            stderr="",
+        )
+        plugin_read = MagicMock(
+            returncode=0,
+            stdout="['Menu', '!ShowConnected', '!StatusIcon']\n",
+            stderr="",
+        )
 
         with (
             patch.object(migration, "_session_environment", return_value={"DISPLAY": ":0"}),
-            patch.object(migration, "_run_gsettings", return_value=read_result) as run_gsettings,
+            patch.object(
+                migration,
+                "_run_gsettings",
+                side_effect=[applet_read, plugin_read],
+            ) as run_gsettings,
         ):
             migration._apply_to_live_user(context, "tester", 1000)
 
-        run_gsettings.assert_called_once()
+        self.assertEqual(2, run_gsettings.call_count)
+        self.assertEqual("get", run_gsettings.call_args_list[0].args[2][0])
+        self.assertEqual("get", run_gsettings.call_args_list[1].args[2][0])
 
     def test_missing_source_fails_before_install(self) -> None:
         with tempfile.TemporaryDirectory() as temp_dir:

@@ -154,6 +154,46 @@ class ControlCenterMigrationTests(unittest.TestCase):
             migration._update_blueman_plugins("@as []"),
         )
 
+    def test_all_users_include_offline_desktop_accounts(self) -> None:
+        users = [
+            MagicMock(pw_name="tester", pw_uid=1000, pw_dir="/home/tester"),
+            MagicMock(pw_name="service", pw_uid=999, pw_dir="/srv/service"),
+            MagicMock(pw_name="missing", pw_uid=1001, pw_dir="/home/missing"),
+        ]
+
+        with (
+            patch.object(migration.pwd, "getpwall", return_value=users),
+            patch.object(Path, "is_dir", autospec=True, side_effect=lambda path: str(path) == "/home/tester"),
+        ):
+            self.assertEqual(
+                [("tester", 1000, Path("/home/tester"))],
+                migration._desktop_users(),
+            )
+
+    def test_offline_user_gsettings_uses_private_dbus_session(self) -> None:
+        env = {"HOME": "/home/tester", "USER": "tester", "LOGNAME": "tester"}
+        completed = MagicMock(returncode=0, stdout="[]", stderr="")
+
+        with patch.object(migration.subprocess, "run", return_value=completed) as run:
+            result = migration._run_gsettings("tester", env, ["get", "org.cinnamon", "enabled-applets"])
+
+        self.assertIs(result, completed)
+        self.assertEqual(
+            [
+                "runuser",
+                "-u",
+                "tester",
+                "--",
+                "dbus-run-session",
+                "--",
+                "gsettings",
+                "get",
+                "org.cinnamon",
+                "enabled-applets",
+            ],
+            run.call_args.args[0],
+        )
+
     def test_live_user_update_uses_one_atomic_set(self) -> None:
         context = MagicMock()
         current = (
@@ -166,14 +206,14 @@ class ControlCenterMigrationTests(unittest.TestCase):
         write_result = MagicMock(returncode=0, stdout="", stderr="")
 
         with (
-            patch.object(migration, "_session_environment", return_value={"DISPLAY": ":0"}),
+            patch.object(migration, "_user_environment", return_value={"DISPLAY": ":0"}),
             patch.object(
                 migration,
                 "_run_gsettings",
                 side_effect=[applet_read, write_result, plugin_read, write_result],
             ) as run_gsettings,
         ):
-            migration._apply_to_live_user(context, "tester", 1000)
+            migration._apply_to_user(context, "tester", 1000, Path("/home/tester"))
 
         self.assertEqual(4, run_gsettings.call_count)
         applet_set = run_gsettings.call_args_list[1]
@@ -202,14 +242,14 @@ class ControlCenterMigrationTests(unittest.TestCase):
         )
 
         with (
-            patch.object(migration, "_session_environment", return_value={"DISPLAY": ":0"}),
+            patch.object(migration, "_user_environment", return_value={"DISPLAY": ":0"}),
             patch.object(
                 migration,
                 "_run_gsettings",
                 side_effect=[applet_read, plugin_read],
             ) as run_gsettings,
         ):
-            migration._apply_to_live_user(context, "tester", 1000)
+            migration._apply_to_user(context, "tester", 1000, Path("/home/tester"))
 
         self.assertEqual(2, run_gsettings.call_count)
         self.assertEqual("get", run_gsettings.call_args_list[0].args[2][0])

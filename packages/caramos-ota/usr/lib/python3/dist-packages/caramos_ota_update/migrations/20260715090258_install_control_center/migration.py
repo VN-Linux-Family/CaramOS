@@ -111,46 +111,51 @@ def _install_applet(context: MigrationContext) -> None:
     context.log(f"installed Cinnamon applet: {TARGET_APPLET_DIR}")
 
 
-def _session_environment(uid: int) -> dict[str, str] | None:
-    runtime_dir = Path(f"/run/user/{uid}")
-    if not runtime_dir.exists():
-        return None
-
+def _user_environment(username: str, uid: int, home: Path) -> dict[str, str]:
     env = os.environ.copy()
     env.update(
         {
-            "DISPLAY": os.environ.get("DISPLAY", ":0"),
-            "XDG_RUNTIME_DIR": str(runtime_dir),
-            "DBUS_SESSION_BUS_ADDRESS": f"unix:path={runtime_dir}/bus",
+            "HOME": str(home),
+            "USER": username,
+            "LOGNAME": username,
         }
     )
+
+    runtime_dir = Path(f"/run/user/{uid}")
+    if runtime_dir.is_dir() and (runtime_dir / "bus").exists():
+        env.update(
+            {
+                "DISPLAY": os.environ.get("DISPLAY", ":0"),
+                "XAUTHORITY": str(home / ".Xauthority"),
+                "XDG_RUNTIME_DIR": str(runtime_dir),
+                "DBUS_SESSION_BUS_ADDRESS": f"unix:path={runtime_dir}/bus",
+            }
+        )
+    else:
+        env.pop("DBUS_SESSION_BUS_ADDRESS", None)
+
     return env
 
 
-def _live_desktop_users() -> list[tuple[str, int]]:
-    users: list[tuple[str, int]] = []
-    runtime_root = Path("/run/user")
-    if not runtime_root.exists():
-        return users
-
-    for runtime_dir in runtime_root.iterdir():
-        if not runtime_dir.is_dir() or not runtime_dir.name.isdigit():
+def _desktop_users() -> list[tuple[str, int, Path]]:
+    users: list[tuple[str, int, Path]] = []
+    for user_info in pwd.getpwall():
+        if user_info.pw_uid < 1000 or user_info.pw_dir in ("", "/nonexistent"):
             continue
-        uid = int(runtime_dir.name)
-        try:
-            user_info = pwd.getpwuid(uid)
-        except KeyError:
+        home = Path(user_info.pw_dir)
+        if not home.is_dir():
             continue
-        if uid < 1000 or user_info.pw_dir in ("", "/nonexistent"):
-            continue
-        users.append((user_info.pw_name, uid))
-
-    return users
+        users.append((user_info.pw_name, user_info.pw_uid, home))
+    return sorted(users, key=lambda item: item[1])
 
 
 def _run_gsettings(user: str, env: dict[str, str], args: list[str]) -> subprocess.CompletedProcess[str]:
+    command = ["runuser", "-u", user, "--"]
+    if "DBUS_SESSION_BUS_ADDRESS" not in env:
+        command.extend(["dbus-run-session", "--"])
+    command.extend(["gsettings", *args])
     return subprocess.run(
-        ["runuser", "-u", user, "--", "gsettings", *args],
+        command,
         check=False,
         capture_output=True,
         text=True,
@@ -296,10 +301,8 @@ def _update_system_defaults(context: MigrationContext) -> bool:
     return True
 
 
-def _apply_to_live_user(context: MigrationContext, username: str, uid: int) -> None:
-    env = _session_environment(uid)
-    if env is None:
-        return
+def _apply_to_user(context: MigrationContext, username: str, uid: int, home: Path) -> None:
+    env = _user_environment(username, uid, home)
 
     current = _run_gsettings(username, env, ["get", "org.cinnamon", "enabled-applets"])
     if current.returncode != 0:
@@ -341,7 +344,7 @@ def run(context: MigrationContext) -> None:
     if context.dry_run:
         context.log(f"[dry-run] copy {SOURCE_APPLET_DIR} to {TARGET_APPLET_DIR}")
         _update_system_defaults(context)
-        context.log("[dry-run] enable Control Center and remove redundant network, sound, and power applets for live desktop users")
+        context.log("[dry-run] enable Control Center and remove redundant network, sound, and power applets for all desktop users")
         return
 
     _install_applet(context)
@@ -349,5 +352,5 @@ def run(context: MigrationContext) -> None:
     if defaults_changed:
         context.run_command(["dconf", "update"], allow_fail=True)
 
-    for username, uid in _live_desktop_users():
-        _apply_to_live_user(context, username, uid)
+    for username, uid, home in _desktop_users():
+        _apply_to_user(context, username, uid, home)

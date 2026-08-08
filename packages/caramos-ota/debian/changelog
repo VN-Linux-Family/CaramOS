@@ -1,3 +1,10 @@
+caramos-ota (1.0.16.1-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.0.16.1.
+  * Run all pending timestamp migrations by migration ID ledger.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Fri, 07 Aug 2026 21:17:19 +0700
+
 caramos-ota (1.0.16-0caramos1) noble; urgency=medium
 
   * Pin Zalo and Software Manager to the Cinnamon taskbar while keeping WPS pinned.

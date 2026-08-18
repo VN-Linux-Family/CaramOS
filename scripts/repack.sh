@@ -50,6 +50,15 @@ step_repack_squashfs() {
     else
         warn "không tìm thấy initrd.img-* trong rootfs để cập nhật casper/initrd.lz"
     fi
+
+    local latest_vmlinuz
+    latest_vmlinuz=$(ls -1t "$WORK_DIR"/squashfs/boot/vmlinuz-* 2>/dev/null | head -1 || true)
+    if [ -n "$latest_vmlinuz" ] && [ -f "$latest_vmlinuz" ]; then
+        cp "$latest_vmlinuz" "$WORK_DIR/custom/casper/vmlinuz"
+        ok "live kernel đã cập nhật: $(basename "$latest_vmlinuz") → casper/vmlinuz"
+    else
+        warn "không tìm thấy vmlinuz-* trong rootfs để cập nhật casper/vmlinuz"
+    fi
 }
 
 step_repack_iso() {

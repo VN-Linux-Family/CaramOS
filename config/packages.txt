@@ -15,3 +15,8 @@ tlp-rdw
 gnome-power-manager
 cinnamon-settings-daemon
 upower
+# suggested pkg:
+copyq-doc
+qt5-qmltooling-plugins
+smartmontools
+linux-tools

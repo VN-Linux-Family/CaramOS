@@ -20,3 +20,5 @@ copyq-doc
 qt5-qmltooling-plugins
 smartmontools
 linux-tools-generic
+gsmartcontrol
+smart-notifier

@@ -19,4 +19,4 @@ upower
 copyq-doc
 qt5-qmltooling-plugins
 smartmontools
-linux-tools
+linux-tools-generic

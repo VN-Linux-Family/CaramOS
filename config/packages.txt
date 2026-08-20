@@ -8,8 +8,9 @@ flameshot
 tlp
 #19
 copyq
+#74 @dryfish09
 # thêm vào:
-power-profiles-daemon
+tlpui
 # thêm vào cho chắc:
 gnome-power-manager
 cinnamon-settings-daemon

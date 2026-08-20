@@ -8,3 +8,9 @@ flameshot
 tlp
 #19
 copyq
+# thêm vào:
+power-profiles-daemon
+# thêm vào cho chắc:
+gnome-power-manager
+cinnamon-settings-daemon
+upower

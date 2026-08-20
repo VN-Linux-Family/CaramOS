@@ -1,18 +1,15 @@
 #!/bin/bash
-# ============================================================
-# CaramOS Build Script
-# Remaster từ Linux Mint ISO → CaramOS ISO
+# CaramOS Build Script - Remaster từ Linux Mint ISO → CaramOS ISO
 #
 # Usage:
 #   sudo ./build.sh                          # Dev build (lz4, nhanh)
-#   sudo ./build.sh --release                 # Release build (xz, nhỏ)
-#   sudo ./build.sh /path/to/mint.iso         # Dùng ISO có sẵn
-#   sudo ./build.sh --clean                   # Dọn build cũ
-#   sudo ./build.sh --quick                   # Overlay + repack nhanh
-#   sudo ./build.sh --shell                   # Vào chroot để test/sửa
-#   sudo ./build.sh --verbose                 # Debug mode
-#   sudo ./build.sh --keep-work               # Giữ work dir sau build
-# ============================================================
+#   sudo ./build.sh --release                # Release build (xz, nhỏ)
+#   sudo ./build.sh /path/to/mint.iso        # Dùng ISO có sẵn
+#   sudo ./build.sh --clean                  # Dọn build cũ
+#   sudo ./build.sh --quick                  # Overlay + repack nhanh
+#   sudo ./build.sh --shell                  # Vào chroot để test/sửa
+#   sudo ./build.sh --verbose                # Debug mode
+#   sudo ./build.sh --keep-work              # Giữ work dir sau build
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -118,8 +115,28 @@ EOF
 
 check_disk_space() {
     local required_gb=10
-    local available_gb
+    local available_gb=0
+    
+    # WORK_DIR phải được set
+    if [ -z "$WORK_DIR" ]; then
+        warn "WORK_DIR not set, skipping disk space check"
+        return 0
+    fi
+    
+    # Tạo thư mục nếu chưa có
+    mkdir -p "$WORK_DIR" 2>/dev/null || {
+        warn "Cannot create WORK_DIR, skipping disk space check"
+        return 0
+    }
+    
+    # Lấy dung lượng trống, fallback về 0 nếu lỗi
     available_gb=$(df -BG "$WORK_DIR" 2>/dev/null | awk 'NR==2 {print $4}' | sed 's/G//' || echo "0")
+    
+    # Nếu không lấy được, bỏ qua
+    if ! [[ "$available_gb" =~ ^[0-9]+$ ]]; then
+        warn "Cannot determine available disk space, skipping check"
+        return 0
+    fi
     
     if [ "$available_gb" -lt "$required_gb" ]; then
         warn "Only ${available_gb}GB available, need ${required_gb}GB"

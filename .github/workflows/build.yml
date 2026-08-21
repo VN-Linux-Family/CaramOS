@@ -3,10 +3,13 @@ name: Build CaramOS ISO
 on:
   push:
     branches: ['*']
+    paths-ignore:
+      - *.md
+      - .githuh/**
     tags:
       - 'v*'
   pull_request:
-    branches: [main]
+    branches: ['*']
   workflow_dispatch:
 
 permissions:

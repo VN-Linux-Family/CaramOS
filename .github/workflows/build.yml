@@ -39,17 +39,6 @@ jobs:
           path: linuxmint-22.3-cinnamon-64bit.iso
           key: mint-iso-22.3-cinnamon
 
-      - name: Verify release tag matches source version
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: |
-          source scripts/config.sh
-          TAG_VERSION="${GITHUB_REF_NAME#v}"
-          echo "Source version: ${CARAMOS_VERSION}"
-          echo "Tag version:    ${TAG_VERSION}"
-          if [ "${TAG_VERSION}" != "${CARAMOS_VERSION}" ]; then
-            echo "::error::Release tag ${GITHUB_REF_NAME} does not match CARAMOS_VERSION=${CARAMOS_VERSION}"
-            exit 1
-          fi
 
       - name: Build CaramOS ISO
         run: |

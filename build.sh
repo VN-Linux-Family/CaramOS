@@ -4,8 +4,8 @@
 # Remaster from Linux Mint ISO to CaramOS ISO
 #
 # Usage:
-#   sudo ./build.sh                          # Dev build (lz4, fast)
-#   sudo ./build.sh --release                 # Release build (xz, small)
+#   sudo ./build.sh                          # Dev build (zstd, fast)
+#   sudo ./build.sh --release                 # Release build (zstd, balanced)
 #   sudo ./build.sh /path/to/mint.iso         # Use existing ISO
 #   sudo ./build.sh --clean                   # Clean old build
 #   sudo ./build.sh --quick                   # Overlay + quick repack
@@ -57,12 +57,23 @@ check_disk_space() {
     done
 }
 
+ensure_zstd() {
+    if ! command -v zstd >/dev/null 2>&1; then
+        info "zstd not found, installing..."
+        apt-get update -qq
+        apt-get install -y zstd
+        ok "zstd installed"
+    else
+        info "zstd found: $(zstd --version 2>&1 | head -1)"
+    fi
+}
+
 for arg in "$@"; do
     case "$arg" in
         --release)
-            SQUASHFS_COMP="xz"
-            SQUASHFS_OPTS="-b 1M -Xdict-size 100% -noappend"
-            info "Release mode: xz compression (slower, smaller ISO)"
+            SQUASHFS_COMP="zstd"
+            SQUASHFS_OPTS="-b 1M -Xcompression-level 19 -noappend"
+            info "Release mode: zstd compression level 19 (balanced, smaller ISO)"
             ;;
         --debug-boot)
             DEBUG_BOOT=1
@@ -115,6 +126,7 @@ fi
 check_root
 install_deps
 install_gum
+ensure_zstd
 check_disk_space
 
 cleanup_on_fail() {

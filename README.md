@@ -1,4 +1,4 @@
-# DMCaramOS - better CaramOS
+# DMCaramOS - DryFish's Modified version for CaramOS
 ### What's this fork added:
 This fork added, and will add:
 

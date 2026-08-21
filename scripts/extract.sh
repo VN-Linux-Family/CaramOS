@@ -1,9 +1,8 @@
 #!/bin/bash
-# Bước 1-3: Extract ISO + filesystem (có cache)
+# Steps 1-3: Extract ISO + filesystem (with cache)
 
 step_extract() {
-    info "[1/7] Chuẩn bị thư mục build..."
-    # Dọn mount cũ nếu build trước bị lỗi
+    info "[1/7] Preparing build directory..."
     sync 2>/dev/null || true
     umount "$WORK_DIR/squashfs/proc"    2>/dev/null || true
     umount "$WORK_DIR/squashfs/sys"     2>/dev/null || true
@@ -13,31 +12,47 @@ step_extract() {
     rm -rf "$WORK_DIR/squashfs" "$WORK_DIR/custom"
     mkdir -p "$WORK_DIR"/{mnt,custom}
 
-    # --- Cache: giữ bản extract gốc, chỉ extract 1 lần ---
     CACHE_DIR="$WORK_DIR/cache"
-    if [ -d "$CACHE_DIR" ]; then
-        info "[2/7] Dùng cache (skip extract ISO)..."
-        ok "Cache found."
+    CACHE_ISO_DIR="$WORK_DIR/cache_iso"
+    CACHE_VALID=false
+
+    # Validate cache
+    if [ -d "$CACHE_DIR" ] && [ -d "$CACHE_ISO_DIR" ] &&
+       [ -f "$CACHE_DIR/etc/os-release" ] &&
+       [ -f "$CACHE_ISO_DIR/casper/filesystem.squashfs" ] &&
+       [ -d "$CACHE_ISO_DIR/isolinux" -o -d "$CACHE_ISO_DIR/boot/grub" ]; then
+        CACHE_VALID=true
+    fi
+
+    if $CACHE_VALID; then
+        info "[2/7] Using cache (skip ISO extract)..."
+        ok "Cache found and validated."
     else
-        info "[2/7] Extract ISO (lần đầu, sau này dùng cache)..."
+        info "[2/7] Extracting ISO (first time, will cache)..."
+        
+        # Clean old cache if exists but invalid
+        rm -rf "$CACHE_DIR" "$CACHE_ISO_DIR"
+        mkdir -p "$CACHE_DIR"
+        
         mount -o loop,ro "$MINT_ISO" "$WORK_DIR/mnt"
         rsync -a --exclude='casper/filesystem.squashfs' "$WORK_DIR/mnt/" "$WORK_DIR/custom/"
-        ok "Extract ISO xong."
+        ok "ISO extraction complete."
 
-        info "[3/7] Extract filesystem.squashfs (3-5 phút, chỉ lần đầu)..."
-        unsquashfs -d "$CACHE_DIR" "$WORK_DIR/mnt/casper/filesystem.squashfs"
+        info "[3/7] Extracting filesystem.squashfs (3-5 min, first time only)..."
+        if ! unsquashfs -d "$CACHE_DIR" "$WORK_DIR/mnt/casper/filesystem.squashfs"; then
+            error "unsquashfs failed. Check disk space and ISO integrity."
+            umount "$WORK_DIR/mnt"
+            exit 1
+        fi
         umount "$WORK_DIR/mnt"
 
-        # Lưu bản ISO content riêng cho cache
-        cp -a "$WORK_DIR/custom" "$WORK_DIR/cache_iso"
-        ok "Extract + cache xong."
+        # Save ISO content separately for cache
+        cp -a "$WORK_DIR/custom/." "$CACHE_ISO_DIR/"
+        ok "Extraction + cache complete."
     fi
 
-    # Copy từ cache ra bản làm việc
-    info "  → Copy từ cache..."
+    info "  → Copying from cache..."
     cp -a "$CACHE_DIR" "$WORK_DIR/squashfs"
-    if [ -d "$WORK_DIR/cache_iso" ]; then
-        cp -a "$WORK_DIR/cache_iso/." "$WORK_DIR/custom/"
-    fi
-    ok "Sẵn sàng tuỳ biến."
+    cp -a "$CACHE_ISO_DIR/." "$WORK_DIR/custom/"
+    ok "Ready for customization."
 }

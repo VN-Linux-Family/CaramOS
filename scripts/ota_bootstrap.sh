@@ -6,25 +6,35 @@ build_caramos_ota_deb() {
     local dist_dir="$ota_dir/dist-testkit"
 
     if [ ! -x "$ota_dir/tools/caramos-ota-testkit.sh" ]; then
-        error "Không tìm thấy OTA testkit: $ota_dir/tools/caramos-ota-testkit.sh"
+        error "OTA testkit not found: $ota_dir/tools/caramos-ota-testkit.sh"
     fi
 
-    info "  → Build package caramos-ota để nhúng vào ISO..." >&2
+    info "  → Building caramos-ota package for ISO embedding..." >&2
     if ! (cd "$ota_dir" && ./tools/caramos-ota-testkit.sh build-deb) >&2; then
-        error "Build caramos-ota .deb thất bại. Cài build deps rồi chạy lại: sudo apt install build-essential debhelper"
+        error "Failed to build caramos-ota .deb. Install build deps and retry: sudo apt install build-essential debhelper"
+    fi
+
+    if [ ! -d "$dist_dir" ]; then
+        error "Build output directory not found: $dist_dir"
     fi
 
     local deb
-    deb="$(find "$dist_dir" -maxdepth 1 -type f -name 'caramos-ota_*.deb' | sort | tail -n 1)"
+    deb="$(find "$dist_dir" -maxdepth 1 -type f -name 'caramos-ota_*.deb' -print0 | sort -z | tail -z -n 1 | tr -d '\0')"
     if [ -z "$deb" ] || [ ! -f "$deb" ]; then
-        error "Build caramos-ota .deb thất bại: không tìm thấy file trong $dist_dir"
+        error "Failed to build caramos-ota .deb: no file found in $dist_dir"
     fi
 
     printf '%s\n' "$deb"
 }
 
 packaged_caramos_product_version() {
-    PYTHONPATH="packages/caramos-ota/usr/lib/python3/dist-packages" python3 - <<'PY'
+    local pythonpath="$SCRIPT_DIR/packages/caramos-ota/usr/lib/python3/dist-packages"
+    
+    if [ ! -d "$pythonpath/caramos_ota" ]; then
+        error "caramos_ota Python module not found at: $pythonpath"
+    fi
+    
+    PYTHONPATH="$pythonpath" python3 - <<'PY'
 from caramos_ota.release_metadata import PRODUCT_VERSION
 
 print(PRODUCT_VERSION)
@@ -38,29 +48,44 @@ install_caramos_ota_and_run_migrations() {
     target_version="$(packaged_caramos_product_version)"
     from_version="${CARAMOS_MIGRATION_BASE_VERSION:-1.0.1}"
 
-    info "  → Cài caramos-ota vào ISO rootfs..."
+    # Validate version format
+    if ! [[ "$target_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        error "Invalid target version format: $target_version"
+    fi
+    if ! [[ "$from_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        error "Invalid source version format: $from_version"
+    fi
+
+    info "  → Installing caramos-ota into ISO rootfs..."
     cp "$deb" "$WORK_DIR/squashfs/tmp/caramos-ota-local.deb"
-    chroot "$WORK_DIR/squashfs" /bin/bash -c '
+    
+    if ! chroot "$WORK_DIR/squashfs" /bin/bash -c '
         set -e
         export DEBIAN_FRONTEND=noninteractive
         APT_LOCK_TIMEOUT="${APT_LOCK_TIMEOUT:-600}"
         apt-get -o DPkg::Lock::Timeout="$APT_LOCK_TIMEOUT" install -y /tmp/caramos-ota-local.deb
         rm -f /tmp/caramos-ota-local.deb
-        command -v caramos-ota
-        command -v caramos-ota-notifier
-        command -v caramos-ota-update
-    '
-    ok "Đã cài caramos-ota vào ISO rootfs."
+        command -v caramos-ota >/dev/null
+        command -v caramos-ota-notifier >/dev/null
+        command -v caramos-ota-update >/dev/null
+    '; then
+        rm -f "$WORK_DIR/squashfs/tmp/caramos-ota-local.deb" 2>/dev/null || true
+        error "Failed to install caramos-ota in chroot"
+    fi
+    
+    ok "caramos-ota installed into ISO rootfs."
 
-    # Always invoke updater: same-release timestamp migrations may still be pending.
-    info "  → Chạy OTA migrations trong ISO rootfs: $from_version -> $target_version"
-    CARAMOS_VERSION="$from_version" TARGET_VERSION="$target_version" \
+    info "  → Running OTA migrations in ISO rootfs: $from_version -> $target_version"
+    if ! CARAMOS_VERSION="$from_version" TARGET_VERSION="$target_version" \
     chroot "$WORK_DIR/squashfs" /bin/bash -c '
         set -e
         caramos-ota-update --from "$CARAMOS_VERSION" --target "$TARGET_VERSION" --dry-run
         caramos-ota-update --from "$CARAMOS_VERSION" --target "$TARGET_VERSION"
-    '
-    ok "OTA migrations đã chạy xong trong ISO rootfs tới $target_version."
+    '; then
+        error "OTA migrations failed in chroot"
+    fi
+    
+    ok "OTA migrations completed in ISO rootfs to version $target_version."
 }
 
 step_ota_bootstrap() {

@@ -1,15 +1,15 @@
 #!/bin/bash
-# Fast path: chỉ copy overlay vào rootfs đang làm việc.
+# Fast path: only copy overlay into working rootfs.
 
 step_overlay() {
     ensure_work_tree
 
     if [ -d "$SCRIPT_DIR/config/includes.chroot" ]; then
-        info "Copy overlay files..."
+        info "Copying overlay files..."
         shopt -s nullglob dotglob
         local overlay_files=("$SCRIPT_DIR/config/includes.chroot"/*)
         if [ ${#overlay_files[@]} -eq 0 ]; then
-            warn "Overlay rỗng: config/includes.chroot"
+            warn "Overlay is empty: config/includes.chroot"
         else
             # Older builds accidentally created fcitx5/profile as a directory.
             # The correct Fcitx5 profile path is a file, so remove the stale
@@ -19,8 +19,8 @@ step_overlay() {
             fi
             cp -a "${overlay_files[@]}" "$WORK_DIR/squashfs/"
 
-            # Overlay có thể thay đổi /etc/dconf/db/local.d và GSettings schemas.
-            # Nếu không compile lại, make quick sẽ repack DB cũ dù source overlay đã đúng.
+            # Overlay may change /etc/dconf/db/local.d and GSettings schemas.
+            # If not recompiled, make quick will repack old DB even if overlay source is correct.
             if [ -d "$WORK_DIR/squashfs/etc/dconf/db/local.d" ]; then
                 chroot "$WORK_DIR/squashfs" /bin/bash -c 'dconf compile /etc/dconf/db/local /etc/dconf/db/local.d || dconf update || true'
             fi
@@ -28,10 +28,10 @@ step_overlay() {
                 chroot "$WORK_DIR/squashfs" /bin/bash -c 'glib-compile-schemas /usr/share/glib-2.0/schemas/ || true'
             fi
 
-            ok "Copy overlay xong."
+            ok "Overlay copy complete."
         fi
         shopt -u nullglob dotglob
     else
-        warn "Không tìm thấy config/includes.chroot, bỏ qua overlay."
+        warn "config/includes.chroot not found, skipping overlay."
     fi
 }

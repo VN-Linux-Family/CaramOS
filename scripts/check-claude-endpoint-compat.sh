@@ -1,17 +1,6 @@
 #!/usr/bin/env bash
 set -uo pipefail
 
-# Claude Code/custom Anthropic endpoint compatibility probe.
-#
-# Default run:
-#   ./scripts/check-claude-endpoint-compat.sh
-#
-# Optional controls:
-#   TIMEOUT_SECONDS=120 CONCURRENCY=2 ./scripts/check-claude-endpoint-compat.sh
-#   FULL_1M=1 ./scripts/check-claude-endpoint-compat.sh
-#
-# FULL_1M=1 sends a very large, potentially expensive request.
-
 CFG="${CLAUDE_SETTINGS_FILE:-${HOME}/.claude/settings.json}"
 TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-90}"
 CONCURRENCY="${CONCURRENCY:-4}"
@@ -161,10 +150,6 @@ printf 'Configured API model: %s\n' "$MODEL"
 printf 'Claude Code version: %s\n' "$(claude --version 2>&1 | tr '\n' ' ')"
 printf 'Artifacts: %s\n\n' "$WORK"
 
-###############################################################################
-# 1. Models API: optional for Claude Code, useful for capability discovery.
-###############################################################################
-
 MODELS_CODE="$(
   request GET \
     "${BASE}/models" \
@@ -178,10 +163,6 @@ if [[ "$MODELS_CODE" == "200" ]] && jq -e . "${WORK}/models.json" >/dev/null 2>&
 else
   warn "GET /models unavailable or non-standard (HTTP ${MODELS_CODE}); Claude Code may still work"
 fi
-
-###############################################################################
-# 2. Basic Messages API.
-###############################################################################
 
 jq -n --arg model "$MODEL" '{
   model: $model,
@@ -212,10 +193,6 @@ if [[ "$BASIC_CODE" == "200" ]] &&
 else
   fail "Messages API basic schema (HTTP ${BASIC_CODE})"
 fi
-
-###############################################################################
-# 3. Forced tool_use.
-###############################################################################
 
 jq -n --arg model "$MODEL" '{
   model: $model,
@@ -260,10 +237,6 @@ if [[ "$TOOL_CODE" == "200" ]] &&
 else
   fail "Anthropic tool_use schema (HTTP ${TOOL_CODE})"
 fi
-
-###############################################################################
-# 4. tool_result round trip.
-###############################################################################
 
 TOOL_ID="$(
   jq -r '.content[]? | select(.type == "tool_use") | .id' \
@@ -327,10 +300,6 @@ else
   fail 'tool_result round trip skipped because tool_use ID is missing'
 fi
 
-###############################################################################
-# 5. Text streaming SSE.
-###############################################################################
-
 jq '. + {stream: true}' "${WORK}/basic.request.json" >"${WORK}/stream.request.json"
 
 curl -sS -N \
@@ -363,10 +332,6 @@ else
   fail 'Streaming SSE event sequence'
 fi
 
-###############################################################################
-# 6. Tool streaming and input_json_delta.
-###############################################################################
-
 jq '. + {stream: true}' "${WORK}/tool.request.json" >"${WORK}/tool-stream.request.json"
 
 curl -sS -N \
@@ -384,10 +349,6 @@ if grep -Eq '"type"[[:space:]]*:[[:space:]]*"input_json_delta"' "${WORK}/tool-st
 else
   fail 'Streaming tool input_json_delta'
 fi
-
-###############################################################################
-# 7. Thinking and effort compatibility.
-###############################################################################
 
 jq -n --arg model "$MODEL" '{
   model: $model,
@@ -415,10 +376,6 @@ if [[ "$THINKING_CODE" == "200" ]] &&
 else
   fail "Adaptive thinking and effort request rejected (HTTP ${THINKING_CODE})"
 fi
-
-###############################################################################
-# 8. Prompt caching.
-###############################################################################
 
 python3 - <<'PY' >"${WORK}/cache-prefix.txt"
 print("Stable endpoint compatibility context. " * 1200)
@@ -468,10 +425,6 @@ else
   fail "Prompt cache requests rejected (HTTP ${CACHE1_CODE}/${CACHE2_CODE})"
 fi
 
-###############################################################################
-# 9. Anthropic error envelope.
-###############################################################################
-
 jq -n '{
   model: "compat_probe_model_that_must_not_exist_7f39d6",
   max_tokens: 16,
@@ -497,11 +450,6 @@ if [[ "$ERROR_CODE" =~ ^(400|404)$ ]] &&
 else
   fail "Invalid-model error envelope (HTTP ${ERROR_CODE})"
 fi
-
-###############################################################################
-# 10. Large-context request.
-# Default approximates a moderate context. FULL_1M=1 is expensive.
-###############################################################################
 
 if [[ "$FULL_1M" == "1" ]]; then
   CONTEXT_WORDS=900000
@@ -548,10 +496,6 @@ else
   fail "Large context rejected (${CONTEXT_WORDS} repeated words, HTTP ${LARGE_CONTEXT_CODE})"
 fi
 
-###############################################################################
-# 11. Claude Code basic end-to-end.
-###############################################################################
-
 if timeout 120s env API_TIMEOUT_MS=60000 \
   claude -p \
     'Reply with exactly CLAUDE_CODE_OK' \
@@ -568,10 +512,6 @@ if timeout 120s env API_TIMEOUT_MS=60000 \
 else
   fail 'Claude Code basic end-to-end'
 fi
-
-###############################################################################
-# 12. Claude Code Read tool end-to-end.
-###############################################################################
 
 PROBE_FILE="${WORK}/read-probe.txt"
 printf 'CLAUDE_TOOL_OK\n' >"$PROBE_FILE"
@@ -593,10 +533,6 @@ if timeout 120s env API_TIMEOUT_MS=60000 \
 else
   fail 'Claude Code Read tool round trip'
 fi
-
-###############################################################################
-# 13. Claude Code stream-json.
-###############################################################################
 
 if timeout 120s env API_TIMEOUT_MS=60000 \
   claude -p \
@@ -629,10 +565,6 @@ PY
 else
   fail 'Claude Code stream-json'
 fi
-
-###############################################################################
-# 14. Parallel Claude Code requests.
-###############################################################################
 
 PIDS=()
 for n in $(seq 1 "$CONCURRENCY"); do
@@ -670,10 +602,6 @@ if [[ "$PARALLEL_OK" == "1" ]]; then
 else
   fail "${CONCURRENCY} parallel Claude Code requests"
 fi
-
-###############################################################################
-# Summary.
-###############################################################################
 
 {
   printf '\n============================================================\n'

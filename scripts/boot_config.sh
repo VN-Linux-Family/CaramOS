@@ -1,10 +1,10 @@
 #!/bin/bash
-# Cấu hình bootloader + plymouth theo build mode:
-#   - Branding (Linux Mint → CaramOS): LUÔN áp dụng, cả dev lẫn release
-#   - Dev/Release mode mặc định giữ quiet + splash để hiện Plymouth loading screen
-#   - Debug boot mode (--debug-boot) xoá quiet/splash khỏi kernel cmdline
+# Bootloader + plymouth configuration by build mode:
+#   - Branding (Linux Mint → CaramOS): ALWAYS applied, both dev and release
+#   - Dev/Release mode keeps quiet + splash by default for Plymouth loading screen
+#   - Debug boot mode (--debug-boot) removes quiet/splash from kernel cmdline
 #
-# Chạy SAU step_extract, TRƯỚC step_customize.
+# Run AFTER step_extract, BEFORE step_customize.
 
 step_boot_config() {
     local ISO_DIR="$WORK_DIR/custom"
@@ -13,9 +13,9 @@ step_boot_config() {
     [ "${DEBUG_BOOT:-0}" = "1" ] && IS_DEBUG=true
 
     if $IS_DEBUG; then
-        info "[2.5/7] Cấu hình debug boot (no quiet/splash)..."
+        info "[2.5/7] Configuring debug boot (no quiet/splash)..."
     else
-        info "[2.5/7] Cấu hình boot đẹp (branding + Plymouth)..."
+        info "[2.5/7] Configuring beautiful boot (branding + Plymouth)..."
     fi
 
     local BRAND_NAME="CaramOS"
@@ -32,7 +32,7 @@ step_boot_config() {
         2>/dev/null)
 
     if [ -n "$ISOLINUX_FILES" ]; then
-        info "  → Sửa isolinux/syslinux config..."
+        info "  → Fixing isolinux/syslinux config..."
         echo "$ISOLINUX_FILES" | while IFS= read -r cfg; do
             sed -i \
                 -e "s/Welcome to Linux Mint [0-9.]* 64-bit/Welcome to ${BRAND_NAME} ${BRAND_VERSION} 64-bit/gI" \
@@ -67,10 +67,10 @@ step_boot_config() {
                 }' "$cfg"
             fi
 
-            ok "    Đã sửa: $(basename "$cfg")"
+            ok "    Fixed: $(basename "$cfg")"
         done
     else
-        warn "  → Không tìm thấy isolinux/syslinux config, bỏ qua."
+        warn "  → No isolinux/syslinux config found, skipping."
     fi
 
     local GRUB_FILES
@@ -80,7 +80,7 @@ step_boot_config() {
         2>/dev/null)
 
     if [ -n "$GRUB_FILES" ]; then
-        info "  → Sửa GRUB config..."
+        info "  → Fixing GRUB config..."
 
         local GRUB_SPLASH="$SCRIPT_DIR/assets/boot-splash.png"
         if [ -f "$GRUB_SPLASH" ]; then
@@ -110,10 +110,10 @@ step_boot_config() {
                 sed -i '/^[[:space:]]*linux/s/\bquiet\b//g; /^[[:space:]]*linux/s/\bsplash\b//g' "$cfg"
             fi
 
-            ok "    Đã sửa: $(basename "$cfg")"
+            ok "    Fixed: $(basename "$cfg")"
         done
     else
-        warn "  → Không tìm thấy GRUB config, bỏ qua."
+        warn "  → No GRUB config found, skipping."
     fi
 
     local BANNER_SRC="$SCRIPT_DIR/splash.png"
@@ -125,16 +125,14 @@ step_boot_config() {
         -exec dirname {} \; 2>/dev/null | head -1)
 
     if [ ! -f "$BANNER_SRC" ]; then
-        warn "  → Không tìm thấy splash.png/assets/boot-splash.png, bỏ qua boot menu background."
+        warn "  → splash.png/assets/boot-splash.png not found, skipping boot menu background."
     elif [ -z "$ISOLINUX_DIR" ]; then
-        warn "  → Không tìm thấy thư mục isolinux, bỏ qua splash."
+        warn "  → isolinux directory not found, skipping splash."
     else
-        info "  → Set syslinux splash background..."
+        info "  → Setting syslinux splash background..."
 
-        # Keep Mint's original gfxboot/isolinux UI. Replacing it with vesamenu
-        # makes the boot menu fall back to a black text screen on the Mint ISO.
         cp "$BANNER_SRC" "$ISOLINUX_DIR/splash.png"
-        ok "    Đã copy: splash.png → $ISOLINUX_DIR/"
+        ok "    Copied: splash.png → $ISOLINUX_DIR/"
 
         find "$ISOLINUX_DIR" -name "*.cfg" -type f -print0 | \
             xargs -0 sed -i '/^[[:space:]]*menu[[:space:]]\+background[[:space:]]/Id'
@@ -144,24 +142,24 @@ step_boot_config() {
 
         if [ -f "$INSERT_CFG" ]; then
             sed -i '1i menu background splash.png' "$INSERT_CFG"
-            ok "    Set MENU BACKGROUND trong: $(basename "$INSERT_CFG")"
+            ok "    Set MENU BACKGROUND in: $(basename "$INSERT_CFG")"
         else
-            warn "    Không tìm thấy cfg phù hợp để thêm MENU BACKGROUND."
+            warn "    No suitable cfg found to add MENU BACKGROUND."
         fi
 
         local MAIN_CFG="$ISOLINUX_DIR/isolinux.cfg"
         if [ -f "$MAIN_CFG" ]; then
             if ! grep -qiE '^[[:space:]]*include[[:space:]]+stdmenu\.cfg' "$MAIN_CFG"; then
                 sed -i '/^[[:space:]]*include[[:space:]]\+live\.cfg/i include stdmenu.cfg' "$MAIN_CFG"
-                ok "    Đã include stdmenu.cfg trong: isolinux.cfg"
+                ok "    Included stdmenu.cfg in: isolinux.cfg"
             fi
             if ! grep -qiE '^[[:space:]]*menu[[:space:]]+background[[:space:]]+splash\.png' "$MAIN_CFG"; then
                 sed -i '1i menu background splash.png' "$MAIN_CFG"
-                ok "    Set MENU BACKGROUND trực tiếp trong: isolinux.cfg"
+                ok "    Set MENU BACKGROUND directly in: isolinux.cfg"
             fi
         fi
     fi
 
-    info "  → Giữ Plymouth để hiện loading screen CaramOS."
-    ok "[2.5/7] Boot config xong."
+    info "  → Keeping Plymouth for CaramOS loading screen."
+    ok "[2.5/7] Boot config complete."
 }

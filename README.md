@@ -17,6 +17,6 @@ Original project: https://github.com/VietNam-Linux-Family/CaramOS
 ### How to update this OS by OTA?
 If you installed OS `.iso` file. Run this command:
 ```bash
-curl -fsSL https://raw.githubusercontent/dryfish09/DMCaramOS/main/install-caramos-ota.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/dryfish09/DMCaramOS/refs/heads/main/install-caramos-ota.sh | sudo bash
 ```
 After, Open **CaramOS Update Center (Vietnamese: "Trung tâm cập nhật CaramOS"** from start menu to start upgrade version.

@@ -4,21 +4,24 @@ ENV DEBIAN_FRONTEND=noninteractive \
     CI=1 \
     APT_LOCK_TIMEOUT=600
 
-# Dependencies required by build.sh, hooks, and Makefile targets.
-# CI=1 skips the optional gum installer, but gnupg is kept for parity if enabled later.
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
         apt-transport-https \
+        build-essential \
         ca-certificates \
         curl \
+        debhelper \
+        dpkg-dev \
         file \
         fontconfig \
         git \
         gnupg \
         isolinux \
+        jq \
         locales \
         make \
         p7zip-full \
+        python3 \
         rsync \
         sudo \
         squashfs-tools \
@@ -28,8 +31,14 @@ RUN apt-get update && apt-get upgrade -y && \
         unzip \
         wget \
         xorriso \
+        zstd \
+    && locale-gen en_US.UTF-8 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8
 
 WORKDIR /app
 

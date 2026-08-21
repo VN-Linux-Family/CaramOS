@@ -48,11 +48,11 @@ install_caramos_ota_and_run_migrations() {
     target_version="$(packaged_caramos_product_version)"
     from_version="${CARAMOS_MIGRATION_BASE_VERSION:-1.0.1}"
 
-    # Validate version format
-    if ! [[ "$target_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    # Validate version format - accept 1-4 numeric parts: 1.0, 1.0.16, 1.0.16.1, etc.
+    if ! [[ "$target_version" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]; then
         error "Invalid target version format: $target_version"
     fi
-    if ! [[ "$from_version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    if ! [[ "$from_version" =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]; then
         error "Invalid source version format: $from_version"
     fi
 

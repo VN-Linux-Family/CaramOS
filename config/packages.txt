@@ -11,6 +11,7 @@ copyq
 #74 @dryfish09
 # thêm vào:
 tlp-rdw
+tlp-pd
 # thêm vào cho chắc:
 gnome-power-manager
 cinnamon-settings-daemon

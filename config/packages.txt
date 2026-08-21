@@ -33,7 +33,6 @@ papirus-icon-theme
 
 
 
-gnome-shell-extension-dash-to-panel
 
 nemo
 nemo-fileroller

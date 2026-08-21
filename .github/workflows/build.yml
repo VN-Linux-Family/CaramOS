@@ -1,4 +1,4 @@
-main: Build CaramOS ISO
+name: Build CaramOS ISO
 
 on:
   push:

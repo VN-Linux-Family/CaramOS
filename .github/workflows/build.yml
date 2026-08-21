@@ -1,8 +1,8 @@
-name: Build CaramOS ISO
+main: Build CaramOS ISO
 
 on:
   push:
-    branches: [main, develop]
+    branches: ['*']
     tags:
       - 'v*'
   pull_request:
@@ -65,7 +65,7 @@ jobs:
         run: sha256sum CaramOS-*.iso > SHA256SUMS
 
       - name: Upload ISO artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: CaramOS-ISO
           path: |

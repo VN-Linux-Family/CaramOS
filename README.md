@@ -22,4 +22,4 @@ curl -fsSL https://raw.githubusercontent.com/dryfish09/DMCaramOS/refs/heads/main
 ```
 After, Open **CaramOS Update Center (Vietnamese: "Trung tâm cập nhật CaramOS"** from start menu to start upgrade version.
 ### Download ISO file:
-Due SourceForge problem. The ISO file will not on it. Go to Actions tab, click the latest success build attempt (green checkmark), scroll to Artifacts section, download it.
+Due SourceForge problem (I'll find some place can archive and host `.iso` file, but not now). The ISO file will not on it. Go to Actions tab, click the latest success build attempt (with green checkmark), scroll to Artifacts section, download it.

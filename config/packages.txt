@@ -8,3 +8,59 @@ flameshot
 tlp
 #19
 copyq
+#74 @dryfish09
+# thêm vào:
+tlp-rdw
+tlp
+# thêm vào cho chắc:
+gnome-power-manager
+cinnamon-settings-daemon
+upower
+# suggested pkg:
+copyq-doc
+qt5-qmltooling-plugins
+smartmontools
+linux-tools-generic
+gsmartcontrol
+smart-notifier
+# tiện ích cho user windows chuyển sang linux:
+# Taskbar & Menu
+
+cairo-dock
+
+
+papirus-icon-theme
+
+
+
+
+nemo
+nemo-fileroller
+
+p7zip-full
+p7zip-rar
+rar
+unrar 
+zip
+unzip
+bzip2
+xz-utils
+catdoc
+catdvi
+odt2txt
+qbittorrent
+remmina
+vinagre
+filezilla
+openssh-client
+openssh-server
+putty
+rhythmbox
+spotify-client
+clementine
+gimp
+kdenlive
+obs-studio
+k3b
+hardinfo
+lshw

@@ -11,7 +11,7 @@ copyq
 #74 @dryfish09
 # thêm vào:
 tlp-rdw
-tlp-pd
+tlp
 # thêm vào cho chắc:
 gnome-power-manager
 cinnamon-settings-daemon
@@ -23,3 +23,80 @@ smartmontools
 linux-tools-generic
 gsmartcontrol
 smart-notifier
+# tiện ích cho user windows chuyển sang linux:
+# Taskbar & Menu
+plank                    # Dock thanh taskbar kiểu macOS/Windows
+docky                    # Dock alternative
+cairo-dock               # Dock đẹp mắt
+
+# Themes & Icons
+mint-y-icons             # Icon theme (đã có nhưng update)
+papirus-icon-theme       # Icon đẹp hơn
+arc-theme                # Theme phổ biến
+numix-gtk-theme          # Theme hiện đại
+
+# Window Management
+compiz                   # Hiệu ứng cửa sổ (Aero-like)
+compiz-plugins-extra     # Plugin compiz
+gnome-shell-extension-dash-to-panel  # Panel kiểu Windows
+# File Manager
+nemo                     # File manager mặc định (đã có)
+nemo-fileroller          # Tích hợp file-roller
+
+# Nén/giải nén
+file-roller              # GUI archive manager (đã có)
+p7zip-full               # 7zip
+p7zip-rar                # Hỗ trợ RAR
+rar                      # Tạo file RAR
+unrar                    # Giải nén RAR
+zip                      # Tạo ZIP
+unzip                    # Giải nén ZIP
+bzip2                    # BZIP2
+xz-utils                 # XZ compression
+
+# Đọc file đặc biệt
+catdoc                   # Đọc file Word (.doc)
+catdvi                   # Đọc DVI
+odt2txt                  # Đọc OpenDocument
+# Tải về & Torrent
+qbittorrent              # Torrent client tốt nhất
+transmission-gtk         # Torrent nhẹ
+uget                     # Download manager
+axel                     # Download accelerator
+aria2                    # Advanced download tool
+
+# Mạng & Kết nối
+remmina                  # Remote desktop (RDP/VNC)
+vinagre                  # VNC client
+filezilla                # FTP client
+openssh-client           # SSH client (đã có)
+openssh-server           # SSH server
+putty                    # SSH client (Windows style)
+rhythmbox                 # Music player (đã có)
+spotify-client            # Spotify
+clementine                # Music player đẹp
+audacious                 # Music player nhẹ
+
+# Image Viewer & Editor
+gimp                      # Photoshop alternative
+krita                     # Digital painting
+inkscape                  # Vector graphics
+pinta                     # Paint.NET alternative
+mypaint                   # Vẽ cơ bản
+darktable                 # Raw photo editor
+digikam                   # Photo management
+gwenview                  # Image viewer
+eog                       # Image viewer (đã có)
+
+# Video Editor
+openshot                  # Video editor dễ dùng
+kdenlive                  # Video editor pro
+obs-studio                # Record/Stream
+
+# DVD & CD
+brasero                   # Burn DVD/CD
+k3b                       # Burn DVD/CD (KDE)
+# Hardware
+hardinfo                  # Hardware info
+lshw                      # Hardware list
+dmidecode                 # Hardware info

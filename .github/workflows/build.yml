@@ -4,8 +4,8 @@ on:
   push:
     branches: ['*']
     paths-ignore:
-      - *.md
-      - .githuh/**
+      - '*.md'
+      - '.github/**'
     tags:
       - 'v*'
   pull_request:
@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4
 
       - name: Free disk space
         run: |
@@ -37,11 +37,10 @@ jobs:
           sudo apt-get install -y squashfs-tools xorriso rsync wget isolinux syslinux-utils build-essential debhelper
 
       - name: Cache Mint ISO
-        uses: actions/cache@v5
+        uses: actions/cache@v4
         with:
           path: linuxmint-22.3-cinnamon-64bit.iso
           key: mint-iso-22.3-cinnamon
-
 
       - name: Build CaramOS ISO
         run: |
@@ -57,7 +56,7 @@ jobs:
         run: sha256sum CaramOS-*.iso > SHA256SUMS
 
       - name: Upload ISO artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v4
         with:
           name: CaramOS-ISO
           path: |

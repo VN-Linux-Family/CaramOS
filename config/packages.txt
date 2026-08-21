@@ -25,6 +25,9 @@ git
 ubuntu-restricted-extras
 remmina
 vim
-neovim
-docker.io
 gh
+gnome-power-manager
+smartmontools
+smart-notifier
+linux-tools-generic
+

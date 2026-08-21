@@ -1,5 +1,5 @@
 #!/bin/bash
-# Cấu hình build — đổi version/mirror ở đây
+# Build configuration — change version/mirror here
 
 MINT_VERSION="22.3"
 MINT_EDITION="cinnamon"
@@ -15,12 +15,12 @@ fi
 CARAMOS_VERSION="1.0.0"
 CARAMOS_CODENAME="Open Beta"
 
-# Version metadata ban đầu ghi vào rootfs trước khi chạy OTA bootstrap.
-# Giữ 1.0.1 để build ISO luôn chạy đầy đủ migration chain 1.0.1 → latest.
+# Version metadata initially written to rootfs before running OTA bootstrap.
+# Keep 1.0.1 so ISO build always runs full migration chain 1.0.1 → latest.
 CARAMOS_MIGRATION_BASE_VERSION="1.0.1"
 
 OUTPUT_ISO="CaramOS-${CARAMOS_VERSION}-${MINT_EDITION}-amd64.iso"
 WORK_DIR="./build"
-# Nén mặc định: lz4 (nhanh cho dev). --release sẽ đổi sang xz (nhỏ, nén lâu)
-SQUASHFS_COMP="lz4"
-SQUASHFS_OPTS="-noappend"
+# Default compression: zstd (fast for dev). --release will switch to zstd level 19 (smaller, slower)
+SQUASHFS_COMP="zstd"
+SQUASHFS_OPTS="-b 1M -Xcompression-level 15 -noappend"

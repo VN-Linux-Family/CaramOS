@@ -29,6 +29,34 @@ ISO_ARG=""
 CLEAN_OUTPUT=false
 DEBUG_BOOT=0
 
+check_disk_space() {
+    local required_space=10000000
+    local paths_to_check=("$WORK_DIR" "$SCRIPT_DIR")
+    
+    for check_path in "${paths_to_check[@]}"; do
+        if [ ! -d "$check_path" ]; then
+            warn "Directory does not exist: $check_path, skipping disk space check"
+            continue
+        fi
+        
+        local available_space=$(df "$check_path" 2>/dev/null | awk 'NR==2 {print $4}')
+        
+        if [ -z "$available_space" ]; then
+            warn "Cannot determine available disk space for $check_path"
+            continue
+        fi
+        
+        if [ "$available_space" -lt "$required_space" ]; then
+            local available_gb=$((available_space/1024/1024))
+            local required_gb=$((required_space/1024/1024))
+            error "Insufficient disk space in $check_path. Need at least ${required_gb}GB, currently have ${available_gb}GB"
+            exit 1
+        fi
+        
+        info "Disk space OK for $check_path: $((available_space/1024/1024))GB available"
+    done
+}
+
 for arg in "$@"; do
     case "$arg" in
         --release)

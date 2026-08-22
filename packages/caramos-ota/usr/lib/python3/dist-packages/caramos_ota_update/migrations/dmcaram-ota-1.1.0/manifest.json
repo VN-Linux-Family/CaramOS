@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "ota feature",
+  "title": "Áp dụng nhận diện CaramOS và theme Cinnamon Delight",
+  "summary": "Cập nhật branding CaramOS, theme Cinnamon Delight, locale tiếng Việt, và desktop defaults từ ISO customization.",
+  "release_notes_vi": [
+    "Cập nhật thông tin hệ điều hành sang CaramOS (os-release, lsb-release, linuxmint info).",
+    "Áp dụng theme Cinnamon Delight, icon Tela-circle-light, cursor Bibata-Modern-Classic, và font Be Vietnam Pro cho desktop mặc định.",
+    "Chuyển locale mặc định sang tiếng Việt (vi_VN.UTF-8) và timezone Asia/Ho_Chi_Minh.",
+    "Cập nhật cấu hình LightDM greeter và GSettings schema sang nhận diện CaramOS.",
+    "Đổi tên desktop entry installer thành 'Install CaramOS' với icon caramos-logo.",
+    "Cập nhật theme cho các user desktop đang có phiên đăng nhập nếu họ vẫn dùng theme mặc định."
+  ],
+  "release_notes_en": [
+    "Update OS identity metadata to CaramOS branding (os-release, lsb-release, linuxmint info).",
+    "Apply Cinnamon Delight theme, Tela-circle-light icons, Bibata-Modern-Classic cursor, and Be Vietnam Pro font as desktop defaults.",
+    "Switch default locale to Vietnamese (vi_VN.UTF-8) and timezone to Asia/Ho_Chi_Minh.",
+    "Update LightDM greeter config and GSettings schema overrides to CaramOS branding.",
+    "Rename installer desktop entry to 'Install CaramOS' with caramos-logo icon.",
+    "Apply theme changes to desktop users with active sessions if they still use default theme."
+  ]
+}

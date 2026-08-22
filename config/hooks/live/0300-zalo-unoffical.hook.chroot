@@ -1,54 +1,135 @@
 #!/usr/bin/env bash
-echo "Cài Zalo..."
 set -e
 
+# === Cấu hình ===
 APP_NAME="Zalo"
-APPIMAGE_URL="https://github.com/hthienloc/zalo-for-linux/releases/download/26.5.10/Zalo-26.5.10+ZaDark-26.2-5051532.AppImage"
-
+APP_VERSION="26.5.10"
+APPIMAGE_URL="https://github.com/hthienloc/zalo-for-linux/releases/download/${APP_VERSION}/Zalo-${APP_VERSION}+ZaDark-26.2-5051532.AppImage"
 INSTALL_DIR="/usr/local/bin"
-APPIMAGE_PATH="$INSTALL_DIR/Zalo.AppImage"
-
+APPIMAGE_PATH="${INSTALL_DIR}/Zalo-${APP_VERSION}.AppImage"
 DESKTOP_FILE="/usr/share/applications/zalo.desktop"
 ICON_PATH="/usr/share/pixmaps/zalo.png"
 
-echo "==> Kiểm tra quyền root"
+# === Màu sắc cho output ===
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
 
-if [ "$EUID" -ne 0 ]; then
-    echo "Vui lòng chạy bằng sudo"
+error() {
+    echo -e "${RED}[LỖI]${NC} $1" >&2
     exit 1
+}
+
+warn() {
+    echo -e "${YELLOW}[CẢNH BÁO]${NC} $1"
+}
+
+success() {
+    echo -e "${GREEN}[OK]${NC} $1"
+}
+
+echo -e "${GREEN}==> Cài đặt Zalo cho Linux${NC}"
+
+# === Kiểm tra root ===
+if [ "$EUID" -ne 0 ]; then
+    error "Vui lòng chạy bằng sudo hoặc root"
 fi
 
-echo "==> Tạo thư mục"
-mkdir -p "$INSTALL_DIR"
+# === Kiểm tra dependencies ===
+for cmd in wget; do
+    if ! command -v "$cmd" &>/dev/null; then
+        error "Lệnh '$cmd' không tìm thấy. Vui lòng cài đặt: apt install wget (Debian/Ubuntu)"
+    fi
+done
 
-echo "==> Tải AppImage"
-wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
+# === Kiểm tra file cũ ===
+if [ -f "$APPIMAGE_PATH" ]; then
+    warn "File AppImage đã tồn tại tại $APPIMAGE_PATH"
+    read -p "Bạn có muốn ghi đè? (y/N): " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        error "Hủy cài đặt theo yêu cầu"
+    fi
+fi
 
-echo "==> Cấp quyền thực thi"
-chmod +x "$APPIMAGE_PATH"
+# === Tạo thư mục ===
+echo "==> Tạo thư mục..."
+mkdir -p "$INSTALL_DIR" || error "Không thể tạo thư mục $INSTALL_DIR"
 
-echo "==> Tải icon"
-wget -O "$ICON_PATH" "https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"
+# === Tải AppImage với kiểm tra ===
+echo "==> Tải AppImage từ GitHub..."
+if ! wget -q --show-progress -O "$APPIMAGE_PATH" "$APPIMAGE_URL"; then
+    error "Không thể tải AppImage từ $APPIMAGE_URL"
+fi
 
-echo "==> Tạo shortcut .desktop"
+# Kiểm tra file tải về
+if [ ! -s "$APPIMAGE_PATH" ]; then
+    error "File tải về bị rỗng hoặc lỗi"
+fi
 
-cat > "$DESKTOP_FILE" <<EOF
-[Desktop Entry]
-Name=Zalo
-Comment=Unemployed or Nightmare everyday?
-Exec=$APPIMAGE_PATH
-Icon=$ICON_PATH
-Terminal=false
-Type=Application
-Categories=Network;Chat;
-StartupNotify=true
-EOF
+# === Cấp quyền thực thi ===
+echo "==> Cấp quyền thực thi..."
+chmod +x "$APPIMAGE_PATH" || error "Không thể cấp quyền thực thi"
 
-chmod +x "$DESKTOP_FILE"
+# === Tải icon ===
+echo "==> Tải icon..."
+if ! wget -q --show-progress -O "$ICON_PATH" "https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"; then
+    warn "Không thể tải icon từ Wikimedia. Sử dụng icon dự phòng"
+    # Fallback: Tạo icon đơn giản từ system
+    convert -size 128x128 xc:blue -fill white -draw "text 20,70 'Z'" "$ICON_PATH" 2>/dev/null || true
+fi
 
-echo "==> Cập nhật database ứng dụng"
-update-desktop-database /usr/share/applications 2>/dev/null || true
+# === Tạo .desktop file ===
+echo "==> Tạo shortcut .desktop..."
+{
+    echo "[Desktop Entry]"
+    echo "Name=Zalo"
+    echo "Comment=Ứng dụng nhắn tin Zalo"
+    echo "Exec=$APPIMAGE_PATH --no-sandbox"
+    echo "Icon=$ICON_PATH"
+    echo "Terminal=false"
+    echo "Type=Application"
+    echo "Categories=Network;InstantMessaging;"
+    echo "StartupNotify=true"
+    echo "StartupWMClass=Zalo"
+} > "$DESKTOP_FILE" || error "Không thể tạo desktop file"
 
+chmod +x "$DESKTOP_FILE" || warn "Không thể cấp quyền cho desktop file"
+
+# === Cập nhật database ===
+echo "==> Cập nhật database ứng dụng..."
+if command -v update-desktop-database &>/dev/null; then
+    update-desktop-database /usr/share/applications 2>/dev/null || warn "Không thể cập nhật database"
+else
+    warn "update-desktop-database không có sẵn. Bỏ qua bước này."
+fi
+
+# === Kiểm tra tính tương thích ===
+echo "==> Kiểm tra tương thích..."
+if [ -f "$APPIMAGE_PATH" ]; then
+    # Kiểm tra file thực thi
+    if file "$APPIMAGE_PATH" | grep -q "ELF"; then
+        success "AppImage hợp lệ"
+    else
+        warn "AppImage có thể không tương thích với hệ thống này"
+    fi
+fi
+
+# === Hoàn tất ===
 echo ""
-echo "Cài đặt hoàn tất."
-echo "Mở Zalo từ taskbar hoặc menu ứng dụng."
+echo "==================================="
+echo -e "${GREEN}Cài đặt hoàn tất!${NC}"
+echo "==================================="
+echo -e "📦 Đường dẫn: $APPIMAGE_PATH"
+echo -e "🖼️  Icon: $ICON_PATH"
+echo -e "🚀 Shortcut: $DESKTOP_FILE"
+echo ""
+echo -e "${GREEN}✓${NC} Mở Zalo từ taskbar hoặc menu ứng dụng"
+echo -e "Hoặc chạy: ${YELLOW}$APPIMAGE_PATH${NC}"
+echo ""
+echo -e "${YELLOW}Lưu ý:${NC} Nếu không chạy được, thử thêm --no-sandbox"
+echo "==================================="
+
+# === Thoát với mã thành công ===
+exit 0

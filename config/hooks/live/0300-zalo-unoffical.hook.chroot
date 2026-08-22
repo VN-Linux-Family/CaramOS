@@ -4,7 +4,7 @@ set -e
 # === Cấu hình ===
 APP_NAME="Zalo"
 APP_VERSION="26.8.10"
-APPIMAGE_URL="https://github.com/doandat943/zalo-for-linux/releases/tag/{APP_VERSION}/Zalo-{APP_VERSION}+ZaDark-26.2.1-66ebe8a.AppImage"
+APPIMAGE_URL="https://github.com/doandat943/zalo-for-linux/releases/tag/$APP_VERSION/Zalo-$APP_VERSION+ZaDark-26.2.1-66ebe8a.AppImage"
 INSTALL_DIR="/usr/local/bin"
 APPIMAGE_PATH="${INSTALL_DIR}/Zalo-${APP_VERSION}.AppImage"
 DESKTOP_FILE="/usr/share/applications/zalo.desktop"

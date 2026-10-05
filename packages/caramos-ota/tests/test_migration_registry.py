@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(18, len(catalog))
+        self.assertEqual(19, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -95,6 +95,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20260808090000_restore_power_profiles_daemon",
                 "20261003210000_fix_system_file_ownership",
                 "20261004120000_fix_mint_base_codename",
+                "20261005110000_update_zalo_appimage",
             ],
             timestamp_ids,
         )
@@ -125,6 +126,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20260808090000_restore_power_profiles_daemon",
                 "20261003210000_fix_system_file_ownership",
                 "20261004120000_fix_mint_base_codename",
+                "20261005110000_update_zalo_appimage",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -151,6 +153,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20260808090000_restore_power_profiles_daemon",
                 "20261003210000_fix_system_file_ownership",
                 "20261004120000_fix_mint_base_codename",
+                "20261005110000_update_zalo_appimage",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -169,7 +172,7 @@ class MigrationRegistryTests(unittest.TestCase):
 
     def test_existing_ledger_ids_leave_only_new_timestamp_pending(self) -> None:
         catalog = discover_migrations()
-        pending = ["20260808090000_restore_power_profiles_daemon", "20261003210000_fix_system_file_ownership", "20261004120000_fix_mint_base_codename"]
+        pending = ["20260808090000_restore_power_profiles_daemon", "20261003210000_fix_system_file_ownership", "20261004120000_fix_mint_base_codename", "20261005110000_update_zalo_appimage"]
         applied = {item.migration_id for item in catalog if item.migration_id not in pending}
 
         plan = resolve_plan(

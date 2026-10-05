@@ -1,0 +1,19 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "Zalo 26.10.10 (~220 MB)",
+  "title": "Cập nhật Zalo lên bản 26.10.10",
+  "summary": "Zalo được tải từ kho mới VN-Linux-Family/zalo-for-linux vì kho cũ đã ngừng, nên Zalo đang cài sẽ không còn được cập nhật.",
+  "release_notes_vi": [
+    "Zalo được cập nhật từ 26.5.10 lên 26.10.10, tải từ kho VN-Linux-Family/zalo-for-linux.",
+    "Cần kết nối Internet để tải Zalo (khoảng 220 MB).",
+    "Nếu Zalo đang mở, hãy thoát hẳn Zalo (cả biểu tượng ở khay hệ thống) rồi mở lại để dùng bản mới."
+  ],
+  "release_notes_en": [
+    "Zalo is updated from 26.5.10 to 26.10.10, downloaded from the VN-Linux-Family/zalo-for-linux repository.",
+    "An Internet connection is needed to download Zalo (about 220 MB).",
+    "If Zalo is open, quit it completely (including its tray icon) and start it again to use the new version."
+  ]
+}

@@ -2,8 +2,11 @@
 echo "Cài Zalo..."
 set -e
 
+# Hook này chỉ tạo launcher + icon. File Zalo.AppImage (từ VN-Linux-Family/zalo-for-linux) do OTA
+# migration 20261005110000_update_zalo_appimage tải và kiểm tra sha256 khi build.sh chạy OTA bootstrap
+# trong rootfs, nên ISO mới và máy đã cài dùng chung một bản Zalo. Đổi bản Zalo: thêm migration mới.
+
 APP_NAME="Zalo"
-APPIMAGE_URL="https://github.com/VN-Linux-Family/zalo-for-linux/releases/download/26.5.10/Zalo-26.5.10+ZaDark-26.2-e6966ae.AppImage"
 
 INSTALL_DIR="/usr/local/bin"
 APPIMAGE_PATH="$INSTALL_DIR/Zalo.AppImage"
@@ -20,12 +23,6 @@ fi
 
 echo "==> Tạo thư mục"
 mkdir -p "$INSTALL_DIR"
-
-echo "==> Tải AppImage"
-wget -O "$APPIMAGE_PATH" "$APPIMAGE_URL"
-
-echo "==> Cấp quyền thực thi"
-chmod +x "$APPIMAGE_PATH"
 
 echo "==> Tải icon"
 wget -O "$ICON_PATH" "https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg"

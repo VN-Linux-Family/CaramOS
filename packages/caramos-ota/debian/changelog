@@ -10,6 +10,9 @@ caramos-ota (1.0.18-0caramos1) noble; urgency=medium
   * Return /etc and /usr items owned by a login account to root:root.
   * Write the Linux Mint 22.3 codename (zena) so System Reports stops offering
     a wrong Linux Mint upgrade.
+  * Install Zalo 26.10.10 from VN-Linux-Family/zalo-for-linux, the new home of
+    the project, and replace the Zalo 26.5.10 earlier releases installed from
+    the removed repository. New ISOs get Zalo through the same migration.
   * Control Center: keep the popup open when an open list refreshes, complete
     dark styling, Bluetooth list refresh, profile order and error feedback.
 

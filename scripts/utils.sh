@@ -128,9 +128,9 @@ check_root() {
 }
 
 install_deps() {
-    local DEPS="squashfs-tools xorriso rsync wget curl isolinux build-essential debhelper"
+    local DEPS="squashfs-tools xorriso rsync wget curl isolinux build-essential debhelper python3"
     local MISSING=""
-    for cmd in unsquashfs mksquashfs xorriso rsync wget curl dpkg-buildpackage dh; do
+    for cmd in unsquashfs mksquashfs xorriso rsync wget curl dpkg-buildpackage dh python3; do
         command -v "$cmd" &>/dev/null || MISSING="yes"
     done
     if [ -n "$MISSING" ]; then

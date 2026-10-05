@@ -5,6 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     APT_LOCK_TIMEOUT=600
 
 # Dependencies required by build.sh, hooks, and Makefile targets.
+# python3 builds and tests the caramos-ota package the OTA bootstrap installs into the ISO.
 # CI=1 skips the optional gum installer, but gnupg is kept for parity if enabled later.
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y --no-install-recommends \
@@ -19,6 +20,7 @@ RUN apt-get update && apt-get upgrade -y && \
         locales \
         make \
         p7zip-full \
+        python3 \
         rsync \
         sudo \
         squashfs-tools \

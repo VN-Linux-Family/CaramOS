@@ -1,3 +1,14 @@
+caramos-ota (1.0.19-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.0.19.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Install a CaramOS GRUB theme (/boot/grub/themes/caramos) and set
+    GRUB_THEME from /etc/default/grub.d/60_caramos-theme.cfg, replacing the
+    Debian cyan-on-blue menu shown on dual-boot machines. A GRUB_THEME the
+    user set is kept.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 05 Oct 2026 19:32:16 +0700
+
 caramos-ota (1.0.18-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.0.18.

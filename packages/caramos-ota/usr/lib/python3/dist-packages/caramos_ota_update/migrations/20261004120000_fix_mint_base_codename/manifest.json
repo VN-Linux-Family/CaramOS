@@ -1,0 +1,17 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "Release metadata",
+  "title": "Sửa thông báo nâng cấp Linux Mint sai",
+  "summary": "Ghi đúng tên mã Linux Mint 22.3 (zena) để Báo cáo hệ thống không còn mời nâng cấp lên một bản Linux Mint khác.",
+  "release_notes_vi": [
+    "Báo cáo hệ thống không còn hiện thông báo nâng cấp lên Linux Mint 22.x; bấm vào đó có thể gỡ các gói CaramOS đang dùng.",
+    "Công cụ Nguồn phần mềm dùng đúng kho Linux Mint 22.3 của hệ thống."
+  ],
+  "release_notes_en": [
+    "System Reports no longer offers an upgrade to Linux Mint 22.x, which could remove packages CaramOS relies on.",
+    "Software Sources uses the system's Linux Mint 22.3 repositories."
+  ]
+}

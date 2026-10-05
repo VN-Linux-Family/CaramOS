@@ -1,0 +1,17 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Power management backend",
+  "title": "Khôi phục chế độ nguồn CaramOS",
+  "summary": "Thay TLP bằng power-profiles-daemon để khôi phục các chế độ nguồn trong Cinnamon và Control Center.",
+  "release_notes_vi": [
+    "Thay TLP bằng power-profiles-daemon để khôi phục lựa chọn chế độ nguồn.",
+    "Cho phép Cinnamon Settings và Control Center dùng các profile nguồn do phần cứng hỗ trợ."
+  ],
+  "release_notes_en": [
+    "Replace TLP with power-profiles-daemon to restore power mode selection.",
+    "Allow Cinnamon Settings and Control Center to use power profiles supported by the hardware."
+  ]
+}

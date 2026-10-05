@@ -82,6 +82,13 @@ class MigrationContext:
         package_list = self._validate_packages(packages)
         self.run_command(["apt-get", "install", "--yes", "--", *package_list])
 
+    def apt_replace(self, install: Sequence[str], remove: Sequence[str]) -> None:
+        """Install and remove packages in one APT transaction."""
+
+        install_list = self._validate_packages(install)
+        remove_list = [f"{package}-" for package in self._validate_packages(remove)]
+        self.run_command(["apt-get", "install", "--yes", "--", *install_list, *remove_list])
+
     def apt_remove(self, packages: Sequence[str]) -> None:
         """Remove packages through APT after validating package names."""
 

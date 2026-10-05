@@ -42,14 +42,24 @@ class MigrationRunnerTests(unittest.TestCase):
 
         start.assert_called_once_with(
             target_version="1.0.16",
-            migration_ids=["20260805111120_update_taskbar_pins_cleanup_desktop"],
+            migration_ids=[
+                "20260805111120_update_taskbar_pins_cleanup_desktop",
+                "20260808090000_restore_power_profiles_daemon",
+                "20261003210000_fix_system_file_ownership",
+                "20261004120000_fix_mint_base_codename",
+            ],
         )
-        run_one.assert_called_once()
+        self.assertEqual(4, run_one.call_count)
         self.assertEqual(
-            "20260805111120_update_taskbar_pins_cleanup_desktop",
-            run_one.call_args.args[0].migration_id,
+            [
+                "20260805111120_update_taskbar_pins_cleanup_desktop",
+                "20260808090000_restore_power_profiles_daemon",
+                "20261003210000_fix_system_file_ownership",
+                "20261004120000_fix_mint_base_codename",
+            ],
+            [entry.args[0].migration_id for entry in run_one.call_args_list],
         )
-        self.assertIsNone(run_one.call_args.args[0].release)
+        self.assertTrue(all(entry.args[0].release is None for entry in run_one.call_args_list))
         context.update_release_file.assert_called_once_with("1.0.16")
         success.assert_called_once_with(
             transaction_id="timestamp-batch",

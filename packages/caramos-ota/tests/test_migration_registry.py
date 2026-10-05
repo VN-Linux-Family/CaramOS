@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(15, len(catalog))
+        self.assertEqual(18, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -92,6 +92,9 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20260803120000_apply_three_dock_taskbar",
                 "20260804223346_change_default_wallpaper",
                 "20260805111120_update_taskbar_pins_cleanup_desktop",
+                "20260808090000_restore_power_profiles_daemon",
+                "20261003210000_fix_system_file_ownership",
+                "20261004120000_fix_mint_base_codename",
             ],
             timestamp_ids,
         )
@@ -119,6 +122,9 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20260803120000_apply_three_dock_taskbar",
                 "20260804223346_change_default_wallpaper",
                 "20260805111120_update_taskbar_pins_cleanup_desktop",
+                "20260808090000_restore_power_profiles_daemon",
+                "20261003210000_fix_system_file_ownership",
+                "20261004120000_fix_mint_base_codename",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -140,7 +146,12 @@ class MigrationRegistryTests(unittest.TestCase):
         )
 
         self.assertEqual(
-            ["20260805111120_update_taskbar_pins_cleanup_desktop"],
+            [
+                "20260805111120_update_taskbar_pins_cleanup_desktop",
+                "20260808090000_restore_power_profiles_daemon",
+                "20261003210000_fix_system_file_ownership",
+                "20261004120000_fix_mint_base_codename",
+            ],
             [item.migration_id for item in plan.migrations],
         )
 
@@ -156,19 +167,19 @@ class MigrationRegistryTests(unittest.TestCase):
         )
         self.assertNotIn("20260715090258_install_control_center", applied_ids(ledger))
 
-    def test_vm_ledger_seed_filters_out_versionless_timestamps(self) -> None:
+    def test_existing_ledger_ids_leave_only_new_timestamp_pending(self) -> None:
         catalog = discover_migrations()
-        selected = [
-            item
-            for item in catalog
-            if item.legacy and item.release is not None and version_le(item.release, "1.0.12")
-        ]
+        pending = ["20260808090000_restore_power_profiles_daemon", "20261003210000_fix_system_file_ownership", "20261004120000_fix_mint_base_codename"]
+        applied = {item.migration_id for item in catalog if item.migration_id not in pending}
 
-        self.assertEqual(
-            {f"v1_0_{version}" for version in range(2, 13)},
-            {item.migration_id for item in selected},
+        plan = resolve_plan(
+            "1.0.16",
+            target_version="1.0.16.1",
+            applied_ids=applied,
+            descriptors=catalog,
         )
-        self.assertTrue(all(item.legacy for item in selected))
+
+        self.assertEqual(pending, [item.migration_id for item in plan.migrations])
 
     def test_auto_discovers_two_timestamps_without_release(self) -> None:
         self.write_legacy("v1_0_2", "1.0.1", "1.0.2")

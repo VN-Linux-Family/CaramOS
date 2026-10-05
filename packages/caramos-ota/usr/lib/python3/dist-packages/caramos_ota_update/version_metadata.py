@@ -7,6 +7,18 @@ from pathlib import Path
 
 _VERSION_RE = re.compile(r"^\d+(?:\.\d+){1,3}(?:[-+~][A-Za-z0-9.+:~_-]+)?$")
 
+# The Linux Mint release CaramOS is built on (every ISO so far: Mint 22.3 "zena", APT suite zena).
+# Mint tools key off this codename, so it must be the real base, not just any Mint 22 codename:
+# - mintreport offers "Upgrade to ..." when /usr/share/mint-upgrade-info/<codename>/ exists; with the
+#   old value "wilma" (Mint 22.0) every CaramOS install was offered a bogus upgrade whose removals
+#   include power-profiles-daemon;
+# - mintsources (add-apt-repository, Software Sources) reads VERSION_CODENAME and
+#   /usr/share/mintsources/<codename>/mintsources.conf; zena maps to base_codename=noble like wilma
+#   did, so the add-apt-repository fix from 1.0.5 still holds, and the Mint repo stays zena.
+# Change both values together when CaramOS moves to a new Mint base.
+MINT_BASE_NAME = "Linux Mint 22.3"
+MINT_BASE_CODENAME = "zena"
+
 
 class VersionMetadataError(ValueError):
     """Raised when version metadata input is unsafe or invalid."""
@@ -47,9 +59,9 @@ def os_release_content(version: str) -> str:
         'SUPPORT_URL="https://github.com/VN-Linux-Family/CaramOS/issues"\n'
         'BUG_REPORT_URL="https://github.com/VN-Linux-Family/CaramOS/issues"\n'
         'PRIVACY_POLICY_URL="https://github.com/VN-Linux-Family/CaramOS"\n'
-        'VERSION_CODENAME=wilma\n'
+        f'VERSION_CODENAME={MINT_BASE_CODENAME}\n'
         'UBUNTU_CODENAME=noble\n'
-        'CARAMOS_BASE="Linux Mint 22.3"\n'
+        f'CARAMOS_BASE="{MINT_BASE_NAME}"\n'
     )
 
 
@@ -60,7 +72,7 @@ def lsb_release_content(version: str) -> str:
     return (
         'DISTRIB_ID=CaramOS\n'
         f'DISTRIB_RELEASE={version}\n'
-        'DISTRIB_CODENAME=wilma\n'
+        f'DISTRIB_CODENAME={MINT_BASE_CODENAME}\n'
         f'DISTRIB_DESCRIPTION="CaramOS {version} Cinnamon"\n'
     )
 
@@ -71,7 +83,7 @@ def linuxmint_info_content(version: str) -> str:
     version = validate_version(version)
     return (
         f'RELEASE={version}\n'
-        'CODENAME=wilma\n'
+        f'CODENAME={MINT_BASE_CODENAME}\n'
         'EDITION="Cinnamon"\n'
         f'DESCRIPTION="CaramOS {version} Cinnamon"\n'
         'DESKTOP=Gnome\n'

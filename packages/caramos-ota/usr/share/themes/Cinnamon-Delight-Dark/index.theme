@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=X-GNOME-Metatheme
+Name=Cinnamon-Delight-Dark
+Comment=Dark counterpart of Cinnamon-Delight for CaramOS
+Encoding=UTF-8
+
+[X-GNOME-Metatheme]
+GtkTheme=Cinnamon-Delight-Dark
+MetacityTheme=Mint-Y
+IconTheme=Tela-circle-dark
+CursorTheme=Bibata-Modern-Classic
+ButtonLayout=menu:minimize,maximize,close

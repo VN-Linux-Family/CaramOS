@@ -8,6 +8,7 @@ usr/lib/python3/dist-packages/caramos_ota_notifier usr/lib/python3/dist-packages
 usr/lib/python3/dist-packages/caramos_ota_update usr/lib/python3/dist-packages/
 usr/share/caramos-ota/slideshow usr/share/caramos-ota/
 usr/share/caramos-ota/applets usr/share/caramos-ota/
+usr/share/caramos-ota/applets/caramos-control-center@caramos usr/share/cinnamon/applets/
 usr/share/applications/caramos-update-center.desktop usr/share/applications/
 usr/share/applications/caramos-audit.desktop usr/share/applications/
 usr/share/pixmaps/caramos-logo.png usr/share/pixmaps/
@@ -19,3 +20,5 @@ lib/systemd/system/caramos-ota-check.service lib/systemd/system/
 lib/systemd/system/caramos-ota-check.timer lib/systemd/system/
 etc/xdg/autostart/caramos-ota-notifier.desktop etc/xdg/autostart/
 etc/logrotate.d/caramos-ota etc/logrotate.d/
+usr/share/themes/Cinnamon-Delight-Dark usr/share/themes/
+usr/share/cinnamon/styles.d/30_caramos.styles usr/share/cinnamon/styles.d/

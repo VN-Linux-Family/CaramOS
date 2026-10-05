@@ -32,13 +32,52 @@ const Util = imports.misc.util;
 const REFRESH_SECONDS = 15;
 const WIFI_LIST_LIMIT = 7;
 const BT_LIST_LIMIT = 5;
+// BlueZ emits bursts of PropertiesChanged while discovering; coalesce list rebuilds.
+const BT_LIST_REFRESH_MS = 250;
 const VPN_LIST_LIMIT = 7;
 const NIGHT_LIGHT_SCHEMA = 'org.cinnamon.settings-daemon.plugins.color';
 const NIGHT_LIGHT_KEY = 'night-light-enabled';
+// Light/dark switching mirrors Cinnamon Settings > Themes: a style in styles.d lists a theme set per
+// mode, and the mode is written to org.x.apps.portal color-scheme, which xdg-desktop-portal-xapp
+// publishes to applications (GTK4/libadwaita, Chrome, Electron).
+const CINNAMON_STYLES_DIR = '/usr/share/cinnamon/styles.d';
+const CINNAMON_THEME_SCHEMA = 'org.cinnamon.theme';
+const PORTAL_SCHEMA = 'org.x.apps.portal';
+const APPEARANCE_MODES = ['mixed', 'dark', 'light'];
+const APPEARANCE_COLOR_SCHEMES = { mixed: 'default', dark: 'prefer-dark', light: 'prefer-light' };
+const APPEARANCE_THEME_KEYS = ['gtk-theme', 'icon-theme', 'cursor-theme'];
+const APPEARANCE_SETTLE_MS = 1500;
+// The default wallpaper follows the mode: Sage Mist (light default, also reached as default.png) is
+// swapped for Indigo Night when the session turns dark, and restored when it turns light again.
+const BACKGROUND_SCHEMA = 'org.cinnamon.desktop.background';
+const GNOME_BACKGROUND_SCHEMA = 'org.gnome.desktop.background';
+const SLIDESHOW_SCHEMA = 'org.cinnamon.desktop.background.slideshow';
+const LIGHT_DEFAULT_WALLPAPERS = [
+    'file:///usr/share/backgrounds/caramos/default.png',
+    'file:///usr/share/backgrounds/caramos/03-sage-mist-2k.jpg',
+];
+const DARK_DEFAULT_WALLPAPER = 'file:///usr/share/backgrounds/caramos/02-indigo-night-2k.jpg';
+const WALLPAPER_MODE_SETTLE_MS = 800;
 const BRIGHTNESS_BUS_NAME = 'org.cinnamon.SettingsDaemon.Power.Screen';
 const SESSION_BUS_NAME = 'org.gnome.SessionManager';
 const SESSION_OBJECT_PATH = '/org/gnome/SessionManager';
 const SESSION_INTERFACE = 'org.cinnamon.SessionManager.EndSessionDialog';
+const POWER_PROFILES_CANDIDATES = [
+    {
+        name: 'org.freedesktop.UPower.PowerProfiles',
+        path: '/org/freedesktop/UPower/PowerProfiles',
+        interfaceName: 'org.freedesktop.UPower.PowerProfiles',
+    },
+    {
+        name: 'net.hadess.PowerProfiles',
+        path: '/net/hadess/PowerProfiles',
+        interfaceName: 'net.hadess.PowerProfiles',
+    },
+];
+const DBUS_PROPERTIES_INTERFACE = 'org.freedesktop.DBus.Properties';
+// Display order of power profiles; the daemon decides which of them exist.
+const POWER_PROFILE_ORDER = ['performance', 'balanced', 'power-saver'];
+const POWER_PROFILE_ERROR_SECONDS = 4;
 const POPUP_EDGE_MARGIN = 0;
 const DEBUG_MARKER = GLib.build_filenamev([GLib.get_home_dir(), '.caramos-cc-debug']);
 const DEBUG_LIMIT = 240;
@@ -813,6 +852,212 @@ class PowerBackend {
     }
 }
 
+class PowerProfilesBackend {
+    constructor(onChanged) {
+        this._onChanged = onChanged;
+        this._watchIds = [];
+        this._present = POWER_PROFILES_CANDIDATES.map(() => false);
+        this._candidateIndex = -1;
+        this._proxy = null;
+        this._proxySignalId = 0;
+        this._generation = 0;
+        this._disposed = false;
+        this._errorTimeoutId = 0;
+        this._cancellable = new Gio.Cancellable();
+        this._state = {
+            available: false,
+            loading: true,
+            profiles: [],
+            activeProfile: '',
+            performanceDegraded: '',
+            pendingProfile: '',
+            error: '',
+        };
+        POWER_PROFILES_CANDIDATES.forEach((_candidate, index) => this._watchCandidate(index));
+    }
+
+    _watchCandidate(index) {
+        const candidate = POWER_PROFILES_CANDIDATES[index];
+        const watchId = Gio.bus_watch_name(
+            Gio.BusType.SYSTEM,
+            candidate.name,
+            Gio.BusNameWatcherFlags.NONE,
+            () => {
+                this._present[index] = true;
+                this._chooseCandidate();
+            },
+            () => {
+                this._present[index] = false;
+                this._chooseCandidate();
+            }
+        );
+        this._watchIds.push(watchId);
+    }
+
+    _chooseCandidate() {
+        if (this._disposed) return;
+        const desired = this._present[0] ? 0 : this._present[1] ? 1 : -1;
+        if (desired === this._candidateIndex && this._proxy) return;
+        this._clearProxy();
+        this._candidateIndex = desired;
+        if (desired < 0) {
+            this._state = {
+                available: false,
+                loading: false,
+                profiles: [],
+                activeProfile: '',
+                performanceDegraded: '',
+                pendingProfile: '',
+                error: '',
+            };
+            this._notify();
+            return;
+        }
+        this._state = { ...this._state, available: false, loading: true, error: '' };
+        this._notify();
+        this._connect(desired);
+    }
+
+    _connect(index) {
+        const candidate = POWER_PROFILES_CANDIDATES[index];
+        const generation = this._generation;
+        Gio.DBusProxy.new_for_bus(
+            Gio.BusType.SYSTEM,
+            Gio.DBusProxyFlags.NONE,
+            null,
+            candidate.name,
+            candidate.path,
+            candidate.interfaceName,
+            this._cancellable,
+            (_source, result) => {
+                if (this._disposed || generation !== this._generation || index !== this._candidateIndex) return;
+                try {
+                    this._proxy = Gio.DBusProxy.new_for_bus_finish(result);
+                    this._proxySignalId = this._proxy.connect('g-properties-changed', () => this._refresh());
+                    this._refresh();
+                } catch (e) {
+                    if (this._cancellable.is_cancelled()) return;
+                    global.logError(e);
+                    this._present[index] = false;
+                    this._state = { ...this._state, loading: false, error: e.message || String(e) };
+                    this._chooseCandidate();
+                }
+            }
+        );
+    }
+
+    _clearProxy() {
+        this._generation++;
+        if (this._proxy && this._proxySignalId) {
+            try { this._proxy.disconnect(this._proxySignalId); } catch (e) { /* disposed */ }
+        }
+        this._proxySignalId = 0;
+        this._proxy = null;
+    }
+
+    _profileId(entry) {
+        if (!entry || typeof entry !== 'object') return '';
+        const value = entry.Profile !== undefined ? entry.Profile : entry.profile;
+        if (typeof value === 'string') return value;
+        return unpackVariant(value, '');
+    }
+
+    _refresh() {
+        if (this._disposed || !this._proxy) return;
+        const rawProfiles = unpackVariant(this._proxy.get_cached_property('Profiles'), []);
+        const profiles = Array.isArray(rawProfiles) ? rawProfiles.map(entry => this._profileId(entry)).filter(Boolean) : [];
+        const rank = profile => {
+            const index = POWER_PROFILE_ORDER.indexOf(profile);
+            return index === -1 ? POWER_PROFILE_ORDER.length : index;
+        };
+        profiles.sort((a, b) => rank(a) - rank(b));
+        const activeProfile = unpackVariant(this._proxy.get_cached_property('ActiveProfile'), '');
+        const performanceDegraded = unpackVariant(this._proxy.get_cached_property('PerformanceDegraded'), '');
+        this._state = {
+            ...this._state,
+            available: true,
+            loading: false,
+            profiles,
+            activeProfile: typeof activeProfile === 'string' ? activeProfile : '',
+            performanceDegraded: typeof performanceDegraded === 'string' ? performanceDegraded : '',
+            pendingProfile: this._state.pendingProfile === activeProfile ? '' : this._state.pendingProfile,
+            error: '',
+        };
+        this._notify();
+    }
+
+    _notify() {
+        if (!this._disposed && this._onChanged) this._onChanged(this.snapshot());
+    }
+
+    snapshot() {
+        return { ...this._state, profiles: this._state.profiles.slice() };
+    }
+
+    setActiveProfile(profile) {
+        if (this._disposed || !this._proxy || this._state.pendingProfile || this._state.profiles.indexOf(profile) === -1) return false;
+        const candidate = POWER_PROFILES_CANDIDATES[this._candidateIndex];
+        const generation = this._generation;
+        this._state = { ...this._state, pendingProfile: profile, error: '' };
+        this._notify();
+        Gio.DBus.system.call(
+            candidate.name,
+            candidate.path,
+            DBUS_PROPERTIES_INTERFACE,
+            'Set',
+            new GLib.Variant('(ssv)', [candidate.interfaceName, 'ActiveProfile', new GLib.Variant('s', profile)]),
+            null,
+            Gio.DBusCallFlags.NONE,
+            5000,
+            this._cancellable,
+            (_connection, result) => {
+                if (this._disposed || generation !== this._generation) return;
+                try {
+                    Gio.DBus.system.call_finish(result);
+                } catch (e) {
+                    if (this._cancellable.is_cancelled()) return;
+                    global.logError(e);
+                    this._setError(_('Không thể đổi chế độ nguồn'));
+                }
+            }
+        );
+        return true;
+    }
+
+    // The selection list closes before the D-Bus call returns, so the error is shown on the tile for a
+    // few seconds and then cleared.
+    _setError(message) {
+        this._clearErrorTimeout();
+        this._state = { ...this._state, pendingProfile: '', error: message };
+        this._notify();
+        this._errorTimeoutId = GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, POWER_PROFILE_ERROR_SECONDS, () => {
+            this._errorTimeoutId = 0;
+            if (!this._disposed) {
+                this._state = { ...this._state, error: '' };
+                this._notify();
+            }
+            return GLib.SOURCE_REMOVE;
+        });
+    }
+
+    _clearErrorTimeout() {
+        if (this._errorTimeoutId) {
+            GLib.source_remove(this._errorTimeoutId);
+            this._errorTimeoutId = 0;
+        }
+    }
+
+    dispose() {
+        this._disposed = true;
+        this._clearErrorTimeout();
+        this._clearProxy();
+        this._cancellable.cancel();
+        this._watchIds.forEach(id => Gio.bus_unwatch_name(id));
+        this._watchIds = [];
+        this._onChanged = null;
+    }
+}
+
 class SessionBackend {
     constructor(onChanged) {
         this._onChanged = onChanged;
@@ -1369,6 +1614,167 @@ function setAccessibleName(actor, name) {
     }
 }
 
+function appearanceVariant(raw) {
+    if (!raw || typeof raw !== 'object' || typeof raw.name !== 'string') return null;
+    const variant = { name: raw.name, gtk: null, icons: null, cinnamon: null, cursor: null };
+    if (typeof raw.themes === 'string') {
+        variant.gtk = raw.themes;
+        variant.icons = raw.themes;
+        variant.cinnamon = raw.themes;
+        variant.cursor = raw.themes;
+    }
+    ['gtk', 'icons', 'cinnamon', 'cursor'].forEach(key => {
+        if (typeof raw[key] === 'string') variant[key] = raw[key];
+    });
+    return variant.gtk && variant.icons && variant.cinnamon && variant.cursor ? variant : null;
+}
+
+// Same rules as cs_themes.py: the first installed variant of a mode is its default unless one is
+// marked "default", and a style's default mode is its first usable mode unless it names one.
+function parseAppearanceStyles(documents, isInstalled) {
+    const styles = [];
+    (documents || []).forEach(document => {
+        const rawStyles = document && Array.isArray(document.styles) ? document.styles : [];
+        rawStyles.forEach(raw => {
+            if (!raw || typeof raw.name !== 'string') return;
+            const style = { name: raw.name, modes: {}, defaultMode: null };
+            APPEARANCE_MODES.forEach(modeName => {
+                const variants = [];
+                let defaultVariant = null;
+                (Array.isArray(raw[modeName]) ? raw[modeName] : []).forEach(rawVariant => {
+                    const variant = appearanceVariant(rawVariant);
+                    if (!variant || !isInstalled(variant)) return;
+                    variants.push(variant);
+                    if (!defaultVariant || rawVariant.default === 'true') defaultVariant = variant;
+                });
+                if (!variants.length) return;
+                style.modes[modeName] = { name: modeName, variants, defaultVariant };
+                if (!style.defaultMode) style.defaultMode = modeName;
+            });
+            if (typeof raw.default === 'string' && style.modes[raw.default]) style.defaultMode = raw.default;
+            if (style.defaultMode) styles.push(style);
+        });
+    });
+    return styles;
+}
+
+function findActiveAppearance(styles, current) {
+    let active = null;
+    (styles || []).forEach(style => {
+        APPEARANCE_MODES.forEach(modeName => {
+            const mode = style.modes[modeName];
+            if (!mode) return;
+            mode.variants.forEach(variant => {
+                if (variant.gtk === current.gtk && variant.icons === current.icons
+                    && variant.cinnamon === current.cinnamon && variant.cursor === current.cursor) {
+                    active = { style, mode: modeName, variant };
+                }
+            });
+        });
+    });
+    return active;
+}
+
+function appearanceIsDark(styles, current) {
+    const active = findActiveAppearance(styles, current);
+    if (active) return active.mode === 'dark';
+    return current.colorScheme === 'prefer-dark';
+}
+
+// What to write for a light/dark switch: always the portal color scheme, plus the theme set of the
+// active style's matching mode. Custom theme combinations only get the color scheme, so a user's own
+// GTK/icon choice is never replaced.
+function planAppearanceSwitch(styles, current, wantDark) {
+    const fallback = { mode: wantDark ? 'dark' : 'light', colorScheme: wantDark ? 'prefer-dark' : 'prefer-light', variant: null };
+    const active = findActiveAppearance(styles, current);
+    if (!active) return fallback;
+    const modeName = (wantDark ? ['dark'] : ['light', 'mixed']).find(name => active.style.modes[name]);
+    if (!modeName) return fallback;
+    const mode = active.style.modes[modeName];
+    const variant = mode.variants.find(candidate => candidate.name === active.variant.name) || mode.defaultVariant;
+    return { mode: modeName, colorScheme: APPEARANCE_COLOR_SCHEMES[modeName], variant };
+}
+
+// What to do with the wallpaper when the mode flips. `savedUri` is the light wallpaper remembered when
+// we switched to Indigo Night; only that switch is ever undone, so a wallpaper the user picked
+// (including Indigo Night itself) is never replaced. Returns the URI to set (or null) and the URI to
+// remember (null clears it).
+function planWallpaperSwitch(toDark, state) {
+    if (toDark) {
+        if (state.slideshow || !state.darkAvailable || LIGHT_DEFAULT_WALLPAPERS.indexOf(state.uri) === -1) {
+            return { uri: null, saved: null };
+        }
+        return { uri: DARK_DEFAULT_WALLPAPER, saved: state.uri };
+    }
+    if (!state.savedUri || state.slideshow || state.uri !== DARK_DEFAULT_WALLPAPER) return { uri: null, saved: null };
+    return { uri: state.savedUri, saved: null };
+}
+
+function wallpaperMarkerPath() {
+    return GLib.build_filenamev([GLib.get_user_state_dir(), 'caramos-control-center', 'wallpaper-before-dark']);
+}
+
+function uriPathExists(uri) {
+    try {
+        const path = Gio.File.new_for_uri(uri).get_path();
+        return !!path && GLib.file_test(path, GLib.FileTest.EXISTS);
+    } catch (e) {
+        return false;
+    }
+}
+
+function themeSearchDirs(kind) {
+    const legacy = kind === 'icons' ? '.icons' : '.themes';
+    return [
+        GLib.build_filenamev([GLib.get_home_dir(), legacy]),
+        GLib.build_filenamev([GLib.get_user_data_dir(), kind]),
+        ...GLib.get_system_data_dirs().map(dir => GLib.build_filenamev([dir, kind])),
+    ];
+}
+
+function themeInstalled(kind, name, marker) {
+    return themeSearchDirs(kind).some(dir => GLib.file_test(GLib.build_filenamev([dir, name, marker]), GLib.FileTest.EXISTS));
+}
+
+function appearanceVariantInstalled(variant) {
+    return themeInstalled('themes', variant.gtk, 'gtk-3.0')
+        && themeInstalled('icons', variant.icons, 'index.theme')
+        && themeInstalled('themes', variant.cinnamon, 'cinnamon')
+        && themeInstalled('icons', variant.cursor, 'cursors');
+}
+
+function loadAppearanceStyles() {
+    const documents = [];
+    const names = [];
+    try {
+        const enumerator = Gio.File.new_for_path(CINNAMON_STYLES_DIR)
+            .enumerate_children('standard::name', Gio.FileQueryInfoFlags.NONE, null);
+        let info;
+        while ((info = enumerator.next_file(null)) !== null) {
+            if (info.get_name().endsWith('.styles')) names.push(info.get_name());
+        }
+        enumerator.close(null);
+    } catch (e) {
+        return [];
+    }
+    names.sort().forEach(name => {
+        try {
+            const [ok, bytes] = GLib.file_get_contents(GLib.build_filenamev([CINNAMON_STYLES_DIR, name]));
+            if (ok) documents.push(JSON.parse(new TextDecoder('utf-8').decode(bytes)));
+        } catch (e) {
+            global.logError(`caramos-control-center: cannot read ${name}: ${e}`);
+        }
+    });
+    return parseAppearanceStyles(documents, appearanceVariantInstalled);
+}
+
+// Gio.Settings.new() aborts the whole shell on a missing schema, so optional schemas are looked up first.
+function optionalSettings(schemaId) {
+    const source = Gio.SettingsSchemaSource.get_default();
+    if (!source || !source.lookup(schemaId, true)) return null;
+    return new Gio.Settings({ schema_id: schemaId });
+}
+
 function createIcon(iconName, styleClass) {
     return new St.Icon({ icon_name: iconName, icon_type: St.IconType.SYMBOLIC, style_class: styleClass });
 }
@@ -1598,12 +2004,36 @@ function createIconRow(leadingIcon, text, trailingIcon, onClick) {
     return button;
 }
 
+// Selectable rows own pointer/key activation so release events never close the parent popup.
+function createPowerProfileRow(iconName, text, selected, onActivate) {
+    const item = new PopupMenu.PopupBaseMenuItem({ activate: true, focusOnHover: false });
+    item.actor.set_style_class_name('popup-menu-item caramos-cc-list-row');
+    setAccessibleName(item.actor, text);
+    const row = new St.BoxLayout({ vertical: false, x_expand: true, x_align: Clutter.ActorAlign.FILL });
+    row.add_child(createIcon(iconName, 'caramos-cc-row-lead-icon'));
+    const label = new St.Label({ text, style_class: 'caramos-cc-list-label', y_align: Clutter.ActorAlign.CENTER, x_align: Clutter.ActorAlign.START });
+    label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
+    row.add_child(label);
+    row.add_child(new St.Widget({ x_expand: true }));
+    const marker = createIcon('object-select-symbolic', 'caramos-cc-row-trail-icon');
+    marker.visible = !!selected;
+    row.add_child(marker);
+    item.addActor(row, { expand: true, span: -1 });
+    item.connect('activate', () => {
+        if (onActivate) onActivate();
+    });
+    item.activate = function (event) {
+        this.emit('activate', event, true);
+    };
+    return item;
+}
+
 // Audio rows own pointer/key activation so release events never reach the parent popup.
 function createAudioDeviceRow(iconName, text, selected, onClick) {
     const item = new PopupMenu.PopupBaseMenuItem({ activate: true, focusOnHover: false });
     item.actor.set_style_class_name('popup-menu-item caramos-cc-list-row caramos-cc-audio-device-row');
     setAccessibleName(item.actor, text);
-    const row = new St.BoxLayout({ vertical: false, x_expand: true, x_align: Clutter.ActorAlign.START });
+    const row = new St.BoxLayout({ vertical: false, x_expand: true, x_align: Clutter.ActorAlign.FILL });
     row.add_child(createIcon(iconName, 'caramos-cc-row-lead-icon'));
     const label = new St.Label({ text, style_class: 'caramos-cc-list-label', y_align: Clutter.ActorAlign.CENTER, x_align: Clutter.ActorAlign.START });
     label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
@@ -1671,6 +2101,16 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._wifiPendingTarget = null;
         this._powerBackend = null;
         this._powerState = { available: false, devices: [], battery: null, onBattery: false };
+        this._powerProfilesBackend = null;
+        this._powerProfilesState = {
+            available: false,
+            loading: true,
+            profiles: [],
+            activeProfile: '',
+            performanceDegraded: '',
+            pendingProfile: '',
+            error: '',
+        };
         this._sessionBackend = null;
         this._sessionState = { available: false, pending: false, error: '' };
         this._audioDevices = { output: [], input: [] };
@@ -1694,16 +2134,43 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._reducedMotion = false;
         this._themeSettings = null;
         this._themeSettingsSignalId = 0;
+        this._cinnamonThemeSettings = null;
+        this._cinnamonThemeSignalId = 0;
+        this._portalSettings = null;
+        this._portalSignalId = 0;
+        this._appearanceStyles = [];
+        this._appearancePending = null;
+        this._lastAppearanceDark = null;
+        this._wallpaperModeId = 0;
         try {
             this._themeSettings = Gio.Settings.new('org.cinnamon.desktop.interface');
-            this._themeSettingsSignalId = this._themeSettings.connect('changed', () => {
+            this._themeSettingsSignalId = this._themeSettings.connect('changed', (_settings, key) => {
                 this._reducedMotion = !this._themeSettings.get_boolean('enable-animations');
-                this._updateThemeClasses();
+                if (APPEARANCE_THEME_KEYS.indexOf(key) !== -1) this._onAppearanceChanged();
+                else this._updateThemeClasses();
             });
             this._reducedMotion = !this._themeSettings.get_boolean('enable-animations');
         } catch (e) {
             global.logError(e);
         }
+        try {
+            this._cinnamonThemeSettings = optionalSettings(CINNAMON_THEME_SCHEMA);
+            if (this._cinnamonThemeSettings) {
+                this._cinnamonThemeSignalId = this._cinnamonThemeSettings.connect('changed::name', () => this._onAppearanceChanged());
+            }
+            this._portalSettings = optionalSettings(PORTAL_SCHEMA);
+            if (this._portalSettings) {
+                this._portalSignalId = this._portalSettings.connect('changed::color-scheme', () => this._onAppearanceChanged());
+            }
+        } catch (e) {
+            global.logError(e);
+        }
+        this._appearanceStyles = loadAppearanceStyles();
+        this._backgroundSettings = optionalSettings(BACKGROUND_SCHEMA);
+        this._gnomeBackgroundSettings = optionalSettings(GNOME_BACKGROUND_SCHEMA);
+        this._slideshowSettings = optionalSettings(SLIDESHOW_SCHEMA);
+        // Only mode changes seen during the session move the wallpaper, never the state at login.
+        this._lastAppearanceDark = appearanceIsDark(this._appearanceStyles, this._currentAppearance());
 
         this._nightLightSettings = null;
         try {
@@ -1764,6 +2231,9 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._updateThemeClasses();
         this._powerBackend = new PowerBackend(state => this._onPowerStateChanged(state));
         this._powerState = this._powerBackend.snapshot();
+        this._powerProfilesBackend = new PowerProfilesBackend(state => this._onPowerProfilesStateChanged(state));
+        this._powerProfilesState = this._powerProfilesBackend.snapshot();
+        this._onPowerProfilesStateChanged(this._powerProfilesState);
         this._sessionBackend = new SessionBackend(state => this._onSessionStateChanged(state));
         this._sessionState = this._sessionBackend.snapshot();
         if (this._control) this._control.open();
@@ -1846,11 +2316,25 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._powerBackend.dispose();
             this._powerBackend = null;
         }
+        if (this._powerProfilesBackend) {
+            this._powerProfilesBackend.dispose();
+            this._powerProfilesBackend = null;
+        }
         if (this._themeSettings && this._themeSettingsSignalId) {
             try { this._themeSettings.disconnect(this._themeSettingsSignalId); } catch (e) { /* disposed */ }
         }
         this._themeSettingsSignalId = 0;
         this._themeSettings = null;
+        if (this._cinnamonThemeSettings && this._cinnamonThemeSignalId) {
+            try { this._cinnamonThemeSettings.disconnect(this._cinnamonThemeSignalId); } catch (e) { /* disposed */ }
+        }
+        this._cinnamonThemeSignalId = 0;
+        this._cinnamonThemeSettings = null;
+        if (this._portalSettings && this._portalSignalId) {
+            try { this._portalSettings.disconnect(this._portalSignalId); } catch (e) { /* disposed */ }
+        }
+        this._portalSignalId = 0;
+        this._portalSettings = null;
         if (this._sessionBackend) {
             this._sessionBackend.dispose();
             this._sessionBackend = null;
@@ -1891,6 +2375,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         if (this._brightnessApplyId) Mainloop.source_remove(this._brightnessApplyId);
         if (this._brightnessSyncId) Mainloop.source_remove(this._brightnessSyncId);
         if (this._bluetoothRefreshId) Mainloop.source_remove(this._bluetoothRefreshId);
+        if (this._wallpaperModeId) Mainloop.source_remove(this._wallpaperModeId);
         Object.keys(this._audioDeviceRefreshIds).forEach(type => {
             if (this._audioDeviceRefreshIds[type]) Mainloop.source_remove(this._audioDeviceRefreshIds[type]);
             this._audioDeviceRefreshIds[type] = 0;
@@ -1907,11 +2392,12 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._brightnessPending = null;
         this._brightnessInFlight = false;
         this._bluetoothRefreshId = 0;
+        this._wallpaperModeId = 0;
         this._inlineCloseButton = null;
         this._menuAlignId = 0;
         this._inlineFocusTarget = null;
         this._vpnRefreshId = 0;
-        [this._wifiTile, this._bluetoothTile, this._nightLightTile].forEach(tile => {
+        [this._wifiTile, this._bluetoothTile, this._powerModeTile, this._darkModeTile, this._nightLightTile].forEach(tile => {
             if (tile) this._setTileLoading(tile, false);
         });
     }
@@ -2112,13 +2598,29 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._connectionsRow.add_child(this._vpnTile.actor);
         this._connectionsRow.add_child(this._bluetoothTile.actor);
 
+        this._powerModeTile = createSplitTile(
+            'preferences-system-power-symbolic',
+            _('Chế độ nguồn'),
+            _('Đang tải'),
+            false,
+            () => this._openPowerModeOverlay(),
+            () => this._openPowerModeOverlay()
+        );
+        this._darkModeTile = createSimpleTile('dark-mode-symbolic', _('Chế độ tối'), _('Đang tắt'), false, () => this._toggleDarkMode());
+        // dark-mode-symbolic is missing from Adwaita, Mint-Y and Mint-L; fall back to a moon.
+        this._darkModeTile.icon.gicon = Gio.ThemedIcon.new_from_names(['dark-mode-symbolic', 'weather-clear-night-symbolic']);
         this._nightLightTile = createSimpleTile('night-light-symbolic', _('Ánh sáng đêm'), _('Bật/tắt Night Light'), false, () => this._toggleNightLight());
         this._displayRow = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-grid-row', x_expand: true, x_align: Clutter.ActorAlign.FILL });
+        this._displayRow.add_child(this._darkModeTile.actor);
         this._displayRow.add_child(this._nightLightTile.actor);
+        this._powerRow = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-grid-row', x_expand: true, x_align: Clutter.ActorAlign.FILL });
+        this._powerRow.add_child(this._powerModeTile.actor);
 
         container.add_child(this._networkRow);
         container.add_child(this._connectionsRow);
         container.add_child(this._displayRow);
+        container.add_child(this._powerRow);
+        this._refreshAppearanceTile();
 
         this._container = container;
         this._expandedPanel = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-expanded-panel', x_expand: true });
@@ -2182,17 +2684,47 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._restoreFocus();
     }
 
+    // First control in visual order. A breadth-first search would pick a shallow footer action (such as
+    // "Cài đặt nguồn") over list rows nested one level deeper.
     _focusFirstControl(container) {
-        if (!container || !container.get_children) return;
-        const stack = container.get_children().slice();
+        const first = this._focusableControls(container)[0];
+        if (first) {
+            try { first.grab_key_focus(); } catch (e) { /* toolkit version */ }
+        }
+    }
+
+    // Focusable controls of an inline body in visual (depth-first) order.
+    _focusableControls(container) {
+        const result = [];
+        const stack = container && container.get_children ? container.get_children().slice() : [];
         while (stack.length) {
             const actor = stack.shift();
             if (actor.can_focus && actor.reactive && actor.visible) {
-                try { actor.grab_key_focus(); } catch (e) { /* toolkit version */ }
-                return;
+                result.push(actor);
+            } else if (actor.get_children) {
+                stack.unshift(...actor.get_children());
             }
-            if (actor.get_children) stack.push(...actor.get_children());
         }
+        return result;
+    }
+
+    // Rebuilding an open inline list destroys the focused row. With key focus on nothing, Cinnamon's menu
+    // manager closes the whole popup, so park focus on the inline close button during the rebuild and
+    // hand it back to the control at the same position. Call the returned function after rebuilding.
+    _parkInlineFocus(body) {
+        const focus = global.stage.key_focus;
+        if (!body || !focus || !body.contains(focus)) return () => {};
+        const index = this._focusableControls(body).findIndex(actor => actor === focus || actor.contains(focus));
+        const parking = this._inlineCloseButton || this.menu.actor;
+        try { parking.grab_key_focus(); } catch (e) { /* toolkit version */ }
+        return () => {
+            if (global.stage.key_focus !== parking) return;
+            const controls = this._focusableControls(body);
+            const target = controls[Math.min(Math.max(index, 0), controls.length - 1)];
+            if (target) {
+                try { target.grab_key_focus(); } catch (e) { /* toolkit version */ }
+            }
+        };
     }
 
     _restoreInlineFocus() {
@@ -2248,7 +2780,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             themeName = this._themeSettings ? this._themeSettings.get_string('gtk-theme') : '';
             highContrast = this._themeSettings ? this._themeSettings.get_boolean('high-contrast') : false;
         } catch (e) { /* schema variation */ }
-        const dark = /dark/i.test(themeName);
+        // Theme names do not reliably say "dark" (Mint-Relaxed), so the active style's mode decides.
+        const dark = appearanceIsDark(this._appearanceStyles, this._currentAppearance()) || /dark/i.test(themeName);
         actor.add_style_class_name(dark ? 'caramos-cc-dark' : 'caramos-cc-light');
         if (highContrast || /high.?contrast/i.test(themeName)) actor.add_style_class_name('caramos-cc-high-contrast');
     }
@@ -2416,6 +2949,99 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._openInlinePanel('wifi', 'network-wireless-symbolic', _('Wi‑Fi'), body => this._fillWifiList(body), this._networkRow);
     }
 
+    _powerProfileLabel(profile) {
+        const labels = {
+            performance: _('Hiệu năng'),
+            balanced: _('Cân bằng'),
+            'power-saver': _('Tiết kiệm pin'),
+        };
+        return labels[profile] || profile || _('Không xác định');
+    }
+
+    _powerProfileIcon(profile) {
+        const icons = {
+            performance: 'power-profile-performance-symbolic',
+            balanced: 'power-profile-balanced-symbolic',
+            'power-saver': 'power-profile-power-saver-symbolic',
+        };
+        return icons[profile] || 'preferences-system-power-symbolic';
+    }
+
+    _openPowerModeOverlay() {
+        this._toggleInlinePanel(
+            'power-mode',
+            'preferences-system-power-symbolic',
+            _('Chế độ nguồn'),
+            body => this._fillPowerModeList(body),
+            this._powerRow
+        );
+    }
+
+    _fillPowerModeList(body) {
+        body = body || this._expandedBody;
+        if (!body) return;
+        const restoreFocus = this._parkInlineFocus(body);
+        body.destroy_all_children();
+        const state = this._powerProfilesState;
+        const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
+        if (state.loading && !state.available) {
+            list.add_child(new St.Label({ text: _('Đang tải chế độ nguồn…'), style_class: 'caramos-cc-expand-empty' }));
+        } else if (!state.available) {
+            list.add_child(new St.Label({ text: _('Dịch vụ chế độ nguồn không khả dụng'), style_class: 'caramos-cc-expand-empty' }));
+        } else if (!state.profiles.length) {
+            list.add_child(new St.Label({ text: _('Không có chế độ nguồn'), style_class: 'caramos-cc-expand-empty' }));
+        } else {
+            state.profiles.forEach(profile => {
+                let label = this._powerProfileLabel(profile);
+                if (profile === 'performance' && state.performanceDegraded) label += _(' · bị giới hạn');
+                const item = createPowerProfileRow(
+                    this._powerProfileIcon(profile),
+                    label,
+                    profile === state.activeProfile,
+                    () => this._setPowerProfileActive(profile)
+                );
+                list.add_child(item.actor);
+            });
+        }
+        if (state.error) {
+            list.add_child(new St.Label({ text: state.error, style_class: 'caramos-cc-expand-empty' }));
+        }
+        body.add_child(list);
+        body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
+        body.add_child(createIconRow('preferences-system-power-symbolic', _('Cài đặt nguồn'), null, () => {
+            this._closeInlinePanel();
+            spawnAllowed('powerSettings');
+        }));
+        restoreFocus();
+    }
+
+    _setPowerProfileActive(profile) {
+        const state = this._powerProfilesState;
+        if (!this._powerProfilesBackend || state.pendingProfile || state.profiles.indexOf(profile) === -1) return;
+        this._inlineFocusTarget = this._powerModeTile.mainButton;
+        this._closeInlinePanel('power-profile-selected');
+        if (profile !== state.activeProfile) this._powerProfilesBackend.setActiveProfile(profile);
+    }
+
+    _onPowerProfilesStateChanged(state) {
+        this._powerProfilesState = state;
+        if (this._powerModeTile) {
+            const label = state.pendingProfile
+                ? _('Đang đổi…')
+                : state.error && state.available
+                    ? _('Không đổi được')
+                    : state.loading && !state.available
+                    ? _('Đang tải')
+                    : state.available
+                        ? this._powerProfileLabel(state.activeProfile)
+                        : _('Không khả dụng');
+            this._powerModeTile.subtitleLabel.set_text(label);
+            setAccessibleName(this._powerModeTile.mainButton, `${_('Chế độ nguồn')}: ${label}`);
+            this._setSplitTileState(this._powerModeTile, !!(state.available && state.activeProfile), !!state.pendingProfile || state.loading);
+        }
+        if (this._expandedKind === 'power-mode' && this._expandedBody) this._fillPowerModeList(this._expandedBody);
+    }
+
     _openPowerOverlay() {
         this._toggleInlinePanel('power', 'system-shutdown-symbolic', _('Nguồn'),
             body => this._fillPowerList(body), this._header);
@@ -2469,8 +3095,10 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     _onSessionStateChanged(state) {
         this._sessionState = state;
         if (this._expandedKind === 'power' && this._expandedBody) {
+            const restoreFocus = this._parkInlineFocus(this._expandedBody);
             this._expandedBody.destroy_all_children();
             this._fillPowerList(this._expandedBody);
+            restoreFocus();
         }
     }
 
@@ -2545,6 +3173,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     }
 
     _fillAudioDeviceList(body, type) {
+        const restoreFocus = this._parkInlineFocus(body);
         body.destroy_all_children();
         const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
         const devices = this._audioDevices[type] || [];
@@ -2589,6 +3218,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             if (this.menu && this.menu.isOpen) this.menu.close();
             this._addOneShot(1, () => spawnAllowed('soundSettings'));
         }));
+        restoreFocus();
     }
 
     _applyStreamVolume(stream, value) {
@@ -2873,6 +3503,125 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._setTileLoading(tile, loading);
     }
 
+    _currentAppearance() {
+        const read = (settings, key) => {
+            try { return settings ? settings.get_string(key) : ''; } catch (e) { return ''; }
+        };
+        return {
+            gtk: read(this._themeSettings, 'gtk-theme'),
+            icons: read(this._themeSettings, 'icon-theme'),
+            cursor: read(this._themeSettings, 'cursor-theme'),
+            cinnamon: read(this._cinnamonThemeSettings, 'name'),
+            colorScheme: read(this._portalSettings, 'color-scheme'),
+        };
+    }
+
+    _onAppearanceChanged() {
+        if (this._removed) return;
+        this._appearanceStyles = loadAppearanceStyles();
+        this._updateThemeClasses();
+        this._refreshAppearanceTile();
+        this._scheduleWallpaperForMode();
+    }
+
+    // A switch writes several keys (color scheme, GTK, icons, shell, cursor) and passes through mixed
+    // states, so the wallpaper follows the mode only once the keys have settled.
+    _scheduleWallpaperForMode() {
+        if (this._wallpaperModeId) Mainloop.source_remove(this._wallpaperModeId);
+        this._wallpaperModeId = Mainloop.timeout_add(WALLPAPER_MODE_SETTLE_MS, () => {
+            this._wallpaperModeId = 0;
+            if (this._removed) return false;
+            const dark = appearanceIsDark(this._appearanceStyles, this._currentAppearance());
+            if (dark !== this._lastAppearanceDark) {
+                this._lastAppearanceDark = dark;
+                this._applyWallpaperForMode(dark);
+            }
+            return false;
+        });
+    }
+
+    _applyWallpaperForMode(dark) {
+        if (!this._backgroundSettings) return;
+        const marker = wallpaperMarkerPath();
+        let savedUri = '';
+        try {
+            const [ok, bytes] = GLib.file_get_contents(marker);
+            if (ok) savedUri = new TextDecoder('utf-8').decode(bytes).trim();
+        } catch (e) { /* nothing remembered */ }
+        const uri = this._backgroundSettings.get_string('picture-uri');
+        let slideshow = false;
+        try { slideshow = !!this._slideshowSettings && this._slideshowSettings.get_boolean('slideshow-enabled'); } catch (e) { /* schema variation */ }
+        // A remembered wallpaper that no longer exists falls back to the light default.
+        const remembered = savedUri && !uriPathExists(savedUri) ? LIGHT_DEFAULT_WALLPAPERS[0] : savedUri;
+        const plan = planWallpaperSwitch(dark, {
+            uri,
+            savedUri: remembered,
+            slideshow,
+            darkAvailable: uriPathExists(DARK_DEFAULT_WALLPAPER),
+        });
+        try {
+            if (plan.saved) {
+                GLib.mkdir_with_parents(GLib.path_get_dirname(marker), 0o700);
+                GLib.file_set_contents(marker, plan.saved);
+            } else if (savedUri) {
+                Gio.File.new_for_path(marker).delete(null);
+            }
+            if (plan.uri) {
+                this._backgroundSettings.set_string('picture-uri', plan.uri);
+                // Keep the GNOME key in step when it mirrored the Cinnamon one (as CaramOS sets it up).
+                if (this._gnomeBackgroundSettings && this._gnomeBackgroundSettings.get_string('picture-uri') === uri) {
+                    this._gnomeBackgroundSettings.set_string('picture-uri', plan.uri);
+                }
+            }
+        } catch (e) {
+            global.logError(e);
+        }
+    }
+
+    _refreshAppearanceTile() {
+        const tile = this._darkModeTile;
+        if (!tile) return;
+        const available = !!this._themeSettings && (!!this._portalSettings || this._appearanceStyles.length > 0);
+        setTileEnabled(tile, available);
+        if (!available) {
+            tile.subtitleLabel.set_text(_('Không khả dụng'));
+            this._setSimpleTileState(tile, false, false);
+            return;
+        }
+        const pending = this._appearancePending !== null;
+        const dark = pending ? this._appearancePending : appearanceIsDark(this._appearanceStyles, this._currentAppearance());
+        const label = dark ? _('Đang bật') : _('Đang tắt');
+        tile.subtitleLabel.set_text(label);
+        setAccessibleName(tile.button, `${_('Chế độ tối')}: ${label}`);
+        this._setSimpleTileState(tile, dark, pending);
+    }
+
+    _toggleDarkMode() {
+        if (!this._themeSettings || this._appearancePending !== null) return;
+        this._appearanceStyles = loadAppearanceStyles();
+        const current = this._currentAppearance();
+        const wantDark = !appearanceIsDark(this._appearanceStyles, current);
+        const plan = planAppearanceSwitch(this._appearanceStyles, current, wantDark);
+        this._appearancePending = wantDark;
+        this._refreshAppearanceTile();
+        // Same order as Cinnamon Settings: color scheme first, then GTK, icons, shell and cursor.
+        try {
+            if (this._portalSettings) this._portalSettings.set_string('color-scheme', plan.colorScheme);
+            if (plan.variant) {
+                this._themeSettings.set_string('gtk-theme', plan.variant.gtk);
+                this._themeSettings.set_string('icon-theme', plan.variant.icons);
+                if (this._cinnamonThemeSettings) this._cinnamonThemeSettings.set_string('name', plan.variant.cinnamon);
+                this._themeSettings.set_string('cursor-theme', plan.variant.cursor);
+            }
+        } catch (e) {
+            global.logError(e);
+        }
+        this._addOneShot(APPEARANCE_SETTLE_MS, () => {
+            this._appearancePending = null;
+            this._onAppearanceChanged();
+        });
+    }
+
     _toggleNightLight() {
         if (!this._nightLightSettings) return;
         const enabled = this._nightLightSettings.get_boolean(NIGHT_LIGHT_KEY);
@@ -3154,6 +3903,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     _fillVpnList(body) {
         body = body || this._expandedBody;
         if (!body) return;
+        const restoreFocus = this._parkInlineFocus(body);
         body.destroy_all_children();
         const state = this._vpnState;
         const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
@@ -3183,6 +3933,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._closeInlinePanel();
             spawnAllowed('networkSettings');
         }));
+        restoreFocus();
     }
 
     _openVpnOverlay() {
@@ -3271,6 +4022,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     _fillWifiList(body) {
         body = body || this._expandedBody;
         if (!body) return;
+        const restoreFocus = this._parkInlineFocus(body);
         body.destroy_all_children();
 
         const state = this._wifiBackend ? this._wifiBackend.snapshot() : null;
@@ -3307,6 +4059,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._closeInlinePanel();
             spawnAllowed('networkSettings');
         }));
+        restoreFocus();
     }
 
     _onWifiNetworkClicked(network) {
@@ -3324,10 +4077,34 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         }
     }
 
+    _bluetoothListSignature() {
+        const state = this._bluezBackend ? this._bluezBackend.snapshot() : null;
+        if (!state || !state.available) return 'unavailable';
+        const adapter = state.adapter || {};
+        return JSON.stringify([
+            !!adapter.powered,
+            !!adapter.discovering,
+            state.devices.slice(0, BT_LIST_LIMIT).map(device => [device.path, device.name, !!device.connected, device.battery]),
+        ]);
+    }
+
+    // Rebuild the open Bluetooth list at most once per BT_LIST_REFRESH_MS, and only when what it shows changed.
+    _scheduleBluetoothListRefresh() {
+        if (this._bluetoothRefreshId) return;
+        this._bluetoothRefreshId = Mainloop.timeout_add(BT_LIST_REFRESH_MS, () => {
+            this._bluetoothRefreshId = 0;
+            if (this._removed || this._expandedKind !== 'bluetooth' || !this._expandedBody) return false;
+            if (this._bluetoothListSignature() !== this._bluetoothRenderSignature) this._fillBluetoothList(this._expandedBody);
+            return false;
+        });
+    }
+
     _fillBluetoothList(body) {
         body = body || this._expandedBody;
         if (!body) return;
+        const restoreFocus = this._parkInlineFocus(body);
         body.destroy_all_children();
+        this._bluetoothRenderSignature = this._bluetoothListSignature();
 
         const bluezState = this._bluezBackend ? this._bluezBackend.snapshot() : null;
         const bluezDevices = bluezState && bluezState.available ? bluezState.devices : [];
@@ -3375,6 +4152,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._closeInlinePanel();
             spawnAllowed('bluetoothSettings');
         }));
+        restoreFocus();
     }
 
     _onBluezDeviceClicked(device) {

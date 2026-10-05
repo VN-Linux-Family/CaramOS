@@ -108,6 +108,8 @@ ID | status | priority | code ref | test ID | evidence | owner
 | [`applet.js`](caramos-control-center@caramos/applet.js) | Applet lifecycle, renderer, state coordinator và backend adapters hiện tại. | Không để UI tự suy đoán state từ widget. |
 | [`stylesheet.css`](caramos-control-center@caramos/stylesheet.css) | Token, layout, visual states, focus và responsive styling. | Không dùng màu làm tín hiệu duy nhất. |
 | [`metadata.json`](caramos-control-center@caramos/metadata.json) | UUID, name, description, version, instance policy. | Version phải đồng bộ release policy. |
+| [`30_caramos.styles`](../../cinnamon/styles.d/30_caramos.styles) | Style "CaramOS" (sáng/tối) cho Cinnamon Settings và ô Chế độ tối. | Variant sáng/tối phải cùng tên. |
+| [`Cinnamon-Delight-Dark/`](../../themes/Cinnamon-Delight-Dark) | Theme tối sinh từ Mint-Relaxed theo bảng màu Delight + CSS 3 dock tối. | Không sửa tay; chạy `tools/build-delight-dark-theme.py` (mục 13.3). |
 
 ### 2.2 Migration/package files
 
@@ -127,6 +129,8 @@ ID | status | priority | code ref | test ID | evidence | owner
 |---|---|
 | [`test_migration_registry.py`](../../../../tests/test_migration_registry.py) | Catalog, plan, bootstrap, timestamp behavior. |
 | [`test_migration_runner.py`](../../../../tests/test_migration_runner.py) | Runner batch và release finalization. |
+| [`test_control_center_dark_mode.py`](../../../../tests/test_control_center_dark_mode.py) | Logic chọn theme (chạy bằng node), asset theme/style, công cụ sinh theme tối, CSS tối, đồng bộ CSS dock. |
+| [`build-delight-dark-theme.py`](../../../../tools/build-delight-dark-theme.py) | Sinh `Cinnamon-Delight-Dark` từ Mint-Relaxed theo bảng màu Delight. |
 | [`caramos-ota-testkit.sh`](../../../../tools/caramos-ota-testkit.sh) | Compile, validate, test, build `.deb`. |
 | [`ship-ota-to-vm.sh`](../../../../tools/ship-ota-to-vm.sh) | Build/ship package tới VM. |
 | [`vm-run-ota-e2e.sh`](../../../../tools/vm-run-ota-e2e.sh) | Install, dry-run, real migration, verify/restore. |
@@ -360,7 +364,8 @@ Bắt buộc:
 | `CC-MIC-002` | Mic | Recording privacy state | `DEFERRED` | Recording stream count/indicator implemented; app-name privacy details deferred | P1 | `CC-TEST-MIC-002` |
 | `CC-DISPLAY-001` | Display | Brightness supported/absent | `BLOCKED` | Capability-gated DBus row/hide path complete; physical backlight evidence pending | P0 | `CC-TEST-DISPLAY-001` |
 | `CC-DISPLAY-002` | Display | Night Light | `DONE` code; evidence pending | Gio.Settings on/off and unavailable schema path; schedule remains Settings-owned | P1 | `CC-TEST-DISPLAY-002` |
-| `CC-DISPLAY-003` | Display | Dark/high contrast | `DONE` | Theme-scoped light/dark/high-contrast surfaces and focus styling | P0 | `CC-TEST-DISPLAY-003` |
+| `CC-DISPLAY-003` | Display | Dark/high contrast | `DONE` | Theme-scoped light/dark/high-contrast surfaces and focus styling; popup mode follows the active style mode | P0 | `CC-TEST-DISPLAY-003` |
+| `CC-DISPLAY-004` | Display | Light/dark mode switch | `DONE` | Cinnamon styles.d + portal color-scheme policy, Cinnamon-Delight / Cinnamon-Delight-Dark pair; VM live + installed reboot evidence (mục 13.3) | P0 | `CC-TEST-DISPLAY-004` |
 | `CC-POWER-001` | Power | Battery/AC/no battery | `BLOCKED` | UPower DisplayDevice/BATTERY/UPS/LINE_POWER state complete; laptop/UPS evidence pending | P0 | `CC-TEST-POWER-001` |
 | `CC-POWER-002` | Power | Estimate/low/critical | `BLOCKED` | UPower time/state/warning snapshot complete; hardware warning evidence pending | P1 | `CC-TEST-POWER-002` |
 | `CC-POWER-003` | Power | Power profile | `DEFERRED` | Capability-gated future control; CaramOS VM image hiện tại không có backend/tool | P2 | `CC-TEST-POWER-003` |
@@ -694,7 +699,86 @@ MPRIS/player controls là `P2`:
 - Surface, text, border, icon và focus token phải theme-aware.
 - High contrast không được phá active/pending/error distinction.
 
-Current applet có Night Light nhưng chưa có Dark Style. Power Mode cũng chưa có.
+### 13.3 Chế độ tối (`CC-DISPLAY-004`)
+
+Ô **Chế độ tối** nằm cạnh **Ánh sáng đêm**; **Chế độ nguồn** có hàng riêng bên dưới.
+
+**Policy: làm đúng như Cinnamon Settings > Giao diện**, để hai nơi luôn khớp nhau:
+
+1. Ghi `org.x.apps.portal color-scheme` (`prefer-dark` / `prefer-light`; `default` cho chế độ "Hỗn hợp").
+   `xdg-desktop-portal-xapp` phát giá trị này thành `org.freedesktop.appearance color-scheme` cho
+   ứng dụng GTK4/libadwaita, Chrome, Electron. Không ghi `org.gnome.desktop.interface color-scheme`:
+   Cinnamon Settings không ghi khóa đó, ghi riêng sẽ lệch khi user đổi chế độ trong Settings.
+2. Đổi bộ theme theo style trong `/usr/share/cinnamon/styles.d/*.styles`: tìm variant đang dùng
+   (khớp cả gtk/icon/cinnamon/cursor), chuyển sang variant cùng tên ở mode `dark` hoặc `light`
+   (`light` không có thì `mixed`). Thứ tự ghi giống `cs_themes.py`: color-scheme → gtk → icons → cinnamon → cursor.
+3. Bộ theme không thuộc style nào (user tự chọn) hoặc style không có mode cần: **chỉ** đổi color-scheme,
+   không bao giờ thay theme của user.
+
+| Thành phần | Sáng | Tối |
+|---|---|---|
+| GTK + khung cửa sổ | `Cinnamon-Delight` | `Cinnamon-Delight-Dark` |
+| Cinnamon (panel/menu) | `Cinnamon-Delight` + CSS 3 dock sáng | `Cinnamon-Delight-Dark` + CSS 3 dock tối |
+| Icon | `Tela-circle-light` (symbolic `#565656`) | `Tela-circle-dark` (symbolic `#aaaaaa`) |
+| Con trỏ | `Bibata-Modern-Classic` | `Bibata-Modern-Classic` |
+| `color-scheme` | `prefer-light` | `prefer-dark` |
+
+**Theme tối phải trông như Delight, không phải một theme khác.** `Cinnamon-Delight-Dark` được sinh bằng
+`tools/build-delight-dark-theme.py` (output được commit):
+
+- Khung tối lấy từ **Mint-Relaxed** (DrMcC0y, GPL-3.0, commit `01c6cb9`): đây là bản tối của cùng thiết kế
+  với Delight (README Delight: "bright counterpart to Mint-Relaxed"; CSS giống ~90-99% khi bỏ màu), nên
+  có sẵn trạng thái tối cho mọi widget và asset tối.
+- Mint-Relaxed tô xám màu **navy lạnh** (OKLCH hue ~255-275); Delight dùng xám **tím hồng ấm** (hue ~340).
+  Công cụ đổi mọi màu xám (CSS, gtkrc, SVG, từng pixel PNG) sang hue 340 với độ bão hoà nhẹ, **giữ nguyên
+  độ sáng**; màu nhấn và màu trạng thái (aqua `#1f9ede`, đỏ, xanh, cam) và đen/trắng giữ nguyên.
+- Delight phân tầng rõ (vùng file trắng, thanh bên tối hơn ~4%, thanh công cụ ~8%); Mint-Relaxed để gần như
+  một màu. `ROLE_LIGHTNESS` đặt độ sáng từng vai trò theo đúng các bước đó, đảo chiều quanh vùng file tối.
+- Khối CSS 3 dock tối (`tools/delight-dark-dock.css`) được nối vào `cinnamon/cinnamon.css`.
+- Popup Control Center tối cũng dùng nền cùng hue (`stylesheet.css`).
+
+| Scenario | Expected |
+|---|---|
+| Bộ CaramOS sáng → bật | Đổi sang bộ tối, `prefer-dark`; popup vẫn mở, ô cam "Đang bật". |
+| Bộ CaramOS tối → tắt | Về bộ sáng, `prefer-light`. |
+| Mint-Y/Mint-L | Giữ màu nhấn (variant cùng tên), đổi mode của chính style đó. |
+| Theme tự chọn / Mint-X (không có dark) | Chỉ đổi color-scheme; theme giữ nguyên. |
+| `Cinnamon-Delight-Dark` chưa cài | Variant tối không hợp lệ → chỉ đổi color-scheme, không ghi theme không tồn tại. |
+| Đổi trong Cinnamon Settings | Ô và màu popup tự cập nhật qua signal (`color-scheme`, `gtk-theme`, `icon-theme`, `cursor-theme`, `org.cinnamon.theme name`). |
+| Schema `org.x.apps.portal` / `org.cinnamon.theme` thiếu | Không crash shell (`optionalSettings` lookup trước); không có cả portal lẫn style → "Không khả dụng". |
+| Bấm liên tục | Bỏ qua trong 1,5 giây chờ theme áp dụng (`APPEARANCE_SETTLE_MS`). |
+| Khởi động lại / đăng nhập lại | Giữ chế độ (gsettings của user); applet đọc trạng thái lúc khởi tạo. |
+
+**Hình nền theo chế độ.** Khi chế độ chuyển (từ ô Control Center hay từ Cài đặt → Giao diện, applet theo dõi
+cả hai), nếu người dùng đang dùng hình nền mặc định Sage Mist (`default.png` hoặc `03-sage-mist-2k.jpg`) thì
+sang tối đổi thành Indigo Night (`02-indigo-night-2k.jpg`) và ghi nhớ đường dẫn gốc vào
+`~/.local/state/caramos-control-center/wallpaper-before-dark`; về sáng thì trả lại đúng đường dẫn đó.
+
+| Scenario | Expected |
+|---|---|
+| Hình mặc định, sáng → tối → sáng | Sage Mist → Indigo Night → Sage Mist (đúng URI gốc). |
+| Hình người dùng tự chọn (kể cả Indigo Night) | Không đổi ở cả hai chiều. |
+| Đang tối, người dùng đổi hình khác rồi về sáng | Giữ hình người dùng chọn, xoá ghi nhớ. |
+| Bật trình chiếu hình nền (slideshow) / thiếu file Indigo Night | Không đổi. |
+| Đăng nhập khi đang tối | Không đổi (chỉ phản ứng với lần chuyển chế độ trong phiên). |
+
+Applet chờ `WALLPAPER_MODE_SETTLE_MS` sau thay đổi cuối cùng vì một lần chuyển ghi nhiều khoá và đi qua trạng
+thái lẫn lộn; nếu gỡ Control Center khỏi panel thì tính năng này không chạy.
+
+Màu popup (`caramos-cc-light`/`caramos-cc-dark`) lấy theo mode của style đang dùng (hoặc `prefer-dark`),
+không đoán theo chữ "dark" trong tên theme. Mỗi màu chữ/icon tối của bản sáng phải có màu tương ứng
+trong khối CSS tối; `test_control_center_dark_mode.py` kiểm tra điều này.
+
+**Khi sửa CSS 3 dock:** sửa cả `DOCK_CSS` trong migration lẫn `tools/delight-dark-dock.css`, rồi chạy lại
+`./tools/build-delight-dark-theme.py` (test `DarkDockCssSyncTests` bắt lệch selector/thuộc tính).
+
+**Đổi bảng màu hoặc nâng commit Mint-Relaxed:** sửa `DELIGHT_HUE`/`TINT_CHROMA`/`ROLE_LIGHTNESS` hoặc
+`UPSTREAM_COMMIT` trong công cụ, chạy `./tools/build-delight-dark-theme.py`, chạy test
+(`DelightDarkGeneratorTests` kiểm tra không còn xám navy và thứ tự độ sáng các vùng), rồi so ảnh sáng/tối
+trên VM (`make vm-reset ship`, bật/tắt bằng `vm-dev.sh click`).
+
+**Chưa kiểm chứng:** ứng dụng Qt (WPS Office, Flameshot, CopyQ) và Zalo không đi theo GTK theme;
+cần kiểm tra riêng. Màn hình đăng nhập (slick-greeter) vẫn dùng theme sáng toàn hệ thống.
 
 ---
 

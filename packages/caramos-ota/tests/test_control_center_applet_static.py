@@ -50,8 +50,185 @@ class ControlCenterAppletStaticTests(unittest.TestCase):
             self.assertIn(capability, self.source)
 
     def test_backend_cleanup_is_present(self) -> None:
-        for backend in ("_networkBackend", "_wifiBackend", "_bluezBackend", "_powerBackend", "_sessionBackend"):
+        for backend in (
+            "_networkBackend",
+            "_wifiBackend",
+            "_bluezBackend",
+            "_powerBackend",
+            "_powerProfilesBackend",
+            "_sessionBackend",
+        ):
             self.assertRegex(self.source, rf"if \(this\.{backend}\) \{{[\s\S]*?this\.{backend}\.dispose\(\)")
+
+    def test_power_profiles_backend_uses_async_dbus(self) -> None:
+        backend = re.search(r"class PowerProfilesBackend \{([\s\S]*?)\n\}\n\nclass SessionBackend", self.source)
+        self.assertIsNotNone(backend)
+        source = backend.group(1)
+        for token in (
+            "org.freedesktop.UPower.PowerProfiles",
+            "/org/freedesktop/UPower/PowerProfiles",
+            "net.hadess.PowerProfiles",
+            "/net/hadess/PowerProfiles",
+            "Gio.Cancellable",
+            "Gio.bus_watch_name",
+            "Gio.bus_unwatch_name",
+            "Gio.DBusProxy.new_for_bus",
+            "g-properties-changed",
+            "ActiveProfile",
+            "Profiles",
+            "PerformanceDegraded",
+            "org.freedesktop.DBus.Properties",
+        ):
+            self.assertIn(token, self.source)
+        self.assertNotIn("powerprofilesctl", source)
+        self.assertNotIn("new_for_bus_sync", source)
+        self.assertNotIn("call_sync", source)
+
+    def test_package_installs_current_applet_into_cinnamon(self) -> None:
+        install = (ROOT / "debian/install").read_text(encoding="utf-8")
+        self.assertIn(
+            "usr/share/caramos-ota/applets/caramos-control-center@caramos usr/share/cinnamon/applets/",
+            install,
+        )
+
+    def test_power_mode_tile_and_panel_contract(self) -> None:
+        for token in (
+            "this._powerModeTile = createSplitTile(",
+            "_('Chế độ nguồn')",
+            "_('Hiệu năng')",
+            "_('Cân bằng')",
+            "_('Tiết kiệm pin')",
+            "_toggleInlinePanel(",
+            "'power-mode'",
+            "_fillPowerModeList",
+            "object-select-symbolic",
+            "spawnAllowed('powerSettings')",
+        ):
+            self.assertIn(token, self.source)
+        # Dark mode sits next to Night Light; Power mode has its own row and anchors its list there.
+        self.assertIn("this._powerRow.add_child(this._powerModeTile.actor)", self.source)
+        dark_mode_position = self.source.index("this._displayRow.add_child(this._darkModeTile.actor)")
+        night_light_position = self.source.index("this._displayRow.add_child(this._nightLightTile.actor)")
+        self.assertLess(dark_mode_position, night_light_position)
+        rows = [
+            self.source.index(f"container.add_child(this.{row})")
+            for row in ("_networkRow", "_connectionsRow", "_displayRow", "_powerRow")
+        ]
+        self.assertEqual(sorted(rows), rows)
+        self.assertRegex(self.source, r"body => this\._fillPowerModeList\(body\),\s*this\._powerRow\s*\)")
+        self.assertRegex(
+            self.source,
+            r"createSplitTile\([\s\S]*?_\('Chế độ nguồn'\)[\s\S]*?\(\) => this\._openPowerModeOverlay\(\),[\s\S]*?\(\) => this\._openPowerModeOverlay\(\)",
+        )
+        self.assertRegex(self.source, r"state\.profiles\.forEach\(profile =>")
+        self.assertIn("createPowerProfileRow", self.source)
+        self.assertNotRegex(self.source, r"profiles:\s*\[['\"]performance")
+
+    def test_power_profile_selection_keeps_parent_popup_open(self) -> None:
+        helper = re.search(
+            r"function createPowerProfileRow\(iconName, text, selected, onActivate\) \{([\s\S]*?)\n\}",
+            self.source,
+        )
+        self.assertIsNotNone(helper)
+        body = helper.group(1)
+        self.assertIn("PopupMenu.PopupBaseMenuItem", body)
+        self.assertIn("item.connect('activate'", body)
+        self.assertIn("item.activate = function (event)", body)
+        self.assertIn("this.emit('activate', event, true)", body)
+        self.assertNotIn("connect('clicked'", body)
+
+        filler = re.search(
+            r"_fillPowerModeList\(body\) \{([\s\S]*?)\n    \}\n\n    _setPowerProfileActive",
+            self.source,
+        )
+        self.assertIsNotNone(filler)
+        self.assertIn("createPowerProfileRow(", filler.group(1))
+
+    def test_power_profile_selection_closes_inline_only(self) -> None:
+        method = re.search(
+            r"_setPowerProfileActive\(profile\) \{([\s\S]*?)\n    \}\n\n    _onPowerProfilesStateChanged",
+            self.source,
+        )
+        self.assertIsNotNone(method)
+        body = method.group(1)
+        self.assertIn("state.profiles.indexOf(profile) === -1", body)
+        self.assertIn("this._inlineFocusTarget = this._powerModeTile.mainButton", body)
+        self.assertIn("this._closeInlinePanel('power-profile-selected')", body)
+        self.assertIn("profile !== state.activeProfile", body)
+        self.assertIn("this._powerProfilesBackend.setActiveProfile(profile)", body)
+        self.assertLess(
+            body.index("this._closeInlinePanel('power-profile-selected')"),
+            body.index("this._powerProfilesBackend.setActiveProfile(profile)"),
+        )
+        self.assertNotIn("this.menu.close()", body)
+        self.assertNotIn("this._closeSubmenus()", body)
+
+    def _method_body(self, name: str) -> str:
+        match = re.search(rf"\n    {name}\([^)]*\) \{{([\s\S]*?)\n    \}}\n", self.source)
+        self.assertIsNotNone(match, f"method {name} not found")
+        return match.group(1)
+
+    def test_every_called_private_method_is_defined(self) -> None:
+        called = set(re.findall(r"this\.(_[A-Za-z0-9_]+)\(", self.source))
+        defined = set(re.findall(r"^\s+(_[A-Za-z0-9_]+)\s*\([^)]*\)\s*\{", self.source, re.M))
+        assigned = set(re.findall(r"this\.(_[A-Za-z0-9_]+)\s*=", self.source))
+        self.assertEqual(set(), called - defined - assigned)
+
+    def test_open_inline_lists_keep_focus_when_rebuilt(self) -> None:
+        for name in (
+            "_fillPowerModeList",
+            "_fillWifiList",
+            "_fillBluetoothList",
+            "_fillVpnList",
+            "_fillAudioDeviceList",
+            "_onSessionStateChanged",
+        ):
+            body = self._method_body(name)
+            self.assertIn("const restoreFocus = this._parkInlineFocus(", body, name)
+            self.assertLess(body.index("this._parkInlineFocus("), body.index("destroy_all_children()"), name)
+            self.assertIn("restoreFocus();", body, name)
+        first = self._method_body("_focusFirstControl")
+        self.assertIn("this._focusableControls(container)[0]", first)
+        controls = self._method_body("_focusableControls")
+        self.assertIn("stack.unshift(...actor.get_children())", controls)
+        park = self._method_body("_parkInlineFocus")
+        self.assertIn("body.contains(focus)", park)
+        self.assertIn("this._inlineCloseButton || this.menu.actor", park)
+
+    def test_bluetooth_list_refresh_is_coalesced(self) -> None:
+        self.assertIn("const BT_LIST_REFRESH_MS = ", self.source)
+        body = self._method_body("_scheduleBluetoothListRefresh")
+        self.assertIn("if (this._bluetoothRefreshId) return;", body)
+        self.assertIn("Mainloop.timeout_add(BT_LIST_REFRESH_MS", body)
+        self.assertIn("this._bluetoothListSignature() !== this._bluetoothRenderSignature", body)
+        fill = self._method_body("_fillBluetoothList")
+        self.assertIn("this._bluetoothRenderSignature = this._bluetoothListSignature();", fill)
+
+    def test_power_profiles_are_shown_in_fixed_order(self) -> None:
+        self.assertIn("const POWER_PROFILE_ORDER = ['performance', 'balanced', 'power-saver'];", self.source)
+        refresh = re.search(r"class PowerProfilesBackend \{[\s\S]*?\n    _refresh\(\) \{([\s\S]*?)\n    \}\n", self.source)
+        self.assertIsNotNone(refresh)
+        self.assertIn("POWER_PROFILE_ORDER.indexOf(profile)", refresh.group(1))
+        self.assertIn("profiles.sort(", refresh.group(1))
+
+    def test_power_profile_failure_is_shown_on_tile_and_cleared(self) -> None:
+        backend = re.search(r"class PowerProfilesBackend \{([\s\S]*?)\n\}\n\nclass SessionBackend", self.source)
+        self.assertIsNotNone(backend)
+        source = backend.group(1)
+        self.assertIn("this._setError(_('Không thể đổi chế độ nguồn'))", source)
+        self.assertIn("GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, POWER_PROFILE_ERROR_SECONDS", source)
+        self.assertRegex(source, r"dispose\(\) \{[\s\S]*?this\._clearErrorTimeout\(\)")
+        self.assertIn("_('Không đổi được')", self._method_body("_onPowerProfilesStateChanged"))
+
+    def test_selectable_rows_put_check_mark_at_trailing_edge(self) -> None:
+        for helper_name in ("createPowerProfileRow", "createAudioDeviceRow"):
+            helper = re.search(rf"function {helper_name}\([^)]*\) \{{([\s\S]*?)\n\}}", self.source)
+            self.assertIsNotNone(helper, helper_name)
+            self.assertIn(
+                "const row = new St.BoxLayout({ vertical: false, x_expand: true, x_align: Clutter.ActorAlign.FILL });",
+                helper.group(1),
+                helper_name,
+            )
 
     def test_referenced_style_classes_exist(self) -> None:
         referenced = set(re.findall(r"['\"](caramos-cc-[a-z0-9-]+)", self.source))

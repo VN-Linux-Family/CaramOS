@@ -592,7 +592,7 @@
 }
 
 .menu.caramos-cc-popup.caramos-cc-dark {
-  background-color: rgba(35, 35, 38, 0.99);
+  background-color: rgba(41, 32, 38, 0.99);
   color: rgba(245, 245, 247, 0.96);
   border-color: rgba(255, 255, 255, 0.14);
 }
@@ -620,7 +620,7 @@
 
 .caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-card,
 .caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-card {
-  background-color: rgba(48, 48, 52, 0.98);
+  background-color: rgba(55, 45, 51, 0.98);
   border-color: rgba(255, 255, 255, 0.14);
 }
 
@@ -656,4 +656,77 @@
 .caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-card .caramos-cc-list-row:hover,
 .caramos-cc-popup.caramos-cc-dark .caramos-cc-list-row:hover {
   background-color: rgba(255, 255, 255, 0.10);
+}
+
+/* -------- Dark mode: a counterpart for every light-mode colour above --------
+ * Selectors carry .caramos-cc-popup.caramos-cc-dark so they outrank the base rules; the active
+ * tile rules use one more class so the accent survives the dark tile background. */
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-battery-pill:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-round-button:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-simple-tile:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-split-main:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-split-arrow:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-pill-icon,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-round-icon,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-icon,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-row-lead-icon,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-row-trail-icon,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-audio-disclosure-icon {
+  color: rgba(235, 235, 240, 0.88);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-slider-icon {
+  color: rgba(235, 235, 240, 0.80);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-arrow-icon,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-close-icon,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-close-icon {
+  color: rgba(235, 235, 240, 0.66);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-card {
+  color: rgba(245, 245, 247, 0.96);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-loading-label {
+  color: rgba(220, 220, 224, 0.82);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-loading {
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-expand-separator {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-close:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-close:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-inline-close:active,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-overlay-close:active {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-split-tile.caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-simple-tile.caramos-cc-tile-active {
+  background-color: #f59f22;
+  color: #ffffff;
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-simple-tile.caramos-cc-tile-active:hover {
+  background-color: #ffb642;
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-active .caramos-cc-tile-title,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-active .caramos-cc-tile-subtitle,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-active .caramos-cc-tile-icon,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-active .caramos-cc-arrow-icon {
+  color: #ffffff;
 }

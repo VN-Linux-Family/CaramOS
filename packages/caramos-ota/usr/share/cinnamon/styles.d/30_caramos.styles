@@ -1,0 +1,14 @@
+{
+  "styles": [
+    {
+      "name": "CaramOS",
+      "default": "light",
+      "light": [
+        {"name": "aqua", "color": "#1f9ede", "gtk": "Cinnamon-Delight", "icons": "Tela-circle-light", "cinnamon": "Cinnamon-Delight", "cursor": "Bibata-Modern-Classic", "default": "true"}
+      ],
+      "dark": [
+        {"name": "aqua", "color": "#1f9ede", "gtk": "Cinnamon-Delight-Dark", "icons": "Tela-circle-dark", "cinnamon": "Cinnamon-Delight-Dark", "cursor": "Bibata-Modern-Classic", "default": "true"}
+      ]
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+# Local test output (built .deb, VM logs and screenshots) and per-developer VM settings, both
+# git-ignored, must not end up in the source package uploaded to the PPA.
+tar-ignore = "dist-testkit"
+tar-ignore = "vm.local.env"

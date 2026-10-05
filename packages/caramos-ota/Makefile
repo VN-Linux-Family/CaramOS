@@ -177,16 +177,16 @@ setup-gpg:
 	@echo '[OK] GPG agent configured. Open a new terminal or run: source ~/.zshrc'
 	@echo 'Then run: make release'
 
+# gpg asks for the passphrase itself in this terminal (loopback) instead of through a pinentry, which
+# never reaches the user in a VS Code / SSH terminal and times out. gpg-agent caches it for debsign.
 gpg-unlock:
-	@if [[ -z "$(GPG_TTY)" ]]; then \
-	  echo 'Warning: GPG_TTY is empty; pinentry may not appear in this terminal.'; \
+	@if printf 'CaramOS OTA release signing preflight\n' | gpg --pinentry-mode error --clearsign -u '$(GPG_KEY)' >/dev/null 2>&1; then \
+	  echo '[OK] GPG signing key is already unlocked: $(GPG_KEY)'; \
 	else \
-	  echo 'Using GPG_TTY=$(GPG_TTY)'; \
+	  echo 'Enter the GPG passphrase for $(GPG_KEY):'; \
+	  printf 'CaramOS OTA release signing preflight\n' | gpg --pinentry-mode loopback --clearsign -u '$(GPG_KEY)' >/dev/null; \
+	  echo '[OK] GPG signing key is unlocked: $(GPG_KEY)'; \
 	fi
-	@gpg-connect-agent updatestartuptty /bye >/dev/null 2>&1 || true
-	@printf '%s\n' 'If this waits here, check for a GPG pinentry prompt or configure pinentry-curses.'
-	@printf 'CaramOS OTA release signing preflight\n' | gpg --clearsign -u '$(GPG_KEY)' >/dev/null
-	@echo '[OK] GPG signing key is unlocked: $(GPG_KEY)'
 
 upload:
 	@version="$$(dpkg-parsechangelog -S Version)"; \

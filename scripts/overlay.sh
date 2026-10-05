@@ -21,7 +21,22 @@ step_overlay() {
             # (vd. 1001) và bit g+w do umask, khiến /etc, /usr, /usr/bin, /usr/share trong ISO thuộc về
             # uid đó: trên máy đã cài, user thứ hai (uid 1001) sẽ ghi được vào /etc và /usr.
             # Git chỉ lưu bit thực thi nên go-w không làm mất quyền nào có chủ đích.
-            rsync -a --chown=root:root --chmod=go-w "$SCRIPT_DIR/config/includes.chroot/" "$WORK_DIR/squashfs/"
+            #
+            # File thường mà trong rootfs là symlink (vd. /etc/default/locale -> ../locale.conf,
+            # /etc/os-release -> ../usr/lib/os-release) được ghi xuyên qua symlink như cp -a trước đây.
+            # rsync sẽ thay symlink bằng file: lúc boot systemd-tmpfiles (L+ /etc/default/locale) dựng lại
+            # symlink tới locale.conf vẫn là C.UTF-8, nên live session và trình cài đặt mất tiếng Việt.
+            local overlay_dir="$SCRIPT_DIR/config/includes.chroot" through=() rel
+            while IFS= read -r -d '' rel; do
+                [ -L "$WORK_DIR/squashfs/$rel" ] && through+=("$rel")
+            done < <(cd "$overlay_dir" && find . -type f -printf '%P\0')
+            rsync -a --chown=root:root --chmod=go-w "${through[@]/#/--exclude=/}" "$overlay_dir/" "$WORK_DIR/squashfs/"
+            for rel in "${through[@]}"; do
+                # Resolve symlink bên trong rootfs: symlink tuyệt đối phải trỏ vào rootfs, không phải máy build.
+                chroot "$WORK_DIR/squashfs" /bin/sh -c 'cat > "$1" && chown 0:0 "$1" && chmod go-w "$1"' \
+                    sh "/$rel" < "$overlay_dir/$rel"
+                info "  → Ghi xuyên symlink /$rel -> $(readlink "$WORK_DIR/squashfs/$rel")"
+            done
 
             # Overlay có thể thay đổi /etc/dconf/db/local.d và GSettings schemas.
             # Nếu không compile lại, make quick sẽ repack DB cũ dù source overlay đã đúng.

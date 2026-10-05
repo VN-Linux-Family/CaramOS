@@ -1,3 +1,20 @@
+caramos-ota (1.0.18-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.0.18.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Replace TLP with power-profiles-daemon and add a Power mode tile to the
+    Control Center.
+  * Add a Dark mode tile, the Cinnamon-Delight-Dark theme and a CaramOS
+    light/dark style for Cinnamon Settings; the default wallpaper follows the
+    mode (Sage Mist / Indigo Night).
+  * Return /etc and /usr items owned by a login account to root:root.
+  * Write the Linux Mint 22.3 codename (zena) so System Reports stops offering
+    a wrong Linux Mint upgrade.
+  * Control Center: keep the popup open when an open list refreshes, complete
+    dark styling, Bluetooth list refresh, profile order and error feedback.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 05 Oct 2026 10:00:05 +0700
+
 caramos-ota (1.0.16.1-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.0.16.1.

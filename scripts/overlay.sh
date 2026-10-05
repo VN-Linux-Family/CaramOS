@@ -17,7 +17,11 @@ step_overlay() {
             if [ -d "$WORK_DIR/squashfs/etc/skel/.config/fcitx5/profile" ]; then
                 rm -rf "$WORK_DIR/squashfs/etc/skel/.config/fcitx5/profile"
             fi
-            cp -a "${overlay_files[@]}" "$WORK_DIR/squashfs/"
+            # Copy với owner root:root và bỏ quyền ghi group/other. cp -a giữ nguyên uid/gid của máy build
+            # (vd. 1001) và bit g+w do umask, khiến /etc, /usr, /usr/bin, /usr/share trong ISO thuộc về
+            # uid đó: trên máy đã cài, user thứ hai (uid 1001) sẽ ghi được vào /etc và /usr.
+            # Git chỉ lưu bit thực thi nên go-w không làm mất quyền nào có chủ đích.
+            rsync -a --chown=root:root --chmod=go-w "$SCRIPT_DIR/config/includes.chroot/" "$WORK_DIR/squashfs/"
 
             # Overlay có thể thay đổi /etc/dconf/db/local.d và GSettings schemas.
             # Nếu không compile lại, make quick sẽ repack DB cũ dù source overlay đã đúng.

@@ -211,14 +211,20 @@ Required package contents:
 /usr/lib/python3/dist-packages/caramos_ota_update/migrations/
 ```
 
-Quick VM test:
+Quick VM test (one-time VM setup in [VM_DEV_WORKFLOW.md](VM_DEV_WORKFLOW.md), Vietnamese):
 
 ```bash
 cd packages/caramos-ota
-make ship
-make test
-make test-notifier
+make vm-reset        # revert the VM to its clean snapshot (~20 s)
+make ship            # build the .deb, install it in the VM, prepare state
+make test            # CLI migration E2E
+make test-notifier   # open the Update Center in the VM desktop
+make vm-logs         # pull state/logs/journal into dist-testkit/vm-logs/
+make vm-shot         # screenshot the VM into dist-testkit/vm-shots/
 ```
+
+Fast loop while editing Python/applet code, without building a `.deb`: `make vm-reset sync`.
+`make vm-e2e` runs `vm-reset → ship → test → vm-logs` in one go.
 
 Expected behavior:
 

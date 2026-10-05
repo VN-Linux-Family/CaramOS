@@ -19,7 +19,7 @@ Usage:
   sudo ./vm-run-ota-e2e.sh purge
 
 Commands:
-  install-shipped  Purge old install and install the shipped .deb
+  install-shipped  Install the shipped .deb while preserving OTA state
   prepare-check    Fix live APT, reset test version, run --check
   install-and-cli  Install shipped .deb, set test release, dry-run chain, run CLI migration
   notifier         Start caramos-ota-notifier in the current desktop session
@@ -53,6 +53,8 @@ backup_system() {
 }
 
 set_test_release() {
+  # Seed what installs from CaramOS 1.0.12-1.0.16 ISOs carry (Mint codename wilma), so the OTA run
+  # shows the real conversion to the Mint base codename.
   cat > /etc/caramos-release <<EOF
 NAME="CaramOS"
 VERSION="${TEST_RELEASE_FROM}"
@@ -70,20 +72,20 @@ HOME_URL="https://github.com/VN-Linux-Family/CaramOS"
 SUPPORT_URL="https://github.com/VN-Linux-Family/CaramOS/issues"
 BUG_REPORT_URL="https://github.com/VN-Linux-Family/CaramOS/issues"
 PRIVACY_POLICY_URL="https://github.com/VN-Linux-Family/CaramOS"
-VERSION_CODENAME=caram
+VERSION_CODENAME=wilma
 UBUNTU_CODENAME=noble
 CARAMOS_BASE="Linux Mint 22.3"
 EOF
   cat > /etc/lsb-release <<EOF
 DISTRIB_ID=CaramOS
 DISTRIB_RELEASE=${TEST_RELEASE_FROM}
-DISTRIB_CODENAME=caram
+DISTRIB_CODENAME=wilma
 DISTRIB_DESCRIPTION="CaramOS ${TEST_RELEASE_FROM} Cinnamon"
 EOF
   mkdir -p /etc/linuxmint
   cat > /etc/linuxmint/info <<EOF
 RELEASE=${TEST_RELEASE_FROM}
-CODENAME=caram
+CODENAME=wilma
 EDITION="Cinnamon"
 DESCRIPTION="CaramOS ${TEST_RELEASE_FROM} Cinnamon"
 DESKTOP=Gnome
@@ -105,8 +107,8 @@ install_package() {
     echo "Error: caramos-ota .deb not found in $(pwd)" >&2
     exit 1
   fi
-  apt install -y "${deb}"
-  echo "[OK] Installed ${deb}"
+  apt install --reinstall --allow-downgrades -y "${deb}"
+  echo "[OK] Installed local artifact ${deb}"
 }
 
 smoke() {
@@ -114,39 +116,6 @@ smoke() {
   command -v caramos-ota-notifier
   command -v caramos-ota-update
   echo "[OK] OTA commands installed"
-}
-
-bootstrap_test_ledger() {
-  require_root
-  TEST_RELEASE_FROM="${TEST_RELEASE_FROM}" PYTHONPATH=/usr/lib/python3/dist-packages python3 - <<'PY'
-import os
-
-from caramos_ota_update.ledger import save_ledger
-from caramos_ota_update.registry import discover_migrations, version_le
-
-installed_version = os.environ["TEST_RELEASE_FROM"]
-catalog = discover_migrations()
-applied = [
-    item
-    for item in catalog
-    if item.legacy and item.release is not None and version_le(item.release, installed_version)
-]
-save_ledger(
-    {
-        "schema": 1,
-        "applied_migrations": [
-            {
-                "id": item.migration_id,
-                "release": item.release,
-                "applied_at": None,
-                "source": "vm-test-release-bootstrap",
-            }
-            for item in applied
-        ],
-    }
-)
-PY
-  echo "[OK] Bootstrapped migration ledger through ${TEST_RELEASE_FROM}"
 }
 
 run_cli_migration() {
@@ -254,7 +223,8 @@ disable_live_cdrom_source() {
 
 run_check_and_show_state() {
   require_root
-  caramos-ota --check
+  # Test the package just shipped, not the same-version artifact currently in PPA.
+  caramos-ota --check --skip-self-update
   echo
   echo "== /var/lib/caramos-ota/state.json =="
   cat /var/lib/caramos-ota/state.json
@@ -265,7 +235,6 @@ run_check_and_show_state() {
 
 install_shipped() {
   require_root
-  purge_ota
   install_package
   smoke
 }
@@ -274,7 +243,6 @@ prepare_check() {
   require_root
   disable_live_cdrom_source
   set_test_release
-  bootstrap_test_ledger
   run_check_and_show_state
 }
 

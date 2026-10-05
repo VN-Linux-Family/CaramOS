@@ -625,7 +625,7 @@ python3 -m py_compile \
   usr/lib/python3/dist-packages/caramos_ota_update/migrations/*/*.py
 python3 -m json.tool usr/lib/python3/dist-packages/caramos_ota_update/migrations/migration.json >/dev/null
 dpkg-buildpackage -us -uc -b
-sudo ./tools/ship-ota-to-vm.sh
+./tools/ship-ota-to-vm.sh   # không sudo; setup VM theo VM_DEV_WORKFLOW.md
 ```
 
 Trong VM test:

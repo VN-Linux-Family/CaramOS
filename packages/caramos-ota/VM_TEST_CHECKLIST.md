@@ -1,8 +1,21 @@
 # CaramOS OTA VM Test Checklist
 
+> **Quy trình khuyên dùng đã chuyển sang [VM_DEV_WORKFLOW.md](VM_DEV_WORKFLOW.md)**: VM libvirt setup
+> một lần, mỗi vòng test chỉ cần `make vm-reset` thay vì boot lại ISO và cài lại SSH.
+>
+> File này giữ lại cho hai việc: flow live-boot thủ công (VirtualBox/QEMU port-forward, mục 0–5) và
+> checklist kiểm tra bằng mắt sau migration (mục 6–7).
+
 Ghi chú nhanh để setup live boot VM và test `caramos-ota` sau khi remaster hoặc boot ISO mới.
 
 Checklist này dùng cho VM test cục bộ. Các giá trị SSH bên dưới là ví dụ, không phải cấu hình bắt buộc của project.
+
+`make ship` mặc định tìm VM qua libvirt và đăng nhập bằng SSH key. Với VM live-boot chưa cài key,
+luôn truyền đủ host, port và mật khẩu:
+
+```bash
+REMOTE_HOST=127.0.0.1 REMOTE_PORT=2222 REMOTE_USER=caram REMOTE_PASSWORD=<mật-khẩu> make ship
+```
 
 ## 0. Biến cấu hình trên máy host
 
@@ -80,18 +93,15 @@ cd packages/caramos-ota
 REMOTE_USER="${VM_SSH_USER}" REMOTE_HOST="${VM_SSH_HOST}" REMOTE_PORT="${VM_SSH_PORT}" make ship
 ```
 
-Nếu đang dùng đúng default local VM của `Makefile` (`REMOTE_USER=caram`, `REMOTE_HOST=127.0.0.1`, `REMOTE_PORT=2222`), có thể chạy ngắn hơn:
-
-```bash
-make ship
-```
+Thêm `REMOTE_PASSWORD=<mật-khẩu>` nếu VM chưa có SSH key của host (cần `sshpass`). Để khỏi gõ lại mỗi
+lần, ghi các biến này vào `vm.local.env` (xem `vm.local.env.example`).
 
 `make ship` sẽ:
 
 - build `.deb` hiện tại
 - SSH vào VM qua `REMOTE_HOST:REMOTE_PORT`
-- purge bản `caramos-ota` cũ nếu có
-- install bản mới vào VM
+- cài đè bản mới vào VM (giữ nguyên state OTA)
+- ghi version test vào `/etc/caramos-release` và chạy `caramos-ota --check`
 - copy testkit vào VM tại:
 
 ```text
@@ -162,7 +172,14 @@ Hoặc chạy ledger flow với trạng thái test riêng nếu testkit hỗ tr�
 
 ## 5. Test notifier GUI
 
-Lệnh này nên chạy trong terminal của desktop VM, không phải SSH:
+Từ host (mở notifier trong phiên desktop của VM qua SSH):
+
+```bash
+make test-notifier
+make vm-shot          # chỉ với VM libvirt
+```
+
+Hoặc trong terminal của desktop VM:
 
 ```bash
 cd /tmp/caramos-ota-e2e

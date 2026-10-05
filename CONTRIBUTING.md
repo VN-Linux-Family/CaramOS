@@ -241,12 +241,15 @@ make validate
 make build
 ```
 
-Nếu có VM test:
+Test trên VM (golden VM + snapshot, setup một lần theo
+[`packages/caramos-ota/VM_DEV_WORKFLOW.md`](packages/caramos-ota/VM_DEV_WORKFLOW.md)):
 
 ```bash
-make ship
-make vm-test-cli
-make vm-test-notifier
+make vm-reset        # đưa VM về trạng thái sạch trong vài giây
+make ship            # build .deb, cài vào VM, chuẩn bị state
+make test            # chạy migration E2E qua CLI
+make test-notifier   # mở Trung tâm cập nhật trong desktop VM
+make vm-logs vm-shot # kéo log + chụp màn hình VM về máy host
 ```
 
 Checklist trước PR:

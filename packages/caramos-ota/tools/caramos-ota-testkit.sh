@@ -82,6 +82,13 @@ compile_sources() {
 
 clean_build() {
   cd "${PKG_DIR}"
+  # A sudo build (e.g. the ISO build's OTA bootstrap) leaves root-owned output that a normal user cannot clean.
+  if [[ "${EUID}" -ne 0 && -n "$(find debian -mindepth 1 -maxdepth 1 -type d ! -user "${EUID}" -print -quit 2>/dev/null)" ]]; then
+    echo "Error: debian/ contains build output owned by another user (left by a build run with sudo)." >&2
+    echo "Fix once, then re-run without sudo:" >&2
+    echo "  sudo chown -R \"\$(id -un):\$(id -gn)\" '${PKG_DIR}' '${PKG_DIR}'/../caramos-ota_*" >&2
+    exit 1
+  fi
   rm -rf \
     debian/.debhelper \
     debian/caramos-ota \

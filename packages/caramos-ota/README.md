@@ -212,14 +212,25 @@ Cần có:
 /usr/lib/python3/dist-packages/caramos_ota_update/migrations/
 ```
 
-VM test nhanh:
+VM test nhanh (setup VM một lần theo [VM_DEV_WORKFLOW.md](VM_DEV_WORKFLOW.md)):
 
 ```bash
 cd packages/caramos-ota
-make ship
-make test
-make test-notifier
+make vm-reset        # revert VM về snapshot sạch, vài giây
+make ship            # build .deb + cài vào VM + chuẩn bị state
+make test            # migration E2E qua CLI
+make test-notifier   # mở Trung tâm cập nhật trong desktop VM
+make vm-logs         # kéo state/log/journal về dist-testkit/vm-logs/
+make vm-shot         # chụp màn hình VM về dist-testkit/vm-shots/
 ```
+
+Lặp nhanh khi đang sửa Python/applet, không build `.deb`:
+
+```bash
+make vm-reset sync
+```
+
+`make vm-e2e` chạy liền `vm-reset → ship → test → vm-logs`.
 
 Kỳ vọng chung:
 

@@ -11,6 +11,7 @@ packages/*.buildinfo
 packages/*.changes
 packages/*.upload
 packages/caramos-ota/dist-testkit/
+packages/caramos-ota/vm.local.env
 packages/caramos-ota/debian/.debhelper/
 packages/caramos-ota/debian/caramos-ota/
 packages/caramos-ota/debian/debhelper-build-stamp

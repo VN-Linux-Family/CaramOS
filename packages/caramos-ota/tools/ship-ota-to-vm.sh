@@ -4,27 +4,28 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PKG_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
 DIST_DIR="${PKG_DIR}/dist-testkit"
-REMOTE_USER="${REMOTE_USER:-caram}"
-REMOTE_HOST="${REMOTE_HOST:-192.168.122.13}"
-REMOTE_PORT="${REMOTE_PORT:-22}"
 REMOTE_DIR="${REMOTE_DIR:-/tmp/caramos-ota-e2e}"
-TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.12}"
+TEST_RELEASE_FROM="${TEST_RELEASE_FROM:-1.0.16.1}"
 if [[ -z "${TEST_RELEASE_TARGET:-}" ]]; then
   TEST_RELEASE_TARGET="$(PYTHONPATH="${PKG_DIR}/usr/lib/python3/dist-packages" python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)')"
 fi
-# Test-only live-boot VM password. Override with REMOTE_PASSWORD=... if needed.
-REMOTE_PASSWORD="${REMOTE_PASSWORD:-caram123}"
+
+# VM target (libvirt domain or REMOTE_HOST), SSH and sudo helpers.
+# shellcheck source=tools/vm-common.sh
+source "${SCRIPT_DIR}/vm-common.sh"
 
 usage() {
   cat <<EOF
 Build and ship CaramOS OTA test artifacts to a VM.
 
 Usage:
-  REMOTE_USER=caram REMOTE_HOST=127.0.0.1 REMOTE_PORT=2222 ./tools/ship-ota-to-vm.sh
+  ./tools/ship-ota-to-vm.sh                                   # libvirt domain ${VM_DOMAIN}
+  REMOTE_HOST=127.0.0.1 REMOTE_PORT=2222 ./tools/ship-ota-to-vm.sh   # any SSH-reachable VM
 
-Defaults:
+Current target:
+  VM_DOMAIN=${VM_DOMAIN}  (used when REMOTE_HOST is empty)
   REMOTE_USER=${REMOTE_USER}
-  REMOTE_HOST=${REMOTE_HOST}
+  REMOTE_HOST=${REMOTE_HOST:-<auto from libvirt>}
   REMOTE_PORT=${REMOTE_PORT}
   REMOTE_DIR=${REMOTE_DIR}
 
@@ -36,32 +37,22 @@ What it does:
   5. Seed the VM at CaramOS ${TEST_RELEASE_FROM} and detect the ${TEST_RELEASE_TARGET} migration
   6. Print the commands to run inside the VM
 
-Password automation:
-  Uses sshpass with REMOTE_PASSWORD=${REMOTE_PASSWORD} when sshpass is installed.
-  This is intended only for the disposable CaramOS live-boot VM.
+Authentication:
+  SSH key + passwordless sudo, both installed once by: make vm-setup
+  For a throwaway live-boot VM without the key, pass REMOTE_PASSWORD=... (needs sshpass).
+  See VM_DEV_WORKFLOW.md.
 EOF
-}
-
-remote_ssh() {
-  if command -v sshpass >/dev/null 2>&1; then
-    sshpass -p "${REMOTE_PASSWORD}" ssh -o StrictHostKeyChecking=accept-new -p "${REMOTE_PORT}" "${REMOTE_USER}@${REMOTE_HOST}" "$@"
-    return
-  fi
-  ssh -p "${REMOTE_PORT}" "${REMOTE_USER}@${REMOTE_HOST}" "$@"
-}
-
-remote_scp() {
-  if command -v sshpass >/dev/null 2>&1; then
-    sshpass -p "${REMOTE_PASSWORD}" scp -o StrictHostKeyChecking=accept-new -P "${REMOTE_PORT}" "$@"
-    return
-  fi
-  scp -P "${REMOTE_PORT}" "$@"
 }
 
 if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
   usage
   exit 0
 fi
+
+# Fail before the (slow) package build if the VM is not usable.
+vm_require_ip
+vm_ssh_ok || vm_die "cannot SSH to ${REMOTE_USER}@$(vm_ip):${REMOTE_PORT}. Run once: make vm-setup (or pass REMOTE_PASSWORD=...)"
+vm_require_sudo
 
 cd "${PKG_DIR}"
 ./tools/caramos-ota-testkit.sh build-deb
@@ -72,16 +63,16 @@ if [[ -z "${deb}" || ! -f "${deb}" ]]; then
   exit 1
 fi
 
-remote_ssh "rm -rf -- '${REMOTE_DIR}' && mkdir -p -- '${REMOTE_DIR}'"
-remote_scp \
+vm_ssh "rm -rf -- '${REMOTE_DIR}' && mkdir -p -- '${REMOTE_DIR}'"
+vm_scp \
   "${deb}" \
   "${PKG_DIR}/tools/vm-run-ota-e2e.sh" \
   "${PKG_DIR}/tools/purge-caramos-ota.sh" \
   "${PKG_DIR}/tools/Makefile.vm" \
-  "${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}/"
+  "${REMOTE_DIR}/"
 
-remote_ssh "chmod +x '${REMOTE_DIR}/vm-run-ota-e2e.sh' '${REMOTE_DIR}/purge-caramos-ota.sh' && mv '${REMOTE_DIR}/Makefile.vm' '${REMOTE_DIR}/Makefile'"
-remote_ssh "printf '%s\\n' '${REMOTE_PASSWORD}' | sudo -S /bin/sh -c 'cat > /etc/caramos-release <<EOF
+vm_ssh "chmod +x '${REMOTE_DIR}/vm-run-ota-e2e.sh' '${REMOTE_DIR}/purge-caramos-ota.sh' && mv '${REMOTE_DIR}/Makefile.vm' '${REMOTE_DIR}/Makefile'"
+vm_ssh "sudo -n tee /etc/caramos-release >/dev/null" <<EOF
 NAME=CaramOS
 VERSION=${TEST_RELEASE_FROM}
 VERSION_ID=${TEST_RELEASE_FROM}
@@ -89,20 +80,19 @@ VERSION_CODENAME=noble
 UBUNTU_CODENAME=noble
 CHANNEL=stable
 ID=caramos
-ID_LIKE=\"linuxmint ubuntu debian\"
-PRETTY_NAME=\"CaramOS ${TEST_RELEASE_FROM}\"
-EOF'"
-remote_ssh "cd '${REMOTE_DIR}' && printf '%s\\n' '${REMOTE_PASSWORD}' | sudo -S ./vm-run-ota-e2e.sh install-shipped"
-remote_ssh "cd '${REMOTE_DIR}' && printf '%s\\n' '${REMOTE_PASSWORD}' | sudo -S env TEST_RELEASE_FROM='${TEST_RELEASE_FROM}' TEST_RELEASE_TARGET='${TEST_RELEASE_TARGET}' ./vm-run-ota-e2e.sh prepare-check"
+ID_LIKE="linuxmint ubuntu debian"
+PRETTY_NAME="CaramOS ${TEST_RELEASE_FROM}"
+EOF
+vm_ssh "cd '${REMOTE_DIR}' && sudo -n ./vm-run-ota-e2e.sh install-shipped"
+vm_ssh "cd '${REMOTE_DIR}' && sudo -n env TEST_RELEASE_FROM='${TEST_RELEASE_FROM}' TEST_RELEASE_TARGET='${TEST_RELEASE_TARGET}' ./vm-run-ota-e2e.sh prepare-check"
 
 cat <<EOF
-[OK] Shipped OTA test artifacts and prepared the ${TEST_RELEASE_TARGET} Update Center state at ${REMOTE_USER}@${REMOTE_HOST}:${REMOTE_DIR}
+[OK] Shipped OTA test artifacts and prepared the ${TEST_RELEASE_TARGET} Update Center state at ${REMOTE_USER}@$(vm_ip):${REMOTE_DIR}
 
-Run this in the VM SSH session to execute the full default E2E flow:
-  cd ${REMOTE_DIR}
-  make test
-
-For notifier GUI test, run inside the VM desktop terminal:
-  cd ${REMOTE_DIR}
-  make test-notifier
+Next, from this host:
+  make test            # full CLI migration E2E in the VM
+  make test-notifier   # open the Update Center in the VM desktop
+  make vm-logs         # pull OTA state/logs back to dist-testkit/vm-logs/
+  make vm-shot         # screenshot the VM desktop
+  make vm-reset        # throw away everything the migration did
 EOF

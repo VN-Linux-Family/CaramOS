@@ -6,14 +6,24 @@ PPA ?= ppa:vietnamlinuxfamily/caram-os
 GPG_KEY ?= ledungb11@gmail.com
 GPG_TTY ?= $(shell tty 2>/dev/null || true)
 export GPG_TTY
+# Dev VM target. Per-developer overrides go in vm.local.env (git-ignored); see VM_DEV_WORKFLOW.md.
+-include vm.local.env
+BASE ?= 1.0.16
+VM_DOMAIN ?= caram$(BASE)
+VM_SNAPSHOT ?= clean
 REMOTE_USER ?= caram
-REMOTE_HOST ?= 192.168.122.13
+# Empty REMOTE_HOST = ask libvirt for the IP of VM_DOMAIN.
+REMOTE_HOST ?=
 REMOTE_PORT ?= 22
-TEST_RELEASE_FROM ?= 1.0.12
+export BASE VM_DOMAIN VM_SNAPSHOT REMOTE_USER REMOTE_HOST REMOTE_PORT
+TEST_RELEASE_FROM ?= 1.0.16.1
 TEST_RELEASE_TARGET ?= $(shell PYTHONPATH=usr/lib/python3/dist-packages python3 -c 'from caramos_ota.release_metadata import PRODUCT_VERSION; print(PRODUCT_VERSION)' 2>/dev/null || printf 'dev')
 VERSION ?=
 
-.PHONY: help clean compile validate build release-deb source release-source ship test test-cli test-notifier smoke inspect status prepare-release check-release setup-gpg gpg-unlock upload release
+VM_E2E_ENV = TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)'
+
+.PHONY: help clean compile validate build release-deb source release-source ship sync test test-cli test-notifier smoke inspect status prepare-release check-release setup-gpg gpg-unlock upload release
+.PHONY: vm-create vm-bootstrap vm-setup vm-snapshot vm-reset vm-status vm-ssh vm-logs vm-shot vm-e2e
 
 help:
 	@printf '%s\n' 'CaramOS OTA package workflow'
@@ -24,6 +34,7 @@ help:
 	@printf '%s\n' '  make validate        Validate migration JSON metadata'
 	@printf '%s\n' '  make build           Build binary .deb for local/VM test'
 	@printf '%s\n' '  make ship            Build and ship .deb to VM via SSH'
+	@printf '%s\n' '  make sync            rsync working tree into VM (no .deb build, seconds)'
 	@printf '%s\n' '  make test            Run VM CLI E2E after ship'
 	@printf '%s\n' '  make test-notifier   Prepare state and launch notifier in VM desktop'
 	@printf '%s\n' '  make source          Build source package for PPA upload'
@@ -31,11 +42,24 @@ help:
 	@printf '%s\n' '  make setup-gpg       Configure local GPG agent/pinentry for release signing'
 	@printf '%s\n' '  make release VERSION=x  Stamp version, test, build, sign, and upload'
 	@printf '%s\n' ''
+	@printf '%s\n' 'Dev VM (libvirt golden VM + snapshot, see VM_DEV_WORKFLOW.md):'
+	@printf '%s\n' '  make vm-create       One-time: create the libvirt VM from the CaramOS $(BASE) ISO'
+	@printf '%s\n' '  make vm-bootstrap    One-time: type the openssh-server install command into the VM'
+	@printf '%s\n' '  make vm-setup        One-time: SSH key, passwordless sudo, guest agent'
+	@printf '%s\n' '  make vm-snapshot     One-time: save the clean baseline (disk + RAM)'
+	@printf '%s\n' '  make vm-reset        Revert the VM to the clean baseline (seconds)'
+	@printf '%s\n' '  make vm-e2e          vm-reset + ship + test + vm-logs in one go'
+	@printf '%s\n' '  make vm-status       Domain state, IP, snapshots, installed OTA version'
+	@printf '%s\n' '  make vm-logs         Pull OTA state/logs/journal into dist-testkit/vm-logs/'
+	@printf '%s\n' '  make vm-shot         Screenshot the VM desktop into dist-testkit/vm-shots/'
+	@printf '%s\n' '  make vm-ssh          Open a shell in the VM'
+	@printf '%s\n' ''
 	@printf '%s\n' 'Variables:'
 	@printf '%s\n' '  PPA=$(PPA)'
 	@printf '%s\n' '  GPG_KEY=$(GPG_KEY)'
 	@printf '%s\n' '  GPG_TTY=$(GPG_TTY)'
-	@printf '%s\n' '  REMOTE_USER=$(REMOTE_USER) REMOTE_HOST=$(REMOTE_HOST) REMOTE_PORT=$(REMOTE_PORT)'
+	@printf '%s\n' '  BASE=$(BASE) VM_DOMAIN=$(VM_DOMAIN) VM_SNAPSHOT=$(VM_SNAPSHOT)'
+	@printf '%s\n' '  REMOTE_USER=$(REMOTE_USER) REMOTE_HOST=$(if $(REMOTE_HOST),$(REMOTE_HOST),<auto from libvirt>) REMOTE_PORT=$(REMOTE_PORT)'
 	@printf '%s\n' '  TEST_RELEASE_FROM=$(TEST_RELEASE_FROM) TEST_RELEASE_TARGET=$(TEST_RELEASE_TARGET)'
 
 clean:
@@ -59,15 +83,50 @@ inspect: build
 	  dpkg-deb -c "$$deb" | sed -n '1,220p'
 
 ship:
-	REMOTE_USER='$(REMOTE_USER)' REMOTE_HOST='$(REMOTE_HOST)' REMOTE_PORT='$(REMOTE_PORT)' TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)' ./tools/ship-ota-to-vm.sh
+	$(VM_E2E_ENV) ./tools/ship-ota-to-vm.sh
+
+sync:
+	./tools/vm-dev.sh sync
 
 test test-cli:
-	ssh -p '$(REMOTE_PORT)' '$(REMOTE_USER)@$(REMOTE_HOST)' \
-	  "cd /tmp/caramos-ota-e2e && sudo TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)' ./vm-run-ota-e2e.sh install-and-cli"
+	./tools/vm-dev.sh ssh "cd /tmp/caramos-ota-e2e && sudo -n env $(VM_E2E_ENV) ./vm-run-ota-e2e.sh install-and-cli"
 
 test-notifier:
-	ssh -p '$(REMOTE_PORT)' '$(REMOTE_USER)@$(REMOTE_HOST)' \
-	  "cd /tmp/caramos-ota-e2e && sudo TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)' ./vm-run-ota-e2e.sh install-shipped && sudo TEST_RELEASE_FROM='$(TEST_RELEASE_FROM)' TEST_RELEASE_TARGET='$(TEST_RELEASE_TARGET)' ./vm-run-ota-e2e.sh prepare-check && ./vm-run-ota-e2e.sh notifier"
+	./tools/vm-dev.sh ssh "cd /tmp/caramos-ota-e2e && sudo -n ./vm-run-ota-e2e.sh install-shipped && sudo -n env $(VM_E2E_ENV) ./vm-run-ota-e2e.sh prepare-check"
+	./tools/vm-dev.sh gui-bg caramos-ota-notifier
+
+vm-create:
+	./tools/vm-dev.sh create
+
+vm-bootstrap:
+	./tools/vm-dev.sh bootstrap
+
+vm-setup:
+	./tools/vm-dev.sh setup
+
+vm-snapshot:
+	./tools/vm-dev.sh snapshot
+
+vm-reset:
+	./tools/vm-dev.sh reset
+
+vm-status:
+	./tools/vm-dev.sh status
+
+vm-ssh:
+	./tools/vm-dev.sh ssh
+
+vm-logs:
+	./tools/vm-dev.sh logs
+
+vm-shot:
+	./tools/vm-dev.sh shot
+
+# Logs are collected even when the E2E fails; the exit code is still the E2E's.
+vm-e2e:
+	$(MAKE) vm-reset
+	$(MAKE) ship
+	rc=0; $(MAKE) test || rc=$$?; $(MAKE) vm-logs; exit $$rc
 
 smoke: compile validate
 	PYTHONPATH=usr/lib/python3/dist-packages ./usr/bin/caramos-ota-update --help >/dev/null

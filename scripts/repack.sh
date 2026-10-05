@@ -35,6 +35,14 @@ step_repack_squashfs() {
         -comp $SQUASHFS_COMP $SQUASHFS_OPTS
     ok "squashfs xong."
 
+    # FAT32 không chứa được file >= 4 GiB. Người dùng Windows hay giải nén ISO
+    # ra USB FAT32; squashfs lớn hơn thì cách đó hỏng dù ISO vẫn boot được.
+    local sfs_bytes
+    sfs_bytes=$(stat -c %s "$WORK_DIR/custom/casper/filesystem.squashfs")
+    if [ "$sfs_bytes" -ge $((4 * 1024 * 1024 * 1024)) ]; then
+        warn "filesystem.squashfs $((sfs_bytes / 1024 / 1024)) MiB >= 4 GiB: không copy được ra USB FAT32 (chỉ ghi kiểu DD/Ventoy)."
+    fi
+
     # Cập nhật filesystem.size
     printf '%s' "$(du -sx --block-size=1 "$WORK_DIR/squashfs" | cut -f1)" \
         > "$WORK_DIR/custom/casper/filesystem.size"
@@ -55,15 +63,22 @@ step_repack_squashfs() {
 step_repack_iso() {
     ensure_work_tree
 
-    # Cập nhật md5sum
+    # Cập nhật md5sum. Bỏ isolinux.bin và boot.cat như Mint: xorriso sửa
+    # isolinux.bin (-boot-info-table) và tạo lại boot.cat sau khi hash.
     cd "$WORK_DIR/custom"
-    find . -type f ! -name 'md5sum.txt' -print0 | xargs -0 md5sum > md5sum.txt 2>/dev/null || true
+    find . -type f ! -name 'md5sum.txt' \
+        ! -path './isolinux/isolinux.bin' ! -path './isolinux/boot.cat' -print0 \
+        | sort -z | xargs -0 md5sum > md5sum.txt 2>/dev/null || true
 
     # Tạo ISO — detect boot structure từ ISO Mint
     info "  → Tạo ISO..."
 
+    # -J -joliet-long: Windows Explorer và WinRAR không đọc Rock Ridge. Thiếu
+    # Joliet thì chúng thấy tên ISO9660 (CASPER/VMLINUZ., MANIFEST_REMOVE) và
+    # USB giải nén từ ISO không boot được (#68). Giống .disk/mkisofs của Mint.
     XORRISO_ARGS=(
         -as mkisofs
+        -r -J -joliet-long
         -iso-level 3
         -full-iso9660-filenames
         -volid "CaramOS"

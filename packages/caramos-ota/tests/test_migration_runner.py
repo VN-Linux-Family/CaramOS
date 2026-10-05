@@ -48,9 +48,10 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261003210000_fix_system_file_ownership",
                 "20261004120000_fix_mint_base_codename",
                 "20261005110000_update_zalo_appimage",
+                "20261005190000_install_grub_theme",
             ],
         )
-        self.assertEqual(5, run_one.call_count)
+        self.assertEqual(6, run_one.call_count)
         self.assertEqual(
             [
                 "20260805111120_update_taskbar_pins_cleanup_desktop",
@@ -58,6 +59,7 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261003210000_fix_system_file_ownership",
                 "20261004120000_fix_mint_base_codename",
                 "20261005110000_update_zalo_appimage",
+                "20261005190000_install_grub_theme",
             ],
             [entry.args[0].migration_id for entry in run_one.call_args_list],
         )

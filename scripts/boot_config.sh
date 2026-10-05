@@ -25,6 +25,10 @@ step_boot_config() {
     local LIVE_HOST="caram"
     local LIVE_LOCALE="vi_VN.UTF-8"
 
+    # Một ảnh cho cả isolinux lẫn GRUB. vesamenu.c32 chỉ vẽ hình nền đúng
+    # 640x480; ảnh khác cỡ (hay JPEG đặt đuôi .png) làm boot menu BIOS đen.
+    local BOOT_SPLASH="$SCRIPT_DIR/assets/splash.png"
+
     local ISOLINUX_FILES
     ISOLINUX_FILES=$(find "$ISO_DIR" \
         -path "*/isolinux/*.cfg" -o \
@@ -82,10 +86,23 @@ step_boot_config() {
     if [ -n "$GRUB_FILES" ]; then
         info "  → Sửa GRUB config..."
 
-        local GRUB_SPLASH="$SCRIPT_DIR/assets/boot-splash.png"
-        if [ -f "$GRUB_SPLASH" ]; then
+        local GRUB_THEME_FILE="$ISO_DIR/boot/grub/live-theme/theme.txt"
+        if [ -f "$BOOT_SPLASH" ]; then
             mkdir -p "$ISO_DIR/boot/grub" 2>/dev/null || true
-            cp "$GRUB_SPLASH" "$ISO_DIR/boot/grub/splash.png" 2>/dev/null || true
+            cp "$BOOT_SPLASH" "$ISO_DIR/boot/grub/splash.png"
+        fi
+
+        # Theme live của Mint đặt menu ở nửa dưới màn hình, không đè logo ở
+        # nửa trên của splash. Ảnh 4:3 được chèn viền thay vì kéo méo trên
+        # màn hình rộng. Mục đang chọn tô cam như logo; trắng trên xám của
+        # Mint khó nhận ra.
+        if [ -f "$ISO_DIR/boot/grub/splash.png" ] && [ -f "$GRUB_THEME_FILE" ]; then
+            sed -i \
+                -e '/^desktop-image-scale-method:/d' \
+                -e '/^desktop-color:/d' \
+                -e 's|^desktop-image:.*|desktop-image: "/boot/grub/splash.png"\ndesktop-image-scale-method: "padding"\ndesktop-color: "#000000"|' \
+                -e 's|^\([[:space:]]*selected_item_color[[:space:]]*=[[:space:]]*\).*|\1"#f6a623"|' \
+                "$GRUB_THEME_FILE"
         fi
 
         echo "$GRUB_FILES" | while IFS= read -r cfg; do
@@ -100,10 +117,32 @@ step_boot_config() {
                 -e "s/boot=casper/boot=casper locale=${LIVE_LOCALE}/gI" \
                 "$cfg"
 
-            if [ -f "$ISO_DIR/boot/grub/splash.png" ] && ! grep -q "background_image" "$cfg"; then
-                if basename "$cfg" | grep -qi "^grub.cfg$"; then
-                    sed -i '1 a\insmod all_video\ninsmod gfxterm\ninsmod png\nset background_image=/boot/grub/splash.png' "$cfg"
-                fi
+            if basename "$cfg" | grep -qi "^grub.cfg$"; then
+                # make quick/boot-only chạy lại trên cùng work tree: xoá khối
+                # cũ, kể cả 4 dòng bản trước chèn vào mọi grub.cfg (chưa từng
+                # bật gfxterm nên GRUB ở text mode, không vẽ hình nền).
+                sed -i \
+                    -e '/^# CaramOS boot menu: begin$/,/^# CaramOS boot menu: end$/d' \
+                    -e '/^insmod \(all_video\|gfxterm\|png\)$/d' \
+                    -e '/^set background_image=/d' \
+                    "$cfg"
+            fi
+
+            # Chỉ grub.cfg chính; stub i386-efi/x86_64-efi tự source nó.
+            if [ -f "$ISO_DIR/boot/grub/splash.png" ] && [ "$cfg" = "$ISO_DIR/boot/grub/grub.cfg" ]; then
+                local GRUB_LOOK="set theme=/boot/grub/live-theme/theme.txt"
+                [ -f "$GRUB_THEME_FILE" ] || GRUB_LOOK="background_image -m stretch /boot/grub/splash.png"
+                local GRUB_BLOCK="# CaramOS boot menu: begin\ninsmod all_video\ninsmod gfxterm\ninsmod gfxmenu\ninsmod png\nset gfxmode=auto\nterminal_output gfxterm\n${GRUB_LOOK}\n# CaramOS boot menu: end"
+                # Chèn sau loadfont (gfxterm cần font), hoặc lên đầu file.
+                local AT_TOP=1
+                grep -q '^loadfont ' "$cfg" && AT_TOP=0
+                awk -v block="$GRUB_BLOCK" -v top="$AT_TOP" '
+                    NR == 1 && top { print block }
+                    { print }
+                    !top && !done && /^loadfont / { print block; done = 1 }
+                ' "$cfg" > "$cfg.caramos"
+                cat "$cfg.caramos" > "$cfg"
+                rm -f "$cfg.caramos"
             fi
 
             if $IS_DEBUG; then
@@ -116,16 +155,13 @@ step_boot_config() {
         warn "  → Không tìm thấy GRUB config, bỏ qua."
     fi
 
-    local BANNER_SRC="$SCRIPT_DIR/splash.png"
-    if [ ! -f "$BANNER_SRC" ]; then
-        BANNER_SRC="$SCRIPT_DIR/assets/boot-splash.png"
-    fi
+    local BANNER_SRC="$BOOT_SPLASH"
     local ISOLINUX_DIR
     ISOLINUX_DIR=$(find "$ISO_DIR" -maxdepth 3 -name "isolinux.bin" \
         -exec dirname {} \; 2>/dev/null | head -1)
 
     if [ ! -f "$BANNER_SRC" ]; then
-        warn "  → Không tìm thấy splash.png/assets/boot-splash.png, bỏ qua boot menu background."
+        warn "  → Không tìm thấy $BANNER_SRC, bỏ qua boot menu background."
     elif [ -z "$ISOLINUX_DIR" ]; then
         warn "  → Không tìm thấy thư mục isolinux, bỏ qua splash."
     else

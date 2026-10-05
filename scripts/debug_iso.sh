@@ -13,7 +13,13 @@ echo "ISO: $ISO"
 echo
 
 echo "== Host files =="
-[ -f splash.png ] && file splash.png || echo "MISSING: splash.png"
+if [ -f assets/splash.png ]; then
+    file assets/splash.png
+    file assets/splash.png | grep -q 'PNG image data, 640 x 480' \
+        || echo "WARN: assets/splash.png phải là PNG 640x480, nếu không isolinux hiện nền đen"
+else
+    echo "MISSING: assets/splash.png"
+fi
 [ -f "$ISO" ] && ls -lh "$ISO" || echo "MISSING: $ISO"
 echo
 
@@ -28,7 +34,9 @@ echo
 
 echo "== GRUB config =="
 if [ -d "$WORK_CUSTOM/boot/grub" ]; then
-    grep -RIn "menuentry\|quiet\|splash" "$WORK_CUSTOM/boot/grub"/*.cfg 2>/dev/null | head -80 || true
+    grep -RIn "menuentry\|quiet\|splash\|gfxterm\|theme" "$WORK_CUSTOM/boot/grub"/*.cfg 2>/dev/null | head -80 || true
+    grep -n "desktop-" "$WORK_CUSTOM/boot/grub/live-theme/theme.txt" 2>/dev/null || true
+    [ -f "$WORK_CUSTOM/boot/grub/splash.png" ] && file "$WORK_CUSTOM/boot/grub/splash.png"
 else
     echo "MISSING: $WORK_CUSTOM/boot/grub"
 fi

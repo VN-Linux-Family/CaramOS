@@ -1,0 +1,17 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "GRUB theme (32 KB)",
+  "title": "Menu khởi động mang giao diện CaramOS",
+  "summary": "Thay menu GRUB chữ xanh trên nền xanh bằng theme CaramOS, hiện khi máy có nhiều hệ điều hành hoặc khi giữ Shift/Esc lúc khởi động.",
+  "release_notes_vi": [
+    "Menu GRUB có hình nền CaramOS, mục đang chọn tô màu cam.",
+    "Theme đặt trong /boot/grub/themes/caramos; GRUB_THEME đặt sẵn trong /etc/default/grub vẫn được giữ."
+  ],
+  "release_notes_en": [
+    "The GRUB menu gets a CaramOS background with the selected entry in orange.",
+    "The theme lives in /boot/grub/themes/caramos; a GRUB_THEME already set in /etc/default/grub is kept."
+  ]
+}

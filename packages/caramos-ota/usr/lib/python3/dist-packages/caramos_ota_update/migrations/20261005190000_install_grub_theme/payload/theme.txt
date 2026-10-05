@@ -1,0 +1,49 @@
+# CaramOS GRUB theme, installed by caramos-ota (migration 20261005190000_install_grub_theme).
+# Logo on the upper part of background.png, menu on the lower half.
+title-text: ""
+desktop-image: "background.png"
+desktop-image-scale-method: "crop"
+desktop-color: "#202020"
+terminal-font: "Unifont Regular 16"
+
++ boot_menu {
+        left = 15%
+        width = 70%
+        top = 50%
+        height = 50%-100
+        item_font = "Unifont Regular 16"
+        item_color = "#c8c8c8"
+        selected_item_font = "Unifont Regular 16"
+        selected_item_color = "#f6a623"
+        item_height = 20
+        item_padding = 0
+        item_spacing = 4
+        icon_width = 0
+        icon_height = 0
+        item_icon_space = 0
+}
+
++ progress_bar {
+        id = "__timeout__"
+        left = 10%
+        width = 80%
+        top = 100%-84
+        height = 16
+        font = "Unifont Regular 16"
+        text_color = "#c8c8c8"
+        fg_color = "#f6a623"
+        bg_color = "#303030"
+        border_color = "#404040"
+        text = "@TIMEOUT_NOTIFICATION_LONG@"
+}
+
++ label {
+        left = 0
+        width = 100%
+        top = 100%-44
+        height = 20
+        align = "center"
+        color = "#808080"
+        font = "Unifont Regular 16"
+        text = "@KEYMAP_SHORT@"
+}

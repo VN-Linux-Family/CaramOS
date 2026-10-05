@@ -284,7 +284,7 @@ cmd_bootstrap() {
   while ((SECONDS < deadline)); do
     _VM_IP_CACHE=""
     if vm_ip >/dev/null 2>&1 && (REMOTE_PASSWORD="${password}" vm_ssh true) >/dev/null 2>&1; then
-      log "[OK] SSH is up at ${REMOTE_USER}@$(vm_ip) (password: ${password}). Next: make vm-setup"
+      log "[OK] SSH is up at ${REMOTE_USER}@$(vm_ip) (password: ${password}). Next: REMOTE_PASSWORD=${password} make vm-setup"
       return 0
     fi
     sleep 5

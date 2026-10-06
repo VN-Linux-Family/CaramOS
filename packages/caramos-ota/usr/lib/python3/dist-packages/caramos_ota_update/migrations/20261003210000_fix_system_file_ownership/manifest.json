@@ -6,6 +6,8 @@
   "size": "System file permissions",
   "title": "Sửa quyền sở hữu tệp hệ thống",
   "summary": "Trả các thư mục và tệp hệ thống trong /etc và /usr đang thuộc tài khoản người dùng về cho root.",
+  "title_en": "Fix system file ownership",
+  "summary_en": "Give system folders and files in /etc and /usr that belong to a user account back to root.",
   "release_notes_vi": [
     "Các bản ISO trước để /etc, /usr và một số tệp hệ thống thuộc tài khoản người dùng thứ hai; bản cập nhật trả chúng về cho root.",
     "Bỏ quyền ghi của nhóm và người khác trên các tệp được sửa; tài khoản thường không còn sửa được cấu hình hệ thống."

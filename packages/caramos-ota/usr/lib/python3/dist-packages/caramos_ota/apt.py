@@ -119,6 +119,8 @@ def detect_updates(
             available_version="",
             description=item.summary,
             required=False,
+            name_en=item.title_en,
+            description_en=item.summary_en,
         )
         for item in plan.migrations
     ]
@@ -146,6 +148,8 @@ def detect_updates(
             "size": manifest.size,
             "title": manifest.title,
             "summary": manifest.summary,
+            "title_en": manifest.title_en,
+            "summary_en": manifest.summary_en,
             "release_notes_vi": manifest.release_notes_vi,
             "release_notes_en": manifest.release_notes_en,
             "migration_ids": [item.migration_id for item in plan.migrations],

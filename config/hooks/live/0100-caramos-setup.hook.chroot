@@ -91,10 +91,11 @@ fi
 echo "[CaramOS] Setting Vietnamese locale and timezone..."
 sed -i 's/# vi_VN.UTF-8 UTF-8/vi_VN.UTF-8 UTF-8/' /etc/locale.gen 2>/dev/null || true
 locale-gen || true
+# Không đặt LC_ALL: nó đè lên ngôn ngữ người dùng chọn trong Cài đặt > Ngôn ngữ (#65),
+# và locale.conf(5) không cho phép LC_ALL ở đây.
 cat > /etc/default/locale <<'LOCALE'
 LANG=vi_VN.UTF-8
 LANGUAGE=vi_VN:vi
-LC_ALL=vi_VN.UTF-8
 LOCALE
 ln -snf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
 printf 'Asia/Ho_Chi_Minh\n' > /etc/timezone

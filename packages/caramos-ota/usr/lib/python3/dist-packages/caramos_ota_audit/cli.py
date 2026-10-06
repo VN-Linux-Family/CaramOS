@@ -15,6 +15,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, Iterable
 
+from caramos_ota.i18n import _
+
 
 def _load_collector_api():
     """Return collector API when available."""
@@ -35,7 +37,7 @@ def _collect_report(report: AuditReport, output_dir, progress_callback=None):
     collector_api = _load_collector_api()
     if collector_api is None:
         return None
-    _, _, _, collect_audit, AuditSourceResult = collector_api
+    collect_audit, AuditSourceResult = collector_api[3], collector_api[4]
     evidence = collect_audit()
     user_data = {
         "summary": report.summary,
@@ -113,7 +115,7 @@ def _render_report_json(report: AuditReport) -> str:
 
 
 def _render_report_text(report: AuditReport) -> str:
-    steps = "\n".join(f"- {step}" for step in report.steps) or "- (không có bước)"
+    steps = "\n".join(f"- {step}" for step in report.steps) or "- " + _("(no steps)")
     return textwrap.dedent(
         f"""
         CaramOS Audit Report
@@ -163,11 +165,11 @@ def _fallback_create_audit_bundle(
     text_path_name = f"{stem}/report.txt"
     meta_path_name = f"{stem}/metadata.json"
 
-    _progress(progress_callback, "Chuẩn bị gói báo cáo")
+    _progress(progress_callback, _("Preparing the report bundle"))
     payload = dataclasses.asdict(report)
     payload["created_at"] = report.created_at or _now_iso()
 
-    _progress(progress_callback, "Ghi nội dung báo cáo")
+    _progress(progress_callback, _("Writing the report"))
     with zipfile.ZipFile(bundle_path, mode="w", compression=zipfile.ZIP_DEFLATED) as archive:
         archive.writestr(report_path_name, _render_report_json(report))
         archive.writestr(text_path_name, _render_report_text(report))
@@ -185,7 +187,7 @@ def _fallback_create_audit_bundle(
             ),
         )
 
-    _progress(progress_callback, "Tính mã kiểm tra")
+    _progress(progress_callback, _("Computing checksums"))
     bundle_sha256 = _hash_file(bundle_path)
     return AuditResult(
         bundle_path=bundle_path,
@@ -206,7 +208,7 @@ def create_audit_bundle(
     if collector_api is None:
         return _fallback_create_audit_bundle(report, output_dir, progress_callback=progress_callback)
 
-    CollectorAuditReport, CollectorAuditResult, collector_create_audit_bundle, _, _ = collector_api
+    CollectorAuditReport, CollectorAuditResult, collector_create_audit_bundle = collector_api[:3]
     collector_report = _collect_report(report, output_dir, progress_callback)
     if collector_report is None:
         return _fallback_create_audit_bundle(report, output_dir, progress_callback=progress_callback)
@@ -255,10 +257,10 @@ def build_report_from_args(args: argparse.Namespace) -> AuditReport:
 
     summary = str(args.summary or "").strip()
     return AuditReport(
-        summary=summary or "Báo cáo tự động sau khi lỗi xảy ra",
-        steps=_split_steps(str(args.steps or "")) or ["Người dùng tái hiện lỗi rồi chạy CaramOS Audit"],
-        expected=str(args.expected or "").strip() or "Tính năng hoạt động bình thường",
-        actual=str(args.actual or "").strip() or summary or "Xem trạng thái và log được thu thập tự động",
+        summary=summary or _("Automatic report after the problem happened"),
+        steps=_split_steps(str(args.steps or "")) or [_("The user reproduced the problem, then ran CaramOS Audit")],
+        expected=str(args.expected or "").strip() or _("The feature works normally"),
+        actual=str(args.actual or "").strip() or summary or _("See the automatically collected state and logs"),
         area=str(args.area or "").strip() or "automatic",
         created_at=_now_iso(),
     )

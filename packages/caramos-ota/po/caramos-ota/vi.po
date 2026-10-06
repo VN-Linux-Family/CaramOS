@@ -1,0 +1,358 @@
+# Vietnamese translation for CaramOS OTA (Update Center, Audit).
+# Source strings are English; this keeps the wording CaramOS used before they were translatable.
+msgid ""
+msgstr ""
+"Project-Id-Version: caramos-ota\n"
+"Report-Msgid-Bugs-To: developer@vietnamlinuxfamily.net\n"
+"PO-Revision-Date: 2026-10-06 00:00+0700\n"
+"Last-Translator: Vietnam Linux Family <developer@vietnamlinuxfamily.net>\n"
+"Language-Team: Vietnamese <developer@vietnamlinuxfamily.net>\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:96
+msgid "New features"
+msgstr "Tính năng mới"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:97
+msgid "Important"
+msgstr "Quan trọng"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:98
+msgid "Normal"
+msgstr "Bình thường"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:99
+msgid "None"
+msgstr "Không"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:141
+msgid "CaramOS - Update Center"
+msgstr "CaramOS - Trung tâm cập nhật"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:164
+msgid "A new CaramOS update is available"
+msgstr "CaramOS có bản cập nhật mới"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:167
+msgid "This update runs the CaramOS migrations the new version needs."
+msgstr "Bản cập nhật này sẽ chạy migration CaramOS cần thiết cho phiên bản mới."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:205
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:472
+msgid "Current version"
+msgstr "Phiên bản hiện tại"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:217
+msgid "Available version"
+msgstr "Phiên bản khả dụng"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:232
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:474
+msgid "Update channel"
+msgstr "Kênh cập nhật"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:233
+msgid "Severity"
+msgstr "Mức độ"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:234
+msgid "Size"
+msgstr "Dung lượng"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:243
+#, python-format
+msgid "%d change in this update"
+msgid_plural "%d changes in this update"
+msgstr[0] "Nội dung sẽ cập nhật (%d)"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:257
+msgid "CaramOS update"
+msgstr "Cập nhật CaramOS"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:270
+msgid "Recommended: plug in the charger, keep a stable network connection and do not turn off the computer during the update. You can close this window and update later."
+msgstr "Khuyến nghị: cắm sạc, giữ kết nối mạng ổn định và không tắt máy trong lúc cập nhật. Bạn có thể đóng cửa sổ này và cập nhật sau."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:282
+msgid "Later"
+msgstr "Để sau"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:283
+msgid "Update now"
+msgstr "Cập nhật ngay"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:316
+msgid "CARAMOS OTA • UPDATING"
+msgstr "CARAMOS OTA • ĐANG CẬP NHẬT"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:323
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:48
+msgid "Updating CaramOS…"
+msgstr "Đang cập nhật CaramOS..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:328
+msgid "Preparing the update…"
+msgstr "Đang chuẩn bị cập nhật..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:342
+msgid "Update progress"
+msgstr "Tiến trình cập nhật"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:359
+msgid "Please do not turn off the computer or close the update."
+msgstr "Vui lòng không tắt máy hoặc đóng tiến trình cập nhật."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:382
+msgid "Update complete!"
+msgstr "Cập nhật thành công!"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:383
+msgid "CaramOS was updated successfully."
+msgstr "CaramOS đã được cập nhật thành công."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:385
+msgid "Update failed"
+msgstr "Cập nhật thất bại"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:386
+msgid "Something went wrong during the update. Try again or run sudo caramos-ota --repair."
+msgstr "Đã xảy ra lỗi khi cập nhật. Vui lòng thử lại hoặc chạy sudo caramos-ota --repair."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:403
+msgid "Update details"
+msgstr "Chi tiết cập nhật"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:419
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:487
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:97
+msgid "Close"
+msgstr "Đóng"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:449
+msgid "CaramOS is up to date"
+msgstr "CaramOS đã được cập nhật"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:454
+msgid "The system runs the latest version in the stable update channel."
+msgstr "Hệ thống đang dùng phiên bản mới nhất trong kênh cập nhật stable."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:464
+msgid "Update status"
+msgstr "Trạng thái cập nhật"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:473
+msgid "Latest version"
+msgstr "Phiên bản mới nhất"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:481
+msgid ""
+"There are no new migrations to install.\n"
+"\n"
+"You can close this window. CaramOS OTA keeps checking periodically with a systemd timer."
+msgstr ""
+"Không có migration mới trong danh sách cập nhật.\n"
+"\n"
+"Bạn có thể đóng cửa sổ này. CaramOS OTA sẽ tiếp tục kiểm tra định kỳ bằng systemd timer."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:35
+msgid "Downloading the package list…"
+msgstr "Đang tải danh sách gói..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:37
+msgid "Checking the update repository…"
+msgstr "Đang kiểm tra kho cập nhật..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:39
+msgid "Preparing migrations…"
+msgstr "Đang chuẩn bị migration..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:41
+msgid "Running system migrations…"
+msgstr "Đang chạy migration hệ thống..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:43
+msgid "Updating version information…"
+msgstr "Đang cập nhật thông tin phiên bản..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:45
+msgid "Finishing the update…"
+msgstr "Đang hoàn tất cập nhật..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:47
+msgid "The update ran into an error."
+msgstr "Đã gặp lỗi khi cập nhật."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:82
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:87
+msgid "The update timed out (10 minutes)."
+msgstr "Quá thời gian chờ cập nhật (10 phút)."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:89
+msgid "The pkexec command was not found."
+msgstr "Không tìm thấy lệnh pkexec."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:149
+msgid "CaramOS - Updating…"
+msgstr "CaramOS - Đang cập nhật..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:194
+msgid "Update complete."
+msgstr "Cập nhật hoàn tất."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:194
+msgid "Update failed."
+msgstr "Cập nhật thất bại."
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:203
+msgid "CaramOS - Update complete!"
+msgstr "CaramOS - Cập nhật thành công!"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:203
+msgid "CaramOS - Update failed"
+msgstr "CaramOS - Cập nhật thất bại"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:37
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:60
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:61
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:91
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:96
+msgid "Unknown"
+msgstr "Chưa rõ"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:46
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:59
+msgid "Unknown migration"
+msgstr "Không rõ migration"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:16
+msgid "Detect automatically"
+msgstr "Tự động nhận diện"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:17
+msgid "Wi-Fi / Network"
+msgstr "Wi-Fi / Mạng"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:19
+msgid "Sound"
+msgstr "Âm thanh"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:20
+msgid "Display"
+msgstr "Màn hình"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:21
+msgid "Power / Battery"
+msgstr "Nguồn / Pin"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:23
+msgid "OTA updates"
+msgstr "Cập nhật OTA"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:24
+msgid "Other"
+msgstr "Khác"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:54
+msgid "Collect a bug report"
+msgstr "Thu thập báo cáo lỗi"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:58
+msgid "After the problem happens, press the button below. CaramOS collects the state and logs it needs."
+msgstr "Sau khi lỗi xảy ra, bấm nút bên dưới. CaramOS tự lấy trạng thái và log cần thiết."
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:64
+msgid "No steps to type. Nothing is uploaded. Passwords, cookies, the clipboard, SSH/GPG keys and browser history are never collected."
+msgstr "Không cần nhập các bước. Không upload. Không lấy mật khẩu, cookie, clipboard, SSH/GPG hoặc lịch sử trình duyệt."
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:71
+msgid "Problem area:"
+msgstr "Lỗi liên quan:"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:82
+msgid "Optional short note, for example: Wi-Fi does not connect when I click it"
+msgstr "Ghi chú ngắn nếu muốn, ví dụ: bấm kết nối Wi-Fi nhưng không vào được"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:86
+msgid "Ready. Press Collect now right after the problem happens."
+msgstr "Sẵn sàng. Hãy bấm Thu thập ngay sau khi lỗi xảy ra."
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:93
+msgid "Not collected yet"
+msgstr "Chưa thu thập"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:98
+msgid "Collect now"
+msgstr "Thu thập ngay"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:106
+msgid "Done"
+msgstr "Đã xong"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:107
+#, python-format
+msgid "Created: %s"
+msgstr "Đã tạo: %s"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:109
+msgid "Open containing folder"
+msgstr "Mở thư mục chứa file"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:117
+msgid "Error"
+msgstr "Lỗi"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:118
+#, python-format
+msgid "Could not create the report: %s"
+msgstr "Không tạo được báo cáo: %s"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:126
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:260
+msgid "Automatic report after the problem happened"
+msgstr "Báo cáo tự động sau khi lỗi xảy ra"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:127
+msgid "The user reproduced the problem, then opened CaramOS Audit"
+msgstr "Người dùng tái hiện lỗi rồi mở CaramOS Audit"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:128
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:262
+msgid "The feature works normally"
+msgstr "Tính năng hoạt động bình thường"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:129
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:263
+msgid "See the automatically collected state and logs"
+msgstr "Xem trạng thái và log được thu thập tự động"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:135
+msgid "Collecting"
+msgstr "Đang thu thập"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:137
+msgid "Collecting the hardware, network and sound state and the latest logs…"
+msgstr "Đang lấy trạng thái phần cứng, mạng, âm thanh và log gần nhất..."
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:118
+msgid "(no steps)"
+msgstr "(không có bước)"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:168
+msgid "Preparing the report bundle"
+msgstr "Chuẩn bị gói báo cáo"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:172
+msgid "Writing the report"
+msgstr "Ghi nội dung báo cáo"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:190
+msgid "Computing checksums"
+msgstr "Tính mã kiểm tra"
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:261
+msgid "The user reproduced the problem, then ran CaramOS Audit"
+msgstr "Người dùng tái hiện lỗi rồi chạy CaramOS Audit"

@@ -30,6 +30,9 @@ class Manifest:
     summary: str
     release_notes_vi: list[str]
     release_notes_en: list[str]
+    # English display text for sessions that are not Vietnamese (empty: show the Vietnamese text).
+    title_en: str = ""
+    summary_en: str = ""
 
 
 @dataclass(frozen=True)
@@ -41,3 +44,5 @@ class UpdatePackage:
     available_version: str
     description: str
     required: bool = True
+    name_en: str = ""
+    description_en: str = ""

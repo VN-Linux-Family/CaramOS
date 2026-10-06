@@ -177,12 +177,12 @@ class UpdateWindowControllerTests(unittest.TestCase):
         self.assertFalse(controller.upgrade_running)
         self.assertEqual([41], self.glib.removed_sources)
         self.assertEqual(1.0, self.progress.fraction)
-        self.assertEqual("Cập nhật hoàn tất.", self.stage.text)
+        self.assertEqual("Update complete.", self.stage.text)
         self.assertEqual("result", self.stack.visible)
         self.assertIs(result_page, self.stack.children["result"])
         self.assertTrue(result_page.shown)
         self.assertTrue(self.window.deletable)
-        self.assertEqual("CaramOS - Cập nhật thành công!", self.window.title)
+        self.assertEqual("CaramOS - Update complete!", self.window.title)
         build_result.assert_called_once_with(True, "complete", controller.close)
 
     def test_worker_schedules_ui_callbacks_on_glib(self) -> None:

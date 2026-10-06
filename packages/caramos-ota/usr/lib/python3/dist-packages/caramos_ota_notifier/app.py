@@ -7,6 +7,8 @@ import subprocess
 import threading
 from typing import Any
 
+from caramos_ota.i18n import _
+
 from .constants import OTA_COMMAND, PKEXEC_COMMAND, UPGRADE_TIMEOUT_SECONDS
 from .state import read_available_update, read_no_update_status, resolve_available_update_now
 from .ui import (
@@ -30,20 +32,20 @@ def stage_for_line(line: str) -> str:
 
     text = line.lower()
     if "updating package index" in text or "apt-get update" in text:
-        return "Đang tải danh sách gói..."
+        return _("Downloading the package list…")
     if "repository:" in text:
-        return "Đang kiểm tra kho cập nhật..."
+        return _("Checking the update repository…")
     if "migration path" in text:
-        return "Đang chuẩn bị migration..."
+        return _("Preparing migrations…")
     if "run:" in text or "starting migration" in text:
-        return "Đang chạy migration hệ thống..."
+        return _("Running system migrations…")
     if "updated version metadata" in text or "set caramos system version" in text:
-        return "Đang cập nhật thông tin phiên bản..."
+        return _("Updating version information…")
     if "update complete" in text or "finished migration" in text:
-        return "Đang hoàn tất cập nhật..."
+        return _("Finishing the update…")
     if "error" in text or "failed" in text:
-        return "Đã gặp lỗi khi cập nhật."
-    return "Đang cập nhật CaramOS..."
+        return _("The update ran into an error.")
+    return _("Updating CaramOS…")
 
 
 def run_upgrade_stream(on_line) -> tuple[bool, str]:
@@ -77,14 +79,14 @@ def run_upgrade_stream(on_line) -> tuple[bool, str]:
             timer.cancel()
         detail = "\n".join(output).strip()
         if return_code < 0:
-            return False, "Quá thời gian chờ cập nhật (10 phút)."
+            return False, _("The update timed out (10 minutes).")
         return return_code == 0, detail
     except subprocess.TimeoutExpired:
         if process and process.poll() is None:
             process.kill()
-        return False, "Quá thời gian chờ cập nhật (10 phút)."
+        return False, _("The update timed out (10 minutes).")
     except FileNotFoundError:
-        return False, "Không tìm thấy lệnh pkexec."
+        return False, _("The pkexec command was not found.")
     except Exception as exc:
         return False, str(exc)
 
@@ -144,7 +146,7 @@ class UpdateWindowController:
 
         self.upgrade_running = True
         self.window.set_deletable(False)
-        self.window.set_title("CaramOS - Đang cập nhật...")
+        self.window.set_title(_("CaramOS - Updating…"))
         self.stack.set_visible_child_name("progress")
         self.pulse_source_id = self.GLib.timeout_add(100, self.pulse)
 
@@ -189,7 +191,7 @@ class UpdateWindowController:
         if self.progress_bar is not None:
             self.progress_bar.set_fraction(1.0)
         if self.stage_label is not None:
-            self.stage_label.set_text("Cập nhật hoàn tất." if success else "Cập nhật thất bại.")
+            self.stage_label.set_text(_("Update complete.") if success else _("Update failed."))
 
         result_page = build_result_page(success, detail, self.close)
         old_result = self.stack.get_child_by_name("result")
@@ -198,7 +200,7 @@ class UpdateWindowController:
         self.stack.add_named(result_page, "result")
         result_page.show_all()
         self.stack.set_visible_child_name("result")
-        self.window.set_title("CaramOS - Cập nhật thành công!" if success else "CaramOS - Cập nhật thất bại")
+        self.window.set_title(_("CaramOS - Update complete!") if success else _("CaramOS - Update failed"))
         self.window.set_deletable(True)
         return False
 
@@ -220,7 +222,7 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     try:
-        Gtk, _, GLib = import_gtk()
+        Gtk, _gdk, GLib = import_gtk()
     except Exception:
         return 0
 

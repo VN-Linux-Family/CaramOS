@@ -134,7 +134,7 @@ Yêu cầu: Ubuntu/Mint/Debian phù hợp, có `sudo`, đủ dung lượng cho r
 
 ```bash
 sudo apt update
-sudo apt install squashfs-tools xorriso rsync wget curl isolinux syslinux-common syslinux-utils
+sudo apt install squashfs-tools xorriso rsync wget curl isolinux syslinux-common syslinux-utils gettext
 ```
 
 Build dev nhanh:

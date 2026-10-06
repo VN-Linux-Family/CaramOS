@@ -1,0 +1,19 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "System service",
+  "title": "Sửa lỗi khởi động không hoàn tất do bộ gõ Lotus",
+  "summary": "Sửa dịch vụ bật Lotus làm hệ thống kẹt ở bước khởi động, khiến Lotus server không chạy và một số thao tác cài đặt bị treo.",
+  "title_en": "Fix boot never finishing because of the Lotus input method",
+  "summary_en": "Fix the service that enables Lotus, which kept boot from finishing so the Lotus server never ran and some install operations hung.",
+  "release_notes_vi": [
+    "Dịch vụ caramos-fcitx5-lotus-system-enable không còn chờ chính nó: hệ thống khởi động xong và Lotus server chạy.",
+    "Xóa dịch vụ Lotus của tài khoản không tồn tại do máy build ISO để lại."
+  ],
+  "release_notes_en": [
+    "caramos-fcitx5-lotus-system-enable no longer waits on itself: boot finishes and the Lotus server runs.",
+    "Remove Lotus services for accounts that do not exist, left by the ISO build machine."
+  ]
+}

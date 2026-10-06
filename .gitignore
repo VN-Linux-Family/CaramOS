@@ -19,6 +19,8 @@ packages/caramos-ota/debian/files
 packages/caramos-ota/debian/*.substvars
 packages/caramos-ota/debian/*.debhelper
 packages/caramos-ota/debian/*.debhelper.log
+# Compiled from packages/caramos-ota/po/ at build time
+packages/caramos-ota/usr/share/locale/
 
 # Python cache
 __pycache__/

@@ -94,10 +94,10 @@ class ControlCenterAppletStaticTests(unittest.TestCase):
     def test_power_mode_tile_and_panel_contract(self) -> None:
         for token in (
             "this._powerModeTile = createSplitTile(",
-            "_('Chế độ nguồn')",
-            "_('Hiệu năng')",
-            "_('Cân bằng')",
-            "_('Tiết kiệm pin')",
+            "_('Power mode')",
+            "_('Performance')",
+            "_('Balanced')",
+            "_('Power saver')",
             "_toggleInlinePanel(",
             "'power-mode'",
             "_fillPowerModeList",
@@ -118,7 +118,7 @@ class ControlCenterAppletStaticTests(unittest.TestCase):
         self.assertRegex(self.source, r"body => this\._fillPowerModeList\(body\),\s*this\._powerRow\s*\)")
         self.assertRegex(
             self.source,
-            r"createSplitTile\([\s\S]*?_\('Chế độ nguồn'\)[\s\S]*?\(\) => this\._openPowerModeOverlay\(\),[\s\S]*?\(\) => this\._openPowerModeOverlay\(\)",
+            r"createSplitTile\([\s\S]*?_\('Power mode'\)[\s\S]*?\(\) => this\._openPowerModeOverlay\(\),[\s\S]*?\(\) => this\._openPowerModeOverlay\(\)",
         )
         self.assertRegex(self.source, r"state\.profiles\.forEach\(profile =>")
         self.assertIn("createPowerProfileRow", self.source)
@@ -215,10 +215,10 @@ class ControlCenterAppletStaticTests(unittest.TestCase):
         backend = re.search(r"class PowerProfilesBackend \{([\s\S]*?)\n\}\n\nclass SessionBackend", self.source)
         self.assertIsNotNone(backend)
         source = backend.group(1)
-        self.assertIn("this._setError(_('Không thể đổi chế độ nguồn'))", source)
+        self.assertIn("this._setError(_('Could not change the power mode'))", source)
         self.assertIn("GLib.timeout_add_seconds(GLib.PRIORITY_DEFAULT, POWER_PROFILE_ERROR_SECONDS", source)
         self.assertRegex(source, r"dispose\(\) \{[\s\S]*?this\._clearErrorTimeout\(\)")
-        self.assertIn("_('Không đổi được')", self._method_body("_onPowerProfilesStateChanged"))
+        self.assertIn("_('Change failed')", self._method_body("_onPowerProfilesStateChanged"))
 
     def test_selectable_rows_put_check_mark_at_trailing_edge(self) -> None:
         for helper_name in ("createPowerProfileRow", "createAudioDeviceRow"):

@@ -78,6 +78,27 @@ compile_sources() {
   rm -rf "${pycache_prefix}"
   trap - RETURN
   echo "[OK] Python compile passed"
+  compile_translations
+}
+
+# po/<domain>/<lang>.po -> usr/share/locale/<lang>/LC_MESSAGES/<domain>.mo (installed by debian/install).
+compile_translations() {
+  cd "${PKG_DIR}"
+  command -v msgfmt >/dev/null 2>&1 || {
+    echo "Error: msgfmt not found. Install: sudo apt install gettext" >&2
+    exit 1
+  }
+  rm -rf usr/share/locale
+  local po domain lang count=0
+  for po in po/*/*.po; do
+    [[ -f "${po}" ]] || continue
+    domain="$(basename "$(dirname "${po}")")"
+    lang="$(basename "${po}" .po)"
+    mkdir -p "usr/share/locale/${lang}/LC_MESSAGES"
+    msgfmt --check --output-file="usr/share/locale/${lang}/LC_MESSAGES/${domain}.mo" "${po}"
+    count=$((count + 1))
+  done
+  echo "[OK] Compiled ${count} translation catalog(s)"
 }
 
 clean_build() {
@@ -97,6 +118,7 @@ clean_build() {
   find debian -maxdepth 1 \( -name '*.substvars' -o -name '*.debhelper.log' \) -delete
   find usr/lib/python3/dist-packages -name __pycache__ -type d -prune -exec rm -rf {} +
   find usr/lib/python3/dist-packages -name '*.pyc' -delete
+  rm -rf usr/share/locale
   rm -f "${PKG_DIR}/../caramos-ota_"*.buildinfo \
         "${PKG_DIR}/../caramos-ota_"*.changes \
         "${PKG_DIR}/../caramos-ota_"*.deb \

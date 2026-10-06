@@ -1,0 +1,582 @@
+# Translation template for the CaramOS Control Center applet.
+# This file is distributed under the same license as the caramos-control-center package.
+#
+# Regenerate from packages/caramos-ota with:
+#   xgettext --language=JavaScript --from-code=UTF-8 --keyword=_ --keyword=ngettext:1,2 \
+#     --add-comments=Translators: --package-name=caramos-control-center \
+#     -o po/caramos-control-center/caramos-control-center.pot \
+#     usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: caramos-control-center\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-06 00:09+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:216
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:230
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:240
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:245
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:251
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:258
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:260
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2974
+msgid "Unknown"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:217
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:236
+msgid "Unmanaged"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:218
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:235
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3054
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3604
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3861
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4223
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4233
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4289
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4303
+msgid "Unavailable"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:219
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:234
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3917
+msgid "Disconnected"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:220
+msgid "Preparing"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:221
+msgid "Configuring"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:222
+msgid "Authentication required"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:223
+msgid "Getting network address"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:224
+msgid "Checking connection"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:225
+msgid "Finishing"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:226
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:233
+msgid "Connected"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:227
+msgid "Disconnecting"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:228
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:238
+msgid "Connection failed"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:237
+msgid "Connecting"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:246
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:254
+msgid "No network"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:247
+msgid "Local network only"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:248
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:255
+msgid "Network sign-in required"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:249
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:257
+msgid "Internet access"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:256
+msgid "Limited connectivity"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:799
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4374
+msgid "Battery"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1030
+msgid "Could not change the power mode"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1812
+msgid "Battery and power status"
+msgstr ""
+
+#. Translators: accessible name of the icon button in front of a slider; %s is the slider name.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1833
+#, javascript-format
+msgid "Mute or unmute %s"
+msgstr ""
+
+#. Translators: accessible name of a disclosure button; %s is a slider or tile name.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1857
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1926
+#, javascript-format
+msgid "Open details for %s"
+msgstr ""
+
+#. Translators: "label: value" pair, e.g. a tile name and its state ("Power mode: Balanced") or a
+#. network detail ("Gateway: 192.168.1.1").
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1909
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1958
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3056
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3612
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3967
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4375
+#, javascript-format
+msgid "%s: %s"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2073
+msgid "CaramOS Control Center"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2551
+msgid "Take a screenshot"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2552
+msgid "Open system settings"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2553
+msgid "Lock screen"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2554
+msgid "Open power menu"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2558
+msgid "Volume"
+msgstr ""
+
+#. Translators: screen-reader name of the microphone volume slider; a short form is fine.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2567
+msgid "Microphone"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2585
+msgid "Brightness"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2604
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3961
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3983
+msgid "Wired network"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2604
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2605
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2611
+msgid "Checking…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2605
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2965
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4025
+msgid "Wi‑Fi"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2610
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3768
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3957
+msgid "VPN"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2610
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3864
+msgid "Not connected"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2611
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4032
+msgid "Bluetooth"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2618
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2990
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3056
+msgid "Power mode"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2619
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3051
+msgid "Loading…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2624
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3612
+msgid "Dark mode"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2624
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3610
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4230
+msgid "Disabled"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2627
+msgid "Night Light"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2627
+msgid "Turn Night Light on or off"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2681
+msgid "Close dialog"
+msgstr ""
+
+#. Translators: accessible name of the close button of an inline panel; %s is the panel title.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2894
+#, javascript-format
+msgid "Close %s"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2970
+msgid "Performance"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2971
+msgid "Balanced"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2972
+msgid "Power saver"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3004
+msgid "Loading power modes…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3006
+msgid "Power mode service unavailable"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3008
+msgid "No power modes"
+msgstr ""
+
+#. Translators: %s is a power mode name; shown when the daemon reports degraded performance.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3013
+#, javascript-format
+msgid "%s · limited"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3028
+msgid "Power settings"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3047
+msgid "Changing…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3049
+msgid "Change failed"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3063
+msgid "Power"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3078
+msgid "Session service unavailable"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3082
+msgid "Processing…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3084
+msgid "Suspend"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3085
+msgid "Hibernate"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3086
+msgid "Restart…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3087
+msgid "Shut down…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3089
+msgid "Log out…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3090
+msgid "Switch user…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3141
+msgid "Output device"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3141
+msgid "Input device"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3186
+msgid "Sound output devices"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3186
+msgid "Sound input devices"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3199
+msgid "No sound devices"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3232
+msgid "Open sound settings"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3610
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4230
+msgid "Enabled"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3665
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3684
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3686
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3708
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3735
+msgid "On"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3665
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3684
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3685
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3708
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3735
+msgid "Off"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3682
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4290
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4304
+msgid "No device"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3683
+msgid "Blocked by hardware"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3823
+msgid "Could not read the VPN status"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3863
+#, javascript-format
+msgid "%d active connection"
+msgid_plural "%d active connections"
+msgstr[0] ""
+msgstr[1] ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3864
+msgid "No profiles"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3899
+msgid "Could not change the VPN connection"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3916
+msgid "WireGuard active"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3916
+msgid "Active"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3917
+msgid "WireGuard"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3928
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3978
+msgid "NetworkManager unavailable"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3930
+msgid "Reading VPN profiles…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3933
+msgid "Try again"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3935
+msgid "No VPN profiles"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3949
+msgid "Open VPN settings"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3980
+msgid "No wired network devices"
+msgstr ""
+
+#. Translators: %s is a network interface name; marks the device that carries the default route.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3985
+#, javascript-format
+msgid "%s · default route"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3993
+msgid "Status"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3994
+msgid "Profile"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3995
+msgid "Link"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3995
+msgid "Signal detected"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3995
+msgid "No signal"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3996
+msgid "Speed"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3997
+msgid "Address"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3998
+msgid "Gateway"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3999
+msgid "DNS"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4013
+msgid "Open network sign-in page"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4018
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4077
+msgid "Open network settings"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4050
+msgid "No Wi‑Fi device"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4052
+msgid "Wi‑Fi is blocked by hardware"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4054
+msgid "Wi‑Fi is off"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4057
+msgid "Searching for Wi‑Fi networks…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4057
+msgid "No Wi‑Fi networks found"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4073
+msgid "Scan for Wi‑Fi networks again"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4133
+msgid "Searching for Bluetooth devices…"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4151
+msgid "No available or connected devices"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4152
+msgid "BlueZ unavailable; open Bluetooth settings"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4162
+msgid "Stop searching"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4162
+msgid "Search for new devices"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4170
+msgid "Bluetooth settings"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4291
+msgid "In use for Internet"
+msgstr ""
+
+#. Translators: remaining battery time, abbreviated hours and minutes (e.g. "2h 15m").
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4362
+#, javascript-format
+msgid "%dh %dm"
+msgstr ""
+
+#. Translators: remaining battery time, abbreviated minutes (e.g. "45m").
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4364
+#, javascript-format
+msgid "%dm"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4374
+msgid "UPS"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4374
+#, javascript-format
+msgid "%d power device"
+msgid_plural "%d power devices"
+msgstr[0] ""
+msgstr[1] ""

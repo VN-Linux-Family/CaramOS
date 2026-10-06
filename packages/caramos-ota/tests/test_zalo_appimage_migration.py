@@ -121,6 +121,7 @@ class ReleaseAssetTests(unittest.TestCase):
         self.assertTrue(migration.ASSET_PATTERN.fullmatch(REBUILT_NAME))
         self.assertFalse(migration.ASSET_PATTERN.fullmatch("Zalo-26.9.10+ZaDark-26.2.1-8ec7c5b-x86_64.AppImage"))
 
+    @unittest.skipUnless(HOOK.is_file(), "ISO hooks are not in the source package")
     def test_hook_writes_only_the_launcher_for_the_migration(self) -> None:
         source = HOOK.read_text(encoding="utf-8")
         self.assertIn('APPIMAGE_PATH="$INSTALL_DIR/Zalo.AppImage"', source)

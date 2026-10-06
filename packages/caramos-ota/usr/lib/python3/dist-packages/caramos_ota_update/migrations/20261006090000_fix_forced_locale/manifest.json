@@ -1,0 +1,21 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "System locale",
+  "title": "Sửa lỗi đổi ngôn ngữ vẫn còn tiếng Việt",
+  "summary": "Bỏ thiết lập ép tiếng Việt cho toàn hệ thống để ngôn ngữ chọn trong Cài đặt > Ngôn ngữ được áp dụng sau khi đăng nhập lại.",
+  "title_en": "Fix Vietnamese text remaining after changing the language",
+  "summary_en": "Remove the system setting that forced Vietnamese, so the language chosen in Settings > Languages applies after logging in again.",
+  "release_notes_vi": [
+    "Bỏ LC_ALL=vi_VN.UTF-8 khỏi /etc/locale.conf; biến này đè lên ngôn ngữ người dùng chọn.",
+    "Máy cài bằng tiếng Anh không còn bị LANGUAGE=vi_VN:vi ép dùng bản dịch tiếng Việt.",
+    "Đăng xuất rồi đăng nhập lại để áp dụng; hệ thống sẽ hỏi có đổi tên các thư mục cá nhân theo ngôn ngữ mới không."
+  ],
+  "release_notes_en": [
+    "Remove LC_ALL=vi_VN.UTF-8 from /etc/locale.conf; it overrode the language the user chose.",
+    "Machines installed in English no longer get Vietnamese translations forced by LANGUAGE=vi_VN:vi.",
+    "Log out and back in to apply; the system then offers to rename the personal folders to the new language."
+  ]
+}

@@ -116,6 +116,12 @@ def _manifest_from_descriptors(
             ),
             release_notes_vi=["Cập nhật thông tin phiên bản CaramOS."] if target_newer else [],
             release_notes_en=["Update CaramOS release metadata."] if target_newer else [],
+            title_en="CaramOS update" if target_newer else "CaramOS is up to date",
+            summary_en=(
+                f"Update the system information from {release_info.version} to {target_version}."
+                if target_newer
+                else "No new migrations."
+            ),
         )
 
     for item in descriptors:
@@ -153,6 +159,8 @@ def _manifest_from_descriptors(
         summary=display.summary,
         release_notes_vi=notes_vi,
         release_notes_en=notes_en,
+        title_en=display.title_en,
+        summary_en=display.summary_en,
     )
 
 

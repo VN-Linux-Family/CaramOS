@@ -6,6 +6,8 @@
   "size": "OTA desktop feature",
   "title": "Taskbar ba dock cho CaramOS",
   "summary": "Chia taskbar Cinnamon thành ba cụm nổi cho Start Menu, ứng dụng và trạng thái hệ thống.",
+  "title_en": "Three-dock taskbar for CaramOS",
+  "summary_en": "Split the Cinnamon taskbar into three floating groups for the Start menu, apps and system status.",
   "release_notes_vi": [
     "Tách taskbar dưới màn hình thành ba dock trái, giữa và phải với khoảng cách đồng đều.",
     "Đưa Start Menu CaramOS sang dock trái, ứng dụng pinned/đang chạy sang dock giữa và status applet sang dock phải.",

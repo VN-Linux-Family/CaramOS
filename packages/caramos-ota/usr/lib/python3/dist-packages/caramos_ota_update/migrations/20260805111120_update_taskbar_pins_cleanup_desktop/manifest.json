@@ -6,6 +6,8 @@
   "size": "Taskbar and desktop configuration",
   "title": "Ghim ứng dụng và dọn Desktop CaramOS",
   "summary": "Ghim Zalo và Trình quản lý phần mềm vào taskbar, đồng thời gỡ các shortcut mặc định khỏi Desktop.",
+  "title_en": "Pin apps and tidy the CaramOS desktop",
+  "summary_en": "Pin Zalo and the Software Manager to the taskbar and remove the default shortcuts from the desktop.",
   "release_notes_vi": [
     "Ghim Zalo và Trình quản lý phần mềm vào taskbar Cinnamon khi ứng dụng đã được cài.",
     "Giữ WPS Office trên taskbar.",

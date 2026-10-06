@@ -110,8 +110,18 @@ function ccEventDebug(event) {
     return fields;
 }
 
+// Cinnamon binds the applet UUID to ~/.local/share/locale, so the catalog uses its own text domain
+// installed under /usr/share/locale.
+const Gettext = imports.gettext;
+const TEXT_DOMAIN = 'caramos-control-center';
+Gettext.bindtextdomain(TEXT_DOMAIN, '/usr/share/locale');
+
 function _(text) {
-    return text;
+    return Gettext.dgettext(TEXT_DOMAIN, text);
+}
+
+function ngettext(singular, plural, count) {
+    return Gettext.dngettext(TEXT_DOMAIN, singular, plural, count);
 }
 
 // ---------------------------------------------------------------------------
@@ -203,51 +213,51 @@ function commandExists(binary) {
 
 function networkDeviceStateText(state) {
     const states = {
-        0: _('Không xác định'),
-        10: _('Không được quản lý'),
-        20: _('Không khả dụng'),
-        30: _('Đã ngắt kết nối'),
-        40: _('Đang chuẩn bị'),
-        50: _('Đang cấu hình'),
-        60: _('Cần xác thực'),
-        70: _('Đang lấy địa chỉ mạng'),
-        80: _('Đang kiểm tra kết nối'),
-        90: _('Đang hoàn tất'),
-        100: _('Đã kết nối'),
-        110: _('Đang ngắt kết nối'),
-        120: _('Kết nối thất bại'),
+        0: _('Unknown'),
+        10: _('Unmanaged'),
+        20: _('Unavailable'),
+        30: _('Disconnected'),
+        40: _('Preparing'),
+        50: _('Configuring'),
+        60: _('Authentication required'),
+        70: _('Getting network address'),
+        80: _('Checking connection'),
+        90: _('Finishing'),
+        100: _('Connected'),
+        110: _('Disconnecting'),
+        120: _('Connection failed'),
     };
-    if (typeof state === 'number') return states[state] || _('Không xác định');
+    if (typeof state === 'number') return states[state] || _('Unknown');
     const normalized = String(state || '').toLowerCase();
     const textStates = {
-        connected: _('Đã kết nối'),
-        disconnected: _('Đã ngắt kết nối'),
-        unavailable: _('Không khả dụng'),
-        unmanaged: _('Không được quản lý'),
-        connecting: _('Đang kết nối'),
-        failed: _('Kết nối thất bại'),
+        connected: _('Connected'),
+        disconnected: _('Disconnected'),
+        unavailable: _('Unavailable'),
+        unmanaged: _('Unmanaged'),
+        connecting: _('Connecting'),
+        failed: _('Connection failed'),
     };
-    return textStates[normalized] || state || _('Không xác định');
+    return textStates[normalized] || state || _('Unknown');
 }
 
 function networkConnectivityText(connectivity) {
     const numeric = {
-        0: _('Không xác định'),
-        1: _('Không có mạng'),
-        2: _('Chỉ mạng cục bộ'),
-        3: _('Cần đăng nhập mạng'),
-        4: _('Có Internet'),
+        0: _('Unknown'),
+        1: _('No network'),
+        2: _('Local network only'),
+        3: _('Network sign-in required'),
+        4: _('Internet access'),
     };
-    if (typeof connectivity === 'number') return numeric[connectivity] || _('Không xác định');
+    if (typeof connectivity === 'number') return numeric[connectivity] || _('Unknown');
     const normalized = String(connectivity || '').toLowerCase();
     const text = {
-        none: _('Không có mạng'),
-        portal: _('Cần đăng nhập mạng'),
-        limited: _('Kết nối hạn chế'),
-        full: _('Có Internet'),
-        unknown: _('Không xác định'),
+        none: _('No network'),
+        portal: _('Network sign-in required'),
+        limited: _('Limited connectivity'),
+        full: _('Internet access'),
+        unknown: _('Unknown'),
     };
-    return text[normalized] || _('Không xác định');
+    return text[normalized] || _('Unknown');
 }
 
 function unpackVariant(variant, fallback) {
@@ -786,7 +796,7 @@ class PowerBackend {
         return {
             path: device.get_object_path(),
             kind: device.kind,
-            name: device.model || device.vendor || _('Pin'),
+            name: device.model || device.vendor || _('Battery'),
             present: !!device.is_present,
             percentage: Math.max(0, Math.min(100, Number(device.percentage) || 0)),
             state: device.state,
@@ -1017,7 +1027,7 @@ class PowerProfilesBackend {
                 } catch (e) {
                     if (this._cancellable.is_cancelled()) return;
                     global.logError(e);
-                    this._setError(_('Không thể đổi chế độ nguồn'));
+                    this._setError(_('Could not change the power mode'));
                 }
             }
         );
@@ -1799,7 +1809,7 @@ function createRoundButton(iconName, command, onClick, accessibleName) {
 
 function createHeaderPill(iconName, text, onClick) {
     const button = new St.Button({ style_class: 'caramos-cc-battery-pill', reactive: true, can_focus: true, track_hover: true });
-    setAccessibleName(button, _('Trạng thái pin và nguồn điện'));
+    setAccessibleName(button, _('Battery and power status'));
     const row = new St.BoxLayout({ vertical: false });
     row.add_child(createIcon(iconName, 'caramos-cc-pill-icon'));
     row.add_child(new St.Label({ text, style_class: 'caramos-cc-pill-label', y_align: Clutter.ActorAlign.CENTER }));
@@ -1819,7 +1829,8 @@ function createSliderRow(iconName, labelText, initialValue, onChanged, onIconCli
     });
     const icon = createIcon(iconName, 'caramos-cc-slider-icon');
     iconButton.set_child(icon);
-    setAccessibleName(iconButton, `${_('Bật hoặc tắt tiếng')} ${labelText}`);
+    // Translators: accessible name of the icon button in front of a slider; %s is the slider name.
+    setAccessibleName(iconButton, _('Mute or unmute %s').format(labelText));
     if (onIconClicked) iconButton.connect('clicked', onIconClicked);
     row.add_child(iconButton);
 
@@ -1842,7 +1853,8 @@ function createSliderRow(iconName, labelText, initialValue, onChanged, onIconCli
             can_focus: true,
             track_hover: true,
         });
-        setAccessibleName(detailsButton, `${_('Mở chi tiết')} ${labelText}`);
+        // Translators: accessible name of a disclosure button; %s is a slider or tile name.
+        setAccessibleName(detailsButton, _('Open details for %s').format(labelText));
         detailsButton.set_child(createIcon('pan-end-symbolic', 'caramos-cc-audio-disclosure-icon'));
         detailsButton.connect('clicked', onDetails);
         row.add_child(detailsButton);
@@ -1892,7 +1904,9 @@ function createSplitTile(iconName, title, subtitle, active, onToggle, onExpand) 
     });
 
     const mainButton = new St.Button({ style_class: 'caramos-cc-split-main', reactive: true, can_focus: true, track_hover: true, x_expand: true, x_align: Clutter.ActorAlign.FILL });
-    setAccessibleName(mainButton, `${title}: ${subtitle}`);
+    // Translators: "label: value" pair, e.g. a tile name and its state ("Power mode: Balanced") or a
+    // network detail ("Gateway: 192.168.1.1").
+    setAccessibleName(mainButton, _('%s: %s').format(title, subtitle));
     const row = new St.BoxLayout({ vertical: false, x_align: Clutter.ActorAlign.FILL, x_expand: true });
     const iconSlot = createTileIconSlot(iconName);
     row.add_child(iconSlot.slot);
@@ -1909,7 +1923,7 @@ function createSplitTile(iconName, title, subtitle, active, onToggle, onExpand) 
     mainButton.connect('clicked', onToggle);
 
     const arrowButton = new St.Button({ style_class: 'caramos-cc-split-arrow', reactive: true, can_focus: true, track_hover: true });
-    setAccessibleName(arrowButton, `${_('Mở chi tiết')} ${title}`);
+    setAccessibleName(arrowButton, _('Open details for %s').format(title));
     arrowButton.set_child(createIcon('pan-end-symbolic', 'caramos-cc-arrow-icon'));
     arrowButton.connect('clicked', onExpand);
 
@@ -1941,7 +1955,7 @@ function createSimpleTile(iconName, title, subtitle, active, onClick) {
         x_expand: true,
         x_align: Clutter.ActorAlign.FILL,
     });
-    setAccessibleName(button, `${title}: ${subtitle}`);
+    setAccessibleName(button, _('%s: %s').format(title, subtitle));
     const row = new St.BoxLayout({ vertical: false, x_align: Clutter.ActorAlign.FILL, x_expand: true });
     const iconSlot = createTileIconSlot(iconName);
     row.add_child(iconSlot.slot);
@@ -2056,7 +2070,7 @@ function createAudioDeviceRow(iconName, text, selected, onClick) {
 class CaramOSControlCenterApplet extends Applet.IconApplet {
     constructor(metadata, orientation, panelHeight, instanceId) {
         super(orientation, panelHeight, instanceId);
-        this.set_applet_tooltip(_('Trung tâm điều khiển CaramOS'));
+        this.set_applet_tooltip(_('CaramOS Control Center'));
         this.actor.add_style_class_name('caramos-cc-panel-button');
 
         this._volumeNorm = 65536;
@@ -2534,14 +2548,14 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._batteryPill = createHeaderPill('battery-full-symbolic', '--%', () => spawnAllowed('powerSettings'));
         header.add_child(this._batteryPill);
         header.add_child(new St.Widget({ x_expand: true }));
-        header.add_child(createRoundButton('camera-photo-symbolic', 'screenshot', null, _('Chụp màn hình')));
-        header.add_child(createRoundButton('preferences-system-symbolic', 'settings', null, _('Mở cài đặt hệ thống')));
-        header.add_child(createRoundButton('system-lock-screen-symbolic', 'lock', null, _('Khóa màn hình')));
-        header.add_child(createRoundButton('system-shutdown-symbolic', null, () => this._openPowerOverlay(), _('Mở menu nguồn')));
+        header.add_child(createRoundButton('camera-photo-symbolic', 'screenshot', null, _('Take a screenshot')));
+        header.add_child(createRoundButton('preferences-system-symbolic', 'settings', null, _('Open system settings')));
+        header.add_child(createRoundButton('system-lock-screen-symbolic', 'lock', null, _('Lock screen')));
+        header.add_child(createRoundButton('system-shutdown-symbolic', null, () => this._openPowerOverlay(), _('Open power menu')));
         this._header = header;
         container.add_child(header);
 
-        this._volumeRow = createSliderRow('audio-volume-high-symbolic', 'Âm lượng', 50, value => {
+        this._volumeRow = createSliderRow('audio-volume-high-symbolic', _('Volume'), 50, value => {
             if (!this._updatingSliders) this._setStreamVolume(this._output, value);
         }, () => this._toggleStreamMute(this._output), dragging => this._setAudioSliderDragging('output', dragging),
         () => this._openAudioOverlay('output'));
@@ -2549,7 +2563,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._audioPointerSelection.output = true;
             return Clutter.EVENT_PROPAGATE;
         });
-        this._micRow = createSliderRow('microphone-sensitivity-high-symbolic', 'Mic', 50, value => {
+        // Translators: screen-reader name of the microphone volume slider; a short form is fine.
+        this._micRow = createSliderRow('microphone-sensitivity-high-symbolic', _('Microphone'), 50, value => {
             if (!this._updatingSliders) this._setStreamVolume(this._input, value);
         }, () => this._toggleStreamMute(this._input), dragging => this._setAudioSliderDragging('input', dragging),
         () => this._openAudioOverlay('input'));
@@ -2567,7 +2582,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         });
         this._brightnessRow = createSliderRow(
             'display-brightness-symbolic',
-            'Ánh sáng',
+            _('Brightness'),
             50,
             value => {
                 if (!this._updatingSliders) this._setBrightness(value);
@@ -2586,30 +2601,30 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         container.add_child(this._audioInputGroup);
         container.add_child(this._brightnessRow.actor);
 
-        this._ethernetTile = createSplitTile('network-wired-symbolic', _('Mạng dây'), _('Đang kiểm tra'), false, () => this._openSettings('networkSettings'), () => this._openEthernetOverlay());
-        this._wifiTile = createSplitTile('network-wireless-symbolic', _('Wi‑Fi'), _('Đang kiểm tra'), true, () => this._toggleWifi(), () => this._openWifiOverlay());
+        this._ethernetTile = createSplitTile('network-wired-symbolic', _('Wired network'), _('Checking…'), false, () => this._openSettings('networkSettings'), () => this._openEthernetOverlay());
+        this._wifiTile = createSplitTile('network-wireless-symbolic', _('Wi‑Fi'), _('Checking…'), true, () => this._toggleWifi(), () => this._openWifiOverlay());
         this._networkRow = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-grid-row', x_expand: true, x_align: Clutter.ActorAlign.FILL });
         this._networkRow.add_child(this._ethernetTile.actor);
         this._networkRow.add_child(this._wifiTile.actor);
 
-        this._vpnTile = createSplitTile('network-vpn-symbolic', _('VPN'), _('Chưa kết nối'), false, () => this._toggleVpn(), () => this._openVpnOverlay());
-        this._bluetoothTile = createSplitTile('bluetooth-symbolic', _('Bluetooth'), _('Đang kiểm tra'), false, () => this._toggleBluetooth(), () => this._openBluetoothOverlay());
+        this._vpnTile = createSplitTile('network-vpn-symbolic', _('VPN'), _('Not connected'), false, () => this._toggleVpn(), () => this._openVpnOverlay());
+        this._bluetoothTile = createSplitTile('bluetooth-symbolic', _('Bluetooth'), _('Checking…'), false, () => this._toggleBluetooth(), () => this._openBluetoothOverlay());
         this._connectionsRow = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-grid-row', x_expand: true, x_align: Clutter.ActorAlign.FILL });
         this._connectionsRow.add_child(this._vpnTile.actor);
         this._connectionsRow.add_child(this._bluetoothTile.actor);
 
         this._powerModeTile = createSplitTile(
             'preferences-system-power-symbolic',
-            _('Chế độ nguồn'),
-            _('Đang tải'),
+            _('Power mode'),
+            _('Loading…'),
             false,
             () => this._openPowerModeOverlay(),
             () => this._openPowerModeOverlay()
         );
-        this._darkModeTile = createSimpleTile('dark-mode-symbolic', _('Chế độ tối'), _('Đang tắt'), false, () => this._toggleDarkMode());
+        this._darkModeTile = createSimpleTile('dark-mode-symbolic', _('Dark mode'), _('Disabled'), false, () => this._toggleDarkMode());
         // dark-mode-symbolic is missing from Adwaita, Mint-Y and Mint-L; fall back to a moon.
         this._darkModeTile.icon.gicon = Gio.ThemedIcon.new_from_names(['dark-mode-symbolic', 'weather-clear-night-symbolic']);
-        this._nightLightTile = createSimpleTile('night-light-symbolic', _('Ánh sáng đêm'), _('Bật/tắt Night Light'), false, () => this._toggleNightLight());
+        this._nightLightTile = createSimpleTile('night-light-symbolic', _('Night Light'), _('Turn Night Light on or off'), false, () => this._toggleNightLight());
         this._displayRow = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-grid-row', x_expand: true, x_align: Clutter.ActorAlign.FILL });
         this._displayRow.add_child(this._darkModeTile.actor);
         this._displayRow.add_child(this._nightLightTile.actor);
@@ -2663,7 +2678,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         head.add_child(new St.Label({ text: title, style_class: 'caramos-cc-overlay-title', y_align: Clutter.ActorAlign.CENTER }));
         head.add_child(new St.Widget({ x_expand: true }));
         const closeBtn = new St.Button({ style_class: 'caramos-cc-overlay-close', reactive: true, can_focus: true, track_hover: true });
-        setAccessibleName(closeBtn, _('Đóng hộp thoại'));
+        setAccessibleName(closeBtn, _('Close dialog'));
         closeBtn.set_child(createIcon('window-close-symbolic', 'caramos-cc-overlay-close-icon'));
         closeBtn.connect('clicked', () => this._closeOverlay());
         head.add_child(closeBtn);
@@ -2685,7 +2700,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     }
 
     // First control in visual order. A breadth-first search would pick a shallow footer action (such as
-    // "Cài đặt nguồn") over list rows nested one level deeper.
+    // "Power settings") over list rows nested one level deeper.
     _focusFirstControl(container) {
         const first = this._focusableControls(container)[0];
         if (first) {
@@ -2875,7 +2890,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         head.add_child(new St.Label({ text: title, style_class: 'caramos-cc-inline-title', y_align: Clutter.ActorAlign.CENTER }));
         head.add_child(new St.Widget({ x_expand: true }));
         const closeBtn = new St.Button({ style_class: 'caramos-cc-inline-close', reactive: true, can_focus: true, track_hover: true });
-        setAccessibleName(closeBtn, `${_('Đóng')} ${title}`);
+        // Translators: accessible name of the close button of an inline panel; %s is the panel title.
+        setAccessibleName(closeBtn, _('Close %s').format(title));
         closeBtn.set_child(createIcon('window-close-symbolic', 'caramos-cc-inline-close-icon'));
         closeBtn.connect('button-press-event', (_actor, event) => {
             ccDebug('inline-x-press', { kind: this._expandedKind, ...ccEventDebug(event), focus: ccActorDebug(global.stage.key_focus) });
@@ -2951,11 +2967,11 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
 
     _powerProfileLabel(profile) {
         const labels = {
-            performance: _('Hiệu năng'),
-            balanced: _('Cân bằng'),
-            'power-saver': _('Tiết kiệm pin'),
+            performance: _('Performance'),
+            balanced: _('Balanced'),
+            'power-saver': _('Power saver'),
         };
-        return labels[profile] || profile || _('Không xác định');
+        return labels[profile] || profile || _('Unknown');
     }
 
     _powerProfileIcon(profile) {
@@ -2971,7 +2987,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._toggleInlinePanel(
             'power-mode',
             'preferences-system-power-symbolic',
-            _('Chế độ nguồn'),
+            _('Power mode'),
             body => this._fillPowerModeList(body),
             this._powerRow
         );
@@ -2985,15 +3001,16 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const state = this._powerProfilesState;
         const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
         if (state.loading && !state.available) {
-            list.add_child(new St.Label({ text: _('Đang tải chế độ nguồn…'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('Loading power modes…'), style_class: 'caramos-cc-expand-empty' }));
         } else if (!state.available) {
-            list.add_child(new St.Label({ text: _('Dịch vụ chế độ nguồn không khả dụng'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('Power mode service unavailable'), style_class: 'caramos-cc-expand-empty' }));
         } else if (!state.profiles.length) {
-            list.add_child(new St.Label({ text: _('Không có chế độ nguồn'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('No power modes'), style_class: 'caramos-cc-expand-empty' }));
         } else {
             state.profiles.forEach(profile => {
                 let label = this._powerProfileLabel(profile);
-                if (profile === 'performance' && state.performanceDegraded) label += _(' · bị giới hạn');
+                // Translators: %s is a power mode name; shown when the daemon reports degraded performance.
+                if (profile === 'performance' && state.performanceDegraded) label = _('%s · limited').format(label);
                 const item = createPowerProfileRow(
                     this._powerProfileIcon(profile),
                     label,
@@ -3008,7 +3025,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         }
         body.add_child(list);
         body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
-        body.add_child(createIconRow('preferences-system-power-symbolic', _('Cài đặt nguồn'), null, () => {
+        body.add_child(createIconRow('preferences-system-power-symbolic', _('Power settings'), null, () => {
             this._closeInlinePanel();
             spawnAllowed('powerSettings');
         }));
@@ -3027,23 +3044,23 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._powerProfilesState = state;
         if (this._powerModeTile) {
             const label = state.pendingProfile
-                ? _('Đang đổi…')
+                ? _('Changing…')
                 : state.error && state.available
-                    ? _('Không đổi được')
+                    ? _('Change failed')
                     : state.loading && !state.available
-                    ? _('Đang tải')
+                    ? _('Loading…')
                     : state.available
                         ? this._powerProfileLabel(state.activeProfile)
-                        : _('Không khả dụng');
+                        : _('Unavailable');
             this._powerModeTile.subtitleLabel.set_text(label);
-            setAccessibleName(this._powerModeTile.mainButton, `${_('Chế độ nguồn')}: ${label}`);
+            setAccessibleName(this._powerModeTile.mainButton, _('%s: %s').format(_('Power mode'), label));
             this._setSplitTileState(this._powerModeTile, !!(state.available && state.activeProfile), !!state.pendingProfile || state.loading);
         }
         if (this._expandedKind === 'power-mode' && this._expandedBody) this._fillPowerModeList(this._expandedBody);
     }
 
     _openPowerOverlay() {
-        this._toggleInlinePanel('power', 'system-shutdown-symbolic', _('Nguồn'),
+        this._toggleInlinePanel('power', 'system-shutdown-symbolic', _('Power'),
             body => this._fillPowerList(body), this._header);
     }
 
@@ -3058,19 +3075,19 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             body.add_child(new St.Label({ text: state.error, style_class: 'caramos-cc-expand-empty' }));
         }
         if (!state.available) {
-            body.add_child(new St.Label({ text: _('Dịch vụ phiên không khả dụng'), style_class: 'caramos-cc-expand-empty' }));
+            body.add_child(new St.Label({ text: _('Session service unavailable'), style_class: 'caramos-cc-expand-empty' }));
             return;
         }
         if (state.pending) {
-            body.add_child(new St.Label({ text: _('Đang xử lý…'), style_class: 'caramos-cc-expand-empty' }));
+            body.add_child(new St.Label({ text: _('Processing…'), style_class: 'caramos-cc-expand-empty' }));
         }
-        this._addSessionAction(body, 'media-playback-pause-symbolic', _('Tạm ngưng'), 'Suspend', state.canSuspend);
-        this._addSessionAction(body, 'weather-clear-night-symbolic', _('Ngủ đông'), 'Hibernate', state.canHibernate);
-        this._addSessionAction(body, 'view-refresh-symbolic', _('Khởi động lại…'), 'Restart', state.canRestart);
-        this._addSessionAction(body, 'system-shutdown-symbolic', _('Tắt máy…'), 'Shutdown', state.canShutdown);
+        this._addSessionAction(body, 'media-playback-pause-symbolic', _('Suspend'), 'Suspend', state.canSuspend);
+        this._addSessionAction(body, 'weather-clear-night-symbolic', _('Hibernate'), 'Hibernate', state.canHibernate);
+        this._addSessionAction(body, 'view-refresh-symbolic', _('Restart…'), 'Restart', state.canRestart);
+        this._addSessionAction(body, 'system-shutdown-symbolic', _('Shut down…'), 'Shutdown', state.canShutdown);
         body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
-        this._addSessionAction(body, 'system-log-out-symbolic', _('Đăng xuất…'), 'Logout', state.canLogout);
-        this._addSessionAction(body, 'system-users-symbolic', _('Chuyển người dùng…'), 'SwitchUser', state.canSwitchUser);
+        this._addSessionAction(body, 'system-log-out-symbolic', _('Log out…'), 'Logout', state.canLogout);
+        this._addSessionAction(body, 'system-users-symbolic', _('Switch user…'), 'SwitchUser', state.canSwitchUser);
     }
 
     _closeSubmenus() {
@@ -3121,7 +3138,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         if (!device || this._audioDevices[type].some(info => info.id === id)) return;
         this._audioDevices[type].push({
             id,
-            description: device.description || device.origin || (type === 'output' ? _('Thiết bị phát') : _('Thiết bị thu')),
+            description: device.description || device.origin || (type === 'output' ? _('Output device') : _('Input device')),
             origin: device.origin || '',
         });
         this._audioDevices[type].sort((left, right) => left.description.localeCompare(right.description));
@@ -3166,7 +3183,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._toggleInlinePanel(
             `audio-${type}`,
             output ? 'audio-speakers-symbolic' : 'audio-input-microphone-symbolic',
-            output ? _('Thiết bị phát âm thanh') : _('Thiết bị thu âm'),
+            output ? _('Sound output devices') : _('Sound input devices'),
             body => this._fillAudioDeviceList(body, type),
             output ? this._audioOutputGroup : this._audioInputGroup
         );
@@ -3179,7 +3196,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const devices = this._audioDevices[type] || [];
         const activeId = this._activeAudioDeviceIds[type];
         if (!devices.length) {
-            list.add_child(new St.Label({ text: _('Không có thiết bị âm thanh'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('No sound devices'), style_class: 'caramos-cc-expand-empty' }));
         } else {
             devices.forEach(info => {
                 const activate = () => {
@@ -3212,7 +3229,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         }
         body.add_child(list);
         body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
-        body.add_child(createIconRow('preferences-desktop-sound-symbolic', _('Mở cài đặt âm thanh'), null, () => {
+        body.add_child(createIconRow('preferences-desktop-sound-symbolic', _('Open sound settings'), null, () => {
             this._closeSubmenus();
             ccDebug('menu-close-explicit-sound-settings', { menuOpen: !!(this.menu && this.menu.isOpen) });
             if (this.menu && this.menu.isOpen) this.menu.close();
@@ -3584,15 +3601,15 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const available = !!this._themeSettings && (!!this._portalSettings || this._appearanceStyles.length > 0);
         setTileEnabled(tile, available);
         if (!available) {
-            tile.subtitleLabel.set_text(_('Không khả dụng'));
+            tile.subtitleLabel.set_text(_('Unavailable'));
             this._setSimpleTileState(tile, false, false);
             return;
         }
         const pending = this._appearancePending !== null;
         const dark = pending ? this._appearancePending : appearanceIsDark(this._appearanceStyles, this._currentAppearance());
-        const label = dark ? _('Đang bật') : _('Đang tắt');
+        const label = dark ? _('Enabled') : _('Disabled');
         tile.subtitleLabel.set_text(label);
-        setAccessibleName(tile.button, `${_('Chế độ tối')}: ${label}`);
+        setAccessibleName(tile.button, _('%s: %s').format(_('Dark mode'), label));
         this._setSimpleTileState(tile, dark, pending);
     }
 
@@ -3645,7 +3662,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         }
         const target = !state.enabled;
         this._wifiPendingTarget = target;
-        this._wifiTile.subtitleLabel.set_text(target ? _('Bật') : _('Tắt'));
+        this._wifiTile.subtitleLabel.set_text(target ? _('On') : _('Off'));
         this._setSplitTileState(this._wifiTile, target, true);
         if (!this._wifiBackend.setEnabled(target)) {
             this._wifiPendingTarget = null;
@@ -3662,11 +3679,11 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const renderedEnabled = pending ? this._wifiPendingTarget : state.enabled;
         setTileEnabled(this._wifiTile, state.available && state.hardwareEnabled);
         this._wifiTile.subtitleLabel.set_text(
-            !state.available ? _('Không có thiết bị')
-                : !state.hardwareEnabled ? _('Bị chặn bởi phần cứng')
-                    : pending ? (this._wifiPendingTarget ? _('Bật') : _('Tắt'))
-                        : !state.enabled ? _('Tắt')
-                            : active ? active.ssid : _('Bật')
+            !state.available ? _('No device')
+                : !state.hardwareEnabled ? _('Blocked by hardware')
+                    : pending ? (this._wifiPendingTarget ? _('On') : _('Off'))
+                        : !state.enabled ? _('Off')
+                            : active ? active.ssid : _('On')
         );
         this._setSplitTileState(
             this._wifiTile,
@@ -3688,7 +3705,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     _setBluetoothUi(powered) {
         this._bluetoothPowered = powered;
         if (!this._bluetoothTile) return;
-        this._bluetoothTile.subtitleLabel.set_text(powered ? _('Bật') : _('Tắt'));
+        this._bluetoothTile.subtitleLabel.set_text(powered ? _('On') : _('Off'));
         this._setSplitTileState(this._bluetoothTile, powered, false);
     }
 
@@ -3715,7 +3732,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const bluezState = this._bluezBackend ? this._bluezBackend.snapshot() : null;
         if (bluezState && bluezState.available && bluezState.adapter) {
             const target = !bluezState.adapter.powered;
-            this._bluetoothTile.subtitleLabel.set_text(target ? _('Bật') : _('Tắt'));
+            this._bluetoothTile.subtitleLabel.set_text(target ? _('On') : _('Off'));
             this._setSplitTileState(this._bluetoothTile, target, true);
             if (!this._bluezBackend.setPowered(target)) {
                 this._setBluetoothUi(bluezState.adapter.powered);
@@ -3803,7 +3820,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             available: !!networkAvailable,
             loading: false,
             profiles: profiles || [],
-            error: profiles ? '' : error || _('Không thể đọc trạng thái VPN'),
+            error: profiles ? '' : error || _('Could not read the VPN status'),
         });
         if (this._vpnRefreshQueued) {
             this._vpnRefreshQueued = false;
@@ -3841,10 +3858,10 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const active = state.profiles.filter(profile => profile.active);
         setTileEnabled(this._vpnTile, state.available);
         this._vpnTile.subtitleLabel.set_text(
-            !state.available ? _('Không khả dụng')
+            !state.available ? _('Unavailable')
                 : active.length === 1 ? active[0].name
-                    : active.length > 1 ? _(`${active.length} kết nối đang hoạt động`)
-                        : state.profiles.length ? _('Chưa kết nối') : _('Không có cấu hình')
+                    : active.length > 1 ? ngettext('%d active connection', '%d active connections', active.length).format(active.length)
+                        : state.profiles.length ? _('Not connected') : _('No profiles')
         );
         this._setSplitTileState(this._vpnTile, active.length > 0, this._vpnActionPending || state.loading);
         if (active.length) this._panelVpnIcon.show();
@@ -3879,7 +3896,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._setSplitTileState(this._vpnTile, active, true);
         spawnArgvChecked(['nmcli', 'connection', active ? 'up' : 'down', 'uuid', profile.uuid], (success, error) => {
             this._vpnActionPending = false;
-            this._vpnState.error = success ? '' : error || _('Không thể thay đổi VPN');
+            this._vpnState.error = success ? '' : error || _('Could not change the VPN connection');
             this._refreshVpnState();
             if (success) this._scheduleVpnRefresh();
         });
@@ -3896,8 +3913,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
 
     _vpnProfileSubtitle(profile) {
         return profile.active
-            ? profile.type === 'wireguard' ? _('WireGuard đang hoạt động') : _('Đang hoạt động')
-            : profile.type === 'wireguard' ? _('WireGuard') : _('Đã ngắt kết nối');
+            ? profile.type === 'wireguard' ? _('WireGuard active') : _('Active')
+            : profile.type === 'wireguard' ? _('WireGuard') : _('Disconnected');
     }
 
     _fillVpnList(body) {
@@ -3908,14 +3925,14 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const state = this._vpnState;
         const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
         if (!state.available) {
-            list.add_child(new St.Label({ text: _('NetworkManager không khả dụng'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('NetworkManager unavailable'), style_class: 'caramos-cc-expand-empty' }));
         } else if (state.loading && !state.profiles.length) {
-            list.add_child(new St.Label({ text: _('Đang đọc cấu hình VPN…'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('Reading VPN profiles…'), style_class: 'caramos-cc-expand-empty' }));
         } else if (state.error) {
             list.add_child(new St.Label({ text: state.error, style_class: 'caramos-cc-expand-empty' }));
-            list.add_child(createIconRow('view-refresh-symbolic', _('Thử lại'), null, () => this._refreshVpnState()));
+            list.add_child(createIconRow('view-refresh-symbolic', _('Try again'), null, () => this._refreshVpnState()));
         } else if (!state.profiles.length) {
-            list.add_child(new St.Label({ text: _('Không có cấu hình VPN'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('No VPN profiles'), style_class: 'caramos-cc-expand-empty' }));
         } else {
             state.profiles.slice(0, VPN_LIST_LIMIT).forEach(profile => {
                 const button = createIconRow(
@@ -3929,7 +3946,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         }
         body.add_child(list);
         body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
-        body.add_child(createIconRow('preferences-system-symbolic', _('Mở cài đặt VPN'), null, () => {
+        body.add_child(createIconRow('preferences-system-symbolic', _('Open VPN settings'), null, () => {
             this._closeInlinePanel();
             spawnAllowed('networkSettings');
         }));
@@ -3941,13 +3958,13 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     }
 
     _openEthernetOverlay() {
-        this._toggleInlinePanel('ethernet', 'network-wired-symbolic', _('Mạng dây'), body => {
+        this._toggleInlinePanel('ethernet', 'network-wired-symbolic', _('Wired network'), body => {
             this._fillEthernetList(body);
         }, this._networkRow);
     }
 
     _networkDetailText(label, value) {
-        return value ? `${label}: ${value}` : '';
+        return value ? _('%s: %s').format(label, value) : '';
     }
 
     _fillEthernetList(body) {
@@ -3958,25 +3975,27 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const devices = state.devices.filter(device => device.type === 'ethernet');
         const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
         if (!state.available) {
-            list.add_child(new St.Label({ text: _('NetworkManager không khả dụng'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('NetworkManager unavailable'), style_class: 'caramos-cc-expand-empty' }));
         } else if (!devices.length) {
-            list.add_child(new St.Label({ text: _('Không có thiết bị mạng dây'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('No wired network devices'), style_class: 'caramos-cc-expand-empty' }));
         } else {
             devices.forEach(device => {
-                const marker = device.device === state.defaultDevice ? _(' · tuyến mặc định') : '';
+                const deviceName = device.device || _('Wired network');
+                // Translators: %s is a network interface name; marks the device that carries the default route.
+                const deviceLabel = device.device === state.defaultDevice ? _('%s · default route').format(deviceName) : deviceName;
                 list.add_child(createIconRow(
                     device.active ? 'network-wired-symbolic' : 'network-wired-disconnected-symbolic',
-                    `${device.device || _('Mạng dây')}${marker}`,
+                    deviceLabel,
                     device.active ? 'object-select-symbolic' : null,
                     () => this._openSettings('networkSettings')
                 ));
                 const lines = [
-                    this._networkDetailText(_('Trạng thái'), networkDeviceStateText(device.state)),
-                    this._networkDetailText(_('Cấu hình'), device.connection),
-                    this._networkDetailText(_('Liên kết'), device.carrier === null ? '' : device.carrier ? _('Có tín hiệu') : _('Mất tín hiệu')),
-                    this._networkDetailText(_('Tốc độ'), device.speed ? `${device.speed} Mb/s` : ''),
-                    this._networkDetailText(_('Địa chỉ'), device.addresses.join(', ')),
-                    this._networkDetailText(_('Cổng mạng'), device.gateway),
+                    this._networkDetailText(_('Status'), networkDeviceStateText(device.state)),
+                    this._networkDetailText(_('Profile'), device.connection),
+                    this._networkDetailText(_('Link'), device.carrier === null ? '' : device.carrier ? _('Signal detected') : _('No signal')),
+                    this._networkDetailText(_('Speed'), device.speed ? `${device.speed} Mb/s` : ''),
+                    this._networkDetailText(_('Address'), device.addresses.join(', ')),
+                    this._networkDetailText(_('Gateway'), device.gateway),
                     this._networkDetailText(_('DNS'), device.dns.join(', ')),
                 ].filter(Boolean);
                 if (lines.length) {
@@ -3991,12 +4010,12 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         body.add_child(list);
         body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
         if (state.connectivity === 2 || state.connectivity === 3) {
-            body.add_child(createIconRow('web-browser-symbolic', _('Mở trang đăng nhập mạng'), null, () => {
+            body.add_child(createIconRow('web-browser-symbolic', _('Open network sign-in page'), null, () => {
                 this._closeInlinePanel();
                 spawnArgvAsync(['xdg-open', 'http://nmcheck.gnome.org/']);
             }));
         }
-        body.add_child(createIconRow('preferences-system-symbolic', _('Mở cài đặt mạng'), null, () => {
+        body.add_child(createIconRow('preferences-system-symbolic', _('Open network settings'), null, () => {
             this._closeInlinePanel();
             spawnAllowed('networkSettings');
         }));
@@ -4028,14 +4047,14 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const state = this._wifiBackend ? this._wifiBackend.snapshot() : null;
         const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
         if (!state || !state.available) {
-            list.add_child(new St.Label({ text: _('Không có thiết bị Wi‑Fi'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('No Wi‑Fi device'), style_class: 'caramos-cc-expand-empty' }));
         } else if (!state.hardwareEnabled) {
-            list.add_child(new St.Label({ text: _('Wi‑Fi bị chặn bởi phần cứng'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('Wi‑Fi is blocked by hardware'), style_class: 'caramos-cc-expand-empty' }));
         } else if (!state.enabled) {
-            list.add_child(new St.Label({ text: _('Wi‑Fi đang tắt'), style_class: 'caramos-cc-expand-empty' }));
+            list.add_child(new St.Label({ text: _('Wi‑Fi is off'), style_class: 'caramos-cc-expand-empty' }));
         } else if (!state.networks.length) {
             list.add_child(new St.Label({
-                text: state.scanning ? _('Đang tìm mạng Wi‑Fi…') : _('Không thấy mạng Wi‑Fi'),
+                text: state.scanning ? _('Searching for Wi‑Fi networks…') : _('No Wi‑Fi networks found'),
                 style_class: 'caramos-cc-expand-empty',
             }));
         } else {
@@ -4051,11 +4070,11 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         body.add_child(list);
         body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
         if (state && state.available && state.enabled) {
-            body.add_child(createIconRow('view-refresh-symbolic', _('Tìm lại mạng Wi‑Fi'), null, () => {
+            body.add_child(createIconRow('view-refresh-symbolic', _('Scan for Wi‑Fi networks again'), null, () => {
                 if (this._wifiBackend) this._wifiBackend.requestScan();
             }));
         }
-        body.add_child(createIconRow('preferences-system-symbolic', _('Mở cài đặt mạng'), null, () => {
+        body.add_child(createIconRow('preferences-system-symbolic', _('Open network settings'), null, () => {
             this._closeInlinePanel();
             spawnAllowed('networkSettings');
         }));
@@ -4111,7 +4130,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
         if (bluezState && bluezState.adapter && bluezState.adapter.discovering) {
             list.add_child(new St.Label({
-                text: _('Đang tìm thiết bị Bluetooth…'),
+                text: _('Searching for Bluetooth devices…'),
                 style_class: 'caramos-cc-expand-empty',
             }));
         }
@@ -4129,8 +4148,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         } else {
             list.add_child(new St.Label({
                 text: bluezState && bluezState.available
-                    ? _('Không có thiết bị khả dụng hoặc đã kết nối')
-                    : _('BlueZ không khả dụng; mở cài đặt Bluetooth'),
+                    ? _('No available or connected devices')
+                    : _('BlueZ unavailable; open Bluetooth settings'),
                 style_class: 'caramos-cc-expand-empty',
             }));
         }
@@ -4140,7 +4159,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const discovering = !!(bluezState && bluezState.adapter && bluezState.adapter.discovering);
         body.add_child(createIconRow(
             discovering ? 'media-playback-stop-symbolic' : 'view-refresh-symbolic',
-            discovering ? _('Dừng tìm thiết bị') : _('Tìm thiết bị mới'),
+            discovering ? _('Stop searching') : _('Search for new devices'),
             null,
             () => {
                 if (!this._bluezBackend) return;
@@ -4148,7 +4167,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
                 else this._bluezBackend.startDiscovery();
             }
         ));
-        body.add_child(createIconRow('preferences-system-symbolic', _('Cài đặt Bluetooth'), null, () => {
+        body.add_child(createIconRow('preferences-system-symbolic', _('Bluetooth settings'), null, () => {
             this._closeInlinePanel();
             spawnAllowed('bluetoothSettings');
         }));
@@ -4201,17 +4220,17 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         if (hasBluetooth) {
             this._setBluetoothUi(!!bluezState.adapter.powered);
         } else {
-            this._bluetoothTile.subtitleLabel.set_text(_('Không khả dụng'));
+            this._bluetoothTile.subtitleLabel.set_text(_('Unavailable'));
             this._setSplitTileState(this._bluetoothTile, false, false);
         }
 
         setTileEnabled(this._nightLightTile, this._nightLightSettings !== null);
         if (this._nightLightSettings) {
             const enabled = this._nightLightSettings.get_boolean(NIGHT_LIGHT_KEY);
-            this._nightLightTile.subtitleLabel.set_text(enabled ? _('Đang bật') : _('Đang tắt'));
+            this._nightLightTile.subtitleLabel.set_text(enabled ? _('Enabled') : _('Disabled'));
             this._setSimpleTileState(this._nightLightTile, enabled, false);
         } else {
-            this._nightLightTile.subtitleLabel.set_text(_('Không khả dụng'));
+            this._nightLightTile.subtitleLabel.set_text(_('Unavailable'));
             this._setSimpleTileState(this._nightLightTile, false, false);
         }
     }
@@ -4267,9 +4286,9 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
 
         setTileEnabled(this._ethernetTile, ethernetAvailable);
         this._ethernetTile.subtitleLabel.set_text(
-            !state.available ? _('Không khả dụng')
-                : !ethernetAvailable ? _('Không có thiết bị')
-                    : ethernetConnected ? (state.defaultDevice === state.ethernet.device ? _('Đang dùng Internet') : networkDeviceStateText(state.ethernet.state))
+            !state.available ? _('Unavailable')
+                : !ethernetAvailable ? _('No device')
+                    : ethernetConnected ? (state.defaultDevice === state.ethernet.device ? _('In use for Internet') : networkDeviceStateText(state.ethernet.state))
                         : networkDeviceStateText(state.ethernet.state)
         );
         if (state.connectivity && state.connectivity !== 4 && ethernetConnected) {
@@ -4281,8 +4300,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             setTileEnabled(this._wifiTile, wifiAvailable);
             const wifiName = wifiAvailable && state.wifi.connection ? state.wifi.connection : '';
             this._wifiTile.subtitleLabel.set_text(
-                !state.available ? _('Không khả dụng')
-                    : !wifiAvailable ? _('Không có thiết bị')
+                !state.available ? _('Unavailable')
+                    : !wifiAvailable ? _('No device')
                         : wifiConnected ? (wifiName || networkDeviceStateText(state.wifi.state))
                             : networkDeviceStateText(state.wifi.state)
             );
@@ -4339,7 +4358,10 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         if (!seconds || seconds < 60) return '';
         const minutes = Math.round(seconds / 60);
         const hours = Math.floor(minutes / 60);
-        return hours ? `${hours}h ${minutes % 60}m` : `${minutes}m`;
+        // Translators: remaining battery time, abbreviated hours and minutes (e.g. "2h 15m").
+        if (hours) return _('%dh %dm').format(hours, minutes % 60);
+        // Translators: remaining battery time, abbreviated minutes (e.g. "45m").
+        return _('%dm').format(minutes);
     }
 
     _updateBatteryUi(battery) {
@@ -4349,8 +4371,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._batteryPill.get_child().get_children()[1].set_text(text);
         const deviceCount = this._powerState && this._powerState.devices ? this._powerState.devices.length : 0;
         const source = battery.kind === (UPowerGlib && UPowerGlib.DeviceKind ? UPowerGlib.DeviceKind.UPS : 3)
-            ? _('UPS') : deviceCount > 1 ? _(`${deviceCount} thiết bị nguồn`) : _('Pin');
-        setAccessibleName(this._batteryPill, `${source}: ${text}`);
+            ? _('UPS') : deviceCount > 1 ? ngettext('%d power device', '%d power devices', deviceCount).format(deviceCount) : _('Battery');
+        setAccessibleName(this._batteryPill, _('%s: %s').format(source, text));
     }
 
 }

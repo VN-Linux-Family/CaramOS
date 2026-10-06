@@ -14,6 +14,7 @@ usr/share/applications/caramos-audit.desktop usr/share/applications/
 usr/share/pixmaps/caramos-logo.png usr/share/pixmaps/
 usr/share/pixmaps/caramos-logo.png usr/share/icons/hicolor/512x512/apps/
 usr/share/keyrings/caramos-archive-keyring.gpg usr/share/keyrings/
+usr/share/locale usr/share/
 usr/share/polkit-1/actions/net.vietnamlinuxfamily.caramos-ota.policy usr/share/polkit-1/actions/
 etc/apt/sources.list.d/caramos-ppa.sources etc/apt/sources.list.d/
 lib/systemd/system/caramos-ota-check.service lib/systemd/system/

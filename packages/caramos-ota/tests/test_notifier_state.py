@@ -33,8 +33,9 @@ class NotifierStateTests(unittest.TestCase):
             }
         )
 
-        self.assertEqual("Chưa rõ", package["current"])
-        self.assertEqual("Chưa rõ", package["available"])
+        # No compiled catalog in the source tree, so the English fallback shows.
+        self.assertEqual("Unknown", package["current"])
+        self.assertEqual("Unknown", package["available"])
         self.assertEqual("Cập nhật bố cục taskbar.", package["description"])
 
 

@@ -1,0 +1,372 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the caramos-ota package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: caramos-ota\n"
+"Report-Msgid-Bugs-To: developer@vietnamlinuxfamily.net\n"
+"POT-Creation-Date: 2026-10-06 00:11+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:96
+msgid "New features"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:97
+msgid "Important"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:98
+msgid "Normal"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:99
+msgid "None"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:141
+msgid "CaramOS - Update Center"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:164
+msgid "A new CaramOS update is available"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:167
+msgid "This update runs the CaramOS migrations the new version needs."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:205
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:472
+msgid "Current version"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:217
+msgid "Available version"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:232
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:474
+msgid "Update channel"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:233
+msgid "Severity"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:234
+msgid "Size"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:243
+#, python-format
+msgid "%d change in this update"
+msgid_plural "%d changes in this update"
+msgstr[0] ""
+msgstr[1] ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:257
+msgid "CaramOS update"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:270
+msgid ""
+"Recommended: plug in the charger, keep a stable network connection and do "
+"not turn off the computer during the update. You can close this window and "
+"update later."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:282
+msgid "Later"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:283
+msgid "Update now"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:316
+msgid "CARAMOS OTA • UPDATING"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:323
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:48
+msgid "Updating CaramOS…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:328
+msgid "Preparing the update…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:342
+msgid "Update progress"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:359
+msgid "Please do not turn off the computer or close the update."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:382
+msgid "Update complete!"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:383
+msgid "CaramOS was updated successfully."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:385
+msgid "Update failed"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:386
+msgid ""
+"Something went wrong during the update. Try again or run sudo caramos-ota --"
+"repair."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:403
+msgid "Update details"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:419
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:487
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:97
+msgid "Close"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:449
+msgid "CaramOS is up to date"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:454
+msgid "The system runs the latest version in the stable update channel."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:464
+msgid "Update status"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:473
+msgid "Latest version"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:481
+msgid ""
+"There are no new migrations to install.\n"
+"\n"
+"You can close this window. CaramOS OTA keeps checking periodically with a "
+"systemd timer."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:35
+msgid "Downloading the package list…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:37
+msgid "Checking the update repository…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:39
+msgid "Preparing migrations…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:41
+msgid "Running system migrations…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:43
+msgid "Updating version information…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:45
+msgid "Finishing the update…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:47
+msgid "The update ran into an error."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:82
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:87
+msgid "The update timed out (10 minutes)."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:89
+msgid "The pkexec command was not found."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:149
+msgid "CaramOS - Updating…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:194
+msgid "Update complete."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:194
+msgid "Update failed."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:203
+msgid "CaramOS - Update complete!"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:203
+msgid "CaramOS - Update failed"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:37
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:60
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:61
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:91
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:96
+msgid "Unknown"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:46
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:59
+msgid "Unknown migration"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:16
+msgid "Detect automatically"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:17
+msgid "Wi-Fi / Network"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:19
+msgid "Sound"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:20
+msgid "Display"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:21
+msgid "Power / Battery"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:23
+msgid "OTA updates"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:24
+msgid "Other"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:54
+msgid "Collect a bug report"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:58
+msgid ""
+"After the problem happens, press the button below. CaramOS collects the "
+"state and logs it needs."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:64
+msgid ""
+"No steps to type. Nothing is uploaded. Passwords, cookies, the clipboard, "
+"SSH/GPG keys and browser history are never collected."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:71
+msgid "Problem area:"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:82
+msgid ""
+"Optional short note, for example: Wi-Fi does not connect when I click it"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:86
+msgid "Ready. Press Collect now right after the problem happens."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:93
+msgid "Not collected yet"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:98
+msgid "Collect now"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:106
+msgid "Done"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:107
+#, python-format
+msgid "Created: %s"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:109
+msgid "Open containing folder"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:117
+msgid "Error"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:118
+#, python-format
+msgid "Could not create the report: %s"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:126
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:260
+msgid "Automatic report after the problem happened"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:127
+msgid "The user reproduced the problem, then opened CaramOS Audit"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:128
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:262
+msgid "The feature works normally"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:129
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:263
+msgid "See the automatically collected state and logs"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:135
+msgid "Collecting"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:137
+msgid "Collecting the hardware, network and sound state and the latest logs…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:118
+msgid "(no steps)"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:168
+msgid "Preparing the report bundle"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:172
+msgid "Writing the report"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:190
+msgid "Computing checksums"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_audit/cli.py:261
+msgid "The user reproduced the problem, then ran CaramOS Audit"
+msgstr ""

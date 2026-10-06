@@ -13,7 +13,7 @@ class NotifierUiStaticTests(unittest.TestCase):
     def test_update_list_shows_descriptions_without_versions_or_badges(self) -> None:
         source = UI.read_text(encoding="utf-8")
         self.assertIn('pkg.get("description") or pkg.get("name")', source)
-        self.assertIn("Nội dung sẽ cập nhật", source)
+        self.assertIn("%d change in this update", source)
         self.assertNotIn('badge = "bắt buộc"', source)
         self.assertNotIn("ver_lbl.set_text", source)
         self.assertNotIn("set_tooltip_text(str(pkg", source)

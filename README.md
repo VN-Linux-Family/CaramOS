@@ -231,7 +231,7 @@ Cài dependency build trên Ubuntu/Mint/Debian:
 
 ```bash
 sudo apt update
-sudo apt install squashfs-tools xorriso rsync wget curl isolinux syslinux-common syslinux-utils
+sudo apt install squashfs-tools xorriso rsync wget curl isolinux syslinux-common syslinux-utils gettext
 ```
 
 Build dev đầy đủ, nén `lz4` để test nhanh:

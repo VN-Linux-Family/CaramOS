@@ -6,6 +6,8 @@
   "size": "GRUB theme (32 KB)",
   "title": "Menu khởi động mang giao diện CaramOS",
   "summary": "Thay menu GRUB chữ xanh trên nền xanh bằng theme CaramOS, hiện khi máy có nhiều hệ điều hành hoặc khi giữ Shift/Esc lúc khởi động.",
+  "title_en": "CaramOS look for the boot menu",
+  "summary_en": "Replace the cyan-on-blue GRUB menu with the CaramOS theme, shown on machines with several operating systems or when holding Shift/Esc at startup.",
   "release_notes_vi": [
     "Menu GRUB có hình nền CaramOS, mục đang chọn tô màu cam.",
     "Theme đặt trong /boot/grub/themes/caramos; GRUB_THEME đặt sẵn trong /etc/default/grub vẫn được giữ."

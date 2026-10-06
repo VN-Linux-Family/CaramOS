@@ -416,7 +416,7 @@ class DarkModeAppletContractTests(unittest.TestCase):
         return match.group(1)
 
     def test_tile_toggles_and_has_icon_fallback(self) -> None:
-        self.assertIn("createSimpleTile('dark-mode-symbolic', _('Chế độ tối')", self.source)
+        self.assertIn("createSimpleTile('dark-mode-symbolic', _('Dark mode')", self.source)
         self.assertIn("Gio.ThemedIcon.new_from_names(['dark-mode-symbolic', 'weather-clear-night-symbolic'])", self.source)
         self.assertIn("() => this._toggleDarkMode()", self.source)
 

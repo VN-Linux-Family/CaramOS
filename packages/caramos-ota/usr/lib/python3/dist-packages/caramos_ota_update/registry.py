@@ -43,6 +43,8 @@ class MigrationDescriptor:
     release_notes_en: list[str]
     from_version: str | None = None
     to_version: str | None = None
+    title_en: str = ""
+    summary_en: str = ""
 
     @property
     def legacy(self) -> bool:
@@ -238,6 +240,8 @@ def _descriptor(directory: Path) -> MigrationDescriptor:
         release_notes_en=notes_en,
         from_version=from_version,
         to_version=to_version,
+        title_en=str(raw.get("title_en") or ""),
+        summary_en=str(raw.get("summary_en") or ""),
     )
 
 

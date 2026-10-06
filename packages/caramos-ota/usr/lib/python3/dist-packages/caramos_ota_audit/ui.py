@@ -6,21 +6,22 @@ import subprocess
 import threading
 from pathlib import Path
 
+from caramos_ota.i18n import _
 from caramos_ota_notifier.ui import apply_theme, import_gtk, set_caramos_icon
 
 from .cli import AuditReport, create_audit_bundle
 
 DEFAULT_OUTPUT_DIR = str(Path.home() / "Desktop")
 AREAS = (
-    ("Tự động nhận diện", "automatic"),
-    ("Wi-Fi / Mạng", "network"),
+    (_("Detect automatically"), "automatic"),
+    (_("Wi-Fi / Network"), "network"),
     ("Bluetooth", "bluetooth"),
-    ("Âm thanh", "audio"),
-    ("Màn hình", "display"),
-    ("Nguồn / Pin", "power"),
+    (_("Sound"), "audio"),
+    (_("Display"), "display"),
+    (_("Power / Battery"), "power"),
     ("Control Center", "control-center"),
-    ("Cập nhật OTA", "ota"),
-    ("Khác", "other"),
+    (_("OTA updates"), "ota"),
+    (_("Other"), "other"),
 )
 
 
@@ -49,23 +50,25 @@ def run_gui(*, summary: str = "", steps: str = "", expected: str = "", actual: s
     hero = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     hero.get_style_context().add_class("hero")
     title = Gtk.Label()
-    title.set_markup("<span foreground='#ffffff' size='large' weight='bold'>Thu thập báo cáo lỗi</span>")
+    title.set_markup(
+        "<span foreground='#ffffff' size='large' weight='bold'>{}</span>".format(GLib.markup_escape_text(_("Collect a bug report")))
+    )
     title.set_xalign(0)
     hero.pack_start(title, False, False, 0)
-    intro = Gtk.Label(label="Sau khi lỗi xảy ra, bấm nút bên dưới. CaramOS tự lấy trạng thái và log cần thiết.")
+    intro = Gtk.Label(label=_("After the problem happens, press the button below. CaramOS collects the state and logs it needs."))
     intro.set_xalign(0)
     intro.set_line_wrap(True)
     hero.pack_start(intro, False, False, 0)
     outer.pack_start(hero, False, False, 0)
 
-    privacy = Gtk.Label(label="Không cần nhập các bước. Không upload. Không lấy mật khẩu, cookie, clipboard, SSH/GPG hoặc lịch sử trình duyệt.")
+    privacy = Gtk.Label(label=_("No steps to type. Nothing is uploaded. Passwords, cookies, the clipboard, SSH/GPG keys and browser history are never collected."))
     privacy.set_xalign(0)
     privacy.set_line_wrap(True)
     privacy.get_style_context().add_class("warning")
     outer.pack_start(privacy, False, False, 0)
 
     area_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=10)
-    area_label = Gtk.Label(label="Lỗi liên quan:")
+    area_label = Gtk.Label(label=_("Problem area:"))
     area_label.set_xalign(0)
     area_box.pack_start(area_label, False, False, 0)
     area_combo = Gtk.ComboBoxText()
@@ -76,23 +79,23 @@ def run_gui(*, summary: str = "", steps: str = "", expected: str = "", actual: s
     outer.pack_start(area_box, False, False, 0)
 
     note = Gtk.Entry()
-    note.set_placeholder_text("Ghi chú ngắn nếu muốn, ví dụ: bấm kết nối Wi-Fi nhưng không vào được")
+    note.set_placeholder_text(_("Optional short note, for example: Wi-Fi does not connect when I click it"))
     note.set_text(summary)
     outer.pack_start(note, False, False, 0)
 
-    status = Gtk.Label(label="Sẵn sàng. Hãy bấm Thu thập ngay sau khi lỗi xảy ra.")
+    status = Gtk.Label(label=_("Ready. Press Collect now right after the problem happens."))
     status.set_xalign(0)
     status.set_line_wrap(True)
     outer.pack_start(status, False, False, 0)
 
     progress = Gtk.ProgressBar()
     progress.set_show_text(True)
-    progress.set_text("Chưa thu thập")
+    progress.set_text(_("Not collected yet"))
     outer.pack_start(progress, False, False, 0)
 
     buttons = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=8)
-    close_button = Gtk.Button(label="Đóng")
-    collect_button = Gtk.Button(label="Thu thập ngay")
+    close_button = Gtk.Button(label=_("Close"))
+    collect_button = Gtk.Button(label=_("Collect now"))
     collect_button.get_style_context().add_class("suggested-action")
     buttons.pack_end(close_button, False, False, 0)
     buttons.pack_end(collect_button, False, False, 0)
@@ -100,10 +103,10 @@ def run_gui(*, summary: str = "", steps: str = "", expected: str = "", actual: s
 
     def finish(result) -> bool:
         progress.set_fraction(1.0)
-        progress.set_text("Đã xong")
-        status.set_text(f"Đã tạo: {result.bundle_path}")
+        progress.set_text(_("Done"))
+        status.set_text(_("Created: %s") % result.bundle_path)
         collect_button.set_sensitive(True)
-        open_button = Gtk.Button(label="Mở thư mục chứa file")
+        open_button = Gtk.Button(label=_("Open containing folder"))
         open_button.connect("clicked", lambda _: _open_folder(result.output_dir))
         buttons.pack_start(open_button, False, False, 0)
         open_button.show()
@@ -111,8 +114,8 @@ def run_gui(*, summary: str = "", steps: str = "", expected: str = "", actual: s
 
     def fail(message: str) -> bool:
         progress.set_fraction(0.0)
-        progress.set_text("Lỗi")
-        status.set_text(f"Không tạo được báo cáo: {message}")
+        progress.set_text(_("Error"))
+        status.set_text(_("Could not create the report: %s") % message)
         collect_button.set_sensitive(True)
         return False
 
@@ -120,18 +123,18 @@ def run_gui(*, summary: str = "", steps: str = "", expected: str = "", actual: s
         selected_area = area_combo.get_active_id() or "automatic"
         user_note = note.get_text().strip()
         report = AuditReport(
-            summary=user_note or "Báo cáo tự động sau khi lỗi xảy ra",
-            steps=["Người dùng tái hiện lỗi rồi mở CaramOS Audit"],
-            expected="Tính năng hoạt động bình thường",
-            actual=user_note or "Xem trạng thái và log được thu thập tự động",
+            summary=user_note or _("Automatic report after the problem happened"),
+            steps=[_("The user reproduced the problem, then opened CaramOS Audit")],
+            expected=_("The feature works normally"),
+            actual=user_note or _("See the automatically collected state and logs"),
             area=selected_area,
             created_at=None,
         )
         target_dir = output_dir or DEFAULT_OUTPUT_DIR
         collect_button.set_sensitive(False)
-        progress.set_text("Đang thu thập")
+        progress.set_text(_("Collecting"))
         progress.pulse()
-        status.set_text("Đang lấy trạng thái phần cứng, mạng, âm thanh và log gần nhất...")
+        status.set_text(_("Collecting the hardware, network and sound state and the latest logs…"))
 
         def progress_callback(message: str) -> None:
             GLib.idle_add(status.set_text, str(message))

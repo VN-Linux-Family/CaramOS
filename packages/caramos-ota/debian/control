@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
 Standards-Version: 4.6.2
 Build-Depends: debhelper-compat (= 13),
+ gettext,
  python3
 Rules-Requires-Root: no
 
@@ -27,6 +28,6 @@ Description: CaramOS over-the-air update and offline audit tools
  Features:
   - CLI-based update check, install, status, repair, and rollback
   - Daily automatic check via systemd timer
-  - Desktop notification with GTK3 dialog (Vietnamese)
+  - Desktop notification with GTK3 dialog (Vietnamese and English)
   - Privilege escalation through pkexec/polkit
   - Transaction logging and best-effort rollback

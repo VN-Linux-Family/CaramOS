@@ -6,6 +6,8 @@ import html
 from pathlib import Path
 from typing import Any
 
+from caramos_ota.i18n import _, localized, ngettext
+
 from .state import format_value, normalize_package
 
 CARAMOS_ICON = Path("/usr/share/pixmaps/caramos-logo.png")
@@ -87,11 +89,23 @@ def apply_theme(Gtk, Gdk) -> None:
     )
 
 
+def severity_label(severity: str) -> str:
+    """Translate the manifest severity token (feature/important/normal/none)."""
+
+    labels = {
+        "feature": _("New features"),
+        "important": _("Important"),
+        "normal": _("Normal"),
+        "none": _("None"),
+    }
+    return labels.get(severity, severity)
+
+
 def add_info_row(Gtk, grid, row: int, label: str, value: object) -> None:
     """Add a label/value row to a GTK grid."""
 
     key = Gtk.Label()
-    key.set_markup(f"<span foreground='#6b7280'>{label}</span>")
+    key.set_markup(f"<span foreground='#6b7280'>{html.escape(label)}</span>")
     key.set_xalign(0)
     key.set_valign(Gtk.Align.START)
     grid.attach(key, 0, row, 1, 1)
@@ -120,11 +134,11 @@ def _add_action_buttons(Gtk, outer, buttons: list[tuple[str, Any]]) -> None:
 def build_update_window():
     """Build the single top-level window used by every notifier state."""
 
-    Gtk, Gdk, _ = import_gtk()
+    Gtk, Gdk, _glib = import_gtk()
     apply_theme(Gtk, Gdk)
 
     window = Gtk.Window()
-    window.set_title("CaramOS - Trung tâm cập nhật")
+    window.set_title(_("CaramOS - Update Center"))
     window.set_default_size(*_screen_dialog_size(Gdk))
     window.set_resizable(True)
     window.set_position(Gtk.WindowPosition.CENTER)
@@ -140,17 +154,17 @@ def build_update_window():
 def build_update_page(update_info: dict[str, Any], on_accept, on_close):
     """Build the available-update page."""
 
-    Gtk, _, _ = import_gtk()
+    Gtk, _gdk, _glib = import_gtk()
 
     current_version = format_value(update_info.get("current_version") or update_info.get("from_version"))
     new_release = format_value(update_info.get("release") or update_info.get("to_version"))
     channel = format_value(update_info.get("channel"), "stable")
-    severity = format_value(update_info.get("severity"), "normal")
-    size = format_value(update_info.get("size"), "Chưa rõ")
-    title = format_value(update_info.get("title"), "CaramOS có bản cập nhật mới")
+    severity = severity_label(format_value(update_info.get("severity"), "normal"))
+    size = format_value(update_info.get("size"))
+    title = format_value(localized(update_info, "title"), _("A new CaramOS update is available"))
     summary = format_value(
-        update_info.get("summary"),
-        "Bản cập nhật này sẽ chạy migration CaramOS cần thiết cho phiên bản mới.",
+        localized(update_info, "summary"),
+        _("This update runs the CaramOS migrations the new version needs."),
     )
     packages = [normalize_package(pkg) for pkg in update_info.get("packages", [])]
 
@@ -188,7 +202,7 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
 
     old_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
     old_card.get_style_context().add_class("card")
-    old_lbl = Gtk.Label(label="Phiên bản hiện tại")
+    old_lbl = Gtk.Label(label=_("Current version"))
     old_lbl.get_style_context().add_class("muted")
     old_lbl.set_xalign(0)
     old_val = Gtk.Label(label=current_version)
@@ -200,7 +214,7 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
 
     new_card = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=4)
     new_card.get_style_context().add_class("card")
-    new_lbl = Gtk.Label(label="Phiên bản khả dụng")
+    new_lbl = Gtk.Label(label=_("Available version"))
     new_lbl.get_style_context().add_class("muted")
     new_lbl.set_xalign(0)
     new_val = Gtk.Label(label=new_release)
@@ -215,16 +229,20 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
     meta_card.set_column_spacing(16)
     meta_card.set_row_spacing(7)
     outer.pack_start(meta_card, False, False, 0)
-    add_info_row(Gtk, meta_card, 0, "Kênh cập nhật", channel)
-    add_info_row(Gtk, meta_card, 1, "Mức độ", severity)
-    add_info_row(Gtk, meta_card, 2, "Dung lượng", size)
+    add_info_row(Gtk, meta_card, 0, _("Update channel"), channel)
+    add_info_row(Gtk, meta_card, 1, _("Severity"), severity)
+    add_info_row(Gtk, meta_card, 2, _("Size"), size)
 
     pkg_panel = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8)
     pkg_panel.get_style_context().add_class("card")
     outer.pack_start(pkg_panel, True, True, 0)
 
     pkg_title = Gtk.Label()
-    pkg_title.set_markup(f"<span weight='bold'>Nội dung sẽ cập nhật ({len(packages)})</span>")
+    pkg_title.set_markup(
+        "<span weight='bold'>{}</span>".format(
+            html.escape(ngettext("%d change in this update", "%d changes in this update", len(packages)) % len(packages))
+        )
+    )
     pkg_title.set_xalign(0)
     pkg_panel.pack_start(pkg_title, False, False, 0)
 
@@ -236,7 +254,7 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
     pkg_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     for pkg in packages:
         item = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=3)
-        description = format_value(pkg.get("description") or pkg.get("name"), "Cập nhật CaramOS")
+        description = format_value(pkg.get("description") or pkg.get("name"), _("CaramOS update"))
         description_lbl = Gtk.Label(label=description)
         description_lbl.set_xalign(0)
         description_lbl.set_line_wrap(True)
@@ -248,8 +266,10 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
     warning = Gtk.Label()
     warning.get_style_context().add_class("warning")
     warning.set_text(
-        "Khuyến nghị: cắm sạc, giữ kết nối mạng ổn định và không tắt máy trong lúc cập nhật. "
-        "Bạn có thể đóng cửa sổ này và cập nhật sau."
+        _(
+            "Recommended: plug in the charger, keep a stable network connection and do not turn off the "
+            "computer during the update. You can close this window and update later."
+        )
     )
     warning.set_xalign(0)
     warning.set_line_wrap(True)
@@ -259,8 +279,8 @@ def build_update_page(update_info: dict[str, Any], on_accept, on_close):
         Gtk,
         outer,
         [
-            ("Để sau", lambda _button: on_close()),
-            ("Cập nhật ngay", lambda _button: on_accept()),
+            (_("Later"), lambda _button: on_close()),
+            (_("Update now"), lambda _button: on_accept()),
         ],
     )
     return outer
@@ -280,7 +300,7 @@ def _screen_dialog_size(Gdk, *, width_ratio: float = 0.78, height_ratio: float =
 def build_progress_page():
     """Build the progress page shown during update."""
 
-    Gtk, _, _ = import_gtk()
+    Gtk, _gdk, _glib = import_gtk()
     outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     outer.set_margin_top(12)
     outer.set_margin_bottom(10)
@@ -292,16 +312,20 @@ def build_progress_page():
     outer.pack_start(hero, False, False, 0)
 
     eyebrow = Gtk.Label()
-    eyebrow.set_markup("<span foreground='#fffaf0' weight='bold'>CARAMOS OTA • ĐANG CẬP NHẬT</span>")
+    eyebrow.set_markup(
+        "<span foreground='#fffaf0' weight='bold'>{}</span>".format(html.escape(_("CARAMOS OTA • UPDATING")))
+    )
     eyebrow.set_xalign(0)
     hero.pack_start(eyebrow, False, False, 0)
 
     header = Gtk.Label()
-    header.set_markup("<span foreground='#ffffff' size='large' weight='bold'>Đang cập nhật CaramOS...</span>")
+    header.set_markup(
+        "<span foreground='#ffffff' size='large' weight='bold'>{}</span>".format(html.escape(_("Updating CaramOS…")))
+    )
     header.set_xalign(0)
     hero.pack_start(header, False, False, 0)
 
-    stage_lbl = Gtk.Label(label="Đang chuẩn bị cập nhật...")
+    stage_lbl = Gtk.Label(label=_("Preparing the update…"))
     stage_lbl.set_xalign(0)
     stage_lbl.set_line_wrap(True)
     hero.pack_start(stage_lbl, False, False, 0)
@@ -315,7 +339,7 @@ def build_progress_page():
     outer.pack_start(log_card, True, True, 0)
 
     log_title = Gtk.Label()
-    log_title.set_markup("<span weight='bold'>Tiến trình cập nhật</span>")
+    log_title.set_markup("<span weight='bold'>{}</span>".format(html.escape(_("Update progress"))))
     log_title.set_xalign(0)
     log_card.pack_start(log_title, False, False, 0)
 
@@ -332,7 +356,7 @@ def build_progress_page():
 
     warning = Gtk.Label()
     warning.get_style_context().add_class("warning")
-    warning.set_text("Vui lòng không tắt máy hoặc đóng tiến trình cập nhật.")
+    warning.set_text(_("Please do not turn off the computer or close the update."))
     warning.set_xalign(0)
     warning.set_line_wrap(True)
     outer.pack_start(warning, False, False, 0)
@@ -343,7 +367,7 @@ def build_progress_page():
 def build_result_page(success: bool, detail: str, on_close):
     """Build the result page shown after update."""
 
-    Gtk, _, _ = import_gtk()
+    Gtk, _gdk, _glib = import_gtk()
     outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=10)
     outer.set_margin_top(12)
     outer.set_margin_bottom(10)
@@ -355,11 +379,11 @@ def build_result_page(success: bool, detail: str, on_close):
     outer.pack_start(hero, False, False, 0)
 
     if success:
-        title = "Cập nhật thành công!"
-        summary = "CaramOS đã được cập nhật thành công."
+        title = _("Update complete!")
+        summary = _("CaramOS was updated successfully.")
     else:
-        title = "Cập nhật thất bại"
-        summary = "Đã xảy ra lỗi khi cập nhật. Vui lòng thử lại hoặc chạy sudo caramos-ota --repair."
+        title = _("Update failed")
+        summary = _("Something went wrong during the update. Try again or run sudo caramos-ota --repair.")
 
     header = Gtk.Label()
     header.set_markup(f"<span foreground='#ffffff' size='large' weight='bold'>{html.escape(title)}</span>")
@@ -376,7 +400,7 @@ def build_result_page(success: bool, detail: str, on_close):
     outer.pack_start(detail_card, True, True, 0)
 
     detail_title = Gtk.Label()
-    detail_title.set_markup("<span weight='bold'>Chi tiết cập nhật</span>")
+    detail_title.set_markup("<span weight='bold'>{}</span>".format(html.escape(_("Update details"))))
     detail_title.set_xalign(0)
     detail_card.pack_start(detail_title, False, False, 0)
 
@@ -392,14 +416,14 @@ def build_result_page(success: bool, detail: str, on_close):
     detail_view.get_buffer().set_text(detail or summary)
     scroll.add(detail_view)
 
-    _add_action_buttons(Gtk, outer, [("Đóng", lambda _button: on_close())])
+    _add_action_buttons(Gtk, outer, [(_("Close"), lambda _button: on_close())])
     return outer
 
 
 def build_no_update_page(status: dict[str, str] | None, on_close):
     """Build the page shown after a manual check finds no update."""
 
-    Gtk, _, _ = import_gtk()
+    Gtk, _gdk, _glib = import_gtk()
     status = status or {}
     current_version = format_value(status.get("current_version"))
     latest_version = format_value(status.get("latest_version"))
@@ -421,11 +445,13 @@ def build_no_update_page(status: dict[str, str] | None, on_close):
     hero.pack_start(eyebrow, False, False, 0)
 
     header = Gtk.Label()
-    header.set_markup("<span foreground='#ffffff' size='large' weight='bold'>CaramOS đã được cập nhật</span>")
+    header.set_markup(
+        "<span foreground='#ffffff' size='large' weight='bold'>{}</span>".format(html.escape(_("CaramOS is up to date")))
+    )
     header.set_xalign(0)
     hero.pack_start(header, False, False, 0)
 
-    summary = Gtk.Label(label="Hệ thống đang dùng phiên bản mới nhất trong kênh cập nhật stable.")
+    summary = Gtk.Label(label=_("The system runs the latest version in the stable update channel."))
     summary.set_xalign(0)
     summary.set_line_wrap(True)
     hero.pack_start(summary, False, False, 0)
@@ -435,7 +461,7 @@ def build_no_update_page(status: dict[str, str] | None, on_close):
     outer.pack_start(card, True, True, 0)
 
     title = Gtk.Label()
-    title.set_markup("<span weight='bold'>Trạng thái cập nhật</span>")
+    title.set_markup("<span weight='bold'>{}</span>".format(html.escape(_("Update status"))))
     title.set_xalign(0)
     card.pack_start(title, False, False, 0)
 
@@ -443,18 +469,20 @@ def build_no_update_page(status: dict[str, str] | None, on_close):
     version_grid.set_column_spacing(12)
     version_grid.set_row_spacing(8)
     card.pack_start(version_grid, False, False, 0)
-    add_info_row(Gtk, version_grid, 0, "Phiên bản hiện tại", current_version)
-    add_info_row(Gtk, version_grid, 1, "Phiên bản mới nhất", latest_version)
-    add_info_row(Gtk, version_grid, 2, "Kênh cập nhật", channel)
+    add_info_row(Gtk, version_grid, 0, _("Current version"), current_version)
+    add_info_row(Gtk, version_grid, 1, _("Latest version"), latest_version)
+    add_info_row(Gtk, version_grid, 2, _("Update channel"), channel)
 
     body = Gtk.Label()
     body.set_xalign(0)
     body.set_line_wrap(True)
     body.set_text(
-        "Không có migration mới trong danh sách cập nhật.\n\n"
-        "Bạn có thể đóng cửa sổ này. CaramOS OTA sẽ tiếp tục kiểm tra định kỳ bằng systemd timer."
+        _(
+            "There are no new migrations to install.\n\n"
+            "You can close this window. CaramOS OTA keeps checking periodically with a systemd timer."
+        )
     )
     card.pack_start(body, False, False, 0)
 
-    _add_action_buttons(Gtk, outer, [("Đóng", lambda _button: on_close())])
+    _add_action_buttons(Gtk, outer, [(_("Close"), lambda _button: on_close())])
     return outer

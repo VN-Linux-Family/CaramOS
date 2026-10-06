@@ -6,6 +6,7 @@ import json
 from typing import Any
 
 from caramos_ota.constants import RELEASE_FILE
+from caramos_ota.i18n import _, localized
 from caramos_ota.manifest import manifest_for_plan, resolve_update_plan
 from caramos_ota.models import ReleaseInfo
 
@@ -31,7 +32,9 @@ def read_available_update() -> dict[str, Any] | None:
         return None
 
 
-def format_value(value: object, fallback: str = "Chưa rõ") -> str:
+def format_value(value: object, fallback: str | None = None) -> str:
+    if fallback is None:
+        fallback = _("Unknown")
     if value is None:
         return fallback
     text = str(value).strip()
@@ -40,23 +43,22 @@ def format_value(value: object, fallback: str = "Chưa rõ") -> str:
 
 def normalize_package(pkg: object) -> dict[str, object]:
     if isinstance(pkg, dict):
-        name = format_value(pkg.get("name") or pkg.get("package"), "Không rõ migration")
+        name = format_value(localized(pkg, "name") or pkg.get("package"), _("Unknown migration"))
         current = format_value(pkg.get("current_version") or pkg.get("installed_version"))
         available = format_value(
-            pkg.get("available_version") or pkg.get("candidate_version") or pkg.get("min_version"),
-            "Chưa rõ",
+            pkg.get("available_version") or pkg.get("candidate_version") or pkg.get("min_version")
         )
         return {
             "name": name,
             "current": current,
             "available": available,
-            "description": format_value(pkg.get("description"), ""),
+            "description": format_value(localized(pkg, "description"), ""),
             "required": pkg.get("required"),
         }
     return {
-        "name": format_value(pkg, "Không rõ migration"),
-        "current": "Chưa rõ",
-        "available": "Chưa rõ",
+        "name": format_value(pkg, _("Unknown migration")),
+        "current": _("Unknown"),
+        "available": _("Unknown"),
         "description": "",
         "required": None,
     }
@@ -86,12 +88,12 @@ def _read_release_info() -> ReleaseInfo | None:
 
 def _read_release_version() -> str:
     release_info = _read_release_info()
-    return release_info.version if release_info else "Chưa rõ"
+    return release_info.version if release_info else _("Unknown")
 
 
 def read_no_update_status() -> dict[str, str]:
     release_info = _read_release_info()
-    current_version = release_info.version if release_info else "Chưa rõ"
+    current_version = release_info.version if release_info else _("Unknown")
     latest_version = current_version
     if release_info:
         try:
@@ -128,6 +130,8 @@ def resolve_available_update_now() -> tuple[dict[str, Any] | None, dict[str, str
             "available_version": "",
             "description": item.summary,
             "required": False,
+            "name_en": item.title_en,
+            "description_en": item.summary_en,
         }
         for item in plan.migrations
     ]
@@ -143,6 +147,8 @@ def resolve_available_update_now() -> tuple[dict[str, Any] | None, dict[str, str
         "size": manifest.size,
         "title": manifest.title,
         "summary": manifest.summary,
+        "title_en": manifest.title_en,
+        "summary_en": manifest.summary_en,
         "release_notes_vi": manifest.release_notes_vi,
         "release_notes_en": manifest.release_notes_en,
         "migration_ids": [item.migration_id for item in plan.migrations],

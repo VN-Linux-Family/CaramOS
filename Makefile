@@ -63,7 +63,7 @@ help:
 	@echo "  make build                — Full dev build (lz4), giống hành vi cũ"
 	@echo "  make release VERSION=x    — Stamp product version rồi build release ISO"
 	@echo "  make clean                — Xoá build/cache/output ISO (giữ Mint ISO)"
-	@echo "  Yêu cầu: sudo apt install squashfs-tools xorriso rsync wget curl isolinux"
+	@echo "  Yêu cầu: sudo apt install squashfs-tools xorriso rsync wget curl isolinux gettext"
 	@echo ""
 	@echo "--- Fast Iteration ---"
 	@echo "  make prepare              — Tạo build/squashfs + build/custom để sửa nhanh"

@@ -1,0 +1,573 @@
+# Vietnamese translation for the CaramOS Control Center applet.
+# This file is distributed under the same license as the caramos-control-center package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: caramos-control-center\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-10-06 00:09+0700\n"
+"PO-Revision-Date: 2026-10-06 00:09+0700\n"
+"Last-Translator: CaramOS Team\n"
+"Language-Team: Vietnamese\n"
+"Language: vi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:216
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:230
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:240
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:245
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:251
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:258
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:260
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2974
+msgid "Unknown"
+msgstr "Không xác định"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:217
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:236
+msgid "Unmanaged"
+msgstr "Không được quản lý"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:218
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:235
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3054
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3604
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3861
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4223
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4233
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4289
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4303
+msgid "Unavailable"
+msgstr "Không khả dụng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:219
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:234
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3917
+msgid "Disconnected"
+msgstr "Đã ngắt kết nối"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:220
+msgid "Preparing"
+msgstr "Đang chuẩn bị"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:221
+msgid "Configuring"
+msgstr "Đang cấu hình"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:222
+msgid "Authentication required"
+msgstr "Cần xác thực"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:223
+msgid "Getting network address"
+msgstr "Đang lấy địa chỉ mạng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:224
+msgid "Checking connection"
+msgstr "Đang kiểm tra kết nối"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:225
+msgid "Finishing"
+msgstr "Đang hoàn tất"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:226
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:233
+msgid "Connected"
+msgstr "Đã kết nối"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:227
+msgid "Disconnecting"
+msgstr "Đang ngắt kết nối"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:228
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:238
+msgid "Connection failed"
+msgstr "Kết nối thất bại"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:237
+msgid "Connecting"
+msgstr "Đang kết nối"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:246
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:254
+msgid "No network"
+msgstr "Không có mạng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:247
+msgid "Local network only"
+msgstr "Chỉ mạng cục bộ"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:248
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:255
+msgid "Network sign-in required"
+msgstr "Cần đăng nhập mạng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:249
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:257
+msgid "Internet access"
+msgstr "Có Internet"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:256
+msgid "Limited connectivity"
+msgstr "Kết nối hạn chế"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:799
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4374
+msgid "Battery"
+msgstr "Pin"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1030
+msgid "Could not change the power mode"
+msgstr "Không thể đổi chế độ nguồn"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1812
+msgid "Battery and power status"
+msgstr "Trạng thái pin và nguồn điện"
+
+#. Translators: accessible name of the icon button in front of a slider; %s is the slider name.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1833
+#, javascript-format
+msgid "Mute or unmute %s"
+msgstr "Bật hoặc tắt tiếng %s"
+
+#. Translators: accessible name of a disclosure button; %s is a slider or tile name.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1857
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1926
+#, javascript-format
+msgid "Open details for %s"
+msgstr "Mở chi tiết %s"
+
+#. Translators: "label: value" pair, e.g. a tile name and its state ("Power mode: Balanced") or a
+#. network detail ("Gateway: 192.168.1.1").
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1909
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1958
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3056
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3612
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3967
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4375
+#, javascript-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2073
+msgid "CaramOS Control Center"
+msgstr "Trung tâm điều khiển CaramOS"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2551
+msgid "Take a screenshot"
+msgstr "Chụp màn hình"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2552
+msgid "Open system settings"
+msgstr "Mở cài đặt hệ thống"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2553
+msgid "Lock screen"
+msgstr "Khóa màn hình"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2554
+msgid "Open power menu"
+msgstr "Mở menu nguồn"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2558
+msgid "Volume"
+msgstr "Âm lượng"
+
+#. Translators: screen-reader name of the microphone volume slider; a short form is fine.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2567
+msgid "Microphone"
+msgstr "Mic"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2585
+msgid "Brightness"
+msgstr "Ánh sáng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2604
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3961
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3983
+msgid "Wired network"
+msgstr "Mạng dây"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2604
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2605
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2611
+msgid "Checking…"
+msgstr "Đang kiểm tra"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2605
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2965
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4025
+msgid "Wi‑Fi"
+msgstr "Wi‑Fi"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2610
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3768
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3957
+msgid "VPN"
+msgstr "VPN"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2610
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3864
+msgid "Not connected"
+msgstr "Chưa kết nối"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2611
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4032
+msgid "Bluetooth"
+msgstr "Bluetooth"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2618
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2990
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3056
+msgid "Power mode"
+msgstr "Chế độ nguồn"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2619
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3051
+msgid "Loading…"
+msgstr "Đang tải"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2624
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3612
+msgid "Dark mode"
+msgstr "Chế độ tối"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2624
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3610
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4230
+msgid "Disabled"
+msgstr "Đang tắt"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2627
+msgid "Night Light"
+msgstr "Ánh sáng đêm"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2627
+msgid "Turn Night Light on or off"
+msgstr "Bật/tắt Night Light"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2681
+msgid "Close dialog"
+msgstr "Đóng hộp thoại"
+
+#. Translators: accessible name of the close button of an inline panel; %s is the panel title.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2894
+#, javascript-format
+msgid "Close %s"
+msgstr "Đóng %s"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2970
+msgid "Performance"
+msgstr "Hiệu năng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2971
+msgid "Balanced"
+msgstr "Cân bằng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2972
+msgid "Power saver"
+msgstr "Tiết kiệm pin"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3004
+msgid "Loading power modes…"
+msgstr "Đang tải chế độ nguồn…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3006
+msgid "Power mode service unavailable"
+msgstr "Dịch vụ chế độ nguồn không khả dụng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3008
+msgid "No power modes"
+msgstr "Không có chế độ nguồn"
+
+#. Translators: %s is a power mode name; shown when the daemon reports degraded performance.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3013
+#, javascript-format
+msgid "%s · limited"
+msgstr "%s · bị giới hạn"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3028
+msgid "Power settings"
+msgstr "Cài đặt nguồn"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3047
+msgid "Changing…"
+msgstr "Đang đổi…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3049
+msgid "Change failed"
+msgstr "Không đổi được"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3063
+msgid "Power"
+msgstr "Nguồn"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3078
+msgid "Session service unavailable"
+msgstr "Dịch vụ phiên không khả dụng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3082
+msgid "Processing…"
+msgstr "Đang xử lý…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3084
+msgid "Suspend"
+msgstr "Tạm ngưng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3085
+msgid "Hibernate"
+msgstr "Ngủ đông"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3086
+msgid "Restart…"
+msgstr "Khởi động lại…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3087
+msgid "Shut down…"
+msgstr "Tắt máy…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3089
+msgid "Log out…"
+msgstr "Đăng xuất…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3090
+msgid "Switch user…"
+msgstr "Chuyển người dùng…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3141
+msgid "Output device"
+msgstr "Thiết bị phát"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3141
+msgid "Input device"
+msgstr "Thiết bị thu"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3186
+msgid "Sound output devices"
+msgstr "Thiết bị phát âm thanh"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3186
+msgid "Sound input devices"
+msgstr "Thiết bị thu âm"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3199
+msgid "No sound devices"
+msgstr "Không có thiết bị âm thanh"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3232
+msgid "Open sound settings"
+msgstr "Mở cài đặt âm thanh"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3610
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4230
+msgid "Enabled"
+msgstr "Đang bật"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3665
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3684
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3686
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3708
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3735
+msgid "On"
+msgstr "Bật"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3665
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3684
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3685
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3708
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3735
+msgid "Off"
+msgstr "Tắt"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3682
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4290
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4304
+msgid "No device"
+msgstr "Không có thiết bị"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3683
+msgid "Blocked by hardware"
+msgstr "Bị chặn bởi phần cứng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3823
+msgid "Could not read the VPN status"
+msgstr "Không thể đọc trạng thái VPN"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3863
+#, javascript-format
+msgid "%d active connection"
+msgid_plural "%d active connections"
+msgstr[0] "%d kết nối đang hoạt động"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3864
+msgid "No profiles"
+msgstr "Không có cấu hình"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3899
+msgid "Could not change the VPN connection"
+msgstr "Không thể thay đổi VPN"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3916
+msgid "WireGuard active"
+msgstr "WireGuard đang hoạt động"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3916
+msgid "Active"
+msgstr "Đang hoạt động"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3917
+msgid "WireGuard"
+msgstr "WireGuard"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3928
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3978
+msgid "NetworkManager unavailable"
+msgstr "NetworkManager không khả dụng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3930
+msgid "Reading VPN profiles…"
+msgstr "Đang đọc cấu hình VPN…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3933
+msgid "Try again"
+msgstr "Thử lại"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3935
+msgid "No VPN profiles"
+msgstr "Không có cấu hình VPN"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3949
+msgid "Open VPN settings"
+msgstr "Mở cài đặt VPN"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3980
+msgid "No wired network devices"
+msgstr "Không có thiết bị mạng dây"
+
+#. Translators: %s is a network interface name; marks the device that carries the default route.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3985
+#, javascript-format
+msgid "%s · default route"
+msgstr "%s · tuyến mặc định"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3993
+msgid "Status"
+msgstr "Trạng thái"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3994
+msgid "Profile"
+msgstr "Cấu hình"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3995
+msgid "Link"
+msgstr "Liên kết"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3995
+msgid "Signal detected"
+msgstr "Có tín hiệu"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3995
+msgid "No signal"
+msgstr "Mất tín hiệu"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3996
+msgid "Speed"
+msgstr "Tốc độ"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3997
+msgid "Address"
+msgstr "Địa chỉ"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3998
+msgid "Gateway"
+msgstr "Cổng mạng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3999
+msgid "DNS"
+msgstr "DNS"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4013
+msgid "Open network sign-in page"
+msgstr "Mở trang đăng nhập mạng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4018
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4077
+msgid "Open network settings"
+msgstr "Mở cài đặt mạng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4050
+msgid "No Wi‑Fi device"
+msgstr "Không có thiết bị Wi‑Fi"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4052
+msgid "Wi‑Fi is blocked by hardware"
+msgstr "Wi‑Fi bị chặn bởi phần cứng"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4054
+msgid "Wi‑Fi is off"
+msgstr "Wi‑Fi đang tắt"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4057
+msgid "Searching for Wi‑Fi networks…"
+msgstr "Đang tìm mạng Wi‑Fi…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4057
+msgid "No Wi‑Fi networks found"
+msgstr "Không thấy mạng Wi‑Fi"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4073
+msgid "Scan for Wi‑Fi networks again"
+msgstr "Tìm lại mạng Wi‑Fi"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4133
+msgid "Searching for Bluetooth devices…"
+msgstr "Đang tìm thiết bị Bluetooth…"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4151
+msgid "No available or connected devices"
+msgstr "Không có thiết bị khả dụng hoặc đã kết nối"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4152
+msgid "BlueZ unavailable; open Bluetooth settings"
+msgstr "BlueZ không khả dụng; mở cài đặt Bluetooth"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4162
+msgid "Stop searching"
+msgstr "Dừng tìm thiết bị"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4162
+msgid "Search for new devices"
+msgstr "Tìm thiết bị mới"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4170
+msgid "Bluetooth settings"
+msgstr "Cài đặt Bluetooth"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4291
+msgid "In use for Internet"
+msgstr "Đang dùng Internet"
+
+#. Translators: remaining battery time, abbreviated hours and minutes (e.g. "2h 15m").
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4362
+#, javascript-format
+msgid "%dh %dm"
+msgstr "%dh %dm"
+
+#. Translators: remaining battery time, abbreviated minutes (e.g. "45m").
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4364
+#, javascript-format
+msgid "%dm"
+msgstr "%dm"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4374
+msgid "UPS"
+msgstr "UPS"
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4374
+#, javascript-format
+msgid "%d power device"
+msgid_plural "%d power devices"
+msgstr[0] "%d thiết bị nguồn"

@@ -1,3 +1,22 @@
+caramos-ota (1.0.20-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.0.20.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Remove the LC_ALL=vi_VN.UTF-8 CaramOS forced in /etc/locale.conf, so the
+    language chosen in Settings > Languages applies (#65). Machines installed
+    in English no longer get LANGUAGE=vi_VN:vi.
+  * Translate the Control Center, the Update Center and the Audit tool with
+    gettext (English source, Vietnamese catalog); update titles and summaries
+    follow the session language.
+  * Fix the Lotus enable service that deadlocked boot (system stuck in
+    "starting", Lotus server never running) and remove Lotus services left
+    for the ISO build machine's user.
+  * Skip the tests that read the ISO hooks when they are not in the source
+    package. 1.0.18 and 1.0.19 failed to build on Launchpad because of this,
+    so this release also delivers their changes to PPA users.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Tue, 06 Oct 2026 08:50:43 +0700
+
 caramos-ota (1.0.19-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.0.19.

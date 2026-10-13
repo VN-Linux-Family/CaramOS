@@ -8,3 +8,6 @@ flameshot
 tlp
 #19
 copyq
+# media viewer && player
+nomacs
+vlc

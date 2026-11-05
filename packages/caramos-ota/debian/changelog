@@ -1,3 +1,11 @@
+caramos-ota (1.3.4-0caramos2) noble; urgency=medium
+
+  * Rebuild of 1.3.4-0caramos1 with no code changes. Launchpad built
+    1.3.4-0caramos1 but never published the binary: the build stayed in
+    "Uploading build".
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 05 Nov 2026 22:28:26 +0700
+
 caramos-ota (1.3.4-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.3.4.

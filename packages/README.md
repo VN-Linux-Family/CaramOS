@@ -603,7 +603,7 @@ trước đó là Open Beta.
 | Thành phần | Bản phát hành |
 |---|---|
 | ISO | `CaramOS-1.3.4-cinnamon-amd64.iso`: GitHub Release `v1.3.4`, tệp ISO trên SourceForge |
-| `caramos-ota` | `1.3.4-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| `caramos-ota` | `1.3.4-0caramos2` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
 | App Center | `caramos-app-center` 0.2.3, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` |
 
 Máy CaramOS cũ không cần cài lại ISO:

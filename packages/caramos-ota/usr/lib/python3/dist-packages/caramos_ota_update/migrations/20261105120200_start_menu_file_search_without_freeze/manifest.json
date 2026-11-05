@@ -1,0 +1,22 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "Start Menu (dưới 1 MB)",
+  "size_en": "Start Menu (under 1 MB)",
+  "title": "Start Menu không còn làm đơ máy khi tìm tệp",
+  "summary": "Khi gõ vào ô tìm kiếm của Start Menu, việc tìm tệp trong thư mục Home có thể làm cả màn hình đứng vài giây, nhất là trên máy dùng ổ cứng HDD hay có Google Drive gắn trong Home. Giờ việc tìm tệp không còn làm đơ máy.",
+  "title_en": "The Start Menu no longer freezes while searching files",
+  "summary_en": "Typing in the Start Menu search could freeze the whole screen for seconds while it searched the home folder for files, above all on computers with a hard disk or with Google Drive mounted in the home folder. The file search no longer freezes the computer.",
+  "release_notes_vi": [
+    "Tìm tệp trong Start Menu không còn làm màn hình đứng, kể cả với thư mục có nhiều ảnh hay tài liệu.",
+    "Ổ mạng và ổ đĩa khác gắn trong thư mục Home (như Google Drive) không còn bị lục khi tìm, nên tìm nhanh và không tốn mạng.",
+    "Áp dụng ngay, không cần đăng nhập lại."
+  ],
+  "release_notes_en": [
+    "Searching files from the Start Menu no longer freezes the screen, also with folders full of photos or documents.",
+    "Network drives and other disks mounted in the home folder (such as Google Drive) are no longer searched, so searching is fast and uses no network.",
+    "Works right away, without logging in again."
+  ]
+}

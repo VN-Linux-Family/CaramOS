@@ -146,7 +146,7 @@ class SystemLogTests(unittest.TestCase):
 
     def test_the_computer_comes_first_and_the_journal_gives_way(self) -> None:
         journal = "\n".join(f"2026-10-19T20:2{n % 10}:00+07:00 host kernel: line {n}" for n in range(3000))
-        with tempfile.TemporaryDirectory() as folder, \
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(logs, "_command", return_value=""), \
                 mock.patch.object(logs, "_journal", return_value=journal) as read_journal:
             text = logs.system_log(self.fake_root(folder, live=True))
         lines = text.splitlines()
@@ -160,7 +160,7 @@ class SystemLogTests(unittest.TestCase):
         read_journal.assert_called_once()   # a live USB has no previous boot
 
     def test_an_installed_computer_adds_how_the_previous_boot_ended(self) -> None:
-        with tempfile.TemporaryDirectory() as folder, \
+        with tempfile.TemporaryDirectory() as folder, mock.patch.object(logs, "_command", return_value=""), \
                 mock.patch.object(logs, "_journal", side_effect=["this boot", "kernel: Out of memory: Killed process"]):
             text = logs.system_log(self.fake_root(folder, live=False))
         self.assertIn("== End of the previous boot", text)

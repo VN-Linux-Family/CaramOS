@@ -104,8 +104,11 @@ def choose(drivers: dict[str, dict]) -> str:
     return nvidia[-1] if nvidia else ""
 
 
-def proposals_from(devices: dict[str, dict], installed) -> list[DriverProposal]:
-    """Proposals from UbuntuDrivers.detect.system_device_drivers() output; installed(package) -> bool."""
+def proposals_from(devices: dict[str, dict], installed, usable=lambda package: True) -> list[DriverProposal]:
+    """Proposals from UbuntuDrivers.detect.system_device_drivers() output.
+
+    installed(package) -> bool: fully installed; usable(package) -> bool: it can work with the running kernel.
+    """
 
     proposals = []
     for syspath, info in sorted(devices.items()):
@@ -114,6 +117,7 @@ def proposals_from(devices: dict[str, dict], installed) -> list[DriverProposal]:
         drivers = info.get("drivers") or {}
         if any(installed(name) for name, details in drivers.items() if not details.get("builtin")):
             continue   # one of its drivers is already installed
+        drivers = {name: details for name, details in drivers.items() if usable(name)}
         package = choose(drivers)
         if not package:
             continue
@@ -137,9 +141,11 @@ def wanted(snapshot: Snapshot) -> str:
     """
 
     reasons = []
+    # An NVIDIA driver dpkg could not finish needs a replacement, though the card may still run on it.
+    nvidia_broken = any(package.startswith(("nvidia-", "linux-modules-nvidia-")) for package in snapshot.unfinished_packages)
     for device in snapshot.pci:
-        if device.vendor == knowledge.NVIDIA and device.pci_class_is(*PCI_DISPLAY) and device.driver != "nvidia" \
-                and not snapshot.live:
+        if device.vendor == knowledge.NVIDIA and device.pci_class_is(*PCI_DISPLAY) and not snapshot.live \
+                and (device.driver != "nvidia" or nvidia_broken):
             reasons.append(f"NVIDIA {device.id}")
         elif knowledge.broadcom_wifi(device) and not device.net:
             reasons.append(f"Broadcom Wi-Fi {device.id}")
@@ -215,9 +221,25 @@ def find_proposals() -> list[DriverProposal]:
         return []
 
     def installed(name: str) -> bool:
+        # A driver dpkg could not finish (half-configured) does not count: it needs a replacement.
         try:
-            return cache[name].current_ver is not None
+            package = cache[name]
         except KeyError:
             return False
+        return package.current_ver is not None and package.current_state == apt_pkg.CURSTATE_INSTALLED
 
-    return proposals_from(devices, installed)
+    def usable(name: str) -> bool:
+        # An NVIDIA driver needs signed modules for the kernel: Ubuntu recommends 470 for Maxwell and Pascal
+        # cards (GeForce 900, 1000, MX), but 470 has none for Linux 6.12 and later and its DKMS module no
+        # longer builds, so installing it left dpkg broken and every later install failed (ticket H-1094).
+        # get_linux_modules_metapackage() finds the modules the helper installs, those of the kernel series.
+        if not NVIDIA_DRIVER.match(name):
+            return True
+        try:
+            modules = detect.get_linux_modules_metapackage(cache, name)
+        except Exception:
+            return False
+        # Without signed modules it answers nvidia-dkms-<version>: a build that may well fail.
+        return bool(modules) and modules.startswith("linux-modules-nvidia-")
+
+    return proposals_from(devices, installed, usable)

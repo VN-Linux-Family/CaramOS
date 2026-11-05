@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(32, len(catalog))
+        self.assertEqual(35, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -109,6 +109,9 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261018120000_restore_taskbar_after_cinnamon_update",
                 "20261018120100_update_zalo_native_calls",
                 "20261022120000_start_fcitx_at_login",
+                "20261105120000_keep_lotus_settings",
+                "20261105120100_search_menu_while_composing",
+                "20261105120200_start_menu_file_search_without_freeze",
             ],
             timestamp_ids,
         )
@@ -153,6 +156,9 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261018120000_restore_taskbar_after_cinnamon_update",
                 "20261018120100_update_zalo_native_calls",
                 "20261022120000_start_fcitx_at_login",
+                "20261105120000_keep_lotus_settings",
+                "20261105120100_search_menu_while_composing",
+                "20261105120200_start_menu_file_search_without_freeze",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -193,6 +199,9 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261018120000_restore_taskbar_after_cinnamon_update",
                 "20261018120100_update_zalo_native_calls",
                 "20261022120000_start_fcitx_at_login",
+                "20261105120000_keep_lotus_settings",
+                "20261105120100_search_menu_while_composing",
+                "20261105120200_start_menu_file_search_without_freeze",
             ],
             [item.migration_id for item in plan.migrations],
         )

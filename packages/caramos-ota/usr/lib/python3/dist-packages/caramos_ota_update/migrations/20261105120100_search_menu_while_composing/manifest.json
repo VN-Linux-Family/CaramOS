@@ -1,0 +1,20 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Start Menu (dưới 1 MB)",
+  "size_en": "Start Menu (under 1 MB)",
+  "title": "Tìm ứng dụng trong Start Menu khi đang gõ tiếng Việt",
+  "summary": "Khi đang bật gõ tiếng Việt (V), ô tìm kiếm của Start Menu không ra kết quả cho tới khi gõ dấu cách. Giờ kết quả hiện ngay khi bạn gõ, với cả chữ có dấu.",
+  "title_en": "Start Menu search works while typing Vietnamese",
+  "summary_en": "With Vietnamese typing on (V), the Start Menu search showed nothing until a space was typed. Results now show as you type, accented words included.",
+  "release_notes_vi": [
+    "Ô tìm kiếm của Start Menu hiện kết quả ngay trong lúc gõ, kể cả khi đang bật gõ tiếng Việt và với chữ có dấu.",
+    "Áp dụng ngay, không cần đăng nhập lại."
+  ],
+  "release_notes_en": [
+    "The Start Menu search shows results as you type, also with Vietnamese typing on and with accented words.",
+    "Works right away, without logging in again."
+  ]
+}

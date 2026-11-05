@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.3"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.4"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.3.3/CaramOS-1.3.3-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.3.3</strong></a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.3.4/CaramOS-1.3.4-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.3.4</strong></a> ·
   <a href="https://caramos.vietnamlinuxfamily.net/?lang=en">Website</a> ·
   <a href="README.md">Tiếng Việt</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -40,16 +40,32 @@ Vietnamese out of the box, typing that just works, a friendly desktop, and every
 away.
 
 > [!IMPORTANT]
-> **CaramOS 1.3.3 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
+> **CaramOS 1.3.4 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
 > Open Beta releases.
 >
-> - **New install:** [download the 1.3.3 ISO](https://sourceforge.net/projects/caramos/files/v1.3.3/CaramOS-1.3.3-cinnamon-amd64.iso/download)
->   (2.8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.3/SHA256SUMS) ·
->   [release notes](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.3)
-> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.3.3; click
+> - **New install:** [download the 1.3.4 ISO](https://sourceforge.net/projects/caramos/files/v1.3.4/CaramOS-1.3.4-cinnamon-amd64.iso/download)
+>   (2.8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.4/SHA256SUMS) ·
+>   [release notes](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.4)
+> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.3.4; click
 >   **Update now**. See [Upgrading from an earlier release](#upgrading-from-an-earlier-release).
 
 ## What's new
+
+### 1.3.4
+
+- **The input method keeps your settings and starts in Vietnamese:** the Lotus settings you choose (Telex or
+  VNI, the mode, spell checking, shortcuts) are no longer reset at every login. Every session starts typing
+  Vietnamese (V in the system tray); press Ctrl+Shift to switch to English.
+- **The Start Menu finds apps while you type Vietnamese** (before, results came only after a space), and **no
+  longer freezes the computer while searching files**, also on a hard disk or with Google Drive mounted in
+  the home folder.
+- **The Update Center is no longer blocked** by a broken software source another program added, or by a
+  package left half installed, such as the faulty Lotus 3.5.6 or an NVIDIA 470 driver.
+- **Driver Check** no longer offers the NVIDIA 470 driver, which does not work on Linux 6.14 and later, but
+  580, and says so when the graphics driver is turned off by `nomodeset` or a blacklist. The log sent with a
+  help request also describes how the computer starts and its disks.
+- **App Center 0.2.3:** apps install while another package is half installed; on the live USB it waits for
+  the CaramOS installer instead of failing; WPS Office downloads go on when the server cuts them off.
 
 ### 1.3.3
 
@@ -286,9 +302,9 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
 
 ### 1. Download the ISO
 
-- [CaramOS-1.3.3-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.3/CaramOS-1.3.3-cinnamon-amd64.iso/download)
+- [CaramOS-1.3.4-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.4/CaramOS-1.3.4-cinnamon-amd64.iso/download)
   (2.8 GB, on SourceForge because GitHub limits the size of each release file).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.3/SHA256SUMS) to check
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.4/SHA256SUMS) to check
   the download:
 
 ```bash
@@ -301,7 +317,7 @@ Use [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net) o
 Linux you can use `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.3.3-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.3.4-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Try it and install
@@ -316,12 +332,17 @@ sudo dd if=CaramOS-1.3.3-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress of
 
 Machines with CaramOS installed do not need the ISO again.
 
-- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.3.3; click **Update
+- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.3.4; click **Update
   now**. To upgrade right away, open a terminal and run:
 
   ```bash
   sudo caramos-ota --upgrade --yes
   ```
+
+- **The Update Center fails right at downloading the package list:** a software source another program or an
+  online guide added is broken. Open **Software Sources** from the Start Menu, go to **Additional
+  repositories**, untick the broken line and update again. From 1.3.4 on, the Update Center skips such a
+  source by itself.
 
 - **From CaramOS 1.0.1:** install the Update Center once, then open **CaramOS Update Center** from the
   Start Menu:
@@ -394,12 +415,12 @@ own repository, [VN-Linux-Family/caramos-landing](https://github.com/VN-Linux-Fa
 The product version lives in the source tree, in [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.3.3"
+CARAMOS_VERSION="1.3.4"
 ```
 
 `make release VERSION=x.y.z` stamps it into `scripts/config.sh`, the release metadata and the
-`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.3.3` is tag
-`v1.3.3`, or GitHub Actions stops before building.
+`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.3.4` is tag
+`v1.3.4`, or GitHub Actions stops before building.
 
 ### OTA updates
 
@@ -471,11 +492,11 @@ writes `SHA256SUMS`, uploads the ISO to SourceForge and creates the GitHub Relea
 link.
 
 ```bash
-make -C packages/caramos-ota prepare-release VERSION=1.3.3
-git commit -am "[build] Release 1.3.3"
+make -C packages/caramos-ota prepare-release VERSION=1.3.4
+git commit -am "[build] Release 1.3.4"
 git push origin main
-git tag -a v1.3.3 -m "CaramOS 1.3.3"
-git push origin v1.3.3
+git tag -a v1.3.4 -m "CaramOS 1.3.4"
+git push origin v1.3.4
 make -C packages/caramos-ota source
 make -C packages/caramos-ota gpg-unlock upload   # caramos-ota to the PPA, with the release GPG key
 ```

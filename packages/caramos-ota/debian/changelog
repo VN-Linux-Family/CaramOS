@@ -1,3 +1,77 @@
+caramos-ota (1.3.4-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.3.4.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * New migration 20261105120000_keep_lotus_settings (tickets H-1092,
+    H-1093, H-1104): the Lotus login helper copied the CaramOS defaults
+    over ~/.config/fcitx5/profile and conf/lotus.conf whenever they
+    differed from /etc/skel, so VNI, the Lotus mode, spell checking and
+    shortcuts went back to the defaults at every login. It now only adds a
+    default that is missing. The profile listed Lotus first, and Fcitx
+    treats the first input method of a group as the "off" one, so every
+    session started in English ("A"): the CaramOS profile now lists
+    keyboard-us first with DefaultIM=lotus, and every session starts in
+    Vietnamese ("V"); Ctrl+Shift still switches. Profiles someone changed
+    stay as they are. Fcitx is stopped while its profile is rewritten, as
+    it saves its own copy when it exits, and started again in the
+    sessions of logged-in users.
+  * New migration 20261105120100_search_menu_while_composing (ticket
+    H-1098): the Start Menu search found nothing while Lotus was still
+    composing a word (Preedit mode), only after a space. Cinnamenu now
+    searches the text with the word being composed, and again as it
+    changes, and is reloaded in running sessions. Hook 0170 takes
+    Cinnamenu from the spices repository as it is when the ISO is built,
+    so the patch knows both forms: 5.4.14 (the CaramOS 1.3.0 to 1.3.3
+    ISOs) and 5.7 (ISOs built after 2026-10-30).
+  * New migration 20261105120200_start_menu_file_search_without_freeze:
+    the Start Menu's home folder search froze the desktop. It runs on
+    Cinnamon's main loop and, for the files it found, waited for the disk
+    (Cinnamenu 5.4.14 read the start of every file without a known
+    extension, with blocking calls); it also went down into network
+    drives mounted in the home folder (Google Drive with rclone). On a
+    slow disk with a cold cache Cinnamon stalled 4.9 s (11 s with 5.7),
+    and 17 s in all with a network drive. The search now takes a file's
+    type from its name and stays on the file system of the home folder,
+    out of other disks and network drives mounted in it: the longest
+    stall is under half a second.
+  * Update Center (tickets H-1102, H-1105): a software source added by
+    another program that no longer works (an "https://github.io ./" line
+    from an online guide) failed apt-get update, so the CaramOS update
+    stopped. The CaramOS PPA is then updated alone and the update goes
+    on, with the skipped source and its file in the OTA log.
+  * Update Center (ticket H-1100): a package dpkg could not finish (Lotus
+    3.5.6 on CaramOS 1.0.12, whose postinst has a syntax error, or an
+    NVIDIA driver whose module does not build) failed every apt-get
+    install, also the OTA self-update, though caramos-ota got installed.
+    The self-update now counts as done when caramos-ota is at the new
+    version, and names the broken packages; a broken Lotus is upgraded
+    along with caramos-ota. apt-cache policy runs in English for this:
+    on a Vietnamese system it says "Ứng cử:", not "Candidate:".
+  * Update Center: what the OTA engine printed before it restarts itself
+    after a self-update reaches the Update Center; Python's buffer was
+    lost at execv when the output went to a pipe.
+  * Driver Check (ticket H-1094): Ubuntu recommends NVIDIA 470 for Maxwell
+    and Pascal cards (GeForce 940MX, GTX 1060), but 470 has no modules for
+    Linux 6.14 and later and its DKMS build fails, which left dpkg broken.
+    Only drivers with prebuilt signed modules are offered; a broken
+    NVIDIA install is shown as a critical problem with the
+    replacement driver; and the helper also installs the kernel those
+    modules are built for, as the HWE modules follow the newest kernel.
+  * Driver Check (tickets H-1085, H-1108, H-1109): a graphics driver turned
+    off by nomodeset, <module>.modeset=0 or a blacklist says so, with the
+    command or file that turns it on again.
+  * Feedback & Help: system.log also carries the boot options, the
+    packages dpkg did not finish, how the computer starts (BIOS or UEFI,
+    Secure Boot, the UEFI entries of operating systems with the partition
+    and file each starts) and its disks and partitions, for a grub> prompt
+    (ticket H-1097). Firewall notices are left out, and a line the journal
+    repeats comes once with a count, so the 200 lines keep the rest.
+  * ISO: hook 0150 writes the new profile order and login helper, so the
+    live USB and new installs start in Vietnamese too. The ISO build stops
+    when the Cinnamenu it downloads lacks the Start Menu fixes.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 05 Nov 2026 16:52:25 +0700
+
 caramos-ota (1.3.3-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.3.3.

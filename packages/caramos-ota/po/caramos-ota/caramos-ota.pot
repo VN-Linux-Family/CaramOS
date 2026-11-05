@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-19 14:40+0700\n"
+"POT-Creation-Date: 2026-11-05 11:52+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -153,7 +153,7 @@ msgid "Close"
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:462
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:165
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:169
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:81
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:685
@@ -279,7 +279,7 @@ msgid "Wi-Fi / Network"
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:19
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:64
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:68
 msgid "Sound"
 msgstr ""
 
@@ -406,68 +406,68 @@ msgstr ""
 msgid "The user reproduced the problem, then ran CaramOS Audit"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:61
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:65
 msgid "Wi-Fi"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:62
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:66
 msgid "Wired network"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:63
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:67
 msgid "Graphics"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:65
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:69
 msgid "Bluetooth"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:66
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:70
 msgid "Webcam"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:67
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:71
 msgid "Fingerprint reader"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:68
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:72
 msgid "Other devices"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:160
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:164
 msgid "Open Driver Manager"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:161
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:165
 msgid "Open Update Manager"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:162
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:166
 msgid "Restart"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:163
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:167
 msgid "Turn on Wi-Fi"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:164
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:168
 msgid "Add fingerprints"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:222
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:226
 msgid ""
 "Secure Boot is on: if a blue “Perform MOK management” screen appears while "
 "restarting, choose “Enroll MOK” and type the password you set when the "
 "driver was installed."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:248
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:263
 msgid ""
 "Its driver is installed but not running yet. Restart the computer to start "
 "it."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:254
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:269
 #, python-format
 msgid ""
 "Its driver (%s) is installed, but Secure Boot blocks it because it is not "
@@ -476,280 +476,329 @@ msgid ""
 "in the BIOS settings."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:259
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:276
+#, python-format
+msgid ""
+"The computer starts with the “%s” boot option, which turns the graphics "
+"driver (%s) off. It is often added to get past a black screen. To turn the "
+"driver on again, open a terminal, run “sudo sed -i 's/ *%s//' /etc/default/"
+"grub && sudo update-grub” and restart."
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:287
+#, python-format
+msgid ""
+"Its driver (%s) is turned off by a “blacklist %s” line in %s. Remove that "
+"line and restart the computer to use it."
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:291
+#, python-format
+msgid ""
+"Its driver (%s) is turned off by the modprobe.blacklist boot option. Remove "
+"it from /etc/default/grub, run “sudo update-grub” and restart the computer "
+"to use it."
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:295
 #, python-format
 msgid ""
 "Its driver (%s) is on the computer but did not load: it may be turned off "
 "(blacklisted) or it refused to start."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:264
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:300
 #, python-format
 msgid "Its driver (%s) is loaded, but the device does not start."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:266
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:302
 #, python-format
 msgid "The firmware it needs is missing: %s."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:267
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:303
 msgid ""
 "Updating CaramOS (the linux-firmware package) or a newer kernel usually "
 "fixes this."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:269
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:305
 #, python-format
 msgid ""
 "Linux %s has no driver for it yet. A newer kernel may support it: ask the "
 "community for help with the button below."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:304
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:307
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:340
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:343
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/scan.py:94
 msgid "Not found on this computer"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:339
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:375
 msgid "Restart to start the Wi-Fi driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:340
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:376
 msgid "The Wi-Fi driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:341
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:377
 msgid "Wi-Fi does not start"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:342
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:378
 msgid "Wi-Fi has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:354
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:390
 msgid "Restart to start the network port driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:355
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:391
 msgid "The network port driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:356
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:392
 msgid "The network port does not start"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:357
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:393
 msgid "The network port has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:364
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:400
 msgid "No network card found"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:365
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:401
 msgid ""
 "CaramOS finds neither a Wi-Fi card nor a network port. The Wi-Fi card may be "
 "turned off in the BIOS settings. You can still get online with your phone "
 "over a USB cable."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:371
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:407
 msgid "Wi-Fi is turned off by a switch"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:372
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:408
 msgid ""
 "Turn it on with the Wi-Fi switch or the Fn key with the Wi-Fi or airplane "
 "symbol. If it stays off, check that Wi-Fi is enabled in the BIOS settings."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:376
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:412
 msgid "Wi-Fi is turned off"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:377
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:413
 msgid "Wi-Fi is switched off, or airplane mode is on."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:385
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:421
 msgid "connected"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:385
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:421
 msgid "not connected"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:386
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:422
 msgid "cable plugged in"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:386
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:422
 msgid "no cable plugged in"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:398
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:434
 msgid ""
 "Broadcom Wi-Fi cards need Broadcom's own driver, which Linux cannot include. "
 "CaramOS can install it for you."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:400
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:436
 msgid "Install the Wi-Fi driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:401
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:437
 #, python-format
 msgid "Driver recommended by Ubuntu for this card: %s"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:403
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:439
 msgid ""
 "Broadcom Wi-Fi cards need Broadcom's own driver, which Linux cannot include. "
 "Open Driver Manager and install the Broadcom driver it suggests."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:407
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:443
 msgid ""
 "No internet? It installs from the CaramOS USB stick: plug the stick in first."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:409
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:445
 msgid ""
 "Secure Boot is on: after installing, Driver Check shows how to allow the "
 "driver."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:411
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:447
 msgid "Wi-Fi needs the Broadcom driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:419
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:455
 msgid ""
 "You can still install CaramOS: after installing, Driver Check opens again "
 "and helps you set this up."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:434
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:470
 msgid "Restart to start the graphics driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:435
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:471
 msgid "The graphics driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:436
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:472
 msgid "The graphics card does not start"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:437
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:473
 msgid "The graphics card has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:440
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:476
 msgid ""
 "The screen runs in a basic mode: slower, and resolution or brightness may "
 "not change."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:451
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:491
 msgid "Restart to start the NVIDIA driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:452
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:492
 msgid "The NVIDIA driver is installed. Restart the computer to start it."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:457
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:497
 msgid "The NVIDIA driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:461
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:501
 msgid ""
 "This NVIDIA card runs on the open-source nouveau driver: slower in games and "
 "videos, and the battery runs down faster."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:464
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:504
 msgid "This NVIDIA card has no driver yet."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:467
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:507
 msgid "Install the NVIDIA driver after installing"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:468
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:508
 msgid ""
 "After installing CaramOS, Driver Check helps you install the NVIDIA driver "
 "(it needs internet)."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:472
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:483
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:512
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:523
 msgid "Install the NVIDIA driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:473
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:513
 msgid ""
 "Open Driver Manager and install the recommended NVIDIA driver (it needs "
 "internet), then restart."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:478
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:518
 #, python-format
 msgid "Recommended for this card: NVIDIA %s"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:479
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:519
 msgid "(open kernel modules)"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:480
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:520
 msgid "Needs internet: the driver is a download of a few hundred MB"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:481
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:521
 msgid "Restart the computer after installing"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:484
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:524
 msgid "CaramOS installs the driver Ubuntu recommends for this card."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:485
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:525
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:539
 #, python-format
 msgid "Install NVIDIA driver %s"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:502
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:516
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:532
+#, python-format
+msgid ""
+"Installing %s did not finish: this NVIDIA driver does not work with Linux "
+"%s. Until it is replaced, installing other software fails too, in the App "
+"Center and the Update Center."
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:538
+#, python-format
+msgid ""
+"Install NVIDIA driver %s instead: the broken driver is removed at the same "
+"time."
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:542
+msgid ""
+"Open Driver Manager and choose the open-source nouveau driver to remove it."
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:544
+msgid "The NVIDIA driver did not install"
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:561
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:575
 msgid "Restart to start the sound driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:503
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:517
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:562
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:576
 msgid "The sound driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:504
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:518
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:563
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:577
 msgid "Speakers and microphone are not detected"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:505
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:519
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:564
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:578
 msgid "Sound has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:507
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:532
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:566
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:591
 msgid ""
 "Speakers and microphone do not work yet (the sound settings show “Dummy "
 "Output”)."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:524
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:583
 #, python-format
 msgid ""
 "This computer's sound goes through the Intel SST sound engine, which needs a "
@@ -757,117 +806,117 @@ msgid ""
 "one yet. Ask the community for help with the button below."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:549
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:608
 msgid "Restart to start the Bluetooth driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:550
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:609
 msgid "The Bluetooth driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:551
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:610
 msgid "Bluetooth does not start"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:552
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:611
 msgid "Bluetooth has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:557
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:616
 msgid "Bluetooth is turned off by a switch"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:558
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:617
 msgid ""
 "Turn it on with the wireless switch or the Fn key with the airplane symbol."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:572
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:631
 msgid "Restart to start the webcam driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:573
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:632
 msgid "The webcam driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:574
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:633
 msgid "The webcam does not start"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:575
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:634
 msgid "The webcam has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:584
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:643
 msgid "The built-in camera may not work yet"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:585
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:644
 msgid ""
 "This laptop's camera is connected through an Intel IPU image processor, "
 "common on laptops since 2021. Most apps on Linux cannot use this kind of "
 "camera yet; a USB webcam works right away."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:589
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:648
 msgid "The built-in cameras do not work yet"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:590
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:649
 msgid ""
 "This computer's cameras are connected through the image processor of Intel "
 "Atom chips. Linux only has an unfinished driver for it, so apps cannot use "
 "these cameras; a USB webcam works right away."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:605
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:664
 #, python-format
 msgid "%s fingerprint reader"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:608
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:667
 msgid "Log in with your fingerprint"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:609
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:668
 msgid ""
 "This fingerprint reader works with CaramOS. Add your fingerprints to log in "
 "and unlock the screen with them."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:613
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:672
 msgid "The fingerprint reader has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:614
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:673
 msgid ""
 "Linux has no driver for this fingerprint reader yet (libfprint). Log in with "
 "your password."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:644
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:703
 msgid "Restart to start a device driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:645
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:704
 msgid "A device driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:646
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:705
 msgid "A device has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:663
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:722
 #, python-format
 msgid "Recommended driver for %s"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:664
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:723
 #, python-format
 msgid "Ubuntu recommends the %s package for this device."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:665
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:724
 msgid "Install the driver"
 msgstr ""
 

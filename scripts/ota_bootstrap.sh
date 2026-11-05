@@ -89,9 +89,62 @@ install_caramos_ota_and_run_migrations() {
     ok "OTA migrations đã chạy xong trong ISO rootfs tới $target_version."
 }
 
+# Hook 0170 tải Cinnamenu từ nhánh master của cinnamon-spices lúc build. Các bản vá Start Menu là migration, và
+# migration để nguyên một Cinnamenu nó không nhận ra (đúng như phải làm trên máy người dùng), nên một Cinnamenu
+# mới của upstream sẽ vào ISO mà không có bản vá. Dừng build thay vì phát hành Start Menu thiếu bản vá.
+verify_start_menu_fixes() {
+    local applet_dir="$WORK_DIR/squashfs/usr/share/cinnamon/applets/Cinnamenu@json"
+    local cinnamon_version
+    [ -d "$applet_dir" ] || return 0
+    cinnamon_version="$(chroot "$WORK_DIR/squashfs" dpkg-query -W -f='${Version}' cinnamon 2>/dev/null || true)"
+    info "  → Kiểm tra bản vá Start Menu (Cinnamenu) trong ISO rootfs..."
+    if ! PYTHONPATH="$SCRIPT_DIR/packages/caramos-ota/usr/lib/python3/dist-packages" \
+        python3 - "$applet_dir" "$cinnamon_version" <<'PY'
+import importlib
+import json
+import re
+import sys
+from pathlib import Path
+
+root, cinnamon = Path(sys.argv[1]), sys.argv[2]
+FIXES = {
+    "20261105120100_search_menu_while_composing": "search while an input method composes a word",
+    "20261105120200_start_menu_file_search_without_freeze": "file search without freezing the desktop",
+}
+
+
+def version(text):
+    return tuple(int(part) for part in re.findall(r"\d+", text)[:3])
+
+
+# The folder Cinnamon loads for a multiversion applet: the highest version folder not newer than Cinnamon.
+loaded = root
+metadata = json.loads((root / "metadata.json").read_text(encoding="utf-8"))
+if metadata.get("multiversion"):
+    folders = [path for path in root.iterdir()
+               if path.is_dir() and re.fullmatch(r"[1-9]\d*\.\d+(\.\d+)?", path.name)
+               and (not cinnamon or version(path.name) <= version(cinnamon))]
+    if folders:
+        loaded = max(folders, key=lambda path: version(path.name))
+applet_path = loaded / "applet.js"
+applet = applet_path.read_text(encoding="utf-8") if applet_path.is_file() else ""
+missing = [f"{migration_id} ({what})" for migration_id, what in FIXES.items()
+           if importlib.import_module(f"caramos_ota_update.migrations.{migration_id}.migration").MARKER not in applet]
+if missing:
+    print(f"{applet_path} (Cinnamon {cinnamon or '?'}) lacks: " + "; ".join(missing))
+    sys.exit(1)
+print(f"{applet_path} (Cinnamon {cinnamon or '?'}) has the CaramOS Start Menu fixes")
+PY
+    then
+        error "Cinnamenu tải về không nhận bản vá Start Menu của CaramOS. Sửa hai migration trên cho bản Cinnamenu mới, hoặc ghim hook 0170 vào commit cinnamon-spices đã test."
+    fi
+    ok "Start Menu có đủ bản vá của CaramOS."
+}
+
 step_ota_bootstrap() {
     local deb app_center_deb
     deb="$(build_caramos_ota_deb)"
     app_center_deb="$(build_caramos_app_center_deb)"
     install_caramos_ota_and_run_migrations "$deb" "$app_center_deb"
+    verify_start_menu_fixes
 }

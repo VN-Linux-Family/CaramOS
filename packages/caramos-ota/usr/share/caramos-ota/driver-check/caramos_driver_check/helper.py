@@ -148,6 +148,7 @@ def plan(targets: list[str], cache, detect) -> list[str]:
                 wanted = detect.get_desktop_package_list(cache, include_oem=False, driver_string=target,
                                                          include_dkms=True)
             packages.extend(wanted)
+            packages.extend(kernel_for_modules(wanted, cache))
         else:
             if target not in drivers or not one_click(target):
                 raise Refused(f"{target} is not a driver for this computer")
@@ -158,6 +159,33 @@ def plan(targets: list[str], cache, detect) -> list[str]:
             if not installed:
                 packages.append(target)
     return list(dict.fromkeys(packages))
+
+
+MODULES_META = re.compile(r"^linux-modules-nvidia-\d+(?:-server)?(?:-open)?-(?P<kernel>[a-z].*)$")
+
+
+def kernel_for_modules(packages: list[str], cache) -> list[str]:
+    """The kernel metapackage of the NVIDIA modules metapackage in packages (linux-generic-hwe-24.04).
+
+    The modules metapackage follows the newest kernel of its series, and its install links the modules
+    against that kernel's headers. On a computer not updated since installing (the CaramOS ISO has 6.14,
+    the series is at 7.0 by now), APT brought the new kernel's modules without its headers: the link failed
+    and dpkg was left broken. Installing the kernel metapackage too brings the headers and the rest of that
+    kernel; on an up-to-date computer it changes nothing.
+    """
+
+    found = []
+    for package in packages:
+        match = MODULES_META.match(package)
+        if not match:
+            continue
+        kernel = f"linux-{match.group('kernel')}"
+        try:
+            if cache[kernel].has_versions:
+                found.append(kernel)
+        except KeyError:
+            continue
+    return found
 
 
 def reload_broadcom() -> bool:

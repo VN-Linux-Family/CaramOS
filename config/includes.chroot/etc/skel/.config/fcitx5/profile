@@ -4,11 +4,11 @@ Default Layout=us
 DefaultIM=lotus
 
 [Groups/0/Items/0]
-Name=lotus
+Name=keyboard-us
 Layout=
 
 [Groups/0/Items/1]
-Name=keyboard-us
+Name=lotus
 Layout=
 
 [GroupOrder]

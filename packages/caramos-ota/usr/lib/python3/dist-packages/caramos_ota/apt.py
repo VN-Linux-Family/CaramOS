@@ -3,20 +3,24 @@
 from __future__ import annotations
 
 import os
+import re
+import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 from typing import Any
 
-from .constants import EXIT_APT
+from .constants import EXIT_APT, PPA_PATTERN
 from .errors import OtaError
-from .logging_utils import current_log_file, log_error, log_info, now_iso, print_fail, print_ok
+from .logging_utils import current_log_file, log_error, log_info, log_warn, now_iso, print_fail, print_ok
 from .manifest import manifest_for_plan, resolve_update_plan
 from caramos_ota_update.registry import version_lt
 from .models import Manifest, ReleaseInfo, UpdatePackage
 from .state import save_state
 
 
-def run_command(args: list[str], *, capture: bool = False, allow_fail: bool = False) -> subprocess.CompletedProcess[str]:
+def run_command(args: list[str], *, capture: bool = False, allow_fail: bool = False,
+                env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     log_info("Running: " + " ".join(args))
     stderr_target: Any = subprocess.PIPE if capture else None
     stdout_target: Any = subprocess.PIPE if capture else None
@@ -24,7 +28,7 @@ def run_command(args: list[str], *, capture: bool = False, allow_fail: bool = Fa
     with (active_log.open("a", encoding="utf-8") if active_log and not capture else open(os.devnull, "a", encoding="utf-8")) as log_handle:
         if not capture:
             stderr_target = log_handle
-        result = subprocess.run(args, check=False, text=True, stdout=stdout_target, stderr=stderr_target)
+        result = subprocess.run(args, check=False, text=True, stdout=stdout_target, stderr=stderr_target, env=env)
     if result.returncode != 0 and not allow_fail:
         raise subprocess.CalledProcessError(result.returncode, args, output=result.stdout, stderr=result.stderr)
     return result
@@ -63,18 +67,131 @@ def disable_cdrom_sources() -> None:
             log_error(f"Failed to inspect APT source file {source_file}: {exc}")
 
 
+# apt's messages in English, which failed_sources() and candidate_version() read, whatever the system language:
+# on a Vietnamese system apt-cache policy says "Ứng cử:", not "Candidate:".
+APT_ENV_OVERRIDES = {"LC_ALL": "C.UTF-8"}
+
+
+def english_environment() -> dict[str, str]:
+    environment = {name: value for name, value in os.environ.items() if name != "LANGUAGE"}
+    environment.update(APT_ENV_OVERRIDES)
+    return environment
+FAILED_FETCH_RE = re.compile(r"^[EW]: Failed to fetch (\S+)")
+REPOSITORY_RE = re.compile(r"^[EW]: The repository '(\S+)")
+# The end of a fetched URL: /dists/<suite>/..., or the file of a flat repository ("https://x ./").
+INDEX_PATH_RE = re.compile(r"(/dists/.*|(/\.)?/(In)?Release(\.gpg)?|(/\.)?/Packages(\.\w+)?)$")
+
+
+def _source_files() -> list[Path]:
+    files = [APT_SOURCES_LIST]
+    if APT_SOURCES_DIR.is_dir():
+        files.extend(sorted(APT_SOURCES_DIR.glob("*.list")) + sorted(APT_SOURCES_DIR.glob("*.sources")))
+    return [path for path in files if path.is_file()]
+
+
+def _base_uri(text: str) -> str:
+    """https://github.io/./InRelease or "https://github.io ./" -> https://github.io (the URI of the source)."""
+
+    uri = text.split()[0] if text.split() else text
+    return INDEX_PATH_RE.sub("", uri).rstrip("/")
+
+
+def failed_sources(output: str) -> list[str]:
+    """The source URIs apt-get update could not fetch, from its E:/W: lines."""
+
+    found: list[str] = []
+    for line in output.splitlines():
+        line = line.strip()
+        match = REPOSITORY_RE.match(line) or FAILED_FETCH_RE.match(line)
+        if match:
+            uri = _base_uri(match.group(1))
+            if uri and uri not in found:
+                found.append(uri)
+    return found
+
+
+def source_files_mentioning(uri: str) -> list[str]:
+    files = []
+    for path in _source_files():
+        try:
+            if uri in path.read_text(encoding="utf-8", errors="ignore"):
+                files.append(str(path))
+        except OSError:
+            continue
+    return files
+
+
+def _append_to_log(text: str) -> None:
+    log_file = current_log_file()
+    if log_file is not None and text.strip():
+        with log_file.open("a", encoding="utf-8") as handle:
+            handle.write(text if text.endswith("\n") else text + "\n")
+
+
+def _apt_get_update(extra: list[str]) -> subprocess.CompletedProcess[str]:
+    args = ["apt-get", "update", "-qq", *extra]
+    log_info("Running: " + " ".join(args))
+    result = subprocess.run(args, check=False, text=True, capture_output=True, env=english_environment())
+    _append_to_log((result.stdout or "") + (result.stderr or ""))
+    return result
+
+
+def update_caramos_sources() -> bool:
+    """apt-get update of the CaramOS PPA alone, leaving the other package lists as they are."""
+
+    one_line: list[str] = []
+    deb822: list[Path] = []
+    for path in _source_files():
+        try:
+            text = path.read_text(encoding="utf-8", errors="ignore")
+        except OSError:
+            continue
+        if PPA_PATTERN not in text:
+            continue
+        if path.suffix == ".sources":
+            deb822.append(path)
+        else:
+            one_line.extend(line for line in text.splitlines()
+                            if PPA_PATTERN in line and not line.lstrip().startswith("#"))
+    if not one_line and not deb822:
+        return False
+    with tempfile.TemporaryDirectory(prefix="caramos-ota-apt.") as folder:
+        source_list = Path(folder) / "caramos.list"
+        source_list.write_text("".join(line + "\n" for line in one_line), encoding="utf-8")
+        parts = Path(folder) / "sources.list.d"
+        parts.mkdir()
+        for path in deb822:
+            shutil.copyfile(path, parts / path.name)
+        result = _apt_get_update(["-o", f"Dir::Etc::SourceList={source_list}", "-o", f"Dir::Etc::SourceParts={parts}",
+                                  "-o", "APT::Get::List-Cleanup=0"])
+    return result.returncode == 0
+
+
 def apt_update() -> None:
     print_ok("Updating package index...")
     disable_cdrom_sources()
-    try:
-        run_command(["apt-get", "update", "-qq"])
-    except subprocess.CalledProcessError:
-        print("Error: Failed to update package index.")
-        print("Check your network connection and repository configuration.")
-        print(f"Log: {current_log_file()}")
-        log_error("apt-get update failed")
-        raise SystemExit(EXIT_APT)
-    log_info("apt-get update completed")
+    result = _apt_get_update([])
+    if result.returncode == 0:
+        log_info("apt-get update completed")
+        return
+    # A source added by hand or by another program that no longer works (a moved repository, a typo, a
+    # captive portal) fails apt-get update as a whole, though the other lists are fresh. The CaramOS update
+    # only needs the CaramOS PPA: refresh it alone and go on.
+    failed = failed_sources(result.stderr or "")
+    if failed and not any(PPA_PATTERN in uri for uri in failed) and update_caramos_sources():
+        for uri in failed:
+            files = source_files_mentioning(uri)
+            where = f" (in {', '.join(files)})" if files else ""
+            log_warn(f"Skipped a software source that could not be updated: {uri}{where}")
+        print("Warning: some software sources that are not part of CaramOS could not be updated; "
+              "the CaramOS update goes on.")
+        log_info("apt-get update completed for the CaramOS repository")
+        return
+    print("Error: Failed to update package index.")
+    print("Check your network connection and repository configuration.")
+    print(f"Log: {current_log_file()}")
+    log_error("apt-get update failed")
+    raise SystemExit(EXIT_APT)
 
 
 def installed_version(package: str) -> str:
@@ -82,8 +199,58 @@ def installed_version(package: str) -> str:
     return (result.stdout or "").strip() if result.returncode == 0 else ""
 
 
+# dpkg states of a package it started to install or remove and could not finish: half-installed,
+# unpacked, half-configured (the second letter of ${db:Status-Abbrev}).
+UNFINISHED_STATES = frozenset("HUF")
+# Packages CaramOS installs whose broken maintainer script a newer version replaces: Lotus 3.5.6's postinst
+# had a syntax error, and the half-configured package failed every later apt-get install (ticket H-1100).
+REPAIRABLE_BY_UPGRADE = ("fcitx5-lotus",)
+
+
+def package_status(package: str) -> tuple[str, str]:
+    """(${db:Status-Abbrev}, ${Version}) of an installed package, ("", "") when dpkg does not know it."""
+
+    result = run_command(["dpkg-query", "-W", "-f=${db:Status-Abbrev}|${Version}", package], capture=True,
+                         allow_fail=True)
+    if result.returncode != 0 or "|" not in (result.stdout or ""):
+        return "", ""
+    status, version = (result.stdout or "").split("|", 1)
+    return status.strip(), version.strip()
+
+
+def is_installed(package: str, version: str = "") -> bool:
+    status, installed = package_status(package)
+    return status.startswith("ii") and (not version or installed == version)
+
+
+def broken_packages() -> list[str]:
+    """Packages dpkg could not finish installing, which every apt-get install tries to configure again."""
+
+    result = run_command(["dpkg-query", "-W", "-f=${binary:Package} ${db:Status-Abbrev}\n"], capture=True,
+                         allow_fail=True)
+    broken = []
+    for line in (result.stdout or "").splitlines():
+        parts = line.split()
+        if len(parts) >= 2 and len(parts[1]) >= 2 and parts[1][1] in UNFINISHED_STATES:
+            broken.append(parts[0].split(":")[0])
+    return broken
+
+
+def repairable_packages() -> list[str]:
+    """REPAIRABLE_BY_UPGRADE packages left unfinished for which APT has another version."""
+
+    found = []
+    for package in REPAIRABLE_BY_UPGRADE:
+        status, installed = package_status(package)
+        if len(status) >= 2 and status[1] in UNFINISHED_STATES:
+            candidate = candidate_version(package)
+            if candidate and candidate not in ("(none)", installed):
+                found.append(package)
+    return found
+
+
 def candidate_version(package: str) -> str:
-    result = run_command(["apt-cache", "policy", package], capture=True, allow_fail=True)
+    result = run_command(["apt-cache", "policy", package], capture=True, allow_fail=True, env=english_environment())
     for line in (result.stdout or "").splitlines():
         stripped = line.strip()
         if stripped.startswith("Candidate:"):

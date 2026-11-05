@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.3"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t&color=F59F22" alt="Bản mới nhất"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.4"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t&color=F59F22" alt="Bản mới nhất"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.3.3/CaramOS-1.3.3-cinnamon-amd64.iso/download"><strong>Tải CaramOS 1.3.3</strong></a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.3.4/CaramOS-1.3.4-cinnamon-amd64.iso/download"><strong>Tải CaramOS 1.3.4</strong></a> ·
   <a href="https://caramos.vietnamlinuxfamily.net">Website</a> ·
   <a href="README_EN.md">English</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -44,16 +44,31 @@ Windows chuyển sang mà không phải mày mò, có sẵn tiếng Việt, bộ
 khác chỉ cần vài cú bấm.
 
 > [!IMPORTANT]
-> **CaramOS 1.3.3 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
+> **CaramOS 1.3.4 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
 > sau chuỗi bản Open Beta 1.0.x.
 >
-> - **Cài mới:** [tải ISO 1.3.3](https://sourceforge.net/projects/caramos/files/v1.3.3/CaramOS-1.3.3-cinnamon-amd64.iso/download)
->   (2,8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.3/SHA256SUMS) ·
->   [ghi chú phát hành](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.3)
-> - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.3.3, bấm
+> - **Cài mới:** [tải ISO 1.3.4](https://sourceforge.net/projects/caramos/files/v1.3.4/CaramOS-1.3.4-cinnamon-amd64.iso/download)
+>   (2,8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.4/SHA256SUMS) ·
+>   [ghi chú phát hành](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.4)
+> - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.3.4, bấm
 >   **Cập nhật ngay** là xong. Xem [Nâng cấp từ bản cũ](#nâng-cấp-từ-bản-cũ).
 
 ## Có gì mới
+
+### 1.3.4
+
+- **Bộ gõ giữ cài đặt của bạn và bật sẵn tiếng Việt:** cài đặt Lotus bạn chọn (Telex hay VNI, chế độ, kiểm
+  tra chính tả, phím tắt) không còn bị đặt lại mỗi lần đăng nhập. Mỗi phiên bắt đầu ở tiếng Việt (chữ V ở
+  khay hệ thống); bấm Ctrl+Shift để chuyển sang tiếng Anh.
+- **Start Menu tìm được khi đang gõ tiếng Việt** (trước đây phải gõ dấu cách mới ra kết quả), và **không còn
+  làm đơ máy khi tìm tệp**, kể cả trên ổ cứng HDD hay khi có Google Drive gắn trong thư mục Home.
+- **Trung tâm cập nhật không còn bị chặn** bởi một nguồn phần mềm hỏng do chương trình khác thêm vào, hay một
+  gói cài dở như Lotus 3.5.6 lỗi hoặc driver NVIDIA 470.
+- **Kiểm tra driver** không còn đề xuất driver NVIDIA 470 (không chạy được trên nhân Linux 6.14 trở lên) mà đề
+  xuất bản 580, và nói rõ khi driver đồ hoạ bị tắt bởi `nomodeset` hay blacklist. Nhật ký gửi kèm yêu cầu hỗ
+  trợ có thêm thông tin khởi động và ổ đĩa.
+- **App Center 0.2.3:** cài được ứng dụng khi máy còn gói cài dở; trên USB chạy thử thì chờ trình cài CaramOS
+  thay vì báo lỗi; tải WPS Office tiếp được khi máy chủ ngắt giữa chừng.
 
 ### 1.3.3
 
@@ -281,9 +296,9 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
 
 ### 1. Tải ISO
 
-- [CaramOS-1.3.3-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.3/CaramOS-1.3.3-cinnamon-amd64.iso/download)
+- [CaramOS-1.3.4-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.4/CaramOS-1.3.4-cinnamon-amd64.iso/download)
   (2,8 GB, trên SourceForge vì GitHub giới hạn dung lượng mỗi tệp đính kèm).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.3/SHA256SUMS) để kiểm tra
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.4/SHA256SUMS) để kiểm tra
   tệp tải về:
 
 ```bash
@@ -296,7 +311,7 @@ Dùng [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net)
 Trên Linux có thể dùng `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.3.3-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.3.4-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Chạy thử và cài đặt
@@ -310,12 +325,16 @@ sudo dd if=CaramOS-1.3.3-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress of
 
 Máy đã cài CaramOS không cần cài lại ISO.
 
-- **Từ CaramOS 1.0.2 trở lên:** Trung tâm cập nhật tự kiểm tra mỗi ngày và báo bản 1.3.3; bấm **Cập nhật
+- **Từ CaramOS 1.0.2 trở lên:** Trung tâm cập nhật tự kiểm tra mỗi ngày và báo bản 1.3.4; bấm **Cập nhật
   ngay**. Muốn nâng cấp liền, mở Terminal và chạy:
 
   ```bash
   sudo caramos-ota --upgrade --yes
   ```
+
+- **Trung tâm cập nhật báo lỗi ngay ở bước tải danh sách gói:** máy có một nguồn phần mềm hỏng do chương trình
+  hay hướng dẫn khác thêm vào. Mở **Nguồn Phần mềm** từ Start Menu, vào **Kho bổ sung**, bỏ chọn dòng hỏng rồi
+  cập nhật lại. Từ 1.3.4, Trung tâm cập nhật tự bỏ qua nguồn hỏng kiểu này.
 
 - **Từ CaramOS 1.0.1:** cài Trung tâm cập nhật một lần, rồi mở **Trung tâm cập nhật CaramOS** từ Start
   Menu:
@@ -402,7 +421,7 @@ Landing page [caramos.vietnamlinuxfamily.net](https://caramos.vietnamlinuxfamily
 Version sản phẩm nằm trong source tree, ở [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.3.3"
+CARAMOS_VERSION="1.3.4"
 ```
 
 `make release VERSION=x.y.z` đóng dấu version này cùng lúc vào `scripts/config.sh`, metadata release và
@@ -414,7 +433,7 @@ CARAMOS_VERSION="1.3.3"
 - `neofetch` / `fastfetch`
 - GitHub Release và package `caramos-ota` trên PPA
 
-Khi release, Git tag phải khớp version trong source: version `1.3.3` thì tag là `v1.3.3`. Nếu tag
+Khi release, Git tag phải khớp version trong source: version `1.3.4` thì tag là `v1.3.4`. Nếu tag
 không khớp, GitHub Actions dừng trước khi build.
 
 ### Cập nhật OTA
@@ -558,17 +577,17 @@ Workflow CI nằm ở [.github/workflows/build.yml](.github/workflows/build.yml)
 - Push tag `v*`: kiểm tra tag khớp `CARAMOS_VERSION`, build release bằng `./build.sh --release`, tạo
   `SHA256SUMS`, đưa ISO lên SourceForge và tạo GitHub Release có link tải.
 
-Ví dụ release `1.3.3`:
+Ví dụ release `1.3.4`:
 
 ```bash
 # 1. Đóng dấu version: scripts/config.sh, metadata và changelog của caramos-ota
-make -C packages/caramos-ota prepare-release VERSION=1.3.3
-git commit -am "[build] Release 1.3.3"
+make -C packages/caramos-ota prepare-release VERSION=1.3.4
+git commit -am "[build] Release 1.3.4"
 git push origin main
 
 # 2. Tag: GitHub Actions build ISO, SourceForge và GitHub Release
-git tag -a v1.3.3 -m "CaramOS 1.3.3"
-git push origin v1.3.3
+git tag -a v1.3.4 -m "CaramOS 1.3.4"
+git push origin v1.3.4
 
 # 3. Gói caramos-ota lên PPA (cần chìa GPG của người release)
 make -C packages/caramos-ota source

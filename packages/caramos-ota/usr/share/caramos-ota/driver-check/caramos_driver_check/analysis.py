@@ -49,6 +49,10 @@ AREAS = ("wifi", "ethernet", "graphics", "audio", "bluetooth", "camera", "finger
 # Shown even when the machine has none, so the user sees that they were checked.
 ALWAYS_SHOWN = ("wifi", "ethernet", "graphics", "audio", "bluetooth", "camera")
 
+# Packages of an NVIDIA driver install, whose failed dpkg configure breaks every later install.
+NVIDIA_PACKAGES = ("nvidia-", "libnvidia-", "linux-modules-nvidia-", "linux-objects-nvidia-", "linux-signatures-nvidia-",
+                   "xserver-xorg-video-nvidia-")
+
 # Framebuffer modules match graphics cards too, but are blacklisted on purpose.
 _IGNORED_MODULES = frozenset({
     "nvidiafb", "rivafb", "intelfb", "i810fb", "viafb", "radeonfb", "aty128fb", "atyfb", "sisfb",
@@ -224,6 +228,17 @@ class _Analysis:
             )
         return ""
 
+    def _modesetting_off(self, device: Device) -> str:
+        """The boot option that keeps a graphics driver from starting: nomodeset or <module>.modeset=0."""
+
+        if not device.pci_class_is(*PCI_DISPLAY):
+            return ""
+        options = self.snapshot.boot_options()
+        if "nomodeset" in options:
+            return "nomodeset"
+        return next((f"{module}.modeset=0" for module in self._candidates(device)
+                     if f"{module}.modeset=0" in options), "")
+
     def _reason(self, device: Device, working_driver: bool) -> str:
         """Why a device does not work: restart, blocked, failed or no-driver."""
 
@@ -255,6 +270,27 @@ class _Analysis:
                     "enrolled key. Run “sudo update-secureboot-policy --enroll-key” in a terminal, restart and "
                     "choose “Enroll MOK”, or turn off Secure Boot in the BIOS settings."
                 ) % modules
+            option = self._modesetting_off(device)
+            if option:
+                return _(
+                    "The computer starts with the “%s” boot option, which turns the graphics driver (%s) off. It "
+                    "is often added to get past a black screen. To turn the driver on again, "
+                    "open a terminal, run “sudo sed -i 's/ *%s//' /etc/default/grub && sudo update-grub” and "
+                    "restart."
+                ) % (option, modules, option)
+            blocked = [(module, self.snapshot.blacklisted(module)) for module in self._waiting_modules(device)]
+            blocked = [(module, where) for module, where in blocked if where]
+            if blocked:
+                module, where = blocked[0]
+                if where.startswith("/"):
+                    return _(
+                        "Its driver (%s) is turned off by a “blacklist %s” line in %s. Remove that line and restart "
+                        "the computer to use it."
+                    ) % (module, module, where)
+                return _(
+                    "Its driver (%s) is turned off by the modprobe.blacklist boot option. Remove it from "
+                    "/etc/default/grub, run “sudo update-grub” and restart the computer to use it."
+                ) % module
             return _(
                 "Its driver (%s) is on the computer but did not load: it may be turned off (blacklisted) or "
                 "it refused to start."
@@ -444,6 +480,10 @@ class _Analysis:
         self._area("graphics", cards)
 
     def _nvidia(self, device: Device) -> None:
+        broken = [package for package in self.snapshot.unfinished_packages if package.startswith(NVIDIA_PACKAGES)]
+        if broken:
+            self._nvidia_broken(device, broken)
+            return
         if device.driver == "nvidia":
             return
         if "nvidia" in device.new_modules:
@@ -484,6 +524,25 @@ class _Analysis:
                   why + " " + _("CaramOS installs the driver Ubuntu recommends for this card."), device,
                   (Action(INSTALL, _("Install NVIDIA driver %s") % version, proposal.target),
                    _action(DRIVER_MANAGER)), notes=tuple(notes))
+
+    def _nvidia_broken(self, device: Device, broken: list[str]) -> None:
+        """An NVIDIA driver dpkg could not finish (its module does not build for this kernel, ticket H-1094)."""
+
+        detail = _(
+            "Installing %s did not finish: this NVIDIA driver does not work with Linux %s. Until it is replaced, "
+            "installing other software fails too, in the App Center and the Update Center."
+        ) % (", ".join(broken[:3]) + ("…" if len(broken) > 3 else ""), kernel_version(self.snapshot.kernel))
+        proposal = self._proposal(device)
+        if proposal is not None:
+            version = proposal.version or proposal.package
+            detail += " " + _("Install NVIDIA driver %s instead: the broken driver is removed at the same time.") % version
+            actions: tuple[Action, ...] = (Action(INSTALL, _("Install NVIDIA driver %s") % version, proposal.target),
+                                           _action(DRIVER_MANAGER))
+        else:
+            detail += " " + _("Open Driver Manager and choose the open-source nouveau driver to remove it.")
+            actions = (_action(DRIVER_MANAGER), _action(REPORT))
+        self._add("graphics", CRITICAL, f"graphics:nvidia-broken:{device.key}", _("The NVIDIA driver did not install"),
+                  detail, device, actions)
 
     # Sound -------------------------------------------------------------------------------------
 

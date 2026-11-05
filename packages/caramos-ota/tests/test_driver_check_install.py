@@ -137,8 +137,9 @@ class HelperPlanTests(unittest.TestCase):
     def test_nvidia_goes_through_the_desktop_package_list(self) -> None:
         detect = FakeDetect({"nvidia-driver-580-open": {}},
                             {("nvidia:580-open", False): ["nvidia-driver-580-open", "linux-modules-nvidia-580-open-generic-hwe-24.04"]})
-        self.assertEqual(["nvidia-driver-580-open", "linux-modules-nvidia-580-open-generic-hwe-24.04"],
-                         helper.plan(["nvidia:580-open"], FakeCache(), detect))
+        # With the kernel of those modules, so that APT brings its headers too (see kernel_for_modules()).
+        self.assertEqual(["nvidia-driver-580-open", "linux-modules-nvidia-580-open-generic-hwe-24.04",
+                          "linux-generic-hwe-24.04"], helper.plan(["nvidia:580-open"], FakeCache(), detect))
 
     def test_nvidia_falls_back_to_dkms_without_signed_modules(self) -> None:
         detect = FakeDetect({"nvidia-driver-580": {}},

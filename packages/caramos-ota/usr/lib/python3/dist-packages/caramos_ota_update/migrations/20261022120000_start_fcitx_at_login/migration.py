@@ -73,6 +73,12 @@ START_TIMEOUT = 30
 
 
 def _write_helper(context: MigrationContext, path: Path = LOGIN_HELPER) -> bool:
+    return write_helper(context, path, LOGIN_HELPER_SCRIPT, "start Fcitx when it is not running")
+
+
+def write_helper(context: MigrationContext, path: Path, script: str, change: str = "") -> bool:
+    """Replace the CaramOS Lotus login helper at path with script; a script that is not CaramOS's stays."""
+
     if not path.is_file() or path.is_symlink():
         context.log(f"{path} is not installed")
         return False
@@ -81,19 +87,19 @@ def _write_helper(context: MigrationContext, path: Path = LOGIN_HELPER) -> bool:
     except (OSError, UnicodeDecodeError) as exc:
         context.log(f"skip {path}: {exc}")
         return False
-    if current == LOGIN_HELPER_SCRIPT:
+    if current == script:
         context.log(f"file unchanged: {path}")
         return False
     if CARAMOS_HELPER_MARKER not in current:
         context.log(f"skip {path}: not the CaramOS Lotus login helper")
         return False
-    context.log(f"write {path}: start Fcitx when it is not running")
+    context.log(f"write {path}" + (f": {change}" if change else ""))
     if context.dry_run:
         return True
     fd, staging = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
-            handle.write(LOGIN_HELPER_SCRIPT)
+            handle.write(script)
         os.chmod(staging, 0o755)
         os.replace(staging, path)
     except BaseException:
@@ -143,6 +149,23 @@ def start_command(username: str, environment: dict[str, str]) -> list[str]:
             *(f"{name}={value}" for name, value in sorted(environment.items())), "fcitx5", "-d"]
 
 
+def start_in_session(context: MigrationContext, username: str, environment: dict[str, str]) -> bool:
+    context.log(f"start Fcitx in the session of {username}")
+    try:
+        # No pipes: the daemon Fcitx forks would hold them open and this call would never return.
+        result = subprocess.run(start_command(username, environment), check=False,
+                                stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                start_new_session=True, timeout=START_TIMEOUT)
+    except (OSError, subprocess.SubprocessError) as exc:
+        context.log(f"warning: could not start Fcitx for {username}, it starts at the next login: {exc}")
+        return False
+    if result.returncode != 0:
+        context.log(f"warning: Fcitx did not start for {username} (exit {result.returncode}), "
+                    "it starts at the next login")
+        return False
+    return True
+
+
 def _start_in_sessions(context: MigrationContext) -> None:
     for user in _desktop_users():
         environment = session_environment(user.pw_uid)
@@ -151,18 +174,7 @@ def _start_in_sessions(context: MigrationContext) -> None:
         if _fcitx_running(user.pw_uid):
             context.log(f"Fcitx is running for {user.pw_name}")
             continue
-        context.log(f"start Fcitx in the session of {user.pw_name}")
-        try:
-            # No pipes: the daemon Fcitx forks would hold them open and this call would never return.
-            result = subprocess.run(start_command(user.pw_name, environment), check=False,
-                                    stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                                    start_new_session=True, timeout=START_TIMEOUT)
-        except (OSError, subprocess.SubprocessError) as exc:
-            context.log(f"warning: could not start Fcitx for {user.pw_name}, it starts at the next login: {exc}")
-            continue
-        if result.returncode != 0:
-            context.log(f"warning: Fcitx did not start for {user.pw_name} (exit {result.returncode}), "
-                        "it starts at the next login")
+        start_in_session(context, user.pw_name, environment)
 
 
 def run(context: MigrationContext) -> None:

@@ -18,6 +18,11 @@ CommandRunner = Callable[[Sequence[str], float], "subprocess.CompletedProcess[st
 PCI_ADDRESS = re.compile(r"^[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-9a-f]$")
 USB_DEVICE = re.compile(r"^\d+-[\d.]+$")
 SECURE_BOOT_VARIABLE = "sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c"
+MODPROBE_DIRS = ("etc/modprobe.d", "run/modprobe.d", "usr/lib/modprobe.d", "lib/modprobe.d")
+# "install <module> /bin/false" turns a module off as "blacklist" does, and also for explicit loads.
+DISABLING_COMMANDS = frozenset({"/bin/false", "/bin/true", "/usr/bin/false", "/usr/bin/true", "false", "true"})
+DPKG_STATUS = "var/lib/dpkg/status"
+UNFINISHED_STATES = frozenset({"half-installed", "unpacked", "half-configured"})
 
 # PCI class prefixes (class + subclass) the check looks at.
 PCI_ETHERNET = "0200"
@@ -195,6 +200,20 @@ class Snapshot:
     virtual: bool = False            # a virtual machine
     secure_boot: bool = False
     firmware_errors: tuple[FirmwareError, ...] = ()
+    cmdline: str = ""                # the kernel command line
+    # Modules modprobe refuses to load: (module, where: a modprobe.d file or "the kernel command line").
+    blacklists: tuple[tuple[str, str], ...] = ()
+    # Packages dpkg could not finish installing (unpacked, half-configured): apt fails until they are fixed.
+    unfinished_packages: tuple[str, ...] = ()
+
+    def boot_options(self) -> tuple[str, ...]:
+        return tuple(self.cmdline.split())
+
+    def blacklisted(self, module: str) -> str:
+        """Where a module is blacklisted, "" when it is not."""
+
+        name = module.replace("-", "_")
+        return next((where for blocked, where in self.blacklists if blocked == name), "")
 
     @property
     def devices(self) -> tuple[Device, ...]:
@@ -576,6 +595,45 @@ class SystemReader:
                 return "hypervisor" in line.split()
         return False
 
+    def kernel_cmdline(self) -> str:
+        return self._read(self._path("proc/cmdline"))
+
+    def module_blacklists(self, cmdline: str) -> tuple[tuple[str, str], ...]:
+        """blacklist and install-to-false lines of modprobe.d, and modprobe.blacklist= on the command line."""
+
+        found: dict[str, str] = {}
+        for option in cmdline.split():
+            key, _, value = option.partition("=")
+            if key in ("modprobe.blacklist", "module_blacklist"):
+                for module in value.split(","):
+                    if module:
+                        found.setdefault(module.replace("-", "_"), "the kernel command line")
+        for folder in MODPROBE_DIRS:
+            for conf in sorted(self._entries(self._path(folder))):
+                if conf.suffix != ".conf":
+                    continue
+                for line in self._read(conf).splitlines():
+                    words = line.split("#", 1)[0].split()
+                    blocked = (len(words) == 2 and words[0] == "blacklist") or (
+                        len(words) >= 3 and words[0] == "install" and words[2] in DISABLING_COMMANDS)
+                    if blocked:
+                        found.setdefault(words[1].replace("-", "_"), "/" + str(conf.relative_to(self.root)))
+        return tuple(found.items())
+
+    def unfinished_packages(self) -> tuple[str, ...]:
+        """Packages of /var/lib/dpkg/status in the half-installed, unpacked or half-configured state."""
+
+        found = []
+        package = ""
+        for line in self._read(self._path(DPKG_STATUS)).splitlines():
+            if line.startswith("Package:"):
+                package = line.split(":", 1)[1].strip()
+            elif line.startswith("Status:") and package:
+                words = line.split()
+                if len(words) == 4 and words[3] in UNFINISHED_STATES:
+                    found.append(package)
+        return tuple(found)
+
     def secure_boot(self) -> bool:
         try:
             data = self._path(SECURE_BOOT_VARIABLE).read_bytes()
@@ -674,6 +732,7 @@ class SystemReader:
         acpi = tuple(attach_acpi(device) for device in acpi_found)
         devices = pci + usb + acpi
         firmware = self.firmware_errors() if any(self._not_working(device) for device in devices) else ()
+        cmdline = self.kernel_cmdline()
         return Snapshot(
             pci=pci,
             usb=usb,
@@ -686,4 +745,7 @@ class SystemReader:
             virtual=self.virtual_machine(),
             secure_boot=self.secure_boot(),
             firmware_errors=firmware,
+            cmdline=cmdline,
+            blacklists=self.module_blacklists(cmdline),
+            unfinished_packages=self.unfinished_packages(),
         )

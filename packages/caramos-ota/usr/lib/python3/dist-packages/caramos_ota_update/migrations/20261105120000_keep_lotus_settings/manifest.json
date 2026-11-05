@@ -1,0 +1,22 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "Bộ gõ tiếng Việt (dưới 1 MB)",
+  "size_en": "Vietnamese input method (under 1 MB)",
+  "title": "Bộ gõ giữ cài đặt của bạn và bật sẵn tiếng Việt",
+  "summary": "Cài đặt bạn chọn cho bộ gõ Lotus (kiểu gõ Telex hay VNI, chế độ, kiểm tra chính tả, phím tắt) không còn bị đặt lại mỗi lần đăng nhập. Mỗi lần đăng nhập, bộ gõ bật sẵn tiếng Việt; bấm Ctrl+Shift để chuyển sang tiếng Anh.",
+  "title_en": "The input method keeps your settings and starts in Vietnamese",
+  "summary_en": "The Lotus settings you choose (Telex or VNI, the mode, spell checking, shortcuts) are no longer reset at every login. Every session starts typing Vietnamese; press Ctrl+Shift to switch to English.",
+  "release_notes_vi": [
+    "Cài đặt bộ gõ Lotus và Fcitx bạn đã chọn được giữ nguyên sau khi đăng xuất hay khởi động lại máy.",
+    "Đăng nhập là gõ được tiếng Việt ngay: khay hệ thống hiện chữ V. Bấm Ctrl+Shift để chuyển sang tiếng Anh (A) và ngược lại.",
+    "Nếu bạn đã tự thêm hay sắp xếp lại bộ gõ trong Cấu hình Fcitx 5, danh sách đó được giữ nguyên."
+  ],
+  "release_notes_en": [
+    "The Lotus and Fcitx settings you chose stay after logging out or restarting.",
+    "Every session starts typing Vietnamese: the system tray shows V. Press Ctrl+Shift to switch to English (A) and back.",
+    "If you added or reordered input methods in Fcitx 5 Configuration, your list stays as it is."
+  ]
+}

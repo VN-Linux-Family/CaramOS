@@ -593,31 +593,31 @@ Nói ngắn gọn: **CaramOS OTA không còn là package manifest manager; nó l
 
 ---
 
-## 13. Release hiện tại: CaramOS 1.3.3 (`caramos-ota` 1.3.3)
+## 13. Release hiện tại: CaramOS 1.3.4 (`caramos-ota` 1.3.4)
 
 Người release PPA: **dungleviet**.
 
-CaramOS 1.3.3 là bản mới nhất của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0; các bản 1.0.x
+CaramOS 1.3.4 là bản mới nhất của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0; các bản 1.0.x
 trước đó là Open Beta.
 
 | Thành phần | Bản phát hành |
 |---|---|
-| ISO | `CaramOS-1.3.3-cinnamon-amd64.iso`: GitHub Release `v1.3.3`, tệp ISO trên SourceForge |
-| `caramos-ota` | `1.3.3-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
-| App Center | `caramos-app-center` 0.2.2, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` |
+| ISO | `CaramOS-1.3.4-cinnamon-amd64.iso`: GitHub Release `v1.3.4`, tệp ISO trên SourceForge |
+| `caramos-ota` | `1.3.4-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| App Center | `caramos-app-center` 0.2.3, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` |
 
 Máy CaramOS cũ không cần cài lại ISO:
 
-- Từ 1.0.2 trở lên: Trung tâm cập nhật tự báo bản 1.3.3, hoặc chạy `sudo caramos-ota --upgrade --yes`.
+- Từ 1.0.2 trở lên: Trung tâm cập nhật tự báo bản 1.3.4, hoặc chạy `sudo caramos-ota --upgrade --yes`.
 - Từ 1.0.1: cài Trung tâm cập nhật một lần bằng
   `curl -fsSL https://caramos.vietnamlinuxfamily.net/install-caramos-ota.sh | sudo bash`.
 
-Chuỗi migration được đóng gói trong `caramos-ota` 1.3.3:
+Chuỗi migration được đóng gói trong `caramos-ota` 1.3.4:
 
 ```text
 1.0.1 → 1.0.2 → … → 1.0.12                         migration legacy v1_0_2 … v1_0_12, đóng băng
 20260715090258_install_control_center → …
-  → 20261022120000_start_fcitx_at_login            21 timestamp migration, chạy theo ledger
+  → 20261105120200_start_menu_file_search_without_freeze   24 timestamp migration, chạy theo ledger
 ```
 
 Quy trình release (chi tiết trong [README gốc](../README.md#quy-trình-release)). ISO đóng gói App Center từ
@@ -625,13 +625,13 @@ submodule, nên App Center được phát hành và trỏ submodule trước khi
 
 ```bash
 # 1. App Center (khi có thay đổi): commit trong submodule rồi tag
-make -C packages/caramos-app-center release VERSION=0.2.2
-git -C packages/caramos-app-center push origin HEAD v0.2.2
+make -C packages/caramos-app-center release VERSION=0.2.3
+git -C packages/caramos-app-center push origin HEAD v0.2.3
 
 # 2. CaramOS: đóng dấu version, commit (kèm con trỏ submodule mới), tag
-make -C packages/caramos-ota prepare-release VERSION=1.3.3
-git commit -am "[build] Release 1.3.3" && git push origin main
-git tag -a v1.3.3 -m "CaramOS 1.3.3" && git push origin v1.3.3   # CI: ISO, SourceForge, GitHub Release
+make -C packages/caramos-ota prepare-release VERSION=1.3.4
+git commit -am "[build] Release 1.3.4" && git push origin main
+git tag -a v1.3.4 -m "CaramOS 1.3.4" && git push origin v1.3.4   # CI: ISO, SourceForge, GitHub Release
 
 # 3. caramos-ota lên PPA
 make -C packages/caramos-ota source
@@ -645,4 +645,4 @@ sudo apt update
 apt-cache policy caramos-ota
 ```
 
-ISO build dùng `CARAMOS_VERSION=1.3.3` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs.
+ISO build dùng `CARAMOS_VERSION=1.3.4` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs. Sau đó build dừng nếu Start Menu (Cinnamenu tải từ cinnamon-spices lúc build) thiếu bản vá của CaramOS.

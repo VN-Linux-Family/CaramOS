@@ -1,3 +1,35 @@
+caramos-ota (1.3.5-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.3.5.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Driver Check (tickets H-1110, H-1111): installing a driver broke
+    dpkg since 1.3.0. The helper ran apt-get with APT::Status-Fd=1 and
+    Dpkg::Use-Pty=0; APT marks its status descriptor close-on-exec, so
+    dpkg and every maintainer script ran with stdout closed and failed at
+    their first echo. For NVIDIA 580, update-initramfs failed in
+    nvidia-kernel-common-580's postinst and every package after it was
+    left unpacked: the driver and the kernel it came with did not work,
+    while the driver's modprobe file already blacklisted nouveau, so the
+    next boot had no graphics driver (1024x768). dpkg keeps the pty APT
+    gives it again, as in the App Center. A computer left like this is
+    repaired by `sudo dpkg --configure -a`, or by the update to 1.3.5:
+    the OTA self-update's apt-get configures the unfinished packages
+    (checked on a VM broken by the 1.3.4 helper: exit 0, dpkg clean, the
+    NVIDIA modules linked for Linux 7.0).
+  * Driver Check: the install log keeps the last state of a line that is
+    redrawn, and the objtool warnings from linking the NVIDIA modules
+    (49,233 lines for NVIDIA 580) are counted instead of shown.
+  * Driver Check checks the free space before installing: APT's download
+    and installed sizes, plus an initramfs in /boot for each new kernel
+    and a margin, are added up per file system for /, /boot and the APT
+    cache. When one falls short nothing is installed and the window says
+    how much space is needed and where. NVIDIA 580 on a 1.3.4 install not
+    yet updated downloads 940 MiB and takes 2.4 GiB more, with Linux 7.0.
+  * Driver Check: the NVIDIA install note says the download can be up to
+    about 1 GB, not a few hundred MB.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Fri, 06 Nov 2026 13:06:38 +0700
+
 caramos-ota (1.3.4-0caramos2) noble; urgency=medium
 
   * Rebuild of 1.3.4-0caramos1 with no code changes. Launchpad built

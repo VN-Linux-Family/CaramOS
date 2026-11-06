@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import threading
 from time import monotonic
+from typing import Any
 
 from gi.repository import Adw, Gio, GLib, Gtk
 
@@ -165,8 +166,8 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
         if self.busy or not installs:
             return
         self.busy = True
-        view = InstallView(installs, on_done=lambda ok, restart, error, log: self._install_done(
-            installs, ok, restart, error, log), on_cancelled=self._install_cancelled)
+        view = InstallView(installs, on_done=lambda ok, restart, error, log, space: self._install_done(
+            installs, ok, restart, error, log, space), on_cancelled=self._install_cancelled)
         self._set_page("install", view)
         view.start()
 
@@ -176,10 +177,11 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
             self.show_results(self.report)
         self.toast(_("Not installed: the password was not entered."))
 
-    def _install_done(self, installs: list[Action], ok: bool, restart: bool, error: str, log: str) -> None:
+    def _install_done(self, installs: list[Action], ok: bool, restart: bool, error: str, log: str,
+                      space: list[dict[str, Any]]) -> None:
         self.busy = False
         page = done_page(ok, restart, error, log, on_restart=lambda: actions.run(REBOOT),
-                         on_back=self.start_scan, on_retry=lambda: self.install(installs))
+                         on_back=self.start_scan, on_retry=lambda: self.install(installs), space=space)
         self._set_page("done", page)
 
     # Asking for help (HelpPages) -------------------------------------------------------------

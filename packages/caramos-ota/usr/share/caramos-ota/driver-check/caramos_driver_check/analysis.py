@@ -514,10 +514,12 @@ class _Analysis:
                                     "internet), then restart."), device, (_action(DRIVER_MANAGER),))
             return
         version = proposal.version or proposal.package
+        # The modules come with the newest kernel of the series and its headers: on a 1.3.4 install not yet
+        # updated, NVIDIA 580 was a 940 MiB download.
         notes = [
             (_("Recommended for this card: NVIDIA %s") % version
              + (" " + _("(open kernel modules)") if proposal.open_kernel_modules else ""), True),
-            (_("Needs internet: the driver is a download of a few hundred MB"), False),
+            (_("Needs internet: a download of up to about 1 GB"), False),
             (_("Restart the computer after installing"), False),
         ]
         self._add("graphics", WARNING, f"graphics:nvidia:{device.key}", _("Install the NVIDIA driver"),

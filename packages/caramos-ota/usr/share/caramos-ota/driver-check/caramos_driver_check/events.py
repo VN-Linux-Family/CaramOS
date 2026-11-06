@@ -6,7 +6,7 @@ import json
 import sys
 from typing import Any
 
-EVENTS = frozenset({"stage", "progress", "log", "done"})
+EVENTS = frozenset({"stage", "progress", "log", "space", "done"})
 
 
 def emit(event: str, **fields: Any) -> None:

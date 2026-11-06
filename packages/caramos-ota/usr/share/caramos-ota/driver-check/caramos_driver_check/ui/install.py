@@ -5,12 +5,12 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from gi.repository import Adw, Gtk
+from gi.repository import Adw, GLib, Gtk
 
 from caramos_ota.i18n import _, ngettext
 
 from ..analysis import Action
-from ..install import HelperRun
+from ..install import HelperRun, space_text
 from .common import append_log, bottom_bar, clamp, header, icon_bubble, label, log_view, page_box, pill, scrolled
 
 STAGES = {
@@ -29,13 +29,15 @@ def error_text(code: str) -> str:
         "busy": _("Another driver installation is running. Wait for it to finish and try again."),
         "apt": _("Installing the packages failed. The details below show why; you can also send a hardware "
                  "report to ask the community."),
+        "space": _("There is not enough free disk space for this driver. Free up some space and try again."),
     }.get(code, _("Something went wrong. The details below show what happened."))
 
 
 class InstallView(Gtk.Box):
-    """Runs the helper for the given installs and reports through on_done(ok, restart, error, log)."""
+    """Runs the helper for the given installs and reports through on_done(ok, restart, error, log, space)."""
 
-    def __init__(self, installs: list[Action], *, on_done: Callable[[bool, bool, str, str], None],
+    def __init__(self, installs: list[Action], *,
+                 on_done: Callable[[bool, bool, str, str, list[dict[str, Any]]], None],
                  on_cancelled: Callable[[], None]) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.installs = installs
@@ -43,6 +45,7 @@ class InstallView(Gtk.Box):
         self.on_cancelled = on_cancelled
         self.result: dict[str, Any] | None = None
         self.lines: list[str] = []
+        self.space: list[dict[str, Any]] = []
         self.run: HelperRun | None = None
 
         view = Adw.ToolbarView()
@@ -82,6 +85,7 @@ class InstallView(Gtk.Box):
     def start(self) -> None:
         self.result = None
         self.lines = []
+        self.space = []
         self.progress.set_fraction(0)
         self.run = HelperRun([action.target for action in self.installs], self._on_event, self._on_exit)
 
@@ -97,6 +101,8 @@ class InstallView(Gtk.Box):
             line = str(event.get("line", ""))
             self.lines.append(line)
             append_log(self.log, line)
+        elif kind == "space":
+            self.space.append(event)
         elif kind == "done":
             self.result = event
 
@@ -107,11 +113,12 @@ class InstallView(Gtk.Box):
             return
         result = self.result or {"ok": False, "restart": False, "error": "internal"}
         self.on_done(bool(result.get("ok")), bool(result.get("restart")), str(result.get("error") or ""),
-                     "\n".join(self.lines))
+                     "\n".join(self.lines), list(self.space))
 
 
 def done_page(ok: bool, restart: bool, error: str, log: str, *, on_restart: Callable[[], None],
-              on_back: Callable[[], None], on_retry: Callable[[], None]) -> Gtk.Widget:
+              on_back: Callable[[], None], on_retry: Callable[[], None],
+              space: list[dict[str, Any]] | None = None) -> Gtk.Widget:
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     view = Adw.ToolbarView()
     view.add_top_bar(header(_("Installing drivers")))
@@ -125,7 +132,8 @@ def done_page(ok: bool, restart: bool, error: str, log: str, *, on_restart: Call
     else:
         content.append(icon_bubble("dialog-warning-symbolic", 44, "status-bubble", "status-warning"))
         content.append(label(_("The driver was not installed"), "hero-title", xalign=0.5))
-        content.append(label(error_text(error), "hero-subtitle", xalign=0.5))
+        text = space_text(space, GLib.format_size) if error == "space" and space else error_text(error)
+        content.append(label(text, "hero-subtitle", xalign=0.5))
         details, _view = log_view(log)
         details.set_expanded(bool(log))
         content.append(details)

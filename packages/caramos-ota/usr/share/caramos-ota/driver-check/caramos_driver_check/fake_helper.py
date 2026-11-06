@@ -2,6 +2,7 @@
 
     CARAMOS_DRIVER_CHECK_FAKE_HELPER=1 caramos-driver-check
     CARAMOS_DRIVER_CHECK_FAKE_HELPER=fail ...   the install fails
+    CARAMOS_DRIVER_CHECK_FAKE_HELPER=space ...  the disk is too full (nothing is installed)
 """
 
 from __future__ import annotations
@@ -19,6 +20,12 @@ def main(argv: list[str]) -> int:
     for percent in range(0, 26, 5):
         emit("progress", percent=percent)
         time.sleep(0.15)
+    if os.environ.get("CARAMOS_DRIVER_CHECK_FAKE_HELPER") == "space":
+        emit("log", line="Space needed: 940 MiB to download, 2419 MiB once installed, new kernels: 7.0.0-42-generic")
+        emit("space", path="/", need=4_100_000_000, free=1_200_000_000)
+        emit("log", line="Not enough free space on /: 3910 MiB needed, 1144 MiB free")
+        emit("done", ok=False, restart=False, packages=[], error="space")
+        return 1
     emit("stage", stage="install")
     for percent in range(25, 96, 5):
         emit("progress", percent=percent)

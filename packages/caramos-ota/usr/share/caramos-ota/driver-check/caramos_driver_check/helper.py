@@ -6,20 +6,27 @@ A target is an NVIDIA driver series ("nvidia:580-open") or a driver package ("bc
 helper does not trust the caller: it asks UbuntuDrivers for the drivers of the hardware it finds itself
 and refuses any target that is not one of them, or not one Ubuntu installs automatically (drivers.py).
 NVIDIA goes through UbuntuDrivers' desktop package list, like `ubuntu-drivers install nvidia:580-open`,
-so the signed kernel modules for the running kernel come with it. Offline, the Broadcom driver installs
-from the CaramOS USB stick through Linux Mint's mintdrivers-add-live-media.
+so the signed kernel modules come with it: those of the newest kernel of the series, which then comes too
+(kernel_for_modules()). Offline, the Broadcom driver installs from the CaramOS USB stick through Linux
+Mint's mintdrivers-add-live-media.
+
+Before installing, the helper checks that the disks have room for what APT is about to download and unpack,
+and for the initramfs files the drivers and new kernels add to /boot. When one does not, it installs nothing:
+an install that runs out of room halfway leaves dpkg broken, and every later install fails until it is fixed.
 
 Progress goes to stdout as JSON lines (events.py):
 
     {"event": "stage", "stage": "update" | "media" | "install" | "finish"}
     {"event": "progress", "percent": 0-100}
     {"event": "log", "line": "..."}
+    {"event": "space", "path": "/", "need": bytes, "free": bytes}   (one per file system that lacks room)
     {"event": "done", "ok": true, "restart": true, "packages": [...], "error": ""}
 """
 
 from __future__ import annotations
 
 import fcntl
+import io
 import os
 import re
 import shutil
@@ -28,6 +35,7 @@ import subprocess
 import sys
 import threading
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 
 from .drivers import NVIDIA_DRIVER, ON_INSTALL_MEDIA, one_click
@@ -38,13 +46,31 @@ MAX_TARGETS = 4
 TIMEOUT = 3600
 ENV = {"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C.UTF-8", "HOME": "/root",
        "DEBIAN_FRONTEND": "noninteractive"}
-APT = ["apt-get", "-o", "DPkg::Lock::Timeout=600", "-o", "APT::Status-Fd=1", "-o", "Dpkg::Use-Pty=0"]
+# APT's status lines come on stdout, between its output. dpkg keeps the pty APT gives it (Dpkg::Use-Pty, the
+# default): APT marks its status fd close-on-exec, so with Dpkg::Use-Pty=0 dpkg and every maintainer script ran
+# with stdout closed and failed at their first echo. update-initramfs is one of them, so every NVIDIA install
+# broke dpkg (ticket H-1110).
+APT = ["apt-get", "-o", "DPkg::Lock::Timeout=600", "-o", "APT::Status-Fd=1"]
+# Linking the NVIDIA kernel modules while installing prints tens of thousands of these, which tell users nothing.
+OBJTOOL_WARNING = re.compile(r"^\S+\.o: warning: objtool: ")
 TARGET_RE = re.compile(r"^(nvidia:\d{3}(-server)?(-open)?|[a-z0-9][a-z0-9+.-]{1,80})$")
 ADD_MEDIA = "mintdrivers-add-live-media"
 REMOVE_MEDIA = "mintdrivers-remove-live-media"
 MEDIA_INFO = Path("/media/mintdrivers/.disk/info")
 # What Driver Manager unloads before loading Broadcom's wl driver, so Wi-Fi works without a restart.
 BROADCOM_CONFLICTS = ("b44", "b43", "b43legacy", "ssb", "brcmsmac", "bcma")
+
+MIB = 1024 * 1024
+# Room kept beyond APT's own figures: the NVIDIA modules are linked while installing and are in no
+# Installed-Size (about 200 MiB for 580), and a nearly full file system (btrfs above all) fails before it
+# reaches zero. Asking for a little too much only means freeing a little more; too little breaks dpkg.
+ROOT_MARGIN = 1024 * MIB
+BOOT_MARGIN = 32 * MIB
+# vmlinuz, System.map and config of one kernel, which sit in /boot next to its initramfs.
+KERNEL_FILES = 64 * MIB
+# The size of an initramfs when the running kernel's cannot be read.
+DEFAULT_INITRAMFS = 128 * MIB
+KERNEL_IMAGE = re.compile(r"^linux-image-(\d\S*)$")
 
 EXIT_OK = 0
 EXIT_FAILED = 1
@@ -95,32 +121,42 @@ def online() -> bool:
 
 
 def _stream(args: list[str], on_line: Callable[[str], None]) -> int:
-    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=ENV,
-                               stdin=subprocess.DEVNULL, errors="replace")
+    process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, env=ENV,
+                               stdin=subprocess.DEVNULL)
     timer = threading.Timer(TIMEOUT, process.kill)
     timer.start()
+    assert process.stdout is not None
+    # Lines end at \n only: on dpkg's pty they end in \r\n, and a line redrawn in place
+    # ("Reading database ... 5%\r...") keeps only its last state.
+    output = io.TextIOWrapper(process.stdout, encoding="utf-8", errors="replace", newline="\n")
     try:
-        assert process.stdout is not None
-        for raw in process.stdout:
-            on_line(raw.rstrip("\n"))
+        for raw in output:
+            on_line(raw.rstrip("\r\n").rsplit("\r", 1)[-1])
         return process.wait()
     finally:
         timer.cancel()
-        if process.stdout is not None:
-            process.stdout.close()
+        output.close()
 
 
 def run_apt(args: list[str], start: int, end: int) -> int:
     """Run apt-get, mapping its progress to start..end percent of the whole run."""
 
+    hidden = 0
+
     def on_line(line: str) -> None:
+        nonlocal hidden
         fraction = apt_progress(line)
         if fraction is not None:
             emit("progress", percent=int(start + (end - start) * fraction))
+        elif OBJTOOL_WARNING.match(line):
+            hidden += 1
         elif line.strip():
             emit("log", line=line)
 
-    return _stream([*APT, *args], on_line)
+    code = _stream([*APT, *args], on_line)
+    if hidden:
+        emit("log", line=f"({hidden} objtool warnings from linking the NVIDIA kernel modules are not shown)")
+    return code
 
 
 def _detect():
@@ -188,6 +224,120 @@ def kernel_for_modules(packages: list[str], cache) -> list[str]:
     return found
 
 
+@dataclass(frozen=True)
+class Needs:
+    """What an install takes, as APT resolves it: bytes to download, bytes unpacked, and the kernels it adds."""
+
+    download: int
+    installed: int
+    kernels: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class Shortage:
+    """A file system (by its mount point) without room for the install."""
+
+    path: str
+    need: int
+    free: int
+
+
+def needs(cache, packages: list[str]) -> Needs:
+    """Mark packages the way apt-get install does and read the sizes APT would print.
+
+    The download leaves out archives APT already has. The installed size is the change in Installed-Size, so
+    upgrades count only what they add. A kernel the install adds (linux-image-7.0.0-42-generic for a modules
+    metapackage of a newer kernel, see kernel_for_modules()) also brings an initramfs in /boot.
+    """
+
+    import apt_pkg
+
+    depcache = apt_pkg.DepCache(cache)
+    with apt_pkg.ActionGroup(depcache):
+        for name in packages:
+            depcache.mark_install(cache[name])
+    sources = apt_pkg.SourceList()
+    sources.read_main_list()
+    fetcher = apt_pkg.Acquire()
+    try:
+        apt_pkg.PackageManager(depcache).get_archives(fetcher, sources, apt_pkg.PackageRecords(cache))
+        download = fetcher.fetch_needed
+    finally:
+        fetcher.shutdown()
+    kernels = tuple(match.group(1) for package in cache.packages
+                    if depcache.marked_install(package) and (match := KERNEL_IMAGE.match(package.name)))
+    return Needs(download, depcache.usr_size, kernels)
+
+
+def mount_point(path: str, stat: Callable = os.stat) -> str:
+    """The mount point of the file system path is on: its highest parent on the same device."""
+
+    path = os.path.abspath(path)
+    device = stat(path).st_dev
+    while path != "/":
+        parent = os.path.dirname(path)
+        if stat(parent).st_dev != device:
+            break
+        path = parent
+    return path
+
+
+def shortages(need: Needs, archives: str, initramfs: int, *, stat: Callable = os.stat,
+              statvfs: Callable = os.statvfs) -> list[Shortage]:
+    """The file systems that lack room for the install.
+
+    / takes the unpacked files, the archive cache the download, and /boot an initramfs for each new kernel plus
+    the rebuilt one of the running kernel (the NVIDIA and DKMS packages rebuild it). When they share a file
+    system, their needs add up there.
+    """
+
+    wanted = (
+        ("/", max(need.installed, 0) + ROOT_MARGIN),
+        ("/boot", len(need.kernels) * (initramfs + KERNEL_FILES) + initramfs + BOOT_MARGIN),
+        (archives, need.download),
+    )
+    totals: dict[int, list] = {}
+    for path, size in wanted:
+        try:
+            device = stat(path).st_dev
+        except OSError:
+            continue
+        if device in totals:
+            totals[device][1] += size
+        else:
+            totals[device] = [path, size]
+    found = []
+    for path, size in totals.values():
+        info = statvfs(path)
+        free = info.f_bavail * info.f_frsize
+        if size > free:
+            found.append(Shortage(mount_point(path, stat), size, free))
+    return found
+
+
+def check_space(cache, packages: list[str]) -> list[Shortage]:
+    """The shortages of free space for installing packages; none when the estimate itself fails.
+
+    The check only exists to stop an install that cannot finish, so an error in it lets the install go on.
+    """
+
+    try:
+        import apt_pkg
+
+        need = needs(cache, packages)
+        archives = apt_pkg.config.find_dir("Dir::Cache::Archives") or "/var/cache/apt/archives"
+        try:
+            initramfs = os.stat(f"/boot/initrd.img-{os.uname().release}").st_size
+        except OSError:
+            initramfs = DEFAULT_INITRAMFS
+        emit("log", line=f"Space needed: {need.download // MIB} MiB to download, {need.installed // MIB} MiB "
+                         f"once installed, new kernels: {', '.join(need.kernels) or 'none'}")
+        return shortages(need, archives, initramfs)
+    except Exception as exc:   # noqa: BLE001 - a wrong estimate must not block a driver that fits
+        emit("log", line=f"Could not check the free space ({type(exc).__name__}: {exc}); installing anyway")
+        return []
+
+
 def reload_broadcom() -> bool:
     """Start Broadcom's wl driver now; False when it needs a restart (or Secure Boot blocks it)."""
 
@@ -220,6 +370,13 @@ def install(targets: list[str]) -> tuple[bool, bool, list[str], str]:
         if not packages:
             emit("progress", percent=100)
             return True, False, [], ""
+        lacking = check_space(cache, packages)
+        if lacking:
+            for item in lacking:
+                emit("space", path=item.path, need=item.need, free=item.free)
+                emit("log", line=f"Not enough free space on {item.path}: {item.need // MIB} MiB needed, "
+                                 f"{item.free // MIB} MiB free")
+            return False, False, [], "space"
         nvidia = any(name.startswith("nvidia-") for name in packages)
         if nvidia:
             detect.nvidia_desktop_pre_installation_hook(packages)

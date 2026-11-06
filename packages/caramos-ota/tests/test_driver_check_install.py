@@ -15,6 +15,10 @@ sys.path.insert(0, str(Path(__file__).parents[1] / "usr/share/caramos-ota/driver
 
 from caramos_driver_check import drivers, helper  # noqa: E402
 from caramos_driver_check.events import emit, parse_event  # noqa: E402
+from caramos_driver_check.install import space_text  # noqa: E402
+
+MIB = helper.MIB
+GIB = 1024 * MIB
 
 NVIDIA_SYSPATH = "/sys/devices/pci0000:00/0000:00:01.0/0000:01:00.0"
 BROADCOM_SYSPATH = "/sys/devices/pci0000:00/0000:00:1c.0/0000:02:00.0"
@@ -68,6 +72,10 @@ class ChooseTests(unittest.TestCase):
 
 
 class EventTests(unittest.TestCase):
+    def test_space_events_reach_the_window(self) -> None:
+        event = parse_event('{"event": "space", "path": "/boot", "need": 300, "free": 100}')
+        self.assertEqual({"event": "space", "path": "/boot", "need": 300, "free": 100}, event)
+
     def test_round_trip_and_garbage(self) -> None:
         out = io.StringIO()
         with redirect_stdout(out):
@@ -132,6 +140,39 @@ class HelperArgumentTests(unittest.TestCase):
         self.assertEqual(0.75, helper.apt_progress("pmstatus:bcmwl-kernel-source:50.0:Installing"))
         self.assertIsNone(helper.apt_progress("Setting up dkms (3.0.11)"))
 
+    def test_dpkg_keeps_its_pty_while_status_lines_share_stdout(self) -> None:
+        # Both together closed dpkg's stdout, so maintainer scripts failed at their first echo (H-1110).
+        self.assertIn("APT::Status-Fd=1", helper.APT)
+        self.assertFalse(any(option.lower().startswith("dpkg::use-pty") for option in helper.APT))
+
+    def test_stream_cleans_pty_line_ends_and_redrawn_lines(self) -> None:
+        lines: list[str] = []
+        code = helper._stream(["sh", "-c", r"printf 'Unpacking x ...\r\n(Reading 5%%\r(Reading 100%%)\r\nend\n'"],
+                              lines.append)
+        self.assertEqual((0, ["Unpacking x ...", "(Reading 100%)", "end"]), (code, lines))
+
+    def test_objtool_warnings_are_counted_not_shown(self) -> None:
+        output = ["pmstatus:linux-modules-nvidia-580-7.0.0-42-generic:60.0:Configuring",
+                  "nvidia.o: warning: objtool: _nv000123rm+0x1a: 'naked' return found",
+                  "nvidia-modeset.o: warning: objtool: _nv002345kms+0x9: 'naked' return found",
+                  "Setting up linux-modules-nvidia-580-7.0.0-42-generic (7.0.0-42.42~24.04.1) ...", ""]
+
+        def fake_stream(args, on_line):
+            for line in output:
+                on_line(line)
+            return 0
+
+        out = io.StringIO()
+        with mock.patch.object(helper, "_stream", side_effect=fake_stream), redirect_stdout(out):
+            self.assertEqual(0, helper.run_apt(["install"], 25, 95))
+        events = [json.loads(line) for line in out.getvalue().splitlines()]
+        # pmstatus 60% is 0.8 of the whole APT run (downloads come first), so 25 + 0.8 * 70.
+        self.assertEqual([{"event": "progress", "percent": 81},
+                          {"event": "log", "line": "Setting up linux-modules-nvidia-580-7.0.0-42-generic "
+                                                   "(7.0.0-42.42~24.04.1) ..."},
+                          {"event": "log", "line": "(2 objtool warnings from linking the NVIDIA kernel modules "
+                                                   "are not shown)"}], events)
+
 
 class HelperPlanTests(unittest.TestCase):
     def test_nvidia_goes_through_the_desktop_package_list(self) -> None:
@@ -158,8 +199,119 @@ class HelperPlanTests(unittest.TestCase):
         self.assertEqual(["bcmwl-kernel-source"], helper.plan(["bcmwl-kernel-source"], FakeCache(), detect))
 
 
+class FakeDisks:
+    """os.stat and os.statvfs for a few mounted file systems: {mount point: (device, free bytes)}."""
+
+    def __init__(self, mounts: dict[str, tuple[int, int]]) -> None:
+        self.mounts = mounts
+
+    def _mount(self, path: str) -> str:
+        return max((mount for mount in self.mounts if path == mount or path.startswith(mount.rstrip("/") + "/")),
+                   key=len)
+
+    def stat(self, path: str):
+        if path.startswith("/missing"):
+            raise FileNotFoundError(path)
+        return mock.Mock(st_dev=self.mounts[self._mount(path)][0])
+
+    def statvfs(self, path: str):
+        return mock.Mock(f_bavail=self.mounts[self._mount(path)][1] // 4096, f_frsize=4096)
+
+
+class HelperSpaceTests(unittest.TestCase):
+    ARCHIVES = "/var/cache/apt/archives"
+    # The NVIDIA 580 install on a CaramOS 1.3.4 that was not updated: kernel 7.0 comes with it (H-1110).
+    NVIDIA = helper.Needs(download=985 * MIB, installed=2537 * MIB, kernels=("7.0.0-42-generic",))
+
+    def check(self, disks: FakeDisks, need: helper.Needs, initramfs: int = 85 * MIB):
+        return helper.shortages(need, self.ARCHIVES, initramfs, stat=disks.stat, statvfs=disks.statvfs)
+
+    def test_enough_room(self) -> None:
+        self.assertEqual([], self.check(FakeDisks({"/": (1, 28 * GIB)}), self.NVIDIA))
+
+    def test_needs_add_up_on_one_file_system(self) -> None:
+        # Download, unpacked files, margin, and in /boot one new kernel plus the rebuilt running initramfs.
+        boot = (85 + 64) * MIB + 85 * MIB + helper.BOOT_MARGIN
+        need = 985 * MIB + 2537 * MIB + helper.ROOT_MARGIN + boot
+        self.assertEqual([helper.Shortage("/", need, 3 * GIB)], self.check(FakeDisks({"/": (1, 3 * GIB)}), self.NVIDIA))
+        self.assertEqual([], self.check(FakeDisks({"/": (1, need)}), self.NVIDIA))
+
+    def test_a_separate_boot_partition_is_checked_on_its_own(self) -> None:
+        disks = FakeDisks({"/": (1, 28 * GIB), "/boot": (2, 200 * MIB)})
+        boot = (85 + 64) * MIB + 85 * MIB + helper.BOOT_MARGIN
+        self.assertEqual([helper.Shortage("/boot", boot, 200 * MIB)], self.check(disks, self.NVIDIA))
+        # Without a new kernel, only the running kernel's initramfs is rebuilt there.
+        self.assertEqual([], self.check(disks, helper.Needs(500 * MIB, 1200 * MIB)))
+
+    def test_the_archive_cache_on_its_own_file_system(self) -> None:
+        disks = FakeDisks({"/": (1, 28 * GIB), "/var": (3, 500 * MIB)})
+        self.assertEqual([helper.Shortage("/var", 985 * MIB, 500 * MIB)], self.check(disks, self.NVIDIA))
+
+    def test_removals_do_not_make_room(self) -> None:
+        need = helper.Needs(download=0, installed=-800 * MIB)
+        self.assertEqual([helper.Shortage("/", helper.ROOT_MARGIN + 85 * MIB + helper.BOOT_MARGIN, 100 * MIB)],
+                         self.check(FakeDisks({"/": (1, 100 * MIB)}), need))
+
+    def test_paths_that_do_not_exist_are_skipped(self) -> None:
+        disks = FakeDisks({"/": (1, 28 * GIB)})
+        found = helper.shortages(self.NVIDIA, "/missing/archives", 85 * MIB, stat=disks.stat, statvfs=disks.statvfs)
+        self.assertEqual([], found)
+
+    def test_mount_point(self) -> None:
+        disks = FakeDisks({"/": (1, 0), "/boot": (2, 0), "/boot/efi": (3, 0)})
+        self.assertEqual("/", helper.mount_point("/var/cache/apt/archives", disks.stat))
+        self.assertEqual("/boot", helper.mount_point("/boot/grub", disks.stat))
+        self.assertEqual("/boot/efi", helper.mount_point("/boot/efi/EFI", disks.stat))
+        self.assertEqual("/", helper.mount_point("/", disks.stat))
+
+    def test_check_space_lets_the_install_go_on_when_it_cannot_tell(self) -> None:
+        fake_apt_pkg = mock.Mock()
+        fake_apt_pkg.config.find_dir.return_value = self.ARCHIVES
+        out = io.StringIO()
+        with mock.patch.dict(sys.modules, {"apt_pkg": fake_apt_pkg}), \
+                mock.patch.object(helper, "needs", side_effect=SystemError("E:Unable to correct problems")), \
+                redirect_stdout(out):
+            self.assertEqual([], helper.check_space(FakeCache(), ["nvidia-driver-580"]))
+        self.assertIn("Could not check the free space", out.getvalue())
+
+    def test_check_space_reports_what_it_measured(self) -> None:
+        fake_apt_pkg = mock.Mock()
+        fake_apt_pkg.config.find_dir.return_value = self.ARCHIVES
+        lacking = [helper.Shortage("/", 4 * GIB, GIB)]
+        out = io.StringIO()
+        with mock.patch.dict(sys.modules, {"apt_pkg": fake_apt_pkg}), \
+                mock.patch.object(helper, "needs", return_value=self.NVIDIA), \
+                mock.patch.object(helper, "shortages", return_value=lacking) as shortages, \
+                redirect_stdout(out):
+            self.assertEqual(lacking, helper.check_space(FakeCache(), ["nvidia-driver-580"]))
+        self.assertEqual((self.NVIDIA, self.ARCHIVES), shortages.call_args.args[:2])
+        self.assertIn("Space needed: 985 MiB to download, 2537 MiB once installed, new kernels: 7.0.0-42-generic",
+                      out.getvalue())
+
+
+class SpaceTextTests(unittest.TestCase):
+    def size(self, value: int) -> str:
+        return f"{value / 10**9:.1f} GB"
+
+    def test_the_system_disk(self) -> None:
+        text = space_text([{"event": "space", "path": "/", "need": 4_100_000_000, "free": 1_200_000_000}], self.size)
+        self.assertIn("about 4.1 GB of free space on the system disk, which has only 1.2 GB free", text)
+        self.assertIn("Trash", text)
+
+    def test_boot_and_other_file_systems(self) -> None:
+        text = space_text([{"path": "/boot", "need": 300_000_000, "free": 100_000_000},
+                           {"path": "/var", "need": 1_000_000_000, "free": 0}], self.size)
+        self.assertIn("in /boot, which has only 0.1 GB free", text)
+        self.assertIn("apt autoremove", text)
+        self.assertIn("on /var, which has only 0.0 GB free", text)
+
+    def test_odd_fields_do_not_break_it(self) -> None:
+        self.assertIn("system disk", space_text([{"path": None, "need": None, "free": -5}], self.size))
+
+
 class HelperInstallTests(unittest.TestCase):
-    def run_install(self, targets, *, online, detect, apt_codes=(0, 0), media_found=True, add_media=True):
+    def run_install(self, targets, *, online, detect, apt_codes=(0, 0), media_found=True, add_media=True,
+                    lacking=()):
         calls: list[list[str]] = []
         codes = list(apt_codes)
 
@@ -176,6 +328,7 @@ class HelperInstallTests(unittest.TestCase):
                 mock.patch.object(helper, "run_apt", side_effect=fake_apt), \
                 mock.patch.object(helper, "_stream", side_effect=fake_stream), \
                 mock.patch.object(helper, "_detect", return_value=(None, detect, FakeCache())), \
+                mock.patch.object(helper, "check_space", return_value=list(lacking)), \
                 mock.patch.object(helper.shutil, "which", side_effect=lambda name: f"/usr/bin/{name}" if add_media else None), \
                 mock.patch.object(helper, "MEDIA_INFO", mock.Mock(exists=lambda: media_found)), \
                 mock.patch.object(helper, "reload_broadcom", return_value=True), \
@@ -218,6 +371,17 @@ class HelperInstallTests(unittest.TestCase):
                                                                                  detect=detect)
         self.assertEqual((False, "offline"), (ok, error))
         self.assertEqual([], calls)
+
+    def test_too_little_space_installs_nothing(self) -> None:
+        detect = FakeDetect({"nvidia-driver-580": {}},
+                            {("nvidia:580", False): ["nvidia-driver-580", "linux-modules-nvidia-580-generic-hwe-24.04"]})
+        (ok, restart, packages, error), calls, events, _run = self.run_install(
+            ["nvidia:580"], online=True, detect=detect, apt_codes=(0,), lacking=[helper.Shortage("/", 4 * GIB, GIB)])
+        self.assertEqual((False, False, [], "space"), (ok, restart, packages, error))
+        self.assertEqual([["apt-get", "update"]], calls)
+        self.assertEqual([], detect.hooks)
+        self.assertIn({"event": "space", "path": "/", "need": 4 * GIB, "free": GIB}, events)
+        self.assertNotIn({"event": "stage", "stage": "install"}, events)
 
     def test_apt_failure(self) -> None:
         detect = FakeDetect({"bcmwl-kernel-source": {}})

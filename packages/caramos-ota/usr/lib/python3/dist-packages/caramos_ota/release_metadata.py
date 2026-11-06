@@ -2,4 +2,4 @@
 
 from __future__ import annotations
 
-PRODUCT_VERSION = "1.3.4"
+PRODUCT_VERSION = "1.3.5"

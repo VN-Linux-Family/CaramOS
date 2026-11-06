@@ -17,6 +17,30 @@ PKEXEC = "/usr/bin/pkexec"
 AUTH_CANCELLED = (126, 127)
 
 
+def space_text(shortages: list[dict[str, Any]], format_size: Callable[[int], str]) -> str:
+    """What to free when the helper stopped an install for lack of room (its "space" events)."""
+
+    from caramos_ota.i18n import _
+
+    parts = []
+    for item in shortages:
+        path = str(item.get("path") or "/")
+        sizes = {"need": format_size(max(int(item.get("need") or 0), 0)),
+                 "free": format_size(max(int(item.get("free") or 0), 0)), "path": path}
+        if path == "/":
+            parts.append(_("The driver needs about %(need)s of free space on the system disk, which has only "
+                           "%(free)s free. Empty the Trash or delete large files you no longer need, then try "
+                           "again.") % sizes)
+        elif path == "/boot":
+            parts.append(_("The driver needs about %(need)s of free space in /boot, which has only %(free)s free. "
+                           "Remove old Linux kernels (run sudo apt autoremove --purge in a terminal), then try "
+                           "again.") % sizes)
+        else:
+            parts.append(_("The driver needs about %(need)s of free space on %(path)s, which has only %(free)s "
+                           "free. Free up space there, then try again.") % sizes)
+    return " ".join(parts)
+
+
 def helper_command(targets: list[str]) -> list[str]:
     fake = os.environ.get("CARAMOS_DRIVER_CHECK_FAKE_HELPER")
     if fake:   # development only, see fake_helper.py

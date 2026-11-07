@@ -21,6 +21,9 @@ from .ui import (
     import_gtk,
 )
 
+LOG_VIEW_LINES = 2000   # the progress view keeps the end of the output; the result page gets all of it
+LOG_FLUSH_MS = 100      # queued output lines reach the progress view in one batch at most this often
+
 
 def has_display() -> bool:
     """Return True when a graphical display is available."""
@@ -103,6 +106,11 @@ class UpdateWindowController:
         self.upgrade_running = False
         self.pulse_source_id: int | None = None
         self.thread: threading.Thread | None = None
+        # Lines from the updater thread wait here until the GTK thread shows them, see queue_log_line.
+        self._log_lock = threading.Lock()
+        self._log_queue: list[str] = []
+        self._log_flush_queued = False
+        self._log_end_queued = False
 
         self.window.connect("delete-event", self._on_delete_event)
 
@@ -116,6 +124,7 @@ class UpdateWindowController:
         else:
             info_page = build_update_page(update_info, self.start_upgrade, self.close)
             progress_page, self.progress_bar, self.stage_label, self.log_view = build_progress_page()
+            self.log_view.get_vadjustment().connect("changed", self._log_resized)
             self.stack.add_named(info_page, "info")
             self.stack.add_named(progress_page, "progress")
             self.stack.set_visible_child_name("info")
@@ -156,23 +165,63 @@ class UpdateWindowController:
         self.thread.start()
 
     def _do_upgrade(self) -> None:
-        def on_line(line: str) -> None:
-            self.GLib.idle_add(self.append_log_line, line)
-
-        success, detail = run_upgrade_stream(on_line)
+        success, detail = run_upgrade_stream(self.queue_log_line)
         self.GLib.idle_add(self.on_upgrade_done, success, detail)
 
-    def append_log_line(self, line: str) -> bool:
-        """Append one updater line from the GTK main thread."""
+    def queue_log_line(self, line: str) -> None:
+        """Queue one updater line (updater thread); the GTK thread shows the queue every LOG_FLUSH_MS.
 
-        if self.log_view is None or self.stage_label is None:
+        Up to 1.3.5 every line had its own GLib callback and its own text mark, never deleted, so each
+        line cost more than the one before. The update that finished an NVIDIA install left unfinished by
+        Driver Check printed 49,000 lines; the window then froze for a quarter of an hour.
+        """
+
+        with self._log_lock:
+            self._log_queue.append(line)
+            if self._log_flush_queued:
+                return
+            self._log_flush_queued = True
+        self.GLib.timeout_add(LOG_FLUSH_MS, self.flush_log_lines)
+
+    def flush_log_lines(self) -> bool:
+        """Show the queued lines (GTK thread): one insert, at most LOG_VIEW_LINES lines kept."""
+
+        with self._log_lock:
+            lines, self._log_queue = self._log_queue[-LOG_VIEW_LINES:], []
+            self._log_flush_queued = False
+        if not lines or self.log_view is None or self.stage_label is None:
             return False
         buffer = self.log_view.get_buffer()
-        end_iter = buffer.get_end_iter()
-        buffer.insert(end_iter, line + "\n")
-        mark = buffer.create_mark(None, buffer.get_end_iter(), False)
-        self.log_view.scroll_to_mark(mark, 0.0, True, 0.0, 1.0)
-        self.stage_label.set_text(stage_for_line(line))
+        buffer.insert(buffer.get_end_iter(), "\n".join(lines) + "\n")
+        extra = buffer.get_line_count() - 1 - LOG_VIEW_LINES   # the text ends with "\n": one empty line
+        if extra > 0:
+            buffer.delete(buffer.get_start_iter(), buffer.get_iter_at_line(extra))
+        self.stage_label.set_text(stage_for_line(lines[-1]))
+        self._queue_log_end()
+        return False
+
+    def _log_resized(self, _adjustment) -> None:
+        """The log's height changed: lines were laid out, or the reader opened the log or resized the window."""
+
+        self._queue_log_end()
+
+    def _queue_log_end(self) -> None:
+        """Show the end of the log once GTK has laid out its lines, which it does at a higher priority.
+
+        scroll_to_mark, which 1.3.5 used, does not do it once many lines come at once: GTK scrolls by the
+        height it estimates for the lines not yet laid out, and the view stayed at the top of the log.
+        """
+
+        if self._log_end_queued:
+            return
+        self._log_end_queued = True
+        self.GLib.idle_add(self._show_log_end, priority=self.GLib.PRIORITY_LOW)
+
+    def _show_log_end(self) -> bool:
+        self._log_end_queued = False
+        if self.log_view is not None:
+            adjustment = self.log_view.get_vadjustment()
+            adjustment.set_value(adjustment.get_upper() - adjustment.get_page_size())
         return False
 
     def pulse(self) -> bool:
@@ -186,6 +235,7 @@ class UpdateWindowController:
     def on_upgrade_done(self, success: bool, detail: str) -> bool:
         """Replace progress with the result inside the same window."""
 
+        self.flush_log_lines()
         self.upgrade_running = False
         if self.pulse_source_id is not None:
             self.GLib.source_remove(self.pulse_source_id)

@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.5"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.6"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.3.5/CaramOS-1.3.5-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.3.5</strong></a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.3.6</strong></a> ·
   <a href="https://caramos.vietnamlinuxfamily.net/?lang=en">Website</a> ·
   <a href="README.md">Tiếng Việt</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -40,16 +40,26 @@ Vietnamese out of the box, typing that just works, a friendly desktop, and every
 away.
 
 > [!IMPORTANT]
-> **CaramOS 1.3.5 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
+> **CaramOS 1.3.6 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
 > Open Beta releases.
 >
-> - **New install:** [download the 1.3.5 ISO](https://sourceforge.net/projects/caramos/files/v1.3.5/CaramOS-1.3.5-cinnamon-amd64.iso/download)
->   (2.8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.5/SHA256SUMS) ·
->   [release notes](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.5)
-> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.3.5; click
+> - **New install:** [download the 1.3.6 ISO](https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download)
+>   (2.8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.6/SHA256SUMS) ·
+>   [release notes](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.6)
+> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.3.6; click
 >   **Update now**. See [Upgrading from an earlier release](#upgrading-from-an-earlier-release).
 
 ## What's new
+
+### 1.3.6
+
+- **The Update Center no longer freezes when an update prints a lot of output.** The update that finishes an
+  NVIDIA driver left half installed prints about 49,000 lines, and the window used to stop responding for more
+  than 15 minutes; those lines now show up in less than a second. The log always scrolls to its latest line,
+  and the result page still has the whole log.
+- The update to 1.3.6 still runs in the window of the version you have. On a computer with an NVIDIA driver
+  left half installed (see 1.3.5), run `sudo dpkg --configure -a` before updating; if the window freezes, let
+  it finish and do not turn the computer off.
 
 ### 1.3.5
 
@@ -310,9 +320,9 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
 
 ### 1. Download the ISO
 
-- [CaramOS-1.3.5-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.5/CaramOS-1.3.5-cinnamon-amd64.iso/download)
+- [CaramOS-1.3.6-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download)
   (2.8 GB, on SourceForge because GitHub limits the size of each release file).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.5/SHA256SUMS) to check
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.6/SHA256SUMS) to check
   the download:
 
 ```bash
@@ -325,7 +335,7 @@ Use [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net) o
 Linux you can use `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.3.5-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.3.6-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Try it and install
@@ -340,7 +350,7 @@ sudo dd if=CaramOS-1.3.5-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress of
 
 Machines with CaramOS installed do not need the ISO again.
 
-- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.3.5; click **Update
+- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.3.6; click **Update
   now**. To upgrade right away, open a terminal and run:
 
   ```bash
@@ -423,12 +433,12 @@ own repository, [VN-Linux-Family/caramos-landing](https://github.com/VN-Linux-Fa
 The product version lives in the source tree, in [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.3.5"
+CARAMOS_VERSION="1.3.6"
 ```
 
 `make release VERSION=x.y.z` stamps it into `scripts/config.sh`, the release metadata and the
-`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.3.5` is tag
-`v1.3.5`, or GitHub Actions stops before building.
+`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.3.6` is tag
+`v1.3.6`, or GitHub Actions stops before building.
 
 ### OTA updates
 
@@ -500,11 +510,11 @@ writes `SHA256SUMS`, uploads the ISO to SourceForge and creates the GitHub Relea
 link.
 
 ```bash
-make -C packages/caramos-ota prepare-release VERSION=1.3.5
-git commit -am "[build] Release 1.3.5"
+make -C packages/caramos-ota prepare-release VERSION=1.3.6
+git commit -am "[build] Release 1.3.6"
 git push origin main
-git tag -a v1.3.5 -m "CaramOS 1.3.5"
-git push origin v1.3.5
+git tag -a v1.3.6 -m "CaramOS 1.3.6"
+git push origin v1.3.6
 make -C packages/caramos-ota source
 make -C packages/caramos-ota gpg-unlock upload   # caramos-ota to the PPA, with the release GPG key
 ```

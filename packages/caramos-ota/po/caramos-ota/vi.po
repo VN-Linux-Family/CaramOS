@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 13:06+0700\n"
+"POT-Creation-Date: 2026-11-07 13:26+0700\n"
 "PO-Revision-Date: 2026-10-12 00:00+0700\n"
 "Last-Translator: Vietnam Linux Family <developer@vietnamlinuxfamily.net>\n"
 "Language-Team: Vietnamese <developer@vietnamlinuxfamily.net>\n"
@@ -103,7 +103,7 @@ msgid "Updating"
 msgstr "Đang cập nhật"
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:431
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:49
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:52
 msgid "Updating CaramOS…"
 msgstr "Đang cập nhật CaramOS..."
 
@@ -194,61 +194,61 @@ msgstr ""
 "Bạn có thể đóng cửa sổ này. CaramOS OTA sẽ tiếp tục kiểm tra định kỳ bằng "
 "systemd timer."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:36
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:39
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:17
 msgid "Downloading the package list…"
 msgstr "Đang tải danh sách gói..."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:38
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:41
 msgid "Checking the update repository…"
 msgstr "Đang kiểm tra kho cập nhật..."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:40
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:43
 msgid "Preparing migrations…"
 msgstr "Đang chuẩn bị migration..."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:42
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:45
 msgid "Running system migrations…"
 msgstr "Đang chạy migration hệ thống..."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:44
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:47
 msgid "Updating version information…"
 msgstr "Đang cập nhật thông tin phiên bản..."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:46
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:49
 msgid "Finishing the update…"
 msgstr "Đang hoàn tất cập nhật..."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:48
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:51
 msgid "The update ran into an error."
 msgstr "Đã gặp lỗi khi cập nhật."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:83
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:88
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:86
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:91
 msgid "The update timed out (10 minutes)."
 msgstr "Quá thời gian chờ cập nhật (10 phút)."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:90
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:93
 msgid "The pkexec command was not found."
 msgstr "Không tìm thấy lệnh pkexec."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:151
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:160
 msgid "CaramOS - Updating…"
 msgstr "CaramOS - Đang cập nhật..."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:196
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:246
 msgid "Update complete."
 msgstr "Cập nhật hoàn tất."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:196
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:246
 msgid "Update failed."
 msgstr "Cập nhật thất bại."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:208
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:258
 msgid "CaramOS - Update complete!"
 msgstr "CaramOS - Cập nhật thành công!"
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:208
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:258
 msgid "CaramOS - Update failed"
 msgstr "CaramOS - Cập nhật thất bại"
 

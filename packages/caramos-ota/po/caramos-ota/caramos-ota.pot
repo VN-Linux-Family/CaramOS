@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-06 13:06+0700\n"
+"POT-Creation-Date: 2026-11-07 13:26+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -105,7 +105,7 @@ msgid "Updating"
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:431
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:49
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:52
 msgid "Updating CaramOS…"
 msgstr ""
 
@@ -190,61 +190,61 @@ msgid ""
 "systemd timer."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:36
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:39
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:17
 msgid "Downloading the package list…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:38
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:41
 msgid "Checking the update repository…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:40
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:43
 msgid "Preparing migrations…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:42
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:45
 msgid "Running system migrations…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:44
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:47
 msgid "Updating version information…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:46
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:49
 msgid "Finishing the update…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:48
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:51
 msgid "The update ran into an error."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:83
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:88
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:86
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:91
 msgid "The update timed out (10 minutes)."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:90
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:93
 msgid "The pkexec command was not found."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:151
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:160
 msgid "CaramOS - Updating…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:196
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:246
 msgid "Update complete."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:196
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:246
 msgid "Update failed."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:208
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:258
 msgid "CaramOS - Update complete!"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:208
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:258
 msgid "CaramOS - Update failed"
 msgstr ""
 

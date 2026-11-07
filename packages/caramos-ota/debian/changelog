@@ -1,3 +1,25 @@
+caramos-ota (1.3.6-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.3.6.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Update Center: the window no longer freezes on a long update log.
+    Every output line had its own GLib callback and its own text mark,
+    never deleted, so each line cost more than the one before, and the
+    window neither redrew nor answered while the callbacks ran. The
+    update that finishes an NVIDIA install left unfinished by the 1.3.4
+    Driver Check prints 49,000 lines; the window then stopped responding
+    for about 16 minutes. Output lines are now shown together at most
+    every 100 ms, the progress view keeps the last 2,000 lines, and the
+    result page still shows the whole output: 50,000 lines now reach the
+    result page in under a second. The window of the installed version
+    runs the update, so this takes effect from the update after 1.3.6.
+  * Update Center: the progress log shows its last line when many lines
+    come at once. GTK scrolled by the height it estimated for the lines
+    not laid out yet, and the view stayed at the top of the log; it now
+    scrolls once GTK has laid them out.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Sat, 07 Nov 2026 13:25:41 +0700
+
 caramos-ota (1.3.5-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.3.5.

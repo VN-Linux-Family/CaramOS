@@ -25,6 +25,7 @@ AREA_ICONS = {
     "bluetooth": "bluetooth-active-symbolic",
     "camera": "camera-web-symbolic",
     "fingerprint": "auth-fingerprint-symbolic",
+    "printer": "printer-symbolic",
     "other": "preferences-system-symbolic",
     "drivers": "system-software-install-symbolic",
 }

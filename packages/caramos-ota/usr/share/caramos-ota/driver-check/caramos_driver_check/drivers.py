@@ -8,7 +8,9 @@ that froze old computers in the live session. So lookup() asks it only when its 
 and in a separate process at the lowest CPU and disk priority, with a time and memory limit.
 
 Only drivers Ubuntu itself installs automatically are offered for one-click install (NVIDIA, Broadcom
-Wi-Fi, VirtualBox and VMware guest tools); anything else stays with Driver Manager.
+Wi-Fi, VirtualBox and VMware guest tools), and CaramOS's captdriver for Canon CAPT printers (analysis.py
+offers it from the USB ID; the helper still installs it only when UbuntuDrivers matches it to the printer);
+anything else stays with Driver Manager.
 """
 
 from __future__ import annotations
@@ -27,8 +29,10 @@ from pathlib import Path
 from . import knowledge
 from .hardware import PCI_ADDRESS, PCI_DISPLAY, USB_DEVICE, Snapshot
 
-# Ubuntu's own auto-install list (UbuntuDrivers.detect.auto_install_filter), without the OEM archives.
-ONE_CLICK = ("nvidia-driver-*", "bcmwl*", "broadcom-sta-dkms", "virtualbox-guest*", "open-vm-tools*")
+# Ubuntu's own auto-install list (UbuntuDrivers.detect.auto_install_filter), without the OEM archives, and the
+# CaramOS PPA's driver for Canon CAPT printers (knowledge.CAPTDRIVER_PACKAGE).
+ONE_CLICK = ("nvidia-driver-*", "bcmwl*", "broadcom-sta-dkms", "virtualbox-guest*", "open-vm-tools*",
+             "printer-driver-captdriver")
 # Packages the CaramOS USB stick carries: Driver Check can install them without internet.
 ON_INSTALL_MEDIA = ("bcmwl-kernel-source", "broadcom-sta-dkms")
 PREFERRED = ("bcmwl-kernel-source", "broadcom-sta-dkms")

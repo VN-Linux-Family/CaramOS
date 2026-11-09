@@ -23,6 +23,8 @@ usr/share/pixmaps/caramos-logo.png usr/share/icons/hicolor/512x512/apps/
 usr/share/keyrings/caramos-archive-keyring.gpg usr/share/keyrings/
 usr/share/locale usr/share/
 usr/share/polkit-1/actions/net.vietnamlinuxfamily.caramos-ota.policy usr/share/polkit-1/actions/
+usr/lib/udev/rules.d/71-caramos-capt-printers.rules usr/lib/udev/rules.d/
+usr/lib/systemd/user/caramos-driver-check-hotplug.service usr/lib/systemd/user/
 etc/apt/sources.list.d/caramos-ppa.sources etc/apt/sources.list.d/
 lib/systemd/system/caramos-ota-check.service lib/systemd/system/
 lib/systemd/system/caramos-ota-check.timer lib/systemd/system/

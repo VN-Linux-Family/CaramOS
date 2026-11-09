@@ -3,7 +3,9 @@
 The first check (first login after installing, every boot of the live USB because its home is in RAM,
 and the first login after the OTA update that brings Driver Check) opens the window, also when everything
 works: people trying CaramOS want to see that their hardware does. Later logins stay quiet unless a new
-problem shows up (new hardware, a kernel update that broke a driver) or a known one is gone.
+problem shows up (new hardware, a kernel update that broke a driver) or a known one is gone. A problem of a
+device that is no longer plugged in (a printer, a Wi-Fi stick) is not gone, only away: it is neither told as
+solved nor told again when the device comes back.
 """
 
 from __future__ import annotations
@@ -11,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import tempfile
+from collections.abc import Collection
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -71,14 +74,32 @@ class Decision:
     resolved: tuple[str, ...] = ()     # problems from earlier checks that are gone
 
 
-def decide(report: Report, state: UserState) -> Decision:
-    """What the autostart run shows for this report, given what the user was told before."""
+def device_key(key: str) -> str:
+    """The device a problem is about: "usb:04a9:2676" for "printer:capt:usb:04a9:2676", "" for "network:none"."""
+
+    parts = key.split(":", 2)
+    return parts[2] if len(parts) == 3 else ""
+
+
+def away(key: str, present: Collection[str] | None) -> bool:
+    """The problem's device is not in the computer now (Device.key not in present): unplugged, not fixed.
+
+    present=None: the devices are not known, so every problem that is gone counts as solved."""
+
+    device = device_key(key)
+    return present is not None and bool(device) and device not in present
+
+
+def decide(report: Report, state: UserState, present: Collection[str] | None = None) -> Decision:
+    """What the autostart run shows for this report, given what the user was told before.
+
+    present: the keys of the devices in the computer now (Snapshot.devices)."""
 
     problems = {finding.key: finding for finding in report.problems}
     if not state.first_check_done:
         return Decision(SHOW_WINDOW, new=tuple(problems.values()))
     new = tuple(finding for key, finding in problems.items() if key not in state.seen)
-    resolved = tuple(sorted(key for key in state.seen if key not in problems))
+    resolved = tuple(sorted(key for key in state.seen if key not in problems and not away(key, present)))
     if any(finding.level == CRITICAL for finding in new):
         return Decision(SHOW_WINDOW, new=new, resolved=resolved)
     if new:
@@ -88,7 +109,8 @@ def decide(report: Report, state: UserState) -> Decision:
     return Decision(QUIET)
 
 
-def remember(report: Report, state: UserState) -> UserState:
-    """The state after the user has been shown this report."""
+def remember(report: Report, state: UserState, present: Collection[str] | None = None) -> UserState:
+    """The state after the user has been shown this report; problems of unplugged devices stay known."""
 
-    return UserState(first_check_done=True, seen={finding.key for finding in report.problems})
+    kept = {key for key in state.seen if away(key, present)}
+    return UserState(first_check_done=True, seen={finding.key for finding in report.problems} | kept)

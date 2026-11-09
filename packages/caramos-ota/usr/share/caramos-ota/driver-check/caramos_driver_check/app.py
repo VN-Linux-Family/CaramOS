@@ -2,6 +2,7 @@
 
     caramos-driver-check              open the app: scan, results, one-click driver installs, hardware reports
     caramos-driver-check --autostart  at login: open the app or notify only when there is news (state.py)
+    caramos-driver-check --hotplug    a device that needs a driver was plugged in: notify about new problems
     caramos-driver-check --json       print the report, e.g. for a bug report; no window
 
 CARAMOS_DRIVER_CHECK_DEMO=<case> shows made-up hardware (demo.py) and CARAMOS_DRIVER_CHECK_FAKE_HELPER=1
@@ -129,15 +130,26 @@ def open_window() -> int:
     return application.run([sys.argv[0]])
 
 
-def autostart() -> int:
+def autostart(hotplug: bool = False) -> int:
+    """The check at login, or right after a device that needs a driver was plugged in (hotplug).
+
+    For hotplug, systemd starts caramos-driver-check-hotplug.service in the user's session: the udev rule
+    71-caramos-capt-printers.rules asks for it when a Canon CAPT printer without a driver is plugged in.
+    """
+
     # No UbuntuDrivers here: loading the APT cache at every login would cost a second or two.
     scanner = make_scanner()
-    report = scanner.analyze(scanner.snapshot(), ())
+    snapshot = scanner.snapshot()
+    report = scanner.analyze(snapshot, ())
+    present = {device.key for device in snapshot.devices}
     path = user_state.state_path()
     previous = user_state.load(path)
-    decision = user_state.decide(report, previous)
+    decision = user_state.decide(report, previous, present)
+    if hotplug and not decision.new:
+        # Only news about what was plugged in; what got solved is for the login check to tell.
+        return 0
     try:
-        user_state.save(path, user_state.remember(report, previous))
+        user_state.save(path, user_state.remember(report, previous, present))
     except OSError:
         pass
     if decision.action == user_state.QUIET:
@@ -152,6 +164,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="caramos-driver-check")
     parser.add_argument("--autostart", action="store_true",
                         help="login mode: open the app or notify only when something changed")
+    parser.add_argument("--hotplug", action="store_true",
+                        help="a device that needs a driver was plugged in: notify only about new problems")
     parser.add_argument("--json", action="store_true", help="print the report as JSON and exit")
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
 
@@ -163,6 +177,6 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if not has_display():
         return 0
-    if args.autostart:
-        return autostart()
+    if args.autostart or args.hotplug:
+        return autostart(hotplug=args.hotplug)
     return open_window()

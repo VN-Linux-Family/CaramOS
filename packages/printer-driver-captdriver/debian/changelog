@@ -1,0 +1,27 @@
+printer-driver-captdriver (0.2.1~git20260813.f2d2da8-0caramos1) noble; urgency=medium
+
+  * First CaramOS package of captdriver, the open-source driver for Canon
+    CAPT laser printers such as the LBP2900/LBP2900B.
+  * Upstream: mounaiban/captdriver, branch 0.2.1-pr at f2d2da8 (2026-08-13),
+    the 2026 protocol fixes by ValdikSS staged there for upstream.
+  * Decode status replies by payload size (upstream pull request #55 by
+    Ershad Kunnakkadan): basic status replies no longer fill the page
+    counters with stale or random bytes, which could keep a job from
+    printing.
+  * Give each PPD the IEEE 1284 device ID of its printer (upstream pull
+    request #56), so the automatic printer setup matches every model the
+    driver supports exactly. By model name only the LBP2900 and LBP3010 PPDs
+    matched: the LBP3000 got the LBP3010 PPD, whose media type numbers mean
+    other paper types, and the LBP3100 and LBP6000 got no driver. The LBP3000
+    and LBP3100 get PPDs of their own.
+  * Shorter model names for the LBP3010 and LBP3100 PPDs, so that their
+    ShortNickName fits the 31 characters cupstestppd allows.
+  * Install the filter into /usr/lib/cups/filter, where AppArmor lets cupsd
+    run it, and build the PPDs with LC_ALL=C.
+  * Modaliases for ubuntu-drivers, so CaramOS Driver Check can offer the
+    driver for a connected printer.
+  * When installed, switch queues that the automatic setup created earlier
+    with another driver to this driver, and set up a connected printer that
+    has no queue.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 09 Nov 2026 01:40:00 +0700

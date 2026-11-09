@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.6"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.7"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.3.6</strong></a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.3.7/CaramOS-1.3.7-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.3.7</strong></a> ·
   <a href="https://caramos.vietnamlinuxfamily.net/?lang=en">Website</a> ·
   <a href="README.md">Tiếng Việt</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -40,16 +40,33 @@ Vietnamese out of the box, typing that just works, a friendly desktop, and every
 away.
 
 > [!IMPORTANT]
-> **CaramOS 1.3.6 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
+> **CaramOS 1.3.7 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
 > Open Beta releases.
 >
-> - **New install:** [download the 1.3.6 ISO](https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download)
->   (2.8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.6/SHA256SUMS) ·
->   [release notes](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.6)
-> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.3.6; click
+> - **New install:** [download the 1.3.7 ISO](https://sourceforge.net/projects/caramos/files/v1.3.7/CaramOS-1.3.7-cinnamon-amd64.iso/download)
+>   (2.8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.7/SHA256SUMS) ·
+>   [release notes](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.7)
+> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.3.7; click
 >   **Update now**. See [Upgrading from an earlier release](#upgrading-from-an-earlier-release).
 
 ## What's new
+
+### 1.3.7
+
+- **Canon LBP2900 printers install with one click.** Plug the printer in and a "The printer has no driver"
+  notification comes up. Click **View details**, then **Install the printer driver**, and the printer sets itself
+  up. Before, the system gave Canon's CAPT printers an unsuitable PostScript driver: jobs were reported as printed
+  while nothing came out.
+  - The driver is the open-source captdriver. According to captdriver, the LBP2900/LBP2900B and
+    LBP3010/LBP3018/LBP3050 work, and the LBP3000, LBP3100/LBP3108/LBP3150 and LBP6000/LBP6018 are experimental.
+  - Other CAPT printers (LBP3300, LBP6020…) only work with Canon's driver. For those, Driver Check offers
+    **Ask for help**.
+- **Sending a problem to VNLF is easier.**
+  - When a driver install fails, the error page has an **Ask for help** button, and the request carries the
+    install log.
+  - On a computer with a printer, every help request carries a printer log, without serial numbers or document
+    names. If printing goes wrong, click the ? on the panel to send one.
+- Unplugging a printer or a USB Wi-Fi adapter no longer shows "Hardware problem solved" at the next login.
 
 ### 1.3.6
 
@@ -170,11 +187,12 @@ App Center any time from the Desktop or the menu; **See more** leads to
 
 As soon as you try CaramOS from the USB stick, Driver Check tells you whether the computer works well
 with it, before you install. After installing it runs again at the first login, then only speaks up
-about new problems.
+about new problems. Plug in a printer that needs a driver and it tells you at once.
 
-- Checks Wi-Fi, wired network, graphics, sound, Bluetooth, webcam and fingerprint reader.
+- Checks Wi-Fi, wired network, graphics, sound, Bluetooth, webcam, fingerprint reader and Canon CAPT printers
+  (LBP2900…).
 - Installs the **NVIDIA** and **Broadcom Wi-Fi** drivers Ubuntu recommends for the machine, with one
-  click.
+  click. **Canon LBP2900** printers also install with one click, with the open-source captdriver.
 - No network driver, so no Internet? It explains how to get online with a cable or a phone over USB, or
   installs the Broadcom driver straight from the CaramOS USB stick.
 - Explains each case: no driver in the kernel yet, a driver waiting for a restart, a blocked driver
@@ -320,9 +338,9 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
 
 ### 1. Download the ISO
 
-- [CaramOS-1.3.6-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download)
+- [CaramOS-1.3.7-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.7/CaramOS-1.3.7-cinnamon-amd64.iso/download)
   (2.8 GB, on SourceForge because GitHub limits the size of each release file).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.6/SHA256SUMS) to check
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.7/SHA256SUMS) to check
   the download:
 
 ```bash
@@ -335,7 +353,7 @@ Use [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net) o
 Linux you can use `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.3.6-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.3.7-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Try it and install
@@ -350,7 +368,7 @@ sudo dd if=CaramOS-1.3.6-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress of
 
 Machines with CaramOS installed do not need the ISO again.
 
-- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.3.6; click **Update
+- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.3.7; click **Update
   now**. To upgrade right away, open a terminal and run:
 
   ```bash
@@ -433,12 +451,12 @@ own repository, [VN-Linux-Family/caramos-landing](https://github.com/VN-Linux-Fa
 The product version lives in the source tree, in [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.3.6"
+CARAMOS_VERSION="1.3.7"
 ```
 
 `make release VERSION=x.y.z` stamps it into `scripts/config.sh`, the release metadata and the
-`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.3.6` is tag
-`v1.3.6`, or GitHub Actions stops before building.
+`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.3.7` is tag
+`v1.3.7`, or GitHub Actions stops before building.
 
 ### OTA updates
 
@@ -510,11 +528,11 @@ writes `SHA256SUMS`, uploads the ISO to SourceForge and creates the GitHub Relea
 link.
 
 ```bash
-make -C packages/caramos-ota prepare-release VERSION=1.3.6
-git commit -am "[build] Release 1.3.6"
+make -C packages/caramos-ota prepare-release VERSION=1.3.7
+git commit -am "[build] Release 1.3.7"
 git push origin main
-git tag -a v1.3.6 -m "CaramOS 1.3.6"
-git push origin v1.3.6
+git tag -a v1.3.7 -m "CaramOS 1.3.7"
+git push origin v1.3.7
 make -C packages/caramos-ota source
 make -C packages/caramos-ota gpg-unlock upload   # caramos-ota to the PPA, with the release GPG key
 ```

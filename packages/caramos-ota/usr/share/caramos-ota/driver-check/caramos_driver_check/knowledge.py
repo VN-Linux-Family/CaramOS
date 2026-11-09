@@ -42,6 +42,45 @@ ATOM_ISP = frozenset({"0f38", "22b8"})
 FINGERPRINT_VENDORS = frozenset({"27c6", "06cb", "138a", "2808", "1c7a", "10a5", "298d", "2541", "08ff", "147e"})
 ELAN = "04f3"   # ELAN fingerprint readers are 04f3:0cxx; other ELAN USB devices are touchscreens
 
+CANON = "04a9"
+
+# Canon laser printers that speak Canon's own CAPT protocol (the captdriver developer's list, mounaiban/studycapt;
+# names from usb.ids). The kernel's USB printer driver (usblp) takes them like any printer, so nothing looks
+# wrong, but they print nothing without a CAPT driver. The udev rule 71-caramos-capt-printers.rules keeps the
+# automatic printer setup from giving them an unrelated PostScript driver; keep its list in step.
+CAPT_PRINTERS = {
+    "260a": "LBP810",
+    "2617": "LBP1210",
+    "262b": "LBP1120",
+    "2636": "LBP3200",
+    "2654": "LBP3600",
+    "2657": "LBP3210",
+    "266a": "LBP3000",
+    "266e": "LBP5200",
+    "2676": "LBP2900/LBP2900B",
+    "2679": "LBP5000",
+    "267e": "LBP3300",
+    "268b": "LBP3500",
+    "26a1": "LBP5300",
+    "26a4": "LBP5100",
+    "26b9": "LBP3310",
+    "26ba": "LBP5050",
+    "26da": "LBP3010/LBP3018/LBP3050",
+    "26db": "LBP3100/LBP3108/LBP3150",
+    "26ea": "LBP9100C",
+    "26f1": "LBP7200C",
+    "26ff": "LBP6300",
+    "271a": "LBP6000/LBP6018",
+    "271b": "LBP6200",
+    "271c": "LBP7010C/LBP7018C",
+    "2771": "LBP6020",
+}
+# The models the open-source captdriver drives (package printer-driver-captdriver in the CaramOS PPA, whose
+# Modaliases list the same IDs); it works on the first two and is experimental on the others.
+CAPTDRIVER_PACKAGE = "printer-driver-captdriver"
+CAPTDRIVER_MODELS = ("2676", "26da", "266a", "26db", "271a")
+CAPTDRIVER_WORKS = frozenset({"2676", "26da"})
+
 
 def broadcom_wifi(device: Device) -> bool:
     """Broadcom Wi-Fi: needs Broadcom's driver (bcmwl) or downloaded b43 firmware, both outside the kernel."""
@@ -71,6 +110,12 @@ def fingerprint_like(device: Device) -> bool:
     if device.vendor in FINGERPRINT_VENDORS:
         return True
     return device.vendor == ELAN and device.product.startswith("0c")
+
+
+def capt_printer(device: Device) -> bool:
+    """A Canon printer that needs a CAPT driver (LBP2900 and family)."""
+
+    return device.bus == "usb" and device.vendor == CANON and device.product in CAPT_PRINTERS
 
 
 def read_libfprint_support(root: str | Path = "/") -> dict[str, str]:

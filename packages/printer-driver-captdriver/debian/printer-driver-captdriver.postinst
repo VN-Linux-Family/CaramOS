@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+case "$1" in
+    configure)
+        # Repair queues the automatic printer setup made with another driver and set up a connected
+        # printer (see the script). Never fails the install.
+        if [ -x /usr/lib/printer-driver-captdriver/setup-printers ]; then
+            /usr/lib/printer-driver-captdriver/setup-printers || true
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

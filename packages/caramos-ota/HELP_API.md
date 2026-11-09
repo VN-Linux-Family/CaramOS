@@ -97,6 +97,23 @@ App Center's log has, for each app that failed, its id and install method, the r
 helper's output (apt-get, flatpak or the recipe). The Update Center's log has the output of `caramos-ota
 --upgrade` and the end of the day's `/var/log/caramos-ota/*.log`.
 
+Driver Check's page for a failed driver install has the same button. Its form starts with "Kiểm tra driver
+chưa cài được <package>." (for example `printer-driver-captdriver`) and carries `driver-install.log`: the
+package, the error code and what the helper printed.
+
+Every request from Driver Check and Feedback & Help also carries `system.log` and, when Driver Check ran,
+`driver-check.log`. When the computer has a USB printer or a print queue, it carries `printer.log` too
+(`caramos_driver_check/printers.py`). CUPS logs to its own `error_log` rather than the journal, so without it a
+printer that does not print leaves no trace. `printer.log` has:
+- the printing packages and the Canon CAPT drivers installed;
+- the USB printers with their IEEE 1284 id;
+- the queues of USB printers, with their driver, state, CUPS's message and jobs. Network queues are only
+  counted;
+- this boot's lines of the automatic printer setup;
+- the end of CUPS's `error_log`, without cupsd's chatter with its clients.
+
+Serial numbers and document names (job titles) are taken out as well.
+
 Before anything is shown or sent (`caramos_driver_check/logs.py`), each log loses e-mail and IP addresses, MAC
 addresses, `password=`/`token=`-style values, the home folder, the computer's name and the user's login name,
 and keeps its last 24 KB. The request carries them inside the report, so they need nothing new from VNLF:

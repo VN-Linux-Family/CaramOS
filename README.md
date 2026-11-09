@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.6"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t&color=F59F22" alt="Bản mới nhất"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.7"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t&color=F59F22" alt="Bản mới nhất"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download"><strong>Tải CaramOS 1.3.6</strong></a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.3.7/CaramOS-1.3.7-cinnamon-amd64.iso/download"><strong>Tải CaramOS 1.3.7</strong></a> ·
   <a href="https://caramos.vietnamlinuxfamily.net">Website</a> ·
   <a href="README_EN.md">English</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -44,16 +44,31 @@ Windows chuyển sang mà không phải mày mò, có sẵn tiếng Việt, bộ
 khác chỉ cần vài cú bấm.
 
 > [!IMPORTANT]
-> **CaramOS 1.3.6 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
+> **CaramOS 1.3.7 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
 > sau chuỗi bản Open Beta 1.0.x.
 >
-> - **Cài mới:** [tải ISO 1.3.6](https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download)
->   (2,8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.6/SHA256SUMS) ·
->   [ghi chú phát hành](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.6)
-> - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.3.6, bấm
+> - **Cài mới:** [tải ISO 1.3.7](https://sourceforge.net/projects/caramos/files/v1.3.7/CaramOS-1.3.7-cinnamon-amd64.iso/download)
+>   (2,8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.7/SHA256SUMS) ·
+>   [ghi chú phát hành](https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.7)
+> - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.3.7, bấm
 >   **Cập nhật ngay** là xong. Xem [Nâng cấp từ bản cũ](#nâng-cấp-từ-bản-cũ).
 
 ## Có gì mới
+
+### 1.3.7
+
+- **Máy in Canon LBP2900 cài được bằng một nút.** Cắm máy in vào là có thông báo "Máy in chưa có driver". Bấm
+  **Xem chi tiết** rồi **Cài driver máy in**, máy in sẽ tự được thiết lập. Trước đây hệ thống gán cho các máy in
+  Canon dùng CAPT một driver PostScript không hợp: lệnh in báo xong mà máy không ra giấy.
+  - Driver là captdriver, mã nguồn mở. Theo captdriver, LBP2900/LBP2900B và LBP3010/LBP3018/LBP3050 chạy được,
+    còn LBP3000, LBP3100/LBP3108/LBP3150 và LBP6000/LBP6018 mới ở mức thử nghiệm.
+  - Các máy CAPT khác (LBP3300, LBP6020…) chỉ chạy với driver của Canon. Với các máy đó, Kiểm tra driver có nút
+    **Nhờ giúp đỡ**.
+- **Gửi lỗi về VNLF dễ hơn.**
+  - Cài driver không được thì màn hình báo lỗi có nút **Nhờ giúp đỡ**, kèm nhật ký cài đặt.
+  - Máy có máy in thì mọi yêu cầu giúp đỡ tự kèm nhật ký máy in, đã bỏ số serial và tên tài liệu. In chưa đúng
+    thì bấm dấu ? trên thanh tác vụ để gửi.
+- Rút máy in hay USB Wi-Fi ra không còn bị báo nhầm "Đã xử lý xong vấn đề phần cứng" ở lần đăng nhập sau.
 
 ### 1.3.6
 
@@ -165,10 +180,13 @@ Desktop hoặc menu; cần thêm ứng dụng khác thì nút **Xem thêm** dẫ
 </p>
 
 Ngay khi chạy thử CaramOS từ USB, Kiểm tra driver cho bạn biết máy có hợp với CaramOS không, trước khi
-cài. Sau khi cài, nó chạy lại ở lần đăng nhập đầu tiên, rồi chỉ lên tiếng khi có vấn đề mới.
+cài. Sau khi cài, nó chạy lại ở lần đăng nhập đầu tiên, rồi chỉ lên tiếng khi có vấn đề mới. Cắm vào một máy
+in cần driver thì nó báo ngay.
 
-- Kiểm tra Wi-Fi, mạng dây, card đồ họa, âm thanh, Bluetooth, webcam và đầu đọc vân tay.
-- Cài driver **NVIDIA** và **Wi-Fi Broadcom** bằng một nút, đúng bản Ubuntu khuyên dùng cho máy.
+- Kiểm tra Wi-Fi, mạng dây, card đồ họa, âm thanh, Bluetooth, webcam, đầu đọc vân tay và máy in Canon dùng CAPT
+  (LBP2900…).
+- Cài driver **NVIDIA** và **Wi-Fi Broadcom** bằng một nút, đúng bản Ubuntu khuyên dùng cho máy. Máy in **Canon
+  LBP2900** cũng cài bằng một nút, với driver mã nguồn mở captdriver.
 - Thiếu driver mạng nên máy chưa vào được Internet? Nó chỉ cách vào mạng bằng dây LAN, điện thoại qua
   USB, hoặc cài driver Broadcom ngay từ USB cài CaramOS.
 - Giải thích từng trường hợp: chưa có driver trong kernel, driver chờ khởi động lại, driver bị chặn
@@ -312,9 +330,9 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
 
 ### 1. Tải ISO
 
-- [CaramOS-1.3.6-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.6/CaramOS-1.3.6-cinnamon-amd64.iso/download)
+- [CaramOS-1.3.7-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.7/CaramOS-1.3.7-cinnamon-amd64.iso/download)
   (2,8 GB, trên SourceForge vì GitHub giới hạn dung lượng mỗi tệp đính kèm).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.6/SHA256SUMS) để kiểm tra
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.7/SHA256SUMS) để kiểm tra
   tệp tải về:
 
 ```bash
@@ -327,7 +345,7 @@ Dùng [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net)
 Trên Linux có thể dùng `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.3.6-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.3.7-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Chạy thử và cài đặt
@@ -341,7 +359,7 @@ sudo dd if=CaramOS-1.3.6-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress of
 
 Máy đã cài CaramOS không cần cài lại ISO.
 
-- **Từ CaramOS 1.0.2 trở lên:** Trung tâm cập nhật tự kiểm tra mỗi ngày và báo bản 1.3.6; bấm **Cập nhật
+- **Từ CaramOS 1.0.2 trở lên:** Trung tâm cập nhật tự kiểm tra mỗi ngày và báo bản 1.3.7; bấm **Cập nhật
   ngay**. Muốn nâng cấp liền, mở Terminal và chạy:
 
   ```bash
@@ -437,7 +455,7 @@ Landing page [caramos.vietnamlinuxfamily.net](https://caramos.vietnamlinuxfamily
 Version sản phẩm nằm trong source tree, ở [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.3.6"
+CARAMOS_VERSION="1.3.7"
 ```
 
 `make release VERSION=x.y.z` đóng dấu version này cùng lúc vào `scripts/config.sh`, metadata release và
@@ -449,7 +467,7 @@ CARAMOS_VERSION="1.3.6"
 - `neofetch` / `fastfetch`
 - GitHub Release và package `caramos-ota` trên PPA
 
-Khi release, Git tag phải khớp version trong source: version `1.3.6` thì tag là `v1.3.6`. Nếu tag
+Khi release, Git tag phải khớp version trong source: version `1.3.7` thì tag là `v1.3.7`. Nếu tag
 không khớp, GitHub Actions dừng trước khi build.
 
 ### Cập nhật OTA
@@ -593,17 +611,17 @@ Workflow CI nằm ở [.github/workflows/build.yml](.github/workflows/build.yml)
 - Push tag `v*`: kiểm tra tag khớp `CARAMOS_VERSION`, build release bằng `./build.sh --release`, tạo
   `SHA256SUMS`, đưa ISO lên SourceForge và tạo GitHub Release có link tải.
 
-Ví dụ release `1.3.6`:
+Ví dụ release `1.3.7`:
 
 ```bash
 # 1. Đóng dấu version: scripts/config.sh, metadata và changelog của caramos-ota
-make -C packages/caramos-ota prepare-release VERSION=1.3.6
-git commit -am "[build] Release 1.3.6"
+make -C packages/caramos-ota prepare-release VERSION=1.3.7
+git commit -am "[build] Release 1.3.7"
 git push origin main
 
 # 2. Tag: GitHub Actions build ISO, SourceForge và GitHub Release
-git tag -a v1.3.6 -m "CaramOS 1.3.6"
-git push origin v1.3.6
+git tag -a v1.3.7 -m "CaramOS 1.3.7"
+git push origin v1.3.7
 
 # 3. Gói caramos-ota lên PPA (cần chìa GPG của người release)
 make -C packages/caramos-ota source

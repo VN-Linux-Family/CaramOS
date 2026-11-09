@@ -17,7 +17,7 @@ from caramos_ota.i18n import _
 
 from .. import actions
 from ..analysis import INSTALL, REBOOT, REPORT, WIFI_ON, Action, Finding, Report
-from ..logs import system_logs
+from ..logs import Log, install_failure_log, system_logs
 from .help import HelpPages
 from .install import InstallView, done_page
 from .results import ResultsView
@@ -181,15 +181,24 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
                       space: list[dict[str, Any]]) -> None:
         self.busy = False
         page = done_page(ok, restart, error, log, on_restart=lambda: actions.run(REBOOT),
-                         on_back=self.start_scan, on_retry=lambda: self.install(installs), space=space)
+                         on_back=self.start_scan, on_retry=lambda: self.install(installs), space=space,
+                         on_help=lambda: self._install_help(installs, error, log))
         self._set_page("done", page)
+
+    def _install_help(self, installs: list[Action], error: str, log: str) -> None:
+        """Like the App Center's and the Update Center's failure pages: the request starts with what failed and
+        carries what the helper printed."""
+
+        targets = [action.target for action in installs]
+        self.show_help("driver", _("Driver Check could not install %s.") % ", ".join(targets),
+                       (install_failure_log(targets, error, log),))
 
     # Asking for help (HelpPages) -------------------------------------------------------------
 
-    def show_help(self, kind: str) -> None:
+    def show_help(self, kind: str, message: str = "", logs: tuple[Log, ...] = ()) -> None:
         if self.report is None:
             return
-        self.help_logs = ()
+        self.help_message, self.help_logs = message, logs
         super().show_help(kind)
         form = self.help_form
 
@@ -203,8 +212,8 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
 
         def attach(found) -> bool:
             if found and form is not None and self.help_form is form:
-                self.help_logs = found
-                form.set_context("", found)
+                self.help_logs = logs + found
+                form.set_context("", self.help_logs)
             return False
 
         threading.Thread(target=work, daemon=True).start()

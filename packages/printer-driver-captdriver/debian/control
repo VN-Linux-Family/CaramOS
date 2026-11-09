@@ -1,0 +1,33 @@
+Source: printer-driver-captdriver
+Section: text
+Priority: optional
+Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+Build-Depends: debhelper-compat (= 13),
+ cups-ppdc,
+ libcups2-dev,
+ libcupsimage2-dev
+Standards-Version: 4.6.2
+Homepage: https://github.com/mounaiban/captdriver
+Vcs-Browser: https://github.com/VN-Linux-Family/CaramOS/tree/main/packages/printer-driver-captdriver
+Rules-Requires-Root: no
+
+Package: printer-driver-captdriver
+Architecture: any
+Depends: ${misc:Depends},
+ ${shlibs:Depends}
+Recommends: cups,
+ cups-filters
+XB-Modaliases: printer-driver-captdriver(usb:v04A9p2676d*dc*dsc*dp*ic07isc01ip*in*, usb:v04A9p266Ad*dc*dsc*dp*ic07isc01ip*in*, usb:v04A9p26DAd*dc*dsc*dp*ic07isc01ip*in*, usb:v04A9p26DBd*dc*dsc*dp*ic07isc01ip*in*, usb:v04A9p271Ad*dc*dsc*dp*ic07isc01ip*in*)
+Description: printer driver for Canon CAPT laser printers (captdriver)
+ captdriver is an unofficial, open-source driver for the Canon laser printers
+ that speak Canon's CAPT protocol, such as the LBP2900 and LBP2900B. It is a
+ single CUPS filter, rastertocapt, and needs neither a daemon nor 32-bit
+ libraries like Canon's own driver.
+ .
+ Works: LBP2900/LBP2900B, LBP3010/LBP3018/LBP3050.
+ Experimental: LBP3000, LBP3100/LBP3108/LBP3150, LBP6000/LBP6018.
+ .
+ This build packages captdriver's 2026 work (branch 0.2.1-pr) with CaramOS
+ fixes: its PPDs carry the printers' IEEE 1284 device IDs, so plugging a
+ printer in sets it up with this driver. captdriver is not endorsed or
+ authorised by Canon.

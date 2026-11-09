@@ -1,9 +1,11 @@
-"""Notifications: Driver Check at login, and VNLF's answers to the user's requests (caramos-help --refresh).
+"""Notifications: Driver Check at login or when a device that needs a driver is plugged in, and VNLF's answers
+to the user's requests (caramos-help --refresh).
 
 Only GLib and libnotify are loaded: GTK starts only if the user opens the app."""
 
 from __future__ import annotations
 
+import os
 import subprocess
 from collections.abc import Callable, Sequence
 from typing import Any
@@ -70,6 +72,10 @@ def show_news(news: Sequence[News]) -> int:
 
 
 def _start(argv: list[str]) -> None:
+    if os.environ.get("INVOCATION_ID"):
+        # Started by systemd (caramos-driver-check-hotplug.service): the app gets its own scope, or systemd
+        # stops it together with the service as soon as this notification exits.
+        argv = ["systemd-run", "--user", "--scope", "--quiet", "--collect", "--", *argv]
     subprocess.Popen(argv, start_new_session=True, stdin=subprocess.DEVNULL)
 
 

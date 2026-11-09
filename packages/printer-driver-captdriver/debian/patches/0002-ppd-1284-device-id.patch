@@ -1,0 +1,85 @@
+Description: Give each PPD the IEEE 1284 device ID of its printer
+ Automatic printer setup (udev-configure-printer from system-config-printer)
+ asks cupshelpers for the PPD that fits the device ID a plugged-in printer
+ reports. Without a *1284DeviceID it can only compare model names, and only
+ the LBP2900 and LBP3010 PPDs match that way. The LBP3000 got the LBP3010 PPD,
+ whose media type numbers differ (1 is Plain Paper there, Heavy Paper on the
+ LBP2900/LBP3000), and the LBP3100 and LBP6000 got no driver.
+ .
+ The MDL values are the names register_printer() uses in prn_lbp2900.c, which
+ the filter compares with the MDL the printer reports. A PPD holds one device
+ ID, so the LBP3000 and the LBP3100 get PPDs of their own, with the settings of
+ the LBP2900/LBP3000 PPD and the LBP3010 PPD.
+ .
+ Second commit: shorter model names for the LBP3010 and LBP3100 PPDs, so that
+ *ShortNickName (manufacturer and model name) fits its 31 characters and the
+ PPDs pass cupstestppd.
+Author: mrd9999 <realfox19@gmail.com>
+Origin: other, https://github.com/mrd9999/captdriver/commits/ppd-1284-device-id
+Forwarded: https://github.com/mounaiban/captdriver/pull/56
+Last-Update: 2026-11-09
+---
+diff --git a/src/canon-lbp.drv b/src/canon-lbp.drv
+index 1e7ce64..138662c 100644
+--- a/src/canon-lbp.drv
++++ b/src/canon-lbp.drv
+@@ -142,10 +142,26 @@ Version 0.1.4
+ 			MediaType 4 "Transparency"
+ 			MediaType 5 "Envelope"
+ 
++			Attribute "1284DeviceID" "" "MFG:Canon;MDL:LBP2900;CMD:CAPT;"
+ 			ModelName "LBP2900/LBP3000 r2c"
+ 			FileName "CanonLBP-2900-3000.ppd"
+ 			PCFileName "CNLB2K9.ppd"
+ 		}
++		{
++			/* LBP 3000: the LBP2900 settings under its own device ID, so plugging it in picks
++			   these media types rather than the LBP3010 ones */
++			MediaType 128 "Plain/Plain Paper"
++			MediaType 1 "Heavy/Heavy Paper"
++			MediaType 2 "PlainL/Plain Paper L"
++			MediaType 3 "HeavyH/Heavy Paper H"
++			MediaType 4 "Transparency"
++			MediaType 5 "Envelope"
++
++			Attribute "1284DeviceID" "" "MFG:Canon;MDL:LBP3000;CMD:CAPT;"
++			ModelName "LBP3000 r2c"
++			FileName "CanonLBP-3000.ppd"
++			PCFileName "CNLB3K.ppd"
++		}
+ 		{
+ 			/* LBP 6000, with multi-page size and type support */
+ 			MediaType 0 "Plain/Plain Paper"
+@@ -156,6 +172,7 @@ Version 0.1.4
+ 			MediaType 5 "Envelope"
+ 
+ 			Resolution k 1 70 592 0 "600x400dpi/600x400 DPI"
++			Attribute "1284DeviceID" "" "MFG:Canon;MDL:LBP6000/LBP6018;CMD:CAPT;"
+ 			ModelName "LBP6000 r2c"
+ 			FileName "CanonLBP-6000.ppd"
+ 			PCFileName "CNLB2K92.ppd"
+@@ -293,10 +310,20 @@ Version 0.1.4
+ 		MediaSize EnvPRC8
+ 		MediaSize EnvYou4
+ 
+-		// PPD file name
+-		*ModelName "LBP3010/LBP3018/LBP3050 r2c"
+-		FileName "CanonLBP-3010-3018-3050.ppd"
+-		PCFileName "CNLB3K10.ppd"
++		{
++			Attribute "1284DeviceID" "" "MFG:Canon;MDL:LBP3010/LBP3018/LBP3050;CMD:CAPT;"
++			// PPD file name
++			*ModelName "LBP3010/3018/3050 r2c"
++			FileName "CanonLBP-3010-3018-3050.ppd"
++			PCFileName "CNLB3K10.ppd"
++		}
++		{
++			/* LBP3100/LBP3108/LBP3150: captdriver drives them like the LBP3010 */
++			Attribute "1284DeviceID" "" "MFG:Canon;MDL:LBP3100/LBP3108/LBP3150;CMD:CAPT;"
++			ModelName "LBP3100/3108/3150 r2c"
++			FileName "CanonLBP-3100-3108-3150.ppd"
++			PCFileName "CNLB3K1.ppd"
++		}
+ 	}
+ 
+ }

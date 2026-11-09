@@ -6,6 +6,9 @@
   options, how the computer starts (UEFI entries, Secure Boot) and its disks, and the warnings and errors of
   this boot (and the end of the previous one, after a freeze and a restart).
 - driver-check.log: what each Driver Check scan did and how long it took (note()).
+- printer.log, when the computer has a USB printer or a print queue: the printers, their queues and jobs, and
+  the end of CUPS's error_log (printers.py).
+- driver-install.log: what the helper printed when a driver install failed, when the failure page asks for help.
 
 The form attaches them, ticked, to the request's report, which only VNLF's moderators see, never the community
 (HELP_API.md, "Logs"). A log keeps its last lines up to LOG_LIMIT, after e-mail and IP addresses, MAC
@@ -21,7 +24,7 @@ import platform
 import re
 import subprocess
 from collections import Counter
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -372,10 +375,26 @@ def system_log(root: Path = Path("/")) -> str:
 
 
 def system_logs() -> tuple[Log, ...]:
-    """What a help request carries about the computer: system.log, and driver-check.log when Driver Check ran."""
+    """What a help request carries about the computer: system.log, driver-check.log when Driver Check ran, and
+    printer.log when there is a printer."""
 
     found = [Log("system.log", system_log().strip())]
     driver_check = read_log(driver_check_log_path())
     if driver_check is not None:
         found.append(driver_check)
+    try:
+        from .printers import printer_log   # printers imports this module
+
+        printers = printer_log().strip()
+    except Exception:   # noqa: BLE001 - a printer that cannot be read must not cost the other logs
+        printers = ""
+    if printers:
+        found.append(Log("printer.log", printers))
     return tuple(found)
+
+
+def install_failure_log(targets: Sequence[str], error: str, output: str) -> Log:
+    """driver-install.log: what the helper printed when installing targets failed with error (install.py)."""
+
+    head = f"Driver Check could not install {', '.join(targets)} (error: {error or 'unknown'})"
+    return Log("driver-install.log", tail(redact(f"{head}\n\n{output.strip()}".strip())))

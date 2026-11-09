@@ -1,0 +1,65 @@
+# Every week: has upstream captdriver changed since the last review
+# (packages/printer-driver-captdriver/upstream-refs.txt)? A change opens an issue, or adds a comment to the
+# open one when the report is new. Nothing is updated by itself: the README of the package says what to do
+# ("Bảo trì").
+name: captdriver upstream
+
+on:
+  schedule:
+    - cron: "0 2 * * 1"   # Mondays, 09:00 in Vietnam
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Exit 0: nothing new, 1: something to look at, 2: upstream could not be read (the run fails).
+      - name: Compare upstream with the last review
+        id: check
+        run: |
+          set +e
+          python3 -I packages/printer-driver-captdriver/tools/upstream.py check > report.txt 2>&1
+          status=$?
+          cat report.txt
+          echo "status=${status}" >> "${GITHUB_OUTPUT}"
+          [ "${status}" -le 1 ]
+
+      - name: Open or update the issue
+        if: steps.check.outputs.status == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          title="captdriver upstream có thay đổi"
+          # The same report as last week (nothing looked at yet) adds nothing to the issue.
+          marker="<!-- captdriver-upstream $(sha256sum report.txt | cut -c1-16) -->"
+          {
+            echo "Lần kiểm tra hằng tuần thấy upstream của \`printer-driver-captdriver\` khác với lần duyệt trước:"
+            echo
+            echo '```'
+            cat report.txt
+            echo '```'
+            echo
+            echo "Xem từng thay đổi theo mục \"Bảo trì\" trong \`packages/printer-driver-captdriver/README.md\`."
+            echo "Xem xong thì chạy \`make -C packages/printer-driver-captdriver record-upstream\`, commit"
+            echo "\`upstream-refs.txt\` rồi đóng issue này."
+            echo
+            echo "${marker}"
+          } > body.md
+          number="$(gh issue list --state open --search "\"${title}\" in:title" --json number,title \
+            --jq ".[] | select(.title == \"${title}\") | .number" | head -n 1)"
+          if [ -z "${number}" ]; then
+            gh issue create --title "${title}" --body-file body.md
+          elif gh issue view "${number}" --json body,comments --jq '.body, .comments[].body' | grep -qF "${marker}"; then
+            echo "Issue #${number} already has this report"
+          else
+            gh issue comment "${number}" --body-file body.md
+          fi

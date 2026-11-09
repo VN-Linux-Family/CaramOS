@@ -275,6 +275,13 @@ packages/
 ├── caram-os-demo/
 │   ├── debian/
 │   └── ...
+├── printer-driver-captdriver/
+│   ├── README.md
+│   ├── Makefile
+│   ├── upstream-refs.txt
+│   ├── debian/
+│   ├── tests/
+│   └── tools/
 ├── *.deb
 ├── *.buildinfo
 └── *.changes
@@ -287,6 +294,14 @@ Source Debian package của OTA. Đây là package vận hành thật và là n�
 Tài liệu chi tiết:
 
 - [caramos-ota/README.md](./caramos-ota/README.md)
+
+### `printer-driver-captdriver/`
+
+Driver mã nguồn mở captdriver cho máy in Canon CAPT (LBP2900/LBP2900B...), đóng gói cho PPA. Mã upstream được tải theo commit đã ghim lúc build, repo chỉ giữ `debian/` (bản vá, PPD có device ID, script tự sửa hàng in) và máy in ảo `tests/vlbp2900.py` để thử không cần máy thật. Cắm máy in vào là Driver Check của `caramos-ota` báo ngay và đề nghị cài gói này. Khi upstream thay đổi: `make check-upstream` cho biết có gì mới, `make bump` nâng lên commit mới (mục "Bảo trì" trong README của gói).
+
+Tài liệu chi tiết:
+
+- [printer-driver-captdriver/README.md](./printer-driver-captdriver/README.md)
 
 ### `caram-os-demo/`
 
@@ -593,26 +608,27 @@ Nói ngắn gọn: **CaramOS OTA không còn là package manifest manager; nó l
 
 ---
 
-## 13. Release hiện tại: CaramOS 1.3.6 (`caramos-ota` 1.3.6)
+## 13. Release hiện tại: CaramOS 1.3.7 (`caramos-ota` 1.3.7)
 
 Người release PPA: **dungleviet**.
 
-CaramOS 1.3.6 là bản mới nhất của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0; các bản 1.0.x
+CaramOS 1.3.7 là bản mới nhất của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0; các bản 1.0.x
 trước đó là Open Beta.
 
 | Thành phần | Bản phát hành |
 |---|---|
-| ISO | `CaramOS-1.3.6-cinnamon-amd64.iso`: GitHub Release `v1.3.6`, tệp ISO trên SourceForge |
-| `caramos-ota` | `1.3.6-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| ISO | `CaramOS-1.3.7-cinnamon-amd64.iso`: GitHub Release `v1.3.7`, tệp ISO trên SourceForge |
+| `caramos-ota` | `1.3.7-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| `printer-driver-captdriver` | `0.2.1~git20260813.f2d2da8-0caramos1` trên cùng PPA, lần đầu; Kiểm tra driver cài nó khi thấy máy in Canon CAPT |
 | App Center | `caramos-app-center` 0.2.3, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` |
 
 Máy CaramOS cũ không cần cài lại ISO:
 
-- Từ 1.0.2 trở lên: Trung tâm cập nhật tự báo bản 1.3.6, hoặc chạy `sudo caramos-ota --upgrade --yes`.
+- Từ 1.0.2 trở lên: Trung tâm cập nhật tự báo bản 1.3.7, hoặc chạy `sudo caramos-ota --upgrade --yes`.
 - Từ 1.0.1: cài Trung tâm cập nhật một lần bằng
   `curl -fsSL https://caramos.vietnamlinuxfamily.net/install-caramos-ota.sh | sudo bash`.
 
-Chuỗi migration được đóng gói trong `caramos-ota` 1.3.6:
+Chuỗi migration được đóng gói trong `caramos-ota` 1.3.7:
 
 ```text
 1.0.1 → 1.0.2 → … → 1.0.12                         migration legacy v1_0_2 … v1_0_12, đóng băng
@@ -629,13 +645,16 @@ make -C packages/caramos-app-center release VERSION=0.2.3
 git -C packages/caramos-app-center push origin HEAD v0.2.3
 
 # 2. CaramOS: đóng dấu version, commit (kèm con trỏ submodule mới), tag
-make -C packages/caramos-ota prepare-release VERSION=1.3.6
-git commit -am "[build] Release 1.3.6" && git push origin main
-git tag -a v1.3.6 -m "CaramOS 1.3.6" && git push origin v1.3.6   # CI: ISO, SourceForge, GitHub Release
+make -C packages/caramos-ota prepare-release VERSION=1.3.7
+git commit -am "[build] Release 1.3.7" && git push origin main
+git tag -a v1.3.7 -m "CaramOS 1.3.7" && git push origin v1.3.7   # CI: ISO, SourceForge, GitHub Release
 
 # 3. caramos-ota lên PPA
 make -C packages/caramos-ota source
 make -C packages/caramos-ota gpg-unlock upload
+
+# 4. printer-driver-captdriver, khi gói này thay đổi (1.3.7: lần đầu)
+make -C packages/printer-driver-captdriver source upload
 ```
 
 Sau khi PPA publish, kiểm tra candidate:
@@ -645,4 +664,4 @@ sudo apt update
 apt-cache policy caramos-ota
 ```
 
-ISO build dùng `CARAMOS_VERSION=1.3.6` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs. Sau đó build dừng nếu Start Menu (Cinnamenu tải từ cinnamon-spices lúc build) thiếu bản vá của CaramOS.
+ISO build dùng `CARAMOS_VERSION=1.3.7` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs. Sau đó build dừng nếu Start Menu (Cinnamenu tải từ cinnamon-spices lúc build) thiếu bản vá của CaramOS.

@@ -4,7 +4,7 @@ A device without a working driver is explained from facts read at run time, so t
 kernels change: no kernel module matches it (the kernel has no driver yet), a module matches but is not
 loaded (just installed: restart), or the driver is loaded and the device still does not start (usually
 missing firmware). knowledge.py adds what the kernel cannot tell (Broadcom Wi-Fi, NVIDIA, Intel IPU
-cameras, fingerprint readers), and drivers.py the driver packages Ubuntu recommends, which the window
+cameras, fingerprint readers, Canon CAPT printers), and drivers.py the driver packages Ubuntu recommends, which the window
 installs with one click.
 """
 
@@ -45,7 +45,7 @@ WIFI_ON = "wifi-on"
 FINGERPRINTS = "fingerprints"
 REPORT = "report"
 
-AREAS = ("wifi", "ethernet", "graphics", "audio", "bluetooth", "camera", "fingerprint", "other")
+AREAS = ("wifi", "ethernet", "graphics", "audio", "bluetooth", "camera", "fingerprint", "printer", "other")
 # Shown even when the machine has none, so the user sees that they were checked.
 ALWAYS_SHOWN = ("wifi", "ethernet", "graphics", "audio", "bluetooth", "camera")
 
@@ -69,6 +69,7 @@ def area_label(key: str) -> str:
         "bluetooth": _("Bluetooth"),
         "camera": _("Webcam"),
         "fingerprint": _("Fingerprint reader"),
+        "printer": _("Printer"),
         "other": _("Other devices"),
     }
     return labels.get(key, key)
@@ -676,6 +677,39 @@ class _Analysis:
                             "password."), device)
         self._area("fingerprint", readers)
 
+    # Printers ----------------------------------------------------------------------------------
+
+    def _printers(self) -> None:
+        """Canon CAPT printers (LBP2900...): the kernel takes them like any printer, but they need a CAPT driver."""
+
+        printers = [device for device in self.snapshot.usb if knowledge.capt_printer(device)]
+        drivers = self.snapshot.capt_drivers
+        for device in printers:
+            self._proposal(device)   # the driver below is this device's ubuntu-drivers proposal
+            supported = device.product in knowledge.CAPTDRIVER_MODELS
+            if "canon" in drivers or (supported and "captdriver" in drivers):
+                continue
+            if supported:
+                detail = _(
+                    "This Canon printer speaks Canon's own printer language (CAPT), so it prints nothing without a "
+                    "CAPT driver. Install captdriver, an open-source driver for it; the printer is then set up "
+                    "by itself."
+                )
+                if device.product not in knowledge.CAPTDRIVER_WORKS:
+                    detail += " " + _("Support for this model is still experimental.")
+                actions: tuple[Action, ...] = (
+                    Action(INSTALL, _("Install the printer driver"), knowledge.CAPTDRIVER_PACKAGE), _action(REPORT))
+            else:
+                detail = _(
+                    "This Canon printer speaks Canon's own printer language (CAPT), and only Canon's driver supports "
+                    "this model. CaramOS cannot install it by itself yet: ask the community for help with the "
+                    "button below."
+                )
+                actions = (_action(REPORT),)
+            self._add("printer", WARNING, f"printer:capt:{device.key}", _("The printer has no driver"), detail,
+                      device, actions)
+        self._area("printer", printers)
+
     # Other devices -----------------------------------------------------------------------------
 
     def _other(self) -> None:
@@ -687,7 +721,8 @@ class _Analysis:
                 continue
             devices.append(device)
         for device in self.snapshot.usb:
-            if knowledge.fingerprint_like(device) or device.id in self.fingerprint_support or device.looks_like_usb_wifi:
+            if knowledge.fingerprint_like(device) or device.id in self.fingerprint_support or device.looks_like_usb_wifi \
+                    or knowledge.capt_printer(device):
                 continue
             standard = [
                 interface for interface in device.interfaces
@@ -732,6 +767,7 @@ class _Analysis:
         self._bluetooth()
         self._camera()
         self._fingerprint()
+        self._printers()
         self._other()
         self._other_proposals()
         order = {key: index for index, key in enumerate(AREAS)}

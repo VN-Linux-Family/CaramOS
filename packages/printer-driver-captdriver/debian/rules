@@ -1,0 +1,33 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+PKG := debian/printer-driver-captdriver
+PPD_BUILD := debian/build-ppd
+
+%:
+	dh $@
+
+# ppdc writes numbers with the locale's decimal separator; C keeps the PPDs valid.
+execute_after_dh_auto_build:
+	mkdir -p $(PPD_BUILD)
+	LC_ALL=C LC_NUMERIC=C ppdc -d $(PPD_BUILD) src/canon-lbp.drv
+	# The PPDs of debian/patches/0002: ShortNickName within 31 characters, a device ID in each.
+	grep -q '^\*ShortNickName: "Canon LBP3010/3018/3050 r2c"' $(PPD_BUILD)/CanonLBP-3010-3018-3050.ppd
+	grep -q '^\*ShortNickName: "Canon LBP3100/3108/3150 r2c"' $(PPD_BUILD)/CanonLBP-3100-3108-3150.ppd
+	grep -q '^\*1284DeviceID: "MFG:Canon;MDL:LBP2900;CMD:CAPT;"' $(PPD_BUILD)/CanonLBP-2900-3000.ppd
+	grep -q '^\*1284DeviceID: "MFG:Canon;MDL:LBP3000;CMD:CAPT;"' $(PPD_BUILD)/CanonLBP-3000.ppd
+	grep -q '^\*1284DeviceID: "MFG:Canon;MDL:LBP3010/LBP3018/LBP3050;CMD:CAPT;"' $(PPD_BUILD)/CanonLBP-3010-3018-3050.ppd
+	grep -q '^\*1284DeviceID: "MFG:Canon;MDL:LBP3100/LBP3108/LBP3150;CMD:CAPT;"' $(PPD_BUILD)/CanonLBP-3100-3108-3150.ppd
+	grep -q '^\*1284DeviceID: "MFG:Canon;MDL:LBP6000/LBP6018;CMD:CAPT;"' $(PPD_BUILD)/CanonLBP-6000.ppd
+
+# Upstream installs rastertocapt into /usr/bin and also its Makefile.in; CUPS runs filters from
+# /usr/lib/cups/filter, the only place noble's AppArmor profile lets cupsd execute them.
+override_dh_auto_install:
+	install -D -m 0755 src/rastertocapt $(PKG)/usr/lib/cups/filter/rastertocapt
+	install -d $(PKG)/usr/share/ppd/captdriver
+	install -m 0644 $(PPD_BUILD)/*.ppd $(PKG)/usr/share/ppd/captdriver/
+	install -D -m 0755 debian/setup-printers $(PKG)/usr/lib/printer-driver-captdriver/setup-printers
+
+execute_after_dh_auto_clean:
+	rm -rf $(PPD_BUILD)

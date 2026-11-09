@@ -23,6 +23,9 @@ MODPROBE_DIRS = ("etc/modprobe.d", "run/modprobe.d", "usr/lib/modprobe.d", "lib/
 DISABLING_COMMANDS = frozenset({"/bin/false", "/bin/true", "/usr/bin/false", "/usr/bin/true", "false", "true"})
 DPKG_STATUS = "var/lib/dpkg/status"
 UNFINISHED_STATES = frozenset({"half-installed", "unpacked", "half-configured"})
+# Drivers for Canon CAPT printers, by a file each installs: the open-source captdriver (its CUPS filter) and
+# Canon's own driver (its daemon, package cndrvcups-capt).
+CAPT_DRIVER_FILES = (("captdriver", "usr/lib/cups/filter/rastertocapt"), ("canon", "usr/sbin/ccpd"))
 
 # PCI class prefixes (class + subclass) the check looks at.
 PCI_ETHERNET = "0200"
@@ -205,6 +208,8 @@ class Snapshot:
     blacklists: tuple[tuple[str, str], ...] = ()
     # Packages dpkg could not finish installing (unpacked, half-configured): apt fails until they are fixed.
     unfinished_packages: tuple[str, ...] = ()
+    # Drivers for Canon CAPT printers that are installed: "captdriver" and/or "canon" (CAPT_DRIVER_FILES).
+    capt_drivers: tuple[str, ...] = ()
 
     def boot_options(self) -> tuple[str, ...]:
         return tuple(self.cmdline.split())
@@ -634,6 +639,11 @@ class SystemReader:
                     found.append(package)
         return tuple(found)
 
+    def capt_drivers(self) -> tuple[str, ...]:
+        """The Canon CAPT printer drivers installed: "captdriver", "canon"."""
+
+        return tuple(name for name, path in CAPT_DRIVER_FILES if self._path(path).is_file())
+
     def secure_boot(self) -> bool:
         try:
             data = self._path(SECURE_BOOT_VARIABLE).read_bytes()
@@ -748,4 +758,5 @@ class SystemReader:
             cmdline=cmdline,
             blacklists=self.module_blacklists(cmdline),
             unfinished_packages=self.unfinished_packages(),
+            capt_drivers=self.capt_drivers(),
         )

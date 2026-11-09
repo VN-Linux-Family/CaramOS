@@ -1,0 +1,12 @@
+# Driver Check right after a device that needs a driver is plugged in, instead of at the next login.
+# Nothing enables it: udev asks for it (SYSTEMD_USER_WANTS in 71-caramos-capt-printers.rules), and every
+# user service manager starts it in its user's session.
+[Unit]
+Description=CaramOS Driver Check for a newly plugged-in device
+# Only in a desktop session: not for the login screen's user or a user logged in over SSH.
+ConditionEnvironment=|DISPLAY
+ConditionEnvironment=|WAYLAND_DISPLAY
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/caramos-driver-check --hotplug

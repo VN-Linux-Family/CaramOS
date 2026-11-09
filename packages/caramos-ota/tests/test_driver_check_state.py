@@ -29,6 +29,7 @@ def report(*findings: Finding) -> Report:
 WIFI = finding("wifi:broadcom:pci:14e4:43a0", CRITICAL)
 NVIDIA = finding("graphics:nvidia:pci:10de:1f99", WARNING)
 IPU = finding("camera:ipu:pci:8086:465d", INFO)
+PRINTER = finding("printer:capt:usb:04a9:2676", WARNING)
 
 
 class DecisionTests(unittest.TestCase):
@@ -65,6 +66,34 @@ class DecisionTests(unittest.TestCase):
         remembered = user_state.remember(report(WIFI, IPU), user_state.UserState())
         self.assertTrue(remembered.first_check_done)
         self.assertEqual({WIFI.key}, remembered.seen)
+
+    def test_an_unplugged_device_is_away_not_solved(self) -> None:
+        # A laptop taken home from the office printer: no "problem solved", and no news when it is back.
+        state = user_state.UserState(first_check_done=True, seen={PRINTER.key, NVIDIA.key})
+        at_home = {"pci:10de:1f99"}
+        decision = user_state.decide(report(NVIDIA), state, at_home)
+        self.assertEqual((user_state.QUIET, ()), (decision.action, decision.resolved))
+        after = user_state.remember(report(NVIDIA), state, at_home)
+        self.assertEqual({PRINTER.key, NVIDIA.key}, after.seen)
+
+        at_work = at_home | {"usb:04a9:2676"}
+        self.assertEqual(user_state.QUIET, user_state.decide(report(NVIDIA, PRINTER), after, at_work).action)
+        # Solved for real: the printer is plugged in and has its driver.
+        decision = user_state.decide(report(NVIDIA), after, at_work)
+        self.assertEqual((user_state.NOTIFY_RESOLVED, (PRINTER.key,)), (decision.action, decision.resolved))
+        self.assertEqual({NVIDIA.key}, user_state.remember(report(NVIDIA), after, at_work).seen)
+
+    def test_problems_without_a_device_are_solved_when_gone(self) -> None:
+        state = user_state.UserState(first_check_done=True, seen={"wifi:soft-blocked"})
+        decision = user_state.decide(report(), state, set())
+        self.assertEqual(("wifi:soft-blocked",), decision.resolved)
+        self.assertEqual(set(), user_state.remember(report(), state, set()).seen)
+
+    def test_device_keys(self) -> None:
+        self.assertEqual("usb:04a9:2676", user_state.device_key(PRINTER.key))
+        self.assertEqual("pci:14e4:43a0", user_state.device_key(WIFI.key))
+        self.assertEqual("", user_state.device_key("network:none"))
+        self.assertEqual("", user_state.device_key("driver:nvidia-driver-580"))
 
 
 class NotificationTextTests(unittest.TestCase):

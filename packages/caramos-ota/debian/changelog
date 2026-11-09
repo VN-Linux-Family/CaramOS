@@ -1,3 +1,31 @@
+caramos-ota (1.3.7-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.3.7.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Driver Check: Canon CAPT laser printers (LBP2900/LBP2900B and family).
+    They need a CAPT driver. Without one the automatic printer setup gave
+    them an unrelated PostScript driver (an LBP2900 got an HP Designjet
+    one), and the queue reported jobs as printed while nothing came out.
+    A udev rule now skips the automatic setup for these printers until a
+    driver that fits is installed. Driver Check has a "Printer" area, and
+    for the models captdriver drives it installs printer-driver-captdriver
+    (new in the PPA) with one click. That package switches wrong queues to
+    captdriver and sets up a plugged-in printer. For the models only
+    Canon's driver drives, Driver Check offers to ask for help.
+  * Driver Check speaks up as soon as such a printer is plugged in, through
+    a systemd user unit the udev rule starts, instead of at the next login.
+    A problem of a device that is unplugged is no longer told as solved at
+    the next login, nor told again when the device comes back.
+  * Driver Check: the page of a failed driver install has an "Ask for
+    help" button, like the App Center's and the Update Center's, and the
+    request carries what the helper printed (driver-install.log).
+  * Help requests from Driver Check and Feedback & Help carry printer.log
+    when the computer has a USB printer or a print queue: the printers,
+    queues and jobs, the automatic printer setup and the end of CUPS's
+    error_log, without serial numbers or document names.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 09 Nov 2026 12:39:45 +0700
+
 caramos-ota (1.3.6-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.3.6.

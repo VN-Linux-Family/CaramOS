@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-07 13:26+0700\n"
+"POT-Creation-Date: 2026-11-09 11:25+0700\n"
 "PO-Revision-Date: 2026-10-12 00:00+0700\n"
 "Last-Translator: Vietnam Linux Family <developer@vietnamlinuxfamily.net>\n"
 "Language-Team: Vietnamese <developer@vietnamlinuxfamily.net>\n"
@@ -94,7 +94,7 @@ msgid "Update now"
 msgstr "Cập nhật ngay"
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:408
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:146
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:147
 msgid "Later"
 msgstr "Để sau"
 
@@ -153,10 +153,11 @@ msgid "Close"
 msgstr "Đóng"
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:462
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:169
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:170
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:81
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:685
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:155
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/results.py:91
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:167
 msgid "Ask for help"
@@ -345,7 +346,7 @@ msgid "Collect now"
 msgstr "Thu thập ngay"
 
 #: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:106
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:149
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:150
 msgid "Done"
 msgstr "Đã xong"
 
@@ -439,30 +440,34 @@ msgid "Fingerprint reader"
 msgstr "Đầu đọc vân tay"
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:72
+msgid "Printer"
+msgstr "Máy in"
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:73
 msgid "Other devices"
 msgstr "Thiết bị khác"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:164
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:165
 msgid "Open Driver Manager"
 msgstr "Mở Quản lý Trình điều khiển"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:165
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:166
 msgid "Open Update Manager"
 msgstr "Mở Trình Quản lý Cập nhật"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:166
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:167
 msgid "Restart"
 msgstr "Khởi động lại"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:167
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:168
 msgid "Turn on Wi-Fi"
 msgstr "Bật Wi-Fi"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:168
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:169
 msgid "Add fingerprints"
 msgstr "Thêm vân tay"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:226
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:227
 msgid ""
 "Secure Boot is on: if a blue “Perform MOK management” screen appears while "
 "restarting, choose “Enroll MOK” and type the password you set when the "
@@ -472,13 +477,13 @@ msgstr ""
 "MOK management”, hãy chọn “Enroll MOK” rồi nhập mật khẩu đã đặt khi cài "
 "driver."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:263
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:264
 msgid ""
 "Its driver is installed but not running yet. Restart the computer to start "
 "it."
 msgstr "Driver đã được cài nhưng chưa chạy. Hãy khởi động lại máy để dùng."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:269
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:270
 #, python-format
 msgid ""
 "Its driver (%s) is installed, but Secure Boot blocks it because it is not "
@@ -491,7 +496,7 @@ msgstr ""
 "trong Terminal, khởi động lại rồi chọn “Enroll MOK”, hoặc tắt Secure Boot "
 "trong BIOS."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:276
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:277
 #, python-format
 msgid ""
 "The computer starts with the “%s” boot option, which turns the graphics "
@@ -504,7 +509,7 @@ msgstr ""
 "driver, mở Terminal, chạy lệnh “sudo sed -i 's/ *%s//' /etc/default/grub && "
 "sudo update-grub” rồi khởi động lại máy."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:287
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:288
 #, python-format
 msgid ""
 "Its driver (%s) is turned off by a “blacklist %s” line in %s. Remove that "
@@ -513,7 +518,7 @@ msgstr ""
 "Driver của thiết bị (%s) đang bị tắt bởi dòng “blacklist %s” trong tệp %s. "
 "Xóa dòng đó rồi khởi động lại máy để dùng driver."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:291
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:292
 #, python-format
 msgid ""
 "Its driver (%s) is turned off by the modprobe.blacklist boot option. Remove "
@@ -524,7 +529,7 @@ msgstr ""
 "blacklist. Xóa tham số đó trong /etc/default/grub, chạy “sudo update-grub” "
 "rồi khởi động lại máy để dùng driver."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:295
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:296
 #, python-format
 msgid ""
 "Its driver (%s) is on the computer but did not load: it may be turned off "
@@ -533,17 +538,17 @@ msgstr ""
 "Máy đã có driver (%s) nhưng driver không được nạp: có thể driver đang bị "
 "chặn (blacklist) hoặc khởi động lỗi."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:300
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:301
 #, python-format
 msgid "Its driver (%s) is loaded, but the device does not start."
 msgstr "Driver (%s) đã được nạp nhưng thiết bị vẫn không chạy."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:302
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:303
 #, python-format
 msgid "The firmware it needs is missing: %s."
 msgstr "Thiếu firmware cần thiết: %s."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:303
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:304
 msgid ""
 "Updating CaramOS (the linux-firmware package) or a newer kernel usually "
 "fixes this."
@@ -551,7 +556,7 @@ msgstr ""
 "Thường chỉ cần cập nhật CaramOS (gói linux-firmware) hoặc dùng kernel mới "
 "hơn là được."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:305
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:306
 #, python-format
 msgid ""
 "Linux %s has no driver for it yet. A newer kernel may support it: ask the "
@@ -560,49 +565,49 @@ msgstr ""
 "Linux %s chưa có driver cho thiết bị này. Kernel mới hơn có thể hỗ trợ: bấm "
 "nút bên dưới để nhờ cộng đồng giúp."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:340
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:343
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:341
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:344
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/scan.py:94
 msgid "Not found on this computer"
 msgstr "Máy không có"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:375
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:376
 msgid "Restart to start the Wi-Fi driver"
 msgstr "Khởi động lại để chạy driver Wi-Fi"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:376
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:377
 msgid "The Wi-Fi driver did not load"
 msgstr "Driver Wi-Fi không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:377
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:378
 msgid "Wi-Fi does not start"
 msgstr "Wi-Fi không chạy"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:378
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:379
 msgid "Wi-Fi has no driver"
 msgstr "Wi-Fi chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:390
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:391
 msgid "Restart to start the network port driver"
 msgstr "Khởi động lại để chạy driver mạng dây"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:391
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:392
 msgid "The network port driver did not load"
 msgstr "Driver mạng dây không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:392
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:393
 msgid "The network port does not start"
 msgstr "Cổng mạng dây không chạy"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:393
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:394
 msgid "The network port has no driver"
 msgstr "Cổng mạng dây chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:400
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:401
 msgid "No network card found"
 msgstr "Không tìm thấy card mạng"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:401
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:402
 msgid ""
 "CaramOS finds neither a Wi-Fi card nor a network port. The Wi-Fi card may be "
 "turned off in the BIOS settings. You can still get online with your phone "
@@ -611,11 +616,11 @@ msgstr ""
 "CaramOS không thấy card Wi-Fi lẫn cổng mạng dây. Có thể card Wi-Fi đang bị "
 "tắt trong BIOS. Bạn vẫn vào mạng được bằng điện thoại qua cáp USB."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:407
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:408
 msgid "Wi-Fi is turned off by a switch"
 msgstr "Wi-Fi đang bị tắt bằng phím cứng"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:408
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:409
 msgid ""
 "Turn it on with the Wi-Fi switch or the Fn key with the Wi-Fi or airplane "
 "symbol. If it stays off, check that Wi-Fi is enabled in the BIOS settings."
@@ -623,31 +628,31 @@ msgstr ""
 "Bật lại bằng công tắc Wi-Fi hoặc phím Fn có biểu tượng Wi-Fi hay máy bay. "
 "Nếu vẫn tắt, hãy kiểm tra Wi-Fi có được bật trong BIOS không."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:412
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:413
 msgid "Wi-Fi is turned off"
 msgstr "Wi-Fi đang tắt"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:413
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:414
 msgid "Wi-Fi is switched off, or airplane mode is on."
 msgstr "Wi-Fi đang tắt hoặc chế độ máy bay đang bật."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:421
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:422
 msgid "connected"
 msgstr "đang kết nối"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:421
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:422
 msgid "not connected"
 msgstr "chưa kết nối"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:422
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:423
 msgid "cable plugged in"
 msgstr "đã cắm dây"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:422
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:423
 msgid "no cable plugged in"
 msgstr "chưa cắm dây"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:434
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:435
 msgid ""
 "Broadcom Wi-Fi cards need Broadcom's own driver, which Linux cannot include. "
 "CaramOS can install it for you."
@@ -655,16 +660,16 @@ msgstr ""
 "Card Wi-Fi Broadcom cần driver riêng của Broadcom mà Linux không được phép "
 "tích hợp sẵn. CaramOS có thể cài giúp bạn."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:436
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:437
 msgid "Install the Wi-Fi driver"
 msgstr "Cài driver Wi-Fi"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:437
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:438
 #, python-format
 msgid "Driver recommended by Ubuntu for this card: %s"
 msgstr "Driver Ubuntu khuyên dùng cho card này: %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:439
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:440
 msgid ""
 "Broadcom Wi-Fi cards need Broadcom's own driver, which Linux cannot include. "
 "Open Driver Manager and install the Broadcom driver it suggests."
@@ -673,13 +678,13 @@ msgstr ""
 "tích hợp sẵn. Hãy mở Quản lý Trình điều khiển và cài driver Broadcom được đề "
 "xuất."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:443
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:444
 msgid ""
 "No internet? It installs from the CaramOS USB stick: plug the stick in first."
 msgstr ""
 "Không có mạng? Driver cài được từ USB cài CaramOS: cắm USB vào máy trước."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:445
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:446
 msgid ""
 "Secure Boot is on: after installing, Driver Check shows how to allow the "
 "driver."
@@ -687,11 +692,11 @@ msgstr ""
 "Máy đang bật Secure Boot: sau khi cài, Kiểm tra driver sẽ hướng dẫn cách cho "
 "phép driver chạy."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:447
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:448
 msgid "Wi-Fi needs the Broadcom driver"
 msgstr "Wi-Fi cần driver Broadcom"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:455
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:456
 msgid ""
 "You can still install CaramOS: after installing, Driver Check opens again "
 "and helps you set this up."
@@ -699,23 +704,23 @@ msgstr ""
 "Bạn vẫn cài CaramOS được: sau khi cài xong, Kiểm tra driver sẽ tự mở lại và "
 "giúp bạn xử lý phần này."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:470
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:471
 msgid "Restart to start the graphics driver"
 msgstr "Khởi động lại để chạy driver đồ họa"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:471
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:472
 msgid "The graphics driver did not load"
 msgstr "Driver đồ họa không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:472
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:473
 msgid "The graphics card does not start"
 msgstr "Card đồ họa không chạy"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:473
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:474
 msgid "The graphics card has no driver"
 msgstr "Card đồ họa chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:476
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:477
 msgid ""
 "The screen runs in a basic mode: slower, and resolution or brightness may "
 "not change."
@@ -723,19 +728,19 @@ msgstr ""
 "Màn hình đang chạy ở chế độ cơ bản: chậm hơn, có thể không đổi được độ phân "
 "giải hay độ sáng."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:491
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:492
 msgid "Restart to start the NVIDIA driver"
 msgstr "Khởi động lại để chạy driver NVIDIA"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:492
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:493
 msgid "The NVIDIA driver is installed. Restart the computer to start it."
 msgstr "Driver NVIDIA đã được cài. Hãy khởi động lại máy để dùng."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:497
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:498
 msgid "The NVIDIA driver did not load"
 msgstr "Driver NVIDIA không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:501
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:502
 msgid ""
 "This NVIDIA card runs on the open-source nouveau driver: slower in games and "
 "videos, and the battery runs down faster."
@@ -743,15 +748,15 @@ msgstr ""
 "Card NVIDIA này đang chạy bằng driver mã nguồn mở nouveau: chơi game, xem "
 "video chậm hơn và tốn pin hơn."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:504
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:505
 msgid "This NVIDIA card has no driver yet."
 msgstr "Card NVIDIA này chưa có driver."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:507
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:508
 msgid "Install the NVIDIA driver after installing"
 msgstr "Cài driver NVIDIA sau khi cài CaramOS"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:508
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:509
 msgid ""
 "After installing CaramOS, Driver Check helps you install the NVIDIA driver "
 "(it needs internet)."
@@ -759,12 +764,12 @@ msgstr ""
 "Sau khi cài CaramOS, Kiểm tra driver sẽ giúp bạn cài driver NVIDIA (cần có "
 "mạng)."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:512
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:525
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:513
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:526
 msgid "Install the NVIDIA driver"
 msgstr "Cài driver NVIDIA"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:513
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:514
 msgid ""
 "Open Driver Manager and install the recommended NVIDIA driver (it needs "
 "internet), then restart."
@@ -772,34 +777,34 @@ msgstr ""
 "Mở Quản lý Trình điều khiển, cài driver NVIDIA được khuyên dùng (cần có "
 "mạng) rồi khởi động lại máy."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:520
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:521
 #, python-format
 msgid "Recommended for this card: NVIDIA %s"
 msgstr "Khuyên dùng cho card này: NVIDIA %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:521
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:522
 msgid "(open kernel modules)"
 msgstr "(bản mở)"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:522
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:523
 msgid "Needs internet: a download of up to about 1 GB"
 msgstr "Cần có mạng: phải tải về tới khoảng 1 GB"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:523
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:524
 msgid "Restart the computer after installing"
 msgstr "Khởi động lại máy sau khi cài"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:526
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:527
 msgid "CaramOS installs the driver Ubuntu recommends for this card."
 msgstr "CaramOS sẽ cài driver Ubuntu khuyên dùng cho card này."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:527
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:541
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:528
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:542
 #, python-format
 msgid "Install NVIDIA driver %s"
 msgstr "Cài driver NVIDIA %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:534
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:535
 #, python-format
 msgid ""
 "Installing %s did not finish: this NVIDIA driver does not work with Linux "
@@ -810,51 +815,51 @@ msgstr ""
 "Khi chưa thay nó, cài phần mềm khác cũng báo lỗi, cả trong App Center lẫn "
 "Trung tâm cập nhật."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:540
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:541
 #, python-format
 msgid ""
 "Install NVIDIA driver %s instead: the broken driver is removed at the same "
 "time."
 msgstr "Hãy cài driver NVIDIA %s thay thế: driver bị lỗi sẽ được gỡ cùng lúc."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:544
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:545
 msgid ""
 "Open Driver Manager and choose the open-source nouveau driver to remove it."
 msgstr "Mở Trình quản lý driver và chọn driver mã nguồn mở nouveau để gỡ nó."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:546
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:547
 msgid "The NVIDIA driver did not install"
 msgstr "Driver NVIDIA cài chưa xong"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:563
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:577
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:564
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:578
 msgid "Restart to start the sound driver"
 msgstr "Khởi động lại để chạy driver âm thanh"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:564
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:578
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:565
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:579
 msgid "The sound driver did not load"
 msgstr "Driver âm thanh không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:565
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:579
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:566
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:580
 msgid "Speakers and microphone are not detected"
 msgstr "Máy chưa nhận loa và micro"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:566
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:580
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:567
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:581
 msgid "Sound has no driver"
 msgstr "Âm thanh chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:568
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:593
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:569
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:594
 msgid ""
 "Speakers and microphone do not work yet (the sound settings show “Dummy "
 "Output”)."
 msgstr ""
 "Loa và micro chưa dùng được (phần cài đặt âm thanh hiện “Dummy Output”)."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:585
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:586
 #, python-format
 msgid ""
 "This computer's sound goes through the Intel SST sound engine, which needs a "
@@ -865,52 +870,52 @@ msgstr ""
 "riêng cho từng mẫu máy, và Linux %s chưa có cho mẫu này. Bấm nút bên dưới để "
 "nhờ cộng đồng giúp."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:610
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:611
 msgid "Restart to start the Bluetooth driver"
 msgstr "Khởi động lại để chạy driver Bluetooth"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:611
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:612
 msgid "The Bluetooth driver did not load"
 msgstr "Driver Bluetooth không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:612
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:613
 msgid "Bluetooth does not start"
 msgstr "Bluetooth không chạy"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:613
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:614
 msgid "Bluetooth has no driver"
 msgstr "Bluetooth chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:618
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:619
 msgid "Bluetooth is turned off by a switch"
 msgstr "Bluetooth đang bị tắt bằng phím cứng"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:619
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:620
 msgid ""
 "Turn it on with the wireless switch or the Fn key with the airplane symbol."
 msgstr "Bật lại bằng công tắc không dây hoặc phím Fn có biểu tượng máy bay."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:633
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:634
 msgid "Restart to start the webcam driver"
 msgstr "Khởi động lại để chạy driver webcam"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:634
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:635
 msgid "The webcam driver did not load"
 msgstr "Driver webcam không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:635
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:636
 msgid "The webcam does not start"
 msgstr "Webcam không chạy"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:636
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:637
 msgid "The webcam has no driver"
 msgstr "Webcam chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:645
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:646
 msgid "The built-in camera may not work yet"
 msgstr "Camera của máy có thể chưa dùng được"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:646
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:647
 msgid ""
 "This laptop's camera is connected through an Intel IPU image processor, "
 "common on laptops since 2021. Most apps on Linux cannot use this kind of "
@@ -920,11 +925,11 @@ msgstr ""
 "từ năm 2021). Đa số ứng dụng trên Linux chưa dùng được loại camera này; "
 "webcam USB thì cắm vào là dùng được ngay."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:650
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:651
 msgid "The built-in cameras do not work yet"
 msgstr "Camera tích hợp chưa dùng được"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:651
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:652
 msgid ""
 "This computer's cameras are connected through the image processor of Intel "
 "Atom chips. Linux only has an unfinished driver for it, so apps cannot use "
@@ -934,16 +939,16 @@ msgstr ""
 "có driver chưa hoàn thiện cho bộ này nên ứng dụng chưa dùng được camera; "
 "webcam USB thì cắm vào là dùng được ngay."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:666
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:667
 #, python-format
 msgid "%s fingerprint reader"
 msgstr "Đầu đọc vân tay %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:669
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:670
 msgid "Log in with your fingerprint"
 msgstr "Đăng nhập bằng vân tay"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:670
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:671
 msgid ""
 "This fingerprint reader works with CaramOS. Add your fingerprints to log in "
 "and unlock the screen with them."
@@ -951,11 +956,11 @@ msgstr ""
 "Đầu đọc vân tay này dùng được với CaramOS. Hãy thêm vân tay để đăng nhập và "
 "mở khóa màn hình bằng vân tay."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:674
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:675
 msgid "The fingerprint reader has no driver"
 msgstr "Đầu đọc vân tay chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:675
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:676
 msgid ""
 "Linux has no driver for this fingerprint reader yet (libfprint). Log in with "
 "your password."
@@ -963,34 +968,66 @@ msgstr ""
 "Linux chưa có driver cho đầu đọc vân tay này (libfprint). Bạn vẫn đăng nhập "
 "bằng mật khẩu như bình thường."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:705
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:694
+msgid ""
+"This Canon printer speaks Canon's own printer language (CAPT), so it prints "
+"nothing without a CAPT driver. Install captdriver, an open-source driver for "
+"it; the printer is then set up by itself."
+msgstr ""
+"Máy in Canon này dùng ngôn ngữ in riêng của Canon (CAPT), nên chưa có driver "
+"CAPT thì nó không in ra được gì. Hãy cài captdriver, một driver mã nguồn mở "
+"cho máy này; sau đó máy in sẽ tự được thiết lập."
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:699
+msgid "Support for this model is still experimental."
+msgstr "Driver hỗ trợ mẫu máy này mới ở mức thử nghiệm."
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:701
+msgid "Install the printer driver"
+msgstr "Cài driver máy in"
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:704
+msgid ""
+"This Canon printer speaks Canon's own printer language (CAPT), and only "
+"Canon's driver supports this model. CaramOS cannot install it by itself yet: "
+"ask the community for help with the button below."
+msgstr ""
+"Máy in Canon này dùng ngôn ngữ in riêng của Canon (CAPT), và chỉ driver của "
+"Canon hỗ trợ mẫu máy này. CaramOS chưa tự cài được driver đó: hãy nhờ cộng "
+"đồng giúp bằng nút bên dưới."
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:709
+msgid "The printer has no driver"
+msgstr "Máy in chưa có driver"
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:740
 msgid "Restart to start a device driver"
 msgstr "Khởi động lại để chạy driver thiết bị"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:706
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:741
 msgid "A device driver did not load"
 msgstr "Một driver thiết bị không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:707
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:742
 msgid "A device has no driver"
 msgstr "Một thiết bị chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:724
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:759
 #, python-format
 msgid "Recommended driver for %s"
 msgstr "Driver khuyên dùng cho %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:725
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:760
 #, python-format
 msgid "Ubuntu recommends the %s package for this device."
 msgstr "Ubuntu khuyên dùng gói %s cho thiết bị này."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:726
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:761
 msgid "Install the driver"
 msgstr "Cài driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/app.py:117
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:43
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/app.py:118
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:45
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/results.py:56
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/scan.py:53
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/window.py:32
@@ -999,8 +1036,8 @@ msgid "Driver Check"
 msgstr "Kiểm tra driver"
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/help_app.py:73
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:66
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:68
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:70
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:22
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:89
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:157
@@ -1038,48 +1075,48 @@ msgstr ""
 "Driver cần khoảng %(need)s chỗ trống ở %(path)s, nhưng ở đó chỉ còn trống "
 "%(free)s. Hãy dọn bớt ở đó rồi thử lại."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:35
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:37
 msgid "Open Driver Check to see how to fix it."
 msgstr "Mở Kiểm tra driver để xem cách khắc phục."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:36
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:38
 #, python-format
 msgid "Driver Check found %d things to fix. Open it to see how."
 msgstr "Kiểm tra driver tìm thấy %d việc cần xử lý. Mở ra để xem cách làm."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:37
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:39
 msgid "Hardware problem solved"
 msgstr "Đã xử lý xong vấn đề phần cứng"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:37
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:39
 msgid "The driver problem Driver Check told you about is gone."
 msgstr "Vấn đề driver mà Kiểm tra driver báo trước đây đã được khắc phục."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:43
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:45
 msgid "View details"
 msgstr "Xem chi tiết"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:51
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:53
 #, python-format
 msgid "VNLF answered your request %s"
 msgstr "VNLF đã trả lời yêu cầu %s của bạn"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:53
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:55
 #, python-format
 msgid "The community answered your request %s"
 msgstr "Cộng đồng đã trả lời yêu cầu %s của bạn"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:56
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:58
 #, python-format
 msgid "New answers to %d of your requests"
 msgid_plural "New answers to %d of your requests"
 msgstr[0] "Có câu trả lời mới cho %d yêu cầu của bạn"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:67
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:69
 msgid "See the answer"
 msgstr "Xem câu trả lời"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:69
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/notify.py:71
 msgid "See your requests"
 msgstr "Xem các yêu cầu"
 
@@ -1211,32 +1248,32 @@ msgstr "Đang quay màn hình: %s. Bấm Ctrl+Shift+Alt+R để dừng."
 msgid "Screen recording"
 msgstr "Video quay màn hình"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:43
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:44
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:45
 msgid "Works"
 msgstr "Hoạt động"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:45
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:46
 msgid "Limited"
 msgstr "Hạn chế"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:46
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:47
 msgid "Needs attention"
 msgstr "Cần xử lý"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:47
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:48
 msgid "Not working"
 msgstr "Không hoạt động"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:48
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:49
 msgid "Not present"
 msgstr "Không có"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:217
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:218
 msgid "CaramOS"
 msgstr "CaramOS"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:238
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:239
 msgid "Details"
 msgstr "Chi tiết"
 
@@ -1511,7 +1548,7 @@ msgstr "Chưa gửi"
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:584
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:656
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:688
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:151
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:152
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:122
 msgid "Back"
 msgstr "Quay lại"
@@ -1523,7 +1560,7 @@ msgstr "Gửi không kèm hồ sơ"
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:559
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:585
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:656
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:151
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:152
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:122
 msgid "Try again"
 msgstr "Thử lại"
@@ -1687,7 +1724,7 @@ msgid "Back to Driver Check"
 msgstr "Quay lại Kiểm tra driver"
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:111
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/window.py:229
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/window.py:238
 msgid "Please wait until it finishes."
 msgstr "Vui lòng chờ đến khi xong."
 
@@ -1745,7 +1782,7 @@ msgid "Something went wrong. The details below show what happened."
 msgstr "Đã có lỗi xảy ra. Xem phần chi tiết bên dưới."
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:52
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:124
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:125
 msgid "Installing drivers"
 msgstr "Cài driver"
 
@@ -1765,39 +1802,39 @@ msgstr "Vui lòng không tắt máy. Tùy tốc độ mạng, việc này mất 
 msgid "Waiting for your password…"
 msgstr "Đang chờ bạn nhập mật khẩu…"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:129
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:130
 msgid "The driver is installed"
 msgstr "Đã cài xong driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:130
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:131
 msgid "Restart the computer to start using it."
 msgstr "Khởi động lại máy để bắt đầu dùng."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:131
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:132
 msgid "It is working already; no restart needed."
 msgstr "Driver đã chạy, không cần khởi động lại."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:134
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:135
 msgid "The driver was not installed"
 msgstr "Chưa cài được driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:146
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:147
 msgid "Restart now"
 msgstr "Khởi động lại ngay"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:147
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:148
 msgid "Restart to finish"
 msgstr "Khởi động lại để hoàn tất"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:147
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:148
 msgid "Save your work first."
 msgstr "Hãy lưu công việc đang làm trước."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:149
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:150
 msgid "Back to the results"
 msgstr "Quay lại kết quả"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:151
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:156
 msgid "Not installed"
 msgstr "Chưa cài được"
 
@@ -2191,6 +2228,11 @@ msgstr "Máy chưa cài công cụ này."
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/window.py:178
 msgid "Not installed: the password was not entered."
 msgstr "Chưa cài: chưa nhập mật khẩu."
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/window.py:193
+#, python-format
+msgid "Driver Check could not install %s."
+msgstr "Kiểm tra driver chưa cài được %s."
 
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:174
 msgid "See which drivers this computer is missing"

@@ -118,7 +118,8 @@ class InstallView(Gtk.Box):
 
 def done_page(ok: bool, restart: bool, error: str, log: str, *, on_restart: Callable[[], None],
               on_back: Callable[[], None], on_retry: Callable[[], None],
-              space: list[dict[str, Any]] | None = None) -> Gtk.Widget:
+              space: list[dict[str, Any]] | None = None,
+              on_help: Callable[[], None] | None = None) -> Gtk.Widget:
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     view = Adw.ToolbarView()
     view.add_top_bar(header(_("Installing drivers")))
@@ -148,7 +149,10 @@ def done_page(ok: bool, restart: bool, error: str, log: str, *, on_restart: Call
     elif ok:
         bar = bottom_bar(_("Done"), "", [pill(_("Back to the results"), on_back, suggested=True)])
     else:
-        bar = bottom_bar(_("Not installed"), "", [pill(_("Back"), on_back), pill(_("Try again"), on_retry,
-                                                                                  suggested=True)])
+        buttons = [pill(_("Back"), on_back), pill(_("Try again"), on_retry, suggested=True)]
+        if on_help is not None:
+            # As on the App Center's and the Update Center's failure pages: the request carries the helper's output.
+            buttons.insert(1, pill(_("Ask for help"), on_help, icon_name="help-browser-symbolic"))
+        bar = bottom_bar(_("Not installed"), "", buttons)
     box.append(bar)
     return box

@@ -1,0 +1,85 @@
+#!/bin/sh
+# Set up Canon CAPT printers for captdriver. The postinst runs this as root after an install or
+# upgrade on a running system (not in a chroot).
+#
+# 1. Queues of a CAPT printer that use another driver are switched to the captdriver PPD of the
+#    model. Before captdriver's PPDs had device IDs, the automatic printer setup of Ubuntu and
+#    Linux Mint gave a plugged-in LBP2900 an unrelated PostScript driver: such a queue reports jobs
+#    as printed while the printer prints nothing.
+# 2. A supported printer that is plugged in and has no queue is set up by the same automatic setup
+#    (configure-printer@.service, system-config-printer-udev), which now finds captdriver by the
+#    printer's device ID.
+#
+# It never fails the install: a printer it could not set up is set up by plugging it in again.
+
+PPD_DIR=/usr/share/ppd/captdriver
+# Canon USB product IDs of the models captdriver drives (usb.ids, captdriver's prn_lbp2900.c).
+PRODUCTS="2676 266a 26da 26db 271a"
+
+log() {
+    echo "printer-driver-captdriver: $*"
+}
+
+# The PPD for a model as the CUPS usb backend writes it in a device URI:
+# usb://Canon/LBP2900?serial=..., usb://Canon/LBP3010%2FLBP3018%2FLBP3050?serial=...
+ppd_for() {
+    case "$1" in
+        LBP2900*) echo "$PPD_DIR/CanonLBP-2900-3000.ppd" ;;
+        LBP3000*) echo "$PPD_DIR/CanonLBP-3000.ppd" ;;
+        LBP3010*) echo "$PPD_DIR/CanonLBP-3010-3018-3050.ppd" ;;
+        LBP3100*) echo "$PPD_DIR/CanonLBP-3100-3108-3150.ppd" ;;
+        LBP6000*) echo "$PPD_DIR/CanonLBP-6000.ppd" ;;
+        *) return 1 ;;
+    esac
+}
+
+queues() {
+    LC_ALL=C timeout 30 lpstat -v 2>/dev/null
+}
+
+[ "$(id -u)" = 0 ] || { echo "setup-printers: run it as root" >&2; exit 0; }
+[ -d /run/systemd/system ] || exit 0
+command -v lpstat >/dev/null 2>&1 && command -v lpadmin >/dev/null 2>&1 || exit 0
+
+# 1. Queues set up with another driver.
+queues | while IFS= read -r line; do
+    case "$line" in
+        "device for "*": usb://Canon/"*) ;;
+        *) continue ;;
+    esac
+    name=${line#device for }
+    name=${name%%: *}
+    uri=${line#*: }
+    model=${uri#usb://Canon/}
+    model=${model%%\?*}
+    ppd=$(ppd_for "$model") || continue
+    [ -f "$ppd" ] || continue
+    grep -qs rastertocapt "/etc/cups/ppd/$name.ppd" && continue
+    if timeout 60 lpadmin -p "$name" -P "$ppd" 2>/dev/null; then
+        log "queue $name now uses captdriver ($(basename "$ppd"))"
+    else
+        log "could not switch queue $name to captdriver" >&2
+    fi
+done
+
+# 2. Plugged-in printers without a queue.
+configured=$(queues)
+for dev in /sys/bus/usb/devices/*; do
+    [ -r "$dev/idVendor" ] && [ -r "$dev/idProduct" ] || continue
+    [ "$(cat "$dev/idVendor")" = 04a9 ] || continue
+    product=$(cat "$dev/idProduct")
+    case " $PRODUCTS " in
+        *" $product "*) ;;
+        *) continue ;;
+    esac
+    serial=$(cat "$dev/serial" 2>/dev/null || true)
+    if [ -n "$serial" ] && printf '%s\n' "$configured" | grep -qF "serial=$serial"; then
+        continue
+    fi
+    bus=$(printf '%03d' "$(cat "$dev/busnum")")
+    num=$(printf '%03d' "$(cat "$dev/devnum")")
+    if systemctl --no-block start "configure-printer@usb-$bus-$num.service" 2>/dev/null; then
+        log "setting up the printer on USB $bus-$num"
+    fi
+done
+exit 0

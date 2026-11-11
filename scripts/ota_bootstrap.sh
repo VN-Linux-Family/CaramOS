@@ -107,9 +107,11 @@ import sys
 from pathlib import Path
 
 root, cinnamon = Path(sys.argv[1]), sys.argv[2]
+# migration id: (the file of the loaded folder it patches, what the fix does)
 FIXES = {
-    "20261105120100_search_menu_while_composing": "search while an input method composes a word",
-    "20261105120200_start_menu_file_search_without_freeze": "file search without freezing the desktop",
+    "20261105120100_search_menu_while_composing": ("applet.js", "search while an input method composes a word"),
+    "20261105120200_start_menu_file_search_without_freeze": ("applet.js", "file search without freezing the desktop"),
+    "20261111090000_start_menu_ctrl_scroll_icon_size": ("appsview.js", "Ctrl + mouse wheel resizes the app icons"),
 }
 
 
@@ -126,17 +128,20 @@ if metadata.get("multiversion"):
                and (not cinnamon or version(path.name) <= version(cinnamon))]
     if folders:
         loaded = max(folders, key=lambda path: version(path.name))
-applet_path = loaded / "applet.js"
-applet = applet_path.read_text(encoding="utf-8") if applet_path.is_file() else ""
-missing = [f"{migration_id} ({what})" for migration_id, what in FIXES.items()
-           if importlib.import_module(f"caramos_ota_update.migrations.{migration_id}.migration").MARKER not in applet]
+def text(name):
+    path = loaded / name
+    return path.read_text(encoding="utf-8") if path.is_file() else ""
+
+
+missing = [f"{migration_id} ({what}, {name})" for migration_id, (name, what) in FIXES.items()
+           if importlib.import_module(f"caramos_ota_update.migrations.{migration_id}.migration").MARKER not in text(name)]
 if missing:
-    print(f"{applet_path} (Cinnamon {cinnamon or '?'}) lacks: " + "; ".join(missing))
+    print(f"{loaded} (Cinnamon {cinnamon or '?'}) lacks: " + "; ".join(missing))
     sys.exit(1)
-print(f"{applet_path} (Cinnamon {cinnamon or '?'}) has the CaramOS Start Menu fixes")
+print(f"{loaded} (Cinnamon {cinnamon or '?'}) has the CaramOS Start Menu fixes")
 PY
     then
-        error "Cinnamenu tải về không nhận bản vá Start Menu của CaramOS. Sửa hai migration trên cho bản Cinnamenu mới, hoặc ghim hook 0170 vào commit cinnamon-spices đã test."
+        error "Cinnamenu tải về không nhận bản vá Start Menu của CaramOS. Sửa các migration trên cho bản Cinnamenu mới, hoặc ghim hook 0170 vào commit cinnamon-spices đã test."
     fi
     ok "Start Menu có đủ bản vá của CaramOS."
 }

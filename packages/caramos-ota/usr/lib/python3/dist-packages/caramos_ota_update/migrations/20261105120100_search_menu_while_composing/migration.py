@@ -23,6 +23,7 @@ import os
 import re
 import subprocess
 import tempfile
+import time
 from pathlib import Path
 
 from caramos_ota_update.context import MigrationContext
@@ -36,6 +37,11 @@ CINNAMENU = Path("/usr/share/cinnamon/applets/Cinnamenu@json")
 UUID = "Cinnamenu@json"
 MARKER = "// CaramOS: the word an input method is still composing"
 RELOAD_TIMEOUT = 30
+# Seconds to let a reloaded Start Menu settle before anything reloads it again. Cinnamon flashes an applet 300 ms
+# after adding it, from a timeout it does not cancel when the applet is removed. A reload that came 2 ms after the
+# menu had been added most likely ran that timeout on the removed applet: Cinnamon crashed into its fallback mode
+# (seen updating CaramOS 1.3.1, where three migrations reload the Start Menu one after another).
+RELOAD_SETTLE = 1.5
 
 APPLET_OLD = """    _onSearchTextChanged() {
         const searchText = this.display.searchView.searchEntryText.get_text();
@@ -119,6 +125,7 @@ def patch_folder(context: MigrationContext, folder: Path) -> bool:
 
 
 def _reload_in_sessions(context: MigrationContext) -> None:
+    reloaded = False
     for user in start_fcitx._desktop_users():
         environment = start_fcitx.session_environment(user.pw_uid)
         if environment is None:
@@ -135,8 +142,11 @@ def _reload_in_sessions(context: MigrationContext) -> None:
             continue
         if result.returncode == 0:
             context.log(f"reloaded the Start Menu of {user.pw_name}")
+            reloaded = True
         else:
             context.log(f"warning: the Start Menu of {user.pw_name} changes at the next login")
+    if reloaded:
+        time.sleep(RELOAD_SETTLE)
 
 
 def run(context: MigrationContext) -> None:

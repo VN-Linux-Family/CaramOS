@@ -1,0 +1,24 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Start Menu (dưới 1 MB)",
+  "size_en": "Start Menu (under 1 MB)",
+  "title": "Giữ Ctrl rồi lăn chuột để phóng to, thu nhỏ icon trong Start Menu",
+  "summary": "Thói quen quen thuộc từ Windows: mở Start Menu, giữ phím Ctrl rồi lăn chuột trên danh sách ứng dụng để icon to hoặc nhỏ đi.",
+  "title_en": "Hold Ctrl and roll the mouse wheel to resize the Start Menu icons",
+  "summary_en": "A habit from Windows: open the Start Menu, hold Ctrl and roll the mouse wheel over the apps to make their icons bigger or smaller.",
+  "release_notes_vi": [
+    "Giữ Ctrl và lăn chuột lên trên danh sách ứng dụng của Start Menu để icon to dần ra, lăn xuống để nhỏ dần lại; mỗi nấc lăn đổi một chút.",
+    "Icon nhỏ thì mỗi hàng xếp được nhiều ứng dụng hơn, icon to thì ít hơn; cỡ mặc định giữ nguyên như cũ.",
+    "Cỡ icon được nhớ cho những lần mở sau; Start Menu vẫn mở và giữ nguyên mục hay kết quả tìm kiếm đang xem.",
+    "Áp dụng ngay, không cần đăng nhập lại."
+  ],
+  "release_notes_en": [
+    "Hold Ctrl and roll the mouse wheel up over the Start Menu apps to make their icons grow, down to make them shrink, a little with every notch.",
+    "Smaller icons fit more apps in a row and bigger ones fewer; the default size looks as before.",
+    "The size is kept for the next time; the Start Menu stays open on the category or search it shows.",
+    "Works right away, without logging in again."
+  ]
+}

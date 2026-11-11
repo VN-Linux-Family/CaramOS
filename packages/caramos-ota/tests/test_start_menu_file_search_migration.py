@@ -168,7 +168,8 @@ class RunTests(unittest.TestCase):
         with mock.patch.object(migration, "SYSTEMD_RUNTIME", self.root), \
                 mock.patch.object(start_fcitx, "_desktop_users", return_value=[user]), \
                 mock.patch.object(start_fcitx, "session_environment", return_value=session), \
-                mock.patch.object(composing.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run:
+                mock.patch.object(composing.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run, \
+                mock.patch.object(composing.time, "sleep"):
             migration.run(MigrationContext())
         self.assertEqual(["org.Cinnamon.ReloadXlet", "Cinnamenu@json", "APPLET"], run.call_args.args[0][-3:])
 

@@ -608,32 +608,32 @@ Nói ngắn gọn: **CaramOS OTA không còn là package manifest manager; nó l
 
 ---
 
-## 13. Release hiện tại: CaramOS 1.3.7 (`caramos-ota` 1.3.7)
+## 13. Release hiện tại: CaramOS 1.3.8 (`caramos-ota` 1.3.8)
 
 Người release PPA: **dungleviet**.
 
-CaramOS 1.3.7 là bản mới nhất của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0; các bản 1.0.x
+CaramOS 1.3.8 là bản mới nhất của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0; các bản 1.0.x
 trước đó là Open Beta.
 
 | Thành phần | Bản phát hành |
 |---|---|
-| ISO | `CaramOS-1.3.7-cinnamon-amd64.iso`: GitHub Release `v1.3.7`, tệp ISO trên SourceForge |
-| `caramos-ota` | `1.3.7-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
-| `printer-driver-captdriver` | `0.2.1~git20260813.f2d2da8-0caramos1` trên cùng PPA, lần đầu; Kiểm tra driver cài nó khi thấy máy in Canon CAPT |
+| ISO | `CaramOS-1.3.8-cinnamon-amd64.iso`: GitHub Release `v1.3.8`, tệp ISO trên SourceForge |
+| `caramos-ota` | `1.3.8-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| `printer-driver-captdriver` | `0.2.1~git20260813.f2d2da8-0caramos1` trên cùng PPA (lên PPA từ 1.3.7, 1.3.8 không đổi); Kiểm tra driver cài nó khi thấy máy in Canon CAPT |
 | App Center | `caramos-app-center` 0.2.3, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` |
 
 Máy CaramOS cũ không cần cài lại ISO:
 
-- Từ 1.0.2 trở lên: Trung tâm cập nhật tự báo bản 1.3.7, hoặc chạy `sudo caramos-ota --upgrade --yes`.
+- Từ 1.0.2 trở lên: Trung tâm cập nhật tự báo bản 1.3.8, hoặc chạy `sudo caramos-ota --upgrade --yes`.
 - Từ 1.0.1: cài Trung tâm cập nhật một lần bằng
   `curl -fsSL https://caramos.vietnamlinuxfamily.net/install-caramos-ota.sh | sudo bash`.
 
-Chuỗi migration được đóng gói trong `caramos-ota` 1.3.7:
+Chuỗi migration được đóng gói trong `caramos-ota` 1.3.8:
 
 ```text
 1.0.1 → 1.0.2 → … → 1.0.12                         migration legacy v1_0_2 … v1_0_12, đóng băng
 20260715090258_install_control_center → …
-  → 20261105120200_start_menu_file_search_without_freeze   24 timestamp migration, chạy theo ledger
+  → 20261111090000_start_menu_ctrl_scroll_icon_size     25 timestamp migration, chạy theo ledger
 ```
 
 Quy trình release (chi tiết trong [README gốc](../README.md#quy-trình-release)). ISO đóng gói App Center từ
@@ -645,9 +645,9 @@ make -C packages/caramos-app-center release VERSION=0.2.3
 git -C packages/caramos-app-center push origin HEAD v0.2.3
 
 # 2. CaramOS: đóng dấu version, commit (kèm con trỏ submodule mới), tag
-make -C packages/caramos-ota prepare-release VERSION=1.3.7
-git commit -am "[build] Release 1.3.7" && git push origin main
-git tag -a v1.3.7 -m "CaramOS 1.3.7" && git push origin v1.3.7   # CI: ISO, SourceForge, GitHub Release
+make -C packages/caramos-ota prepare-release VERSION=1.3.8
+git commit -am "[build] Release 1.3.8" && git push origin main
+git tag -a v1.3.8 -m "CaramOS 1.3.8" && git push origin v1.3.8   # CI: ISO, SourceForge, GitHub Release
 
 # 3. caramos-ota lên PPA
 make -C packages/caramos-ota source
@@ -664,4 +664,4 @@ sudo apt update
 apt-cache policy caramos-ota
 ```
 
-ISO build dùng `CARAMOS_VERSION=1.3.7` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs. Sau đó build dừng nếu Start Menu (Cinnamenu tải từ cinnamon-spices lúc build) thiếu bản vá của CaramOS.
+ISO build dùng `CARAMOS_VERSION=1.3.8` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs. Sau đó build dừng nếu Start Menu (Cinnamenu tải từ cinnamon-spices lúc build) thiếu bản vá của CaramOS.

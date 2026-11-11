@@ -130,11 +130,26 @@ class PatchTests(unittest.TestCase):
         with mock.patch.object(migration, "SYSTEMD_RUNTIME", self.root), \
                 mock.patch.object(start_fcitx, "_desktop_users", return_value=[user]), \
                 mock.patch.object(start_fcitx, "session_environment", return_value=session), \
-                mock.patch.object(migration.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run:
+                mock.patch.object(migration.subprocess, "run", return_value=SimpleNamespace(returncode=0)) as run, \
+                mock.patch.object(migration.time, "sleep") as sleep:
             migration.run(MigrationContext())
         command = run.call_args.args[0]
         self.assertEqual(["runuser", "-u", "minh", "--", "env", "-i"], command[:6])
         self.assertEqual(["org.Cinnamon.ReloadXlet", "Cinnamenu@json", "APPLET"], command[-3:])
+        # The next migration that reloads the menu comes after the 300 ms Cinnamon flashes a new applet.
+        sleep.assert_called_once_with(migration.RELOAD_SETTLE)
+        self.assertGreater(migration.RELOAD_SETTLE, 0.3)
+
+    def test_a_menu_that_was_not_reloaded_does_not_wait(self) -> None:
+        user = SimpleNamespace(pw_name="minh", pw_uid=1000, pw_gid=1000, pw_dir="/home/minh")
+        session = {"DISPLAY": ":0", "DBUS_SESSION_BUS_ADDRESS": "unix:path=/run/user/1000/bus"}
+        with mock.patch.object(migration, "SYSTEMD_RUNTIME", self.root), \
+                mock.patch.object(start_fcitx, "_desktop_users", return_value=[user]), \
+                mock.patch.object(start_fcitx, "session_environment", return_value=session), \
+                mock.patch.object(migration.subprocess, "run", return_value=SimpleNamespace(returncode=1)), \
+                mock.patch.object(migration.time, "sleep") as sleep:
+            migration.run(MigrationContext())
+        sleep.assert_not_called()
 
     def test_without_cinnamenu_nothing_happens(self) -> None:
         with mock.patch.object(migration, "CINNAMENU", self.root.parent / "missing"):

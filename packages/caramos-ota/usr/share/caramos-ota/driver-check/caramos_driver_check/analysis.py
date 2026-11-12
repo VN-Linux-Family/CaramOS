@@ -15,7 +15,7 @@ from dataclasses import asdict, dataclass, replace
 
 from caramos_ota.i18n import _
 
-from . import knowledge
+from . import canon_capt, knowledge
 from .drivers import DriverProposal
 from .hardware import (
     ACPI_AUDIO,
@@ -139,11 +139,13 @@ class Report:
     def installs(self) -> tuple[Action, ...]:
         """One-click driver installs of the problems that can run now, for the "install all" button.
 
-        Offline, only drivers on the CaramOS USB stick can install.
+        Offline, only drivers on the CaramOS USB stick can install. Canon's printer driver is left out: it
+        installs on its own, after the user agreed to Canon's terms.
         """
 
         actions = (finding.install for finding in self.problems if self.can_install(finding))
-        return tuple(dict.fromkeys(action for action in actions if action is not None))
+        return tuple(dict.fromkeys(action for action in actions
+                                   if action is not None and not canon_capt.is_target(action.target)))
 
     def can_install(self, finding: Finding) -> bool:
         return self.connected or finding.offline_media
@@ -699,11 +701,17 @@ class _Analysis:
                     detail += " " + _("Support for this model is still experimental.")
                 actions: tuple[Action, ...] = (
                     Action(INSTALL, _("Install the printer driver"), knowledge.CAPTDRIVER_PACKAGE), _action(REPORT))
-            else:
+            elif device.product in canon_capt.USB_MODELS:
                 detail = _(
                     "This Canon printer speaks Canon's own printer language (CAPT), and only Canon's driver supports "
-                    "this model. CaramOS cannot install it by itself yet: ask the community for help with the "
-                    "button below."
+                    "this model. Driver Check downloads it from Canon (about 120 MB) once you agree to Canon's terms, "
+                    "installs it as Canon made it and sets up the printer."
+                )
+                actions = (Action(INSTALL, _("Install Canon's driver"), canon_capt.INSTALL_TARGET), _action(REPORT))
+            else:
+                detail = _(
+                    "This Canon printer speaks Canon's own printer language (CAPT), and neither captdriver nor "
+                    "Canon's Linux driver supports this model. Ask the community for help with the button below."
                 )
                 actions = (_action(REPORT),)
             self._add("printer", WARNING, f"printer:capt:{device.key}", _("The printer has no driver"), detail,

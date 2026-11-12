@@ -123,14 +123,24 @@ class FakeCache(dict):
 
 class HelperArgumentTests(unittest.TestCase):
     def test_accepted_targets(self) -> None:
-        self.assertEqual(["nvidia:580-open", "bcmwl-kernel-source"],
+        self.assertEqual(("install", ["nvidia:580-open", "bcmwl-kernel-source"]),
                          helper.parse_args(["install", "nvidia:580-open", "bcmwl-kernel-source"]))
+        # Canon's printer driver: the printers plugged in, and network printers.
+        self.assertEqual(("install", ["canon-capt", "canon-capt-net:LBP6300@192.168.1.50"]),
+                         helper.parse_args(["install", "canon-capt", "canon-capt-net:LBP6300@192.168.1.50"]))
+        self.assertEqual(("setup", ["canon-capt"]), helper.parse_args(["setup", "canon-capt"]))
+        self.assertEqual(("remove", ["canon-capt"]), helper.parse_args(["remove", "canon-capt"]))
 
     def test_refused_arguments(self) -> None:
         for argv in (
             [], ["install"], ["remove", "bcmwl-kernel-source"], ["install", "bcmwl; rm -rf /"],
             ["install", "-o", "APT::Get::Assume-Yes"], ["install", "nvidia:../../x"], ["install", "a", "a"],
             ["install", "a1", "a2", "a3", "a4", "a5"], ["install", "Bcmwl"],
+            ["setup"], ["setup", "canon-capt", "canon-capt"], ["remove", "nvidia:580"], ["purge", "canon-capt"],
+            ["install", "canon-capt", "bcmwl-kernel-source"],   # Canon's driver installs on its own
+            ["install", "canon-capt-net:LBP9999@192.168.1.50"], ["install", "canon-capt-net:LBP6300@127.0.0.1"],
+            ["install", "canon-capt-net:LBP6300@192.168.1.256"], ["install", "canon-capt-net:LBP6300@192.168.1.5;id"],
+            ["install", "canon-capt-net:LBP6300@192.168.001.050"], ["install", "canon-capt-net:../x@192.168.1.5"],
         ):
             with self.subTest(argv=argv), self.assertRaises(helper.UsageError):
                 helper.parse_args(argv)

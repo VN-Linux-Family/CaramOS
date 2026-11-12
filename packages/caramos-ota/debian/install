@@ -34,3 +34,7 @@ etc/logrotate.d/caramos-ota etc/logrotate.d/
 usr/share/themes/Cinnamon-Delight-Dark usr/share/themes/
 usr/share/cinnamon/styles.d/30_caramos.styles usr/share/cinnamon/styles.d/
 usr/share/glib-2.0/schemas/60_caramos-ota.gschema.override usr/share/glib-2.0/schemas/
+usr/lib/udev/rules.d/72-caramos-canon-capt.rules usr/lib/udev/rules.d/
+usr/lib/systemd/system/caramos-canon-capt.service usr/lib/systemd/system/
+usr/lib/systemd/system/caramos-canon-capt-setup.service usr/lib/systemd/system/
+usr/share/cups/usb/caramos-canon-capt.usb-quirks usr/share/cups/usb/

@@ -6,7 +6,8 @@ import json
 import sys
 from typing import Any
 
-EVENTS = frozenset({"stage", "progress", "log", "space", "done"})
+# "printer": a print queue Canon's driver set up (canon_capt.install), named in the result page.
+EVENTS = frozenset({"stage", "progress", "log", "space", "printer", "done"})
 
 
 def emit(event: str, **fields: Any) -> None:

@@ -29,6 +29,7 @@ LBP2900 = Device("usb", "1-1", "04a9", "2676", "Canon LBP2900", vendor_name="Can
                                           "usb:v04A9p2676d0100dc00dsc00dp00ic07isc01ip02in00"),))
 LBP6000 = replace(LBP2900, product="271a", name="Canon LBP6000")
 LBP3300 = replace(LBP2900, product="267e", name="Canon LBP3300")
+LBP3600 = replace(LBP2900, product="2654", name="Canon LBP3600")   # in Canon's driver neither
 HP_PRINTER = Device("usb", "1-2", "03f0", "042a", "HP LaserJet 1020",
                     interfaces=(UsbInterface("1.0", "07", "01", "02", "usblp"),))
 
@@ -71,13 +72,23 @@ class CaptPrinterTests(unittest.TestCase):
         self.assertIn("experimental", finding.detail)
         self.assertEqual("printer-driver-captdriver", finding.install.target)
 
-    def test_models_only_canons_driver_supports_get_no_install(self) -> None:
+    def test_models_only_canons_driver_supports_offer_it(self) -> None:
         report = analyze(machine(LBP3300, capt_drivers=("captdriver",)))
 
         [finding] = report.findings
         self.assertEqual(WARNING, finding.level)
-        self.assertEqual([REPORT], [action.kind for action in finding.actions])
+        self.assertEqual([INSTALL, REPORT], [action.kind for action in finding.actions])
+        self.assertEqual("canon-capt", finding.install.target)
+        self.assertIn("Canon's terms", finding.detail)
+        # Not with "install all": the user first agrees to Canon's terms.
         self.assertEqual((), report.installs)
+
+    def test_models_no_driver_supports_get_help_only(self) -> None:
+        report = analyze(machine(LBP3600))
+
+        [finding] = report.findings
+        self.assertEqual([REPORT], [action.kind for action in finding.actions])
+        self.assertIn("neither captdriver nor Canon's Linux driver", finding.detail)
 
     def test_other_printers_and_a_blacklisted_usblp_are_not_reported_as_other_devices(self) -> None:
         # Guides for Canon's driver blacklist usblp: the printer interface then has no driver.
@@ -244,6 +255,36 @@ COMMANDS = {
 }
 
 
+CCPD_CONF = """\
+# Canon Printer Daemon for CUPS Configuration Data
+
+<Path>
+CUPS_ConfigPath   /etc/cups/
+</Path>
+
+#<Printer  LBP3200>
+#DevicePath  /dev/usb/lp0
+#</Printer>
+
+<Printer LBP6300>
+DevicePath /dev/usb/canon-capt-26ff-0000A1B2C3D4
+</Printer>
+
+<Printer LBP6300-LAN>
+DevicePath net:192.168.1.50
+</Printer>
+
+<Printer LBP3200>
+DevicePath /dev/usb/lp0
+</Printer>
+
+<Ports>
+UI_Port  59787
+PDATA_Port  59687
+</Ports>
+"""
+
+
 def fake_runner(arguments) -> str:
     arguments = tuple(arguments)
     return COMMANDS.get(arguments[0]) if arguments[0] in ("dpkg-query", "journalctl") else COMMANDS.get(arguments, "")
@@ -316,6 +357,86 @@ class PrinterLogTests(unittest.TestCase):
         self.addCleanup((self.root / printers.ERROR_LOG).chmod, 0o644)
         self.assertIn("(not readable: only root and the adm group may read it)",
                       printers.printer_log(self.root, fake_runner))
+
+    def test_without_canons_driver_no_canon_section(self) -> None:
+        self.assertNotIn("== Canon's CAPT driver ==", printers.printer_log(self.root, fake_runner))
+
+    def test_canons_driver(self) -> None:
+        usb = self.root / "sys/bus/usb/devices"
+        for name, value in (("idVendor", "04a9"), ("idProduct", "26ff"), ("manufacturer", "Canon"),
+                            ("product", "LBP6300"), ("serial", "0000A1B2C3D4")):
+            write(usb / "3-2" / name, value + "\n")
+        for name, value in (("bInterfaceClass", "07"), ("bInterfaceSubClass", "01"), ("bInterfaceProtocol", "02")):
+            write(usb / "3-2:1.0" / name, value)
+        for program in ("usr/sbin/ccpd", "usr/sbin/ccpdadmin"):
+            write(self.root / program, "")
+        write(self.root / "etc/ccpd.conf", CCPD_CONF)
+        write(self.root / "dev/usb/lp1", "")
+        os.symlink("lp1", self.root / "dev/usb/canon-capt-26ff-0000A1B2C3D4")
+        wants = self.root / "etc/systemd/system/multi-user.target.wants/caramos-canon-capt.service"
+        wants.parent.mkdir(parents=True)
+        os.symlink("/usr/lib/systemd/system/caramos-canon-capt.service", wants)
+        write(self.root / "etc/systemd/system/caramos-canon-capt.service.d/50-printers.conf",
+              "[Service]\nIPAddressAllow=192.168.1.50\n")
+        for pid, comm in (("4101", "ccpd"), ("4102", "ccpd"), ("4103", "captmoncnabb"), ("4200", "bash")):
+            write(self.root / "proc" / pid / "comm", comm + "\n")
+        commands = {
+            ("lpstat", "-v"): "device for LBP6300: ccp://localhost:59687\ndevice for LBP6300-LAN: ccp://localhost:59687\n"
+                              "device for Old: ccp://localhost:59687\ndevice for Ke_toan: ipp://192.168.1.20/ipp/print\n",
+            ("lpoptions", "-p", "LBP6300"): "printer-make-and-model='Canon LBP6300' printer-state=3 "
+                                            "printer-state-reasons=none printer-is-accepting-jobs=true\n",
+            ("systemctl", "is-active", "caramos-canon-capt.service"): "active\n",
+            ("systemctl", "is-enabled", "ccpd.service"): "masked\n",
+            ("dpkg", "--print-foreign-architectures"): "i386\n",
+        }
+        calls = []
+
+        def runner(arguments) -> str:
+            arguments = tuple(arguments)
+            calls.append(arguments)
+            if arguments[0] == "journalctl" and "caramos-canon-capt.service" in arguments:
+                return ("2026-11-11T16:45:19+07:00 pc systemd[1]: Started caramos-canon-capt.service.\n"
+                        '2026-11-11T16:45:20+07:00 pc helper[9]: {"event": "log", "line": "Print queue LBP6300: '
+                        'LBP6300dn at /dev/usb/canon-capt-26ff-0000A1B2C3D4"}\n')
+            return commands.get(arguments, "") if arguments[0] != "dpkg-query" else (
+                "cndrvcups-capt 2.71-1 ii \nlibc6:i386 2.39-0ubuntu8.6 ii \n")
+
+        text = printers.printer_log(self.root, runner)
+
+        for expected in (
+            "cndrvcups-capt 2.71-1 ii",
+            "libc6:i386 2.39-0ubuntu8.6 ii",
+            "Canon CAPT drivers installed: captdriver, canon",
+            "Canon CAPT printer (LBP6300): only Canon's driver drives it, with its LBP6300 PPD",
+            "LBP6300: Canon LBP6300 · ccp://localhost:59687",
+            "== Canon's CAPT driver ==",
+            "caramos-canon-capt.service: active, starts at boot: yes · Canon's own ccpd.service: masked",
+            "Canon's programs running: 1 captmoncnabb, 2 ccpd",
+            "32-bit packages: on",
+            "LBP6300: /dev/usb/canon-capt-26ff-[REDACTED] (plugged in)",
+            "LBP6300-LAN: net:[REDACTED_IP]",
+            "LBP3200: /dev/usb/lp0 (not plugged in), but no ccp:// print queue has this name",
+            "print queue Old (ccp://) is not registered with ccpd",
+            "ccpd may reach on the network (50-printers.conf): the network printers above",
+            "Started caramos-canon-capt.service.",
+            "LBP6300dn at /dev/usb/canon-capt-26ff-[REDACTED]",
+            "1 other queue(s)",
+        ):
+            self.assertIn(expected, text)
+        for secret in ("0000A1B2C3D4", "192.168.1.50", "192.168.1.20", "Ke_toan"):
+            self.assertNotIn(secret, text)
+        # The 32-bit libraries Canon's driver needs are listed with the printing packages.
+        query = next(call for call in calls if call[0] == "dpkg-query")
+        self.assertIn("libpopt0:i386", query)
+        self.assertIn("cndrvcups-common", query)
+
+    def test_a_drop_in_that_does_not_match_ccpd_conf(self) -> None:
+        write(self.root / "etc/ccpd.conf", CCPD_CONF)
+        write(self.root / "etc/systemd/system/caramos-canon-capt.service.d/50-printers.conf",
+              "[Service]\nIPAddressAllow=10.0.0.7 10.0.0.8\n")
+        text = printers.printer_log(self.root, fake_runner)
+        self.assertIn("ccpd may reach on the network (50-printers.conf): 2 address(es), NOT those of the 1 network "
+                      "printer(s) above", text)
 
     def test_help_requests_carry_it(self) -> None:
         with mock.patch.object(logs, "system_log", return_value="system"), \

@@ -1,0 +1,11 @@
+# CaramOS: a Canon CAPT printer plugged in while Canon's driver is installed (72-caramos-canon-capt.rules) gets a
+# print queue if it has none, then ccpd restarts: its status monitor still holds the device the printer had before
+# it was unplugged.
+[Unit]
+Description=Set up plugged-in Canon CAPT printers for Canon's driver (CaramOS Driver Check)
+ConditionPathExists=/usr/sbin/ccpd
+After=cups.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/caramos-ota/driver-check/caramos-driver-check-helper setup canon-capt

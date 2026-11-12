@@ -1,3 +1,32 @@
+caramos-ota (1.3.9-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.3.9.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Driver Check installs Canon's own CAPT printer driver (2.71) for the
+    Canon laser printers captdriver does not drive, such as the LBP6300dn:
+    22 models are recognised when plugged in over USB, and the 13 with a
+    network port can be added by address with "Add printer…". The driver
+    is downloaded from Canon once the user agrees to Canon's terms, checked
+    against its SHA-256, and Canon's packages are installed as they are,
+    with the 32-bit libraries they need. Around them CaramOS adds a print
+    queue per printer, a fixed device name per USB printer, a systemd unit
+    that starts Canon's daemon at boot (its init script never ran), and a
+    firewall for that daemon, which listens as root on every address: only
+    this computer and the printers added may reach it. A printer plugged in
+    later gets its queue by itself. Updates of this package neither start
+    nor stop the daemon. Printing on a real LBP6300dn is still untested.
+  * printer.log in help requests shows Canon's driver: its daemon, the
+    printers registered with it and the print queues it serves.
+  * Machines with both captdriver and Canon's driver keep captdriver for
+    the models it drives (71-caramos-capt-printers.rules).
+  * Print Screen and Super+Shift+S start Flameshot's capture again. The
+    ISO set them in a gschema override under [schema:path] groups, which
+    GLib reads as desktop names, so both keys did nothing. The shortcuts are
+    now dconf defaults, and a migration gives them to existing users at
+    once, leaving any shortcut a user set alone.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 12 Nov 2026 20:06:59 +0700
+
 caramos-ota (1.3.8-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.3.8.

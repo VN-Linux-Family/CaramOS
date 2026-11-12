@@ -1,10 +1,15 @@
 """Privileged Driver Check helper, started by the window through pkexec.
 
     caramos-driver-check-helper install <target>...
+    caramos-driver-check-helper setup canon-capt     (caramos-canon-capt-setup.service, on plug-in)
+    caramos-driver-check-helper remove canon-capt
 
 A target is an NVIDIA driver series ("nvidia:580-open") or a driver package ("bcmwl-kernel-source"). The
 helper does not trust the caller: it asks UbuntuDrivers for the drivers of the hardware it finds itself
 and refuses any target that is not one of them, or not one Ubuntu installs automatically (drivers.py).
+Canon's own CAPT printer driver is the exception, as it is in no package archive (canon_capt.py): "canon-capt"
+downloads it from Canon and sets up the Canon printers plugged in, which the helper looks for itself, and
+"canon-capt-net:<model>@<IPv4>" adds a network printer of a model Canon's driver knows.
 NVIDIA goes through UbuntuDrivers' desktop package list, like `ubuntu-drivers install nvidia:580-open`,
 so the signed kernel modules come with it: those of the newest kernel of the series, which then comes too
 (kernel_for_modules()). Offline, the Broadcom driver installs from the CaramOS USB stick through Linux
@@ -38,6 +43,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+from . import canon_capt
 from .drivers import NVIDIA_DRIVER, ON_INSTALL_MEDIA, one_click
 from .events import emit
 
@@ -53,7 +59,9 @@ ENV = {"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "LANG": "C.UTF-8", "HOME": "/roo
 APT = ["apt-get", "-o", "DPkg::Lock::Timeout=600", "-o", "APT::Status-Fd=1"]
 # Linking the NVIDIA kernel modules while installing prints tens of thousands of these, which tell users nothing.
 OBJTOOL_WARNING = re.compile(r"^\S+\.o: warning: objtool: ")
-TARGET_RE = re.compile(r"^(nvidia:\d{3}(-server)?(-open)?|[a-z0-9][a-z0-9+.-]{1,80})$")
+TARGET_RE = re.compile(r"^(nvidia:\d{3}(-server)?(-open)?|[a-z0-9][a-z0-9+.-]{1,80}"
+                       r"|canon-capt-net:[A-Za-z0-9]{4,12}@[0-9.]{7,15})$")
+COMMANDS = ("install", "setup", "remove")
 ADD_MEDIA = "mintdrivers-add-live-media"
 REMOVE_MEDIA = "mintdrivers-remove-live-media"
 MEDIA_INFO = Path("/media/mintdrivers/.disk/info")
@@ -85,16 +93,31 @@ class Refused(RuntimeError):
     """A target that is not a driver for this computer, or a step that cannot run."""
 
 
-def parse_args(argv: list[str]) -> list[str]:
-    if len(argv) < 2 or argv[0] != "install":
-        raise UsageError("usage: caramos-driver-check-helper install <target>...")
-    targets = argv[1:]
+def parse_args(argv: list[str]) -> tuple[str, list[str]]:
+    """(command, targets). setup and remove only know canon-capt; Canon targets are not mixed with others."""
+
+    if len(argv) < 2 or argv[0] not in COMMANDS:
+        raise UsageError("usage: caramos-driver-check-helper install <target>... | setup canon-capt | "
+                         "remove canon-capt")
+    command, targets = argv[0], argv[1:]
+    if command != "install":
+        if targets != [canon_capt.INSTALL_TARGET]:
+            raise UsageError(f"{command} only knows {canon_capt.INSTALL_TARGET}")
+        return command, targets
     if len(targets) > MAX_TARGETS or len(set(targets)) != len(targets):
         raise UsageError("too many or duplicate targets")
     for target in targets:
         if not TARGET_RE.fullmatch(target):
             raise UsageError(f"invalid target: {target!r}")
-    return targets
+        if target.startswith("canon-capt-net:"):
+            try:
+                canon_capt.parse_network_target(target)
+            except ValueError as exc:
+                raise UsageError(str(exc)) from exc
+    canon = [target for target in targets if canon_capt.is_target(target)]
+    if canon and len(canon) != len(targets):
+        raise UsageError("Canon's printer driver installs on its own")
+    return command, targets
 
 
 def apt_progress(line: str) -> float | None:
@@ -400,7 +423,7 @@ def install(targets: list[str]) -> tuple[bool, bool, list[str], str]:
 
 def main(argv: list[str] | None = None) -> int:
     try:
-        targets = parse_args(sys.argv[1:] if argv is None else argv)
+        command, targets = parse_args(sys.argv[1:] if argv is None else argv)
     except UsageError as exc:
         print(exc, file=sys.stderr)
         return EXIT_USAGE
@@ -409,12 +432,23 @@ def main(argv: list[str] | None = None) -> int:
         return EXIT_USAGE
     with LOCK_FILE.open("w") as lock:
         try:
-            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            # A printer plugged in during an install or a removal is set up once that is over.
+            fcntl.flock(lock, fcntl.LOCK_EX if command == "setup" else fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
             emit("done", ok=False, restart=False, packages=[], error="busy")
             return EXIT_FAILED
+        if command == "setup":
+            return EXIT_OK if canon_capt.setup(emit) else EXIT_FAILED
+        if command == "remove":
+            removed, error = canon_capt.remove(emit, run_apt)
+            emit("done", ok=removed, restart=False, packages=list(canon_capt.PACKAGES) if removed else [],
+                 error=error)
+            return EXIT_OK if removed else EXIT_FAILED
         try:
-            ok, restart, packages, error = install(targets)
+            if canon_capt.is_target(targets[0]):
+                ok, restart, packages, error = canon_capt.install(targets, emit, run_apt, online)
+            else:
+                ok, restart, packages, error = install(targets)
         except Refused as exc:
             emit("log", line=str(exc))
             ok, restart, packages, error = False, False, [], "refused"

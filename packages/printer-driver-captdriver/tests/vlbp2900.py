@@ -23,10 +23,14 @@ import sys
 import time
 import zlib
 
-VID, PID, BCD = 0x04A9, 0x2676, 0x0100
+VID, BCD = 0x04A9, 0x0100
+# VLBP_PID and VLBP_MODEL make it show up as another CAPT model, e.g. VLBP_PID=26ff VLBP_MODEL=LBP6300 for
+# the LBP6300dn: only the USB ID and the names change, it still answers like an LBP2900.
+PID = int(os.environ.get("VLBP_PID", "2676"), 16)
+MODEL = os.environ.get("VLBP_MODEL", "LBP2900")
 BUSID = "1-1"
-DEVICE_ID = "MFG:Canon;MDL:LBP2900;CMD:CAPT;VER:2.1;CLS:PRINTER;DES:Canon LBP2900"
-STRINGS = {1: "Canon", 2: "LBP2900", 3: "0000A1B2C3D4"}
+DEVICE_ID = f"MFG:Canon;MDL:{MODEL};CMD:CAPT;VER:2.1;CLS:PRINTER;DES:Canon {MODEL}"
+STRINGS = {1: "Canon", 2: MODEL, 3: "0000A1B2C3D4"}
 EPIPE, ECONNRESET = -32, -104
 # How status bytes are filled (VLBP_STATUS):
 #   capture  the values decoded from USB captures of a real LBP2900B: first status byte 0x00
@@ -444,7 +448,7 @@ def serve(args):
     srv.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     srv.bind((args.host, args.port))
     srv.listen(4)
-    log("INFO", f"virtual LBP2900 listening on {args.host}:{args.port}, pages in {args.out}")
+    log("INFO", f"virtual {MODEL} (04a9:{PID:04x}) listening on {args.host}:{args.port}, pages in {args.out}")
     while True:
         conn, _ = srv.accept()
         conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)

@@ -1,0 +1,12 @@
+# CaramOS: Canon CAPT printers for Canon's own driver (the USB IDs of USB_MODELS in Driver Check's canon_capt.py).
+# Canon's daemon (ccpd) opens the device path it was registered with, and /dev/usb/lpN changes with the order
+# printers are plugged in: each printer gets a fixed name, /dev/usb/canon-capt-<product>-<serial>. Once Canon's
+# driver is installed, a printer plugged in gets a print queue if it has none (caramos-canon-capt-setup.service).
+ACTION=="remove", GOTO="caramos_canon_capt_end"
+SUBSYSTEM!="usbmisc", GOTO="caramos_canon_capt_end"
+KERNEL!="lp[0-9]*", GOTO="caramos_canon_capt_end"
+ATTRS{idVendor}=="04a9", ATTRS{idProduct}=="2617|262b|2636|2657|266a|2676|2679|267e|268b|26a1|26a4|26b9|26ba|26da|26db|26ea|26f1|26ff|271a|271b|271c|2771", \
+  SYMLINK+="usb/canon-capt-$attr{idProduct}-$attr{serial}", ENV{CARAMOS_CANON_CAPT}="1"
+ENV{CARAMOS_CANON_CAPT}=="1", ACTION=="add", TEST=="/usr/sbin/ccpd", \
+  TAG+="systemd", ENV{SYSTEMD_WANTS}+="caramos-canon-capt-setup.service"
+LABEL="caramos_canon_capt_end"

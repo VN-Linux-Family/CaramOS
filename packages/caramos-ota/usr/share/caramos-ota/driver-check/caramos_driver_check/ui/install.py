@@ -18,6 +18,8 @@ STAGES = {
     "media": lambda: _("Reading the driver from the CaramOS USB stick…"),
     "install": lambda: _("Downloading and installing the driver…"),
     "finish": lambda: _("Finishing…"),
+    "canon-download": lambda: _("Downloading Canon's driver from Canon's website…"),
+    "canon-printers": lambda: _("Setting up the printer…"),
 }
 
 
@@ -30,11 +32,26 @@ def error_text(code: str) -> str:
         "apt": _("Installing the packages failed. The details below show why; you can also send a hardware "
                  "report to ask the community."),
         "space": _("There is not enough free disk space for this driver. Free up some space and try again."),
+        "download": _("Canon's driver could not be downloaded from Canon's website. Check that this computer is "
+                      "online and try again."),
+        "checksum": _("The file from Canon's website is not the one CaramOS checked, so it was not installed. "
+                      "Canon may have changed it: ask the community for help."),
+        "canon-busy": _("A program has Canon's printer daemon in its command line (see the details below), and "
+                        "Canon's installer would close it. Close it and try again."),
+        "setup": _("The driver is installed, but the printer could not be set up. The details below show why."),
     }.get(code, _("Something went wrong. The details below show what happened."))
 
 
+def printer_text(printers: list[str]) -> str:
+    """What to pick in the print window: the queues Canon's driver set up."""
+
+    return ngettext("When you print, choose the printer “%s”.", "When you print, choose one of these printers: %s.",
+                    len(printers)) % ", ".join(printers)
+
+
 class InstallView(Gtk.Box):
-    """Runs the helper for the given installs and reports through on_done(ok, restart, error, log, space)."""
+    """Runs the helper for the given installs and reports through on_done(ok, restart, error, log, space);
+    .printers has the print queues Canon's driver set up."""
 
     def __init__(self, installs: list[Action], *,
                  on_done: Callable[[bool, bool, str, str, list[dict[str, Any]]], None],
@@ -46,6 +63,7 @@ class InstallView(Gtk.Box):
         self.result: dict[str, Any] | None = None
         self.lines: list[str] = []
         self.space: list[dict[str, Any]] = []
+        self.printers: list[str] = []
         self.run: HelperRun | None = None
 
         view = Adw.ToolbarView()
@@ -86,6 +104,7 @@ class InstallView(Gtk.Box):
         self.result = None
         self.lines = []
         self.space = []
+        self.printers = []
         self.progress.set_fraction(0)
         self.run = HelperRun([action.target for action in self.installs], self._on_event, self._on_exit)
 
@@ -103,6 +122,8 @@ class InstallView(Gtk.Box):
             append_log(self.log, line)
         elif kind == "space":
             self.space.append(event)
+        elif kind == "printer" and event.get("name"):
+            self.printers.append(str(event["name"]))
         elif kind == "done":
             self.result = event
 
@@ -119,13 +140,18 @@ class InstallView(Gtk.Box):
 def done_page(ok: bool, restart: bool, error: str, log: str, *, on_restart: Callable[[], None],
               on_back: Callable[[], None], on_retry: Callable[[], None],
               space: list[dict[str, Any]] | None = None,
-              on_help: Callable[[], None] | None = None) -> Gtk.Widget:
+              on_help: Callable[[], None] | None = None, printers: list[str] | None = None) -> Gtk.Widget:
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
     view = Adw.ToolbarView()
     view.add_top_bar(header(_("Installing drivers")))
     content = page_box(16)
     content.set_valign(Gtk.Align.CENTER)
-    if ok:
+    if ok and printers:
+        content.append(icon_bubble("printer-symbolic", 44, "status-bubble", "status-ok"))
+        content.append(label(ngettext("The printer is ready", "The printers are ready", len(printers)),
+                             "hero-title", xalign=0.5))
+        content.append(label(printer_text(printers), "hero-subtitle", xalign=0.5))
+    elif ok:
         content.append(icon_bubble("emblem-ok-symbolic", 44, "status-bubble", "status-ok"))
         content.append(label(_("The driver is installed"), "hero-title", xalign=0.5))
         content.append(label(_("Restart the computer to start using it.") if restart

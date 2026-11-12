@@ -1,0 +1,24 @@
+# CaramOS: Canon's printer daemon (ccpd, from Canon's CAPT driver for Linux), for the Canon laser printers only
+# Canon's driver drives. Driver Check downloads the driver from Canon, adds this unit to multi-user.target and sets
+# up the printers (caramos_driver_check/canon_capt.py). Canon ships only an init script nothing runs at boot; the
+# ccpd.service systemd makes of it is masked, so the daemon never runs twice. No [Install]: the package must not
+# start it on computers without Canon's driver.
+[Unit]
+Description=Canon CAPT printer daemon (Canon's driver, set up by CaramOS Driver Check)
+After=cups.service
+Wants=cups.service
+ConditionPathExists=/usr/sbin/ccpd
+
+[Service]
+Type=forking
+ExecStart=/usr/sbin/ccpd
+# ccpd ignores SIGTERM: Canon's own init script stops it with SIGKILL, and so does systemd, at once. A SIGKILL is
+# a normal stop, also from Canon's maintainer scripts, which wait for ccpd to be gone: no restart then.
+KillSignal=SIGKILL
+SuccessExitStatus=SIGKILL
+Restart=on-failure
+RestartSec=2
+# ccpd listens as root on every address (ports 59687 and 59787). Only this computer may talk to it, and the
+# network printers Driver Check set up (their addresses are in the drop-in 50-printers.conf).
+IPAddressDeny=any
+IPAddressAllow=localhost

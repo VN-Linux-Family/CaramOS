@@ -15,9 +15,10 @@ from gi.repository import Adw, Gio, GLib, Gtk
 
 from caramos_ota.i18n import _
 
-from .. import actions
+from .. import actions, canon_capt
 from ..analysis import INSTALL, REBOOT, REPORT, WIFI_ON, Action, Finding, Report
 from ..logs import Log, install_failure_log, system_logs
+from . import canon
 from .help import HelpPages
 from .install import InstallView, done_page
 from .results import ResultsView
@@ -125,7 +126,8 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
         self.report = report
         view = ResultsView(report, came_online=self.came_online, on_action=self._on_action,
                            on_install_all=self.install, on_report=lambda: self.show_help("driver"),
-                           on_recheck=self.start_scan, on_close=self.close)
+                           on_recheck=self.start_scan, on_close=self.close,
+                           on_canon_network=self.add_canon_network_printer)
         self._set_page("results", view)
         if report.needs_connection and self.poll_id is None:
             self.poll_id = GLib.timeout_add_seconds(POLL_SECONDS, self._poll)
@@ -163,11 +165,28 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
             GLib.timeout_add_seconds(2, lambda: (self.quiet_rescan(), False)[1])
 
     def install(self, installs: list[Action]) -> None:
+        """Canon's printer driver is downloaded only once the user agreed to Canon's terms."""
+
         if self.busy or not installs:
+            return
+        if any(canon_capt.is_target(action.target) for action in installs) and not canon_capt.installed():
+            canon.ask_terms(self, lambda: self._install(installs))
+            return
+        self._install(installs)
+
+    def add_canon_network_printer(self) -> None:
+        if self.busy:
+            return
+        canon.ask_network_printer(self, lambda model, address: self.install(
+            [Action(INSTALL, _("Set up the Canon printer at %s") % address,
+                    canon_capt.network_target(model, address))]))
+
+    def _install(self, installs: list[Action]) -> None:
+        if self.busy:
             return
         self.busy = True
         view = InstallView(installs, on_done=lambda ok, restart, error, log, space: self._install_done(
-            installs, ok, restart, error, log, space), on_cancelled=self._install_cancelled)
+            installs, ok, restart, error, log, space, view.printers), on_cancelled=self._install_cancelled)
         self._set_page("install", view)
         view.start()
 
@@ -178,11 +197,11 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
         self.toast(_("Not installed: the password was not entered."))
 
     def _install_done(self, installs: list[Action], ok: bool, restart: bool, error: str, log: str,
-                      space: list[dict[str, Any]]) -> None:
+                      space: list[dict[str, Any]], printers: list[str] | None = None) -> None:
         self.busy = False
         page = done_page(ok, restart, error, log, on_restart=lambda: actions.run(REBOOT),
                          on_back=self.start_scan, on_retry=lambda: self.install(installs), space=space,
-                         on_help=lambda: self._install_help(installs, error, log))
+                         on_help=lambda: self._install_help(installs, error, log), printers=printers)
         self._set_page("done", page)
 
     def _install_help(self, installs: list[Action], error: str, log: str) -> None:

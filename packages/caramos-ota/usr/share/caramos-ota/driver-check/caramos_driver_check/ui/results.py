@@ -47,10 +47,12 @@ from .common import (
 class ResultsView(Gtk.Box):
     def __init__(self, report: Report, *, came_online: bool, on_action: Callable[[Action, Finding | None], None],
                  on_install_all: Callable[[list[Action]], None], on_report: Callable[[], None],
-                 on_recheck: Callable[[], None], on_close: Callable[[], None]) -> None:
+                 on_recheck: Callable[[], None], on_close: Callable[[], None],
+                 on_canon_network: Callable[[], None] | None = None) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.report = report
         self.on_action = on_action
+        self.on_canon_network = on_canon_network
 
         view = Adw.ToolbarView()
         bar = header(_("Driver Check"))
@@ -277,7 +279,27 @@ class ResultsView(Gtk.Box):
             tile.append(summary)
             flow.append(tile)
         box.append(flow)
+        if self.on_canon_network is not None:
+            box.append(self._canon_network_row(self.on_canon_network))
         return box
+
+    @staticmethod
+    def _canon_network_row(on_add: Callable[[], None]) -> Gtk.Widget:
+        """Network printers are not hardware of this computer, so the check cannot find them: the user adds one."""
+
+        row = Gtk.Box(spacing=12)
+        row.set_margin_top(4)
+        row.append(icon("printer-symbolic", 20, "tile-icon"))
+        text = label(_("A Canon laser printer on the office network that needs Canon's driver, such as the "
+                       "LBP6300dn?"), "dim-label")
+        text.set_hexpand(True)
+        text.set_valign(Gtk.Align.CENTER)
+        row.append(text)
+        button = Gtk.Button(label=_("Add printer…"), valign=Gtk.Align.CENTER)
+        button.add_css_class("pill")
+        button.connect("clicked", lambda _button: on_add())
+        row.append(button)
+        return row
 
 
 def _level_badge(level: str) -> str:

@@ -146,12 +146,15 @@ class NewInstallTests(unittest.TestCase):
         self.assertFalse((REPO / "config/includes.chroot/etc/skel/.config/autostart/copyq.desktop").exists())
 
     def test_every_listed_shortcut_is_defined(self) -> None:
-        # custom2 was CopyQ's Super+V, whose definition went in May 2026.
+        # custom2 was CopyQ's Super+V, whose definition went in May 2026. The others are defined in dconf, as
+        # overrides cannot reach the relocatable custom shortcuts (20261112100000_screenshot_shortcuts).
         override = (REPO / "config/includes.chroot/usr/share/glib-2.0/schemas/99_caramos.gschema.override").read_text(
+            encoding="utf-8")
+        defaults = (REPO / "config/includes.chroot/etc/dconf/db/local.d/02-caramos-screenshot-keys").read_text(
             encoding="utf-8")
         listed = re.search(r"^custom-list=\[(.*)\]$", override, re.MULTILINE).group(1)
         for name in re.findall(r"'([^']+)'", listed):
-            self.assertIn(f"/org/cinnamon/desktop/keybindings/custom-keybindings/{name}/]", override)
+            self.assertIn(f"\n[org/cinnamon/desktop/keybindings/custom-keybindings/{name}]\n", defaults)
         self.assertNotIn("'custom2'", listed)
 
 

@@ -1,0 +1,26 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "Phím tắt (dưới 1 MB)",
+  "size_en": "Keyboard shortcuts (under 1 MB)",
+  "title": "Bấm PrtSc hoặc Win+Shift+S để chụp màn hình",
+  "summary": "Sửa lỗi bấm PrtSc hay Win+Shift+S không có tác dụng: giờ hai phím này mở Flameshot để chọn vùng cần chụp, rồi chép hoặc lưu ảnh.",
+  "title_en": "Press PrtSc or Win+Shift+S to take a screenshot",
+  "summary_en": "Fixes PrtSc and Win+Shift+S doing nothing: both keys now open Flameshot to pick the part of the screen to capture, then copy or save the picture.",
+  "release_notes_vi": [
+    "Bấm PrtSc hoặc Win+Shift+S rồi kéo chuột chọn vùng cần chụp (Ctrl+A để chọn cả màn hình).",
+    "Ctrl+C chép ảnh để dán thẳng vào Zalo, Messenger, Word…; Ctrl+S lưu ảnh vào thư mục Ảnh; Esc để hủy.",
+    "Trước đây hai phím này không có tác dụng vì một lỗi trong cấu hình phím tắt của CaramOS.",
+    "Ai đã tự gán phím tắt riêng cho PrtSc hay Win+Shift+S thì vẫn giữ phím tắt của mình.",
+    "Áp dụng ngay, không cần đăng nhập lại."
+  ],
+  "release_notes_en": [
+    "Press PrtSc or Win+Shift+S and drag the mouse over the part of the screen to capture (Ctrl+A takes the whole screen).",
+    "Ctrl+C copies the picture to paste straight into Zalo, Messenger, Word…; Ctrl+S saves it in the Pictures folder; Esc cancels.",
+    "Before, both keys did nothing because of a mistake in CaramOS's shortcut settings.",
+    "If you set your own shortcut on PrtSc or Win+Shift+S, you keep it.",
+    "Works right away, without logging in again."
+  ]
+}

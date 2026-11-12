@@ -12,3 +12,11 @@ override_dh_auto_test:
 override_dh_install:
 	chmod 0644 debian/install
 	dh_install
+
+# Canon's printer daemon and its plug-in setup (Driver Check's canon_capt.py) run only on computers where the user
+# installed Canon's driver, which adds the daemon to multi-user.target itself. Never start them from this package,
+# nor stop the daemon on each upgrade (without --no-stop-on-upgrade, --no-start stops it in preinst): a print job
+# would stop, and the printers would stay off until the next boot.
+override_dh_installsystemd:
+	dh_installsystemd caramos-ota-check.service caramos-ota-check.timer
+	dh_installsystemd --no-start --no-stop-on-upgrade caramos-canon-capt.service caramos-canon-capt-setup.service

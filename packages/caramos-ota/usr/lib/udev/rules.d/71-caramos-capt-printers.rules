@@ -4,19 +4,20 @@
 # PostScript driver: the queue reports jobs as printed while the printer prints nothing, and its first job
 # sends PostScript to the printer. Skip the automatic setup until a driver that fits is installed, and start
 # Driver Check in the user's desktop session (caramos-driver-check-hotplug.service, a systemd user unit): it
-# tells at once that the printer needs a driver and offers captdriver for the models it drives.
+# tells at once that the printer needs a driver and offers captdriver for the models it drives, Canon's own
+# driver for the others.
 ACTION!="add", GOTO="caramos_capt_end"
 SUBSYSTEM!="usb", GOTO="caramos_capt_end"
 ENV{DEVTYPE}!="usb_device", GOTO="caramos_capt_end"
 ATTR{idVendor}!="04a9", GOTO="caramos_capt_end"
 ENV{SYSTEMD_WANTS}!="*configure-printer@*", GOTO="caramos_capt_end"
 
-# Canon's own driver prints through its daemon (ccpd) and a ccp:// queue: a usb:// queue would fight it
-# for the printer.
-TEST=="/usr/sbin/ccpd", ENV{SYSTEMD_WANTS}="", GOTO="caramos_capt_end"
 # captdriver (printer-driver-captdriver): its PPDs carry the printers' device IDs, so the automatic setup
-# picks it for the models it drives.
+# picks it for the models it drives. They keep it when Canon's driver is installed too (canon_capt.setup_usb).
 ATTR{idProduct}=="2676|266a|26da|26db|271a", TEST=="/usr/lib/cups/filter/rastertocapt", GOTO="caramos_capt_end"
+# Canon's own driver prints through its daemon (ccpd) and a ccp:// queue, which Driver Check sets up
+# (72-caramos-canon-capt.rules): a usb:// queue would fight it for the printer.
+TEST=="/usr/sbin/ccpd", ENV{SYSTEMD_WANTS}="", GOTO="caramos_capt_end"
 ATTR{idProduct}=="260a|2617|262b|2636|2654|2657|266a|266e|2676|2679|267e|268b|26a1|26a4|26b9|26ba|26da|26db|26ea|26f1|26ff|271a|271b|271c|2771", ENV{SYSTEMD_WANTS}="", \
   TAG+="systemd", ENV{SYSTEMD_USER_WANTS}+="caramos-driver-check-hotplug.service"
 

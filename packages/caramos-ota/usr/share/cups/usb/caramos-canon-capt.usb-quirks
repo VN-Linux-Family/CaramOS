@@ -1,0 +1,44 @@
+# CaramOS: Canon CAPT printers that captdriver does not drive (knowledge.CAPT_PRINTERS less CAPTDRIVER_MODELS).
+# They work only through Canon's own driver, whose daemon (ccpd) opens /dev/usb/lpN: keep the CUPS USB backend
+# from taking them over (it unbinds usblp whenever it probes a printer), and from listing them as printers it
+# could drive.
+# LBP810
+0x04a9 0x260a blacklist
+# LBP1210
+0x04a9 0x2617 blacklist
+# LBP1120
+0x04a9 0x262b blacklist
+# LBP3200
+0x04a9 0x2636 blacklist
+# LBP3600
+0x04a9 0x2654 blacklist
+# LBP3210
+0x04a9 0x2657 blacklist
+# LBP5200
+0x04a9 0x266e blacklist
+# LBP5000
+0x04a9 0x2679 blacklist
+# LBP3300
+0x04a9 0x267e blacklist
+# LBP3500
+0x04a9 0x268b blacklist
+# LBP5300
+0x04a9 0x26a1 blacklist
+# LBP5100
+0x04a9 0x26a4 blacklist
+# LBP3310
+0x04a9 0x26b9 blacklist
+# LBP5050
+0x04a9 0x26ba blacklist
+# LBP9100C
+0x04a9 0x26ea blacklist
+# LBP7200C
+0x04a9 0x26f1 blacklist
+# LBP6300
+0x04a9 0x26ff blacklist
+# LBP6200
+0x04a9 0x271b blacklist
+# LBP7010C/LBP7018C
+0x04a9 0x271c blacklist
+# LBP6020
+0x04a9 0x2771 blacklist

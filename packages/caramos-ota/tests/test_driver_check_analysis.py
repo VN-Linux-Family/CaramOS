@@ -322,6 +322,31 @@ class GraphicsTests(unittest.TestCase):
         self.assertEqual(("graphics:no-driver:pci:8086:b080", WARNING), (finding.key, finding.level))
         self.assertIn("basic mode", finding.detail)
 
+    GM45 = "Intel Mobile 4 Series Chipset Integrated Graphics Controller"
+
+    def test_the_second_display_function_of_old_intel_graphics_needs_no_driver(self) -> None:
+        # GM45 (Core 2 laptops): i915 drives 00:02.0, and 00:02.1 is the same chip's second display pipe.
+        vga = Device("pci", "0000:00:02.0", "8086", "2a42", self.GM45, driver="i915", pci_class="030000")
+        second = Device("pci", "0000:00:02.1", "8086", "2a43", self.GM45, pci_class="038000")
+        report = analyze(laptop(pci=(INTEL_WIFI, vga, second, INTEL_AUDIO)))
+        self.assertEqual((), report.findings)
+        graphics = next(area for area in report.areas if area.key == "graphics")
+        self.assertEqual(OK, graphics.level)
+
+    def test_old_intel_graphics_without_driver_is_one_card(self) -> None:
+        vga = Device("pci", "0000:00:02.0", "8086", "2a42", self.GM45, pci_class="030000")
+        second = Device("pci", "0000:00:02.1", "8086", "2a43", self.GM45, pci_class="038000")
+        report = analyze(laptop(pci=(INTEL_WIFI, vga, second, INTEL_AUDIO)))
+        self.assertEqual(["graphics:no-driver:pci:8086:2a42"], [finding.key for finding in report.findings])
+
+    def test_a_display_controller_alone_in_its_slot_is_still_checked(self) -> None:
+        # Function 0 of 00:1f is not a display device: 00:1f.4 is a card of its own.
+        isa = Device("pci", "0000:00:1f.0", "8086", "2a40", "Intel ICH9M LPC Interface Controller", driver="lpc_ich",
+                     pci_class="060100")
+        display = Device("pci", "0000:00:1f.4", "1234", "5678", "Some Display Controller", pci_class="038000")
+        report = analyze(laptop(pci=(INTEL_WIFI, INTEL_GPU, isa, display, INTEL_AUDIO)))
+        self.assertEqual(["graphics:no-driver:pci:1234:5678"], [finding.key for finding in report.findings])
+
 
 class SoundBluetoothCameraTests(unittest.TestCase):
     def test_sound_without_any_driver(self) -> None:

@@ -10,7 +10,17 @@ from typing import Any
 from caramos_ota.i18n import _
 
 from . import problem
-from .constants import OTA_COMMAND, PKEXEC_COMMAND, UPGRADE_TIMEOUT_SECONDS
+from .constants import (
+    BUSY,
+    CANCELLED,
+    DONE,
+    FAILED,
+    OTA_BUSY,
+    OTA_COMMAND,
+    PKEXEC_COMMAND,
+    PKEXEC_REFUSED,
+    UPGRADE_TIMEOUT_SECONDS,
+)
 from .state import read_available_update, read_no_update_status, resolve_available_update_now
 from .ui import (
     build_no_update_page,
@@ -52,8 +62,24 @@ def stage_for_line(line: str) -> str:
     return _("Updating CaramOS…")
 
 
-def run_upgrade_stream(on_line) -> tuple[bool, str]:
-    """Run the OTA upgrade via pkexec and stream output lines to the UI."""
+def upgrade_outcome(return_code: int) -> str:
+    """DONE, CANCELLED (no password given), BUSY (another update holds the OTA lock) or FAILED.
+
+    Up to 1.3.9 a closed password window and an update already running elsewhere showed "Update failed" and
+    offered to send the log to VNLF, though nothing went wrong.
+    """
+
+    if return_code == 0:
+        return DONE
+    if return_code in PKEXEC_REFUSED:
+        return CANCELLED
+    if return_code == OTA_BUSY:
+        return BUSY
+    return FAILED
+
+
+def run_upgrade_stream(on_line) -> tuple[str, str]:
+    """Run the OTA upgrade via pkexec and stream output lines to the UI: (upgrade_outcome, output)."""
 
     output: list[str] = []
     process: subprocess.Popen[str] | None = None
@@ -83,16 +109,16 @@ def run_upgrade_stream(on_line) -> tuple[bool, str]:
             timer.cancel()
         detail = "\n".join(output).strip()
         if return_code < 0:
-            return False, _("The update timed out (10 minutes).")
-        return return_code == 0, detail
+            return FAILED, _("The update timed out (10 minutes).")
+        return upgrade_outcome(return_code), detail
     except subprocess.TimeoutExpired:
         if process and process.poll() is None:
             process.kill()
-        return False, _("The update timed out (10 minutes).")
+        return FAILED, _("The update timed out (10 minutes).")
     except FileNotFoundError:
-        return False, _("The pkexec command was not found.")
+        return FAILED, _("The pkexec command was not found.")
     except Exception as exc:
-        return False, str(exc)
+        return FAILED, str(exc)
 
 
 class UpdateWindowController:
@@ -150,7 +176,7 @@ class UpdateWindowController:
         return False
 
     def start_upgrade(self) -> None:
-        """Switch to progress and launch the privileged updater once."""
+        """Switch to progress and launch the privileged updater (again after Try again)."""
 
         if self.upgrade_running or self.progress_bar is None:
             return
@@ -158,6 +184,11 @@ class UpdateWindowController:
         self.upgrade_running = True
         self.window.set_deletable(False)
         self.window.set_title(_("CaramOS - Updating…"))
+        if self.log_view is not None and self.stage_label is not None:
+            # Try again: the progress shows this run only.
+            self.log_view.get_buffer().set_text("")
+            self.stage_label.set_text(_("Preparing the update…"))
+            self.progress_bar.set_fraction(0.0)
         self.stack.set_visible_child_name("progress")
         self.pulse_source_id = self.GLib.timeout_add(100, self.pulse)
 
@@ -165,8 +196,8 @@ class UpdateWindowController:
         self.thread.start()
 
     def _do_upgrade(self) -> None:
-        success, detail = run_upgrade_stream(self.queue_log_line)
-        self.GLib.idle_add(self.on_upgrade_done, success, detail)
+        outcome, detail = run_upgrade_stream(self.queue_log_line)
+        self.GLib.idle_add(self.on_upgrade_done, outcome, detail)
 
     def queue_log_line(self, line: str) -> None:
         """Queue one updater line (updater thread); the GTK thread shows the queue every LOG_FLUSH_MS.
@@ -232,8 +263,8 @@ class UpdateWindowController:
         self.progress_bar.pulse()
         return True
 
-    def on_upgrade_done(self, success: bool, detail: str) -> bool:
-        """Replace progress with the result inside the same window."""
+    def on_upgrade_done(self, outcome: str, detail: str) -> bool:
+        """Replace progress with the result inside the same window (outcome: see upgrade_outcome)."""
 
         self.flush_log_lines()
         self.upgrade_running = False
@@ -243,19 +274,24 @@ class UpdateWindowController:
         if self.progress_bar is not None:
             self.progress_bar.set_fraction(1.0)
         if self.stage_label is not None:
-            self.stage_label.set_text(_("Update complete.") if success else _("Update failed."))
+            stages = {DONE: _("Update complete."), CANCELLED: _("Not updated."),
+                      BUSY: _("Another update is running.")}
+            self.stage_label.set_text(stages.get(outcome, _("Update failed.")))
 
+        # Only a real failure goes to VNLF; no password or a busy updater only needs another try.
         on_help = None
-        if not success and problem.help_available():
+        if outcome == FAILED and problem.help_available():
             on_help = lambda: problem.ask_for_help(detail, self.update_info)   # noqa: E731
-        result_page = build_result_page(success, detail, self.close, on_help)
+        on_retry = self.start_upgrade if outcome in (CANCELLED, BUSY) else None
+        result_page = build_result_page(outcome, detail, self.close, on_help, on_retry)
         old_result = self.stack.get_child_by_name("result")
         if old_result is not None:
             self.stack.remove(old_result)
         self.stack.add_named(result_page, "result")
         result_page.show_all()
         self.stack.set_visible_child_name("result")
-        self.window.set_title(_("CaramOS - Update complete!") if success else _("CaramOS - Update failed"))
+        titles = {DONE: _("CaramOS - Update complete!"), FAILED: _("CaramOS - Update failed")}
+        self.window.set_title(titles.get(outcome, _("CaramOS - Not updated")))
         self.window.set_deletable(True)
         return False
 

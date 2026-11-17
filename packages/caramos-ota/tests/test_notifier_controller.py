@@ -102,6 +102,9 @@ class FakeTextBuffer:
     def delete(self, start: int, end: int) -> None:
         self.text = self.text[:start] + self.text[end:]
 
+    def set_text(self, text: str) -> None:
+        self.text = text
+
     def create_mark(self, name, where: int, left_gravity: bool):
         mark = (name, where, left_gravity)
         self.marks.append(mark)
@@ -272,7 +275,7 @@ class UpdateWindowControllerTests(unittest.TestCase):
         result_page = FakePage("result")
 
         with mock.patch.object(app, "build_result_page", return_value=result_page) as build_result:
-            repeat = controller.on_upgrade_done(True, "complete")
+            repeat = controller.on_upgrade_done(app.DONE, "complete")
 
         self.assertFalse(repeat)
         self.assertFalse(controller.upgrade_running)
@@ -284,7 +287,7 @@ class UpdateWindowControllerTests(unittest.TestCase):
         self.assertTrue(result_page.shown)
         self.assertTrue(self.window.deletable)
         self.assertEqual("CaramOS - Update complete!", self.window.title)
-        build_result.assert_called_once_with(True, "complete", controller.close, None)
+        build_result.assert_called_once_with(app.DONE, "complete", controller.close, None, None)
 
     def test_a_failed_update_can_ask_vnlf_for_help_with_its_log(self) -> None:
         controller = self.make_controller({"release": "1.1", "title": "Zalo"})
@@ -292,10 +295,61 @@ class UpdateWindowControllerTests(unittest.TestCase):
         with mock.patch.object(app, "build_result_page", return_value=FakePage("result")) as build_result, \
                 mock.patch.object(app.problem, "help_available", return_value=True), \
                 mock.patch.object(app.problem, "ask_for_help") as ask:
-            controller.on_upgrade_done(False, "Error: Migration update failed.")
+            controller.on_upgrade_done(app.FAILED, "Error: Migration update failed.")
             on_help = build_result.call_args.args[3]
             on_help()
         ask.assert_called_once_with("Error: Migration update failed.", {"release": "1.1", "title": "Zalo"})
+
+    def test_exit_codes_tell_a_failure_from_no_password_and_a_busy_updater(self) -> None:
+        self.assertEqual(app.DONE, app.upgrade_outcome(0))
+        self.assertEqual(app.CANCELLED, app.upgrade_outcome(126))   # pkexec: the password window was closed
+        self.assertEqual(app.CANCELLED, app.upgrade_outcome(127))   # pkexec: not authorized
+        self.assertEqual(app.BUSY, app.upgrade_outcome(7))          # caramos-ota: another run holds the lock
+        for code in (1, 4, 5, 6, 8):
+            self.assertEqual(app.FAILED, app.upgrade_outcome(code))
+
+    def test_run_upgrade_stream_reports_a_closed_password_window(self) -> None:
+        lines = []
+        process = mock.Mock()
+        process.stdout = iter(["Error executing command as another user: Request dismissed\n"])
+        process.wait.return_value = 126
+        with mock.patch.object(app.subprocess, "Popen", return_value=process), \
+                mock.patch.object(app.threading, "Timer", return_value=mock.Mock()):
+            outcome, detail = app.run_upgrade_stream(lines.append)
+        self.assertEqual(app.CANCELLED, outcome)
+        self.assertEqual("Error executing command as another user: Request dismissed", detail)
+        self.assertEqual(["Error executing command as another user: Request dismissed"], lines)
+
+    def test_no_password_or_a_busy_updater_offer_try_again_and_no_help(self) -> None:
+        for outcome, stage in ((app.CANCELLED, "Not updated."), (app.BUSY, "Another update is running.")):
+            with self.subTest(outcome=outcome):
+                controller = self.make_controller({"release": "1.1"})
+                controller.start_upgrade()
+                with mock.patch.object(app, "build_result_page", return_value=FakePage("result")) as build_result, \
+                        mock.patch.object(app.problem, "help_available", return_value=True):
+                    controller.on_upgrade_done(outcome, "Error: Another CaramOS OTA operation is already running.")
+                build_result.assert_called_once_with(outcome, "Error: Another CaramOS OTA operation is already running.",
+                                                     controller.close, None, controller.start_upgrade)
+                self.assertEqual(stage, self.stage.text)
+                self.assertEqual("CaramOS - Not updated", self.window.title)
+                self.assertFalse(controller.upgrade_running)
+
+    def test_try_again_shows_only_the_new_run(self) -> None:
+        controller = self.make_controller({"release": "1.1"})
+        controller.start_upgrade()
+        controller.queue_log_line("Error executing command as another user: Request dismissed")
+        with mock.patch.object(app, "build_result_page", return_value=FakePage("result")) as build_result:
+            controller.on_upgrade_done(app.CANCELLED, "Error executing command as another user: Request dismissed")
+        on_retry = build_result.call_args.args[4]
+
+        on_retry()
+
+        self.assertTrue(controller.upgrade_running)
+        self.assertEqual("progress", self.stack.visible)
+        self.assertEqual("", self.log_view.buffer.text)
+        self.assertEqual("Preparing the update…", self.stage.text)
+        self.assertEqual(0.0, self.progress.fraction)
+        self.assertEqual("CaramOS - Updating…", self.window.title)
 
     def test_worker_queues_lines_for_one_flush_on_glib(self) -> None:
         controller = self.make_controller({"release": "1.1"})
@@ -303,14 +357,14 @@ class UpdateWindowControllerTests(unittest.TestCase):
         def fake_upgrade(on_line):
             for line in ("Updating package index", "starting migration", "Get:1 http://archive.ubuntu.com"):
                 on_line(line)
-            return True, "done"
+            return app.DONE, "done"
 
         with mock.patch.object(app, "run_upgrade_stream", side_effect=fake_upgrade):
             controller._do_upgrade()
 
         # One callback for the three lines, not one per line.
         self.assertEqual([controller.flush_log_lines], self.glib.timeout_callbacks)
-        self.assertEqual([(controller.on_upgrade_done, (True, "done"))], self.glib.idle_callbacks)
+        self.assertEqual([(controller.on_upgrade_done, (app.DONE, "done"))], self.glib.idle_callbacks)
         self.assertEqual("", self.log_view.buffer.text)
 
         self.assertFalse(controller.flush_log_lines())
@@ -379,7 +433,7 @@ class UpdateWindowControllerTests(unittest.TestCase):
         controller.queue_log_line("Update complete.")
 
         with mock.patch.object(app, "build_result_page", return_value=FakePage("result")):
-            controller.on_upgrade_done(True, "Update complete.")
+            controller.on_upgrade_done(app.DONE, "Update complete.")
 
         self.assertEqual("Update complete.\n", self.log_view.buffer.text)
         self.assertEqual("Update complete.", self.stage.text)

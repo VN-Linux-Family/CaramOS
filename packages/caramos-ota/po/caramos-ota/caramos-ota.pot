@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-12 20:08+0700\n"
+"POT-Creation-Date: 2026-11-16 16:54+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,133 +18,166 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:181
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:182
 msgid "New features"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:182
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:183
 msgid "Important"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:183
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:184
 msgid "Normal"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:184
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:185
 msgid "None"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:326
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:327
 msgid "CaramOS - Update Center"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:351
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:352
 msgid "A new CaramOS update is available"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:354
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:355
 msgid "This update runs the CaramOS migrations the new version needs."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:358
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:359
 msgid "New update"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:361
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:366
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:479
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:362
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:367
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:498
 msgid "Current version"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:361
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:362
 msgid "Available version"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:377
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:481
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:378
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:500
 msgid "Update channel"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:377
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:378
 msgid "Severity"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:377
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:378
 msgid "Size"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:384
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:385
 #, python-format
 msgid "%d change in this update"
 msgid_plural "%d changes in this update"
 msgstr[0] ""
 msgstr[1] ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:394
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:395
 msgid "CaramOS update"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:402
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:403
 msgid ""
 "Recommended: plug in the charger, keep a stable network connection and do "
 "not turn off the computer during the update. You can close this window and "
 "update later."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:407
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:408
 msgid "Update now"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:408
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:409
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:173
 msgid "Later"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:431
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:432
 msgid "Updating"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:431
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:52
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:432
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:62
 msgid "Updating CaramOS…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:432
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:433
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:190
 msgid "Preparing the update…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:440
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:441
 msgid "Update progress"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:441
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:442
 msgid "Please do not turn off the computer or close the update."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:450
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:455
 msgid "Update complete!"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:450
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:455
 msgid "CaramOS was updated successfully."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:453
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:457
+msgid "Not updated yet"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:458
+msgid ""
+"Updating CaramOS needs the password of an administrator account, and the "
+"password window was closed. Click Try again and type the password when it is "
+"asked for."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:461
+msgid "Another update is running"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:462
+msgid ""
+"CaramOS is already updating, in another Update Center window or in the "
+"background. Wait until it finishes (on a slow connection it can take a "
+"while), then click Try again."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:467
 msgid "Update failed"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:454
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:468
 msgid ""
 "Something went wrong during the update. Try again or run sudo caramos-ota --"
 "repair."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:457
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:471
 msgid "Update details"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:458
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:491
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:474
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:559
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:585
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:656
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:178
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:122
+msgid "Try again"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:475
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:477
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:510
 #: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:97
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:92
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:95
@@ -152,7 +185,7 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:462
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:481
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:172
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:81
@@ -163,27 +196,27 @@ msgstr ""
 msgid "Ask for help"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:463
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:482
 msgid "Ask for help sends VNLF what the update logged, for its team only."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:476
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:495
 msgid "CaramOS is up to date"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:477
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:496
 msgid "The system runs the latest version in the stable update channel."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:478
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:497
 msgid "Update status"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:480
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:499
 msgid "Latest version"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:486
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:505
 msgid ""
 "There are no new migrations to install.\n"
 "\n"
@@ -191,62 +224,74 @@ msgid ""
 "systemd timer."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:39
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:49
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:17
 msgid "Downloading the package list…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:41
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:51
 msgid "Checking the update repository…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:43
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:53
 msgid "Preparing migrations…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:45
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:55
 msgid "Running system migrations…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:47
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:57
 msgid "Updating version information…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:49
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:59
 msgid "Finishing the update…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:51
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:61
 msgid "The update ran into an error."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:86
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:91
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:112
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:117
 msgid "The update timed out (10 minutes)."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:93
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:119
 msgid "The pkexec command was not found."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:160
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:186
 msgid "CaramOS - Updating…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:246
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:277
 msgid "Update complete."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:246
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:277
+msgid "Not updated."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:278
+msgid "Another update is running."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:279
 msgid "Update failed."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:258
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:293
 msgid "CaramOS - Update complete!"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:258
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:293
 msgid "CaramOS - Update failed"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:294
+msgid "CaramOS - Not updated"
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:37
@@ -660,99 +705,99 @@ msgid ""
 "and helps you set this up."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:473
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:487
 msgid "Restart to start the graphics driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:474
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:488
 msgid "The graphics driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:475
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:489
 msgid "The graphics card does not start"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:476
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:490
 msgid "The graphics card has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:479
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:493
 msgid ""
 "The screen runs in a basic mode: slower, and resolution or brightness may "
 "not change."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:494
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:508
 msgid "Restart to start the NVIDIA driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:495
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:509
 msgid "The NVIDIA driver is installed. Restart the computer to start it."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:500
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:514
 msgid "The NVIDIA driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:504
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:518
 msgid ""
 "This NVIDIA card runs on the open-source nouveau driver: slower in games and "
 "videos, and the battery runs down faster."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:507
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:521
 msgid "This NVIDIA card has no driver yet."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:510
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:524
 msgid "Install the NVIDIA driver after installing"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:511
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:525
 msgid ""
 "After installing CaramOS, Driver Check helps you install the NVIDIA driver "
 "(it needs internet)."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:515
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:528
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:529
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:542
 msgid "Install the NVIDIA driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:516
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:530
 msgid ""
 "Open Driver Manager and install the recommended NVIDIA driver (it needs "
 "internet), then restart."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:523
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:537
 #, python-format
 msgid "Recommended for this card: NVIDIA %s"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:524
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:538
 msgid "(open kernel modules)"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:525
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:539
 msgid "Needs internet: a download of up to about 1 GB"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:526
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:540
 msgid "Restart the computer after installing"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:529
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:543
 msgid "CaramOS installs the driver Ubuntu recommends for this card."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:530
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:544
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:558
 #, python-format
 msgid "Install NVIDIA driver %s"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:537
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:551
 #, python-format
 msgid ""
 "Installing %s did not finish: this NVIDIA driver does not work with Linux "
@@ -760,50 +805,50 @@ msgid ""
 "Center and the Update Center."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:543
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:557
 #, python-format
 msgid ""
 "Install NVIDIA driver %s instead: the broken driver is removed at the same "
 "time."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:547
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:561
 msgid ""
 "Open Driver Manager and choose the open-source nouveau driver to remove it."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:549
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:563
 msgid "The NVIDIA driver did not install"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:566
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:580
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:594
 msgid "Restart to start the sound driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:567
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:581
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:595
 msgid "The sound driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:568
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:582
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:596
 msgid "Speakers and microphone are not detected"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:569
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:583
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:597
 msgid "Sound has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:571
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:596
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:585
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:610
 msgid ""
 "Speakers and microphone do not work yet (the sound settings show “Dummy "
 "Output”)."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:588
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:602
 #, python-format
 msgid ""
 "This computer's sound goes through the Intel SST sound engine, which needs a "
@@ -811,110 +856,123 @@ msgid ""
 "one yet. Ask the community for help with the button below."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:613
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:627
 msgid "Restart to start the Bluetooth driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:614
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:628
 msgid "The Bluetooth driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:615
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:629
 msgid "Bluetooth does not start"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:616
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:630
 msgid "Bluetooth has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:621
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:635
 msgid "Bluetooth is turned off by a switch"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:622
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:636
 msgid ""
 "Turn it on with the wireless switch or the Fn key with the airplane symbol."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:636
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:650
 msgid "Restart to start the webcam driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:637
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:651
 msgid "The webcam driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:638
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:652
 msgid "The webcam does not start"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:639
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:653
 msgid "The webcam has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:648
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:662
 msgid "The built-in camera may not work yet"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:649
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:663
 msgid ""
 "This laptop's camera is connected through an Intel IPU image processor, "
 "common on laptops since 2021. Most apps on Linux cannot use this kind of "
 "camera yet; a USB webcam works right away."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:653
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:667
 msgid "The built-in cameras do not work yet"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:654
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:668
 msgid ""
 "This computer's cameras are connected through the image processor of Intel "
 "Atom chips. Linux only has an unfinished driver for it, so apps cannot use "
 "these cameras; a USB webcam works right away."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:669
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:683
 #, python-format
 msgid "%s fingerprint reader"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:672
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:686
 msgid "Log in with your fingerprint"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:673
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:687
 msgid ""
 "This fingerprint reader works with CaramOS. Add your fingerprints to log in "
 "and unlock the screen with them."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:677
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:691
 msgid "The fingerprint reader has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:678
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:692
 msgid ""
 "Linux has no driver for this fingerprint reader yet (libfprint). Log in with "
 "your password."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:696
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:709
+msgid "The printer is not connected properly"
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:710
+msgid ""
+"The computer sees this Canon printer but cannot talk to it over USB, so no "
+"driver can use it yet. Unplug the USB cable and plug it into another USB "
+"port of the computer, best one at the back and not through a hub; if it "
+"happens again, try another cable. Then turn the printer off and on, and "
+"check again."
+msgstr ""
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:722
 msgid ""
 "This Canon printer speaks Canon's own printer language (CAPT), so it prints "
 "nothing without a CAPT driver. Install captdriver, an open-source driver for "
 "it; the printer is then set up by itself."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:701
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:727
 msgid "Support for this model is still experimental."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:703
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:729
 msgid "Install the printer driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:706
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:732
 msgid ""
 "This Canon printer speaks Canon's own printer language (CAPT), and only "
 "Canon's driver supports this model. Driver Check downloads it from Canon "
@@ -922,44 +980,44 @@ msgid ""
 "and sets up the printer."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:710
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:736
 msgid "Install Canon's driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:713
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:739
 msgid ""
 "This Canon printer speaks Canon's own printer language (CAPT), and neither "
 "captdriver nor Canon's Linux driver supports this model. Ask the community "
 "for help with the button below."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:717
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:743
 msgid "The printer has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:748
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:774
 msgid "Restart to start a device driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:749
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:775
 msgid "A device driver did not load"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:750
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:776
 msgid "A device has no driver"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:767
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:793
 #, python-format
 msgid "Recommended driver for %s"
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:768
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:794
 #, python-format
 msgid "Ubuntu recommends the %s package for this device."
 msgstr ""
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:769
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:795
 msgid "Install the driver"
 msgstr ""
 
@@ -1565,14 +1623,6 @@ msgstr ""
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:558
 msgid "Send without it"
-msgstr ""
-
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:559
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:585
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:656
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:178
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:122
-msgid "Try again"
 msgstr ""
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:569

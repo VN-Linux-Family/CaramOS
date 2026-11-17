@@ -460,8 +460,22 @@ class _Analysis:
 
     # Graphics ----------------------------------------------------------------------------------
 
+    def _second_display_function(self, device: Device) -> bool:
+        """Function 1 and up of a graphics chip whose function 0 is a display device too.
+
+        Intel's chipset graphics up to GM45 show a second PCI function, a "Display controller" (8086:2a43 next
+        to the VGA controller 8086:2a42): the chip's second display pipe. The driver of function 0 (i915)
+        runs both, so function 1 never has a driver of its own and is no card without a driver.
+        """
+
+        slot, dot, function = device.address.rpartition(".")
+        if not dot or function == "0":
+            return False
+        return any(other.address == f"{slot}.0" and other.pci_class_is(*PCI_DISPLAY) for other in self.snapshot.pci)
+
     def _graphics(self) -> None:
-        cards = [device for device in self.snapshot.pci if device.pci_class_is(*PCI_DISPLAY)]
+        cards = [device for device in self.snapshot.pci
+                 if device.pci_class_is(*PCI_DISPLAY) and not self._second_display_function(device)]
         for device in cards:
             if self.snapshot.virtual:
                 continue
@@ -687,6 +701,18 @@ class _Analysis:
         printers = [device for device in self.snapshot.usb if knowledge.capt_printer(device)]
         drivers = self.snapshot.capt_drivers
         for device in printers:
+            if not device.interfaces:
+                # The kernel read who the printer is but could not set it up ("usb 1-6: can't set config #1,
+                # error -71"): it has no printer port, so no driver can use it, and the driver install was
+                # refused as "not a driver for this computer". A cable, port or hub problem: say so instead.
+                self._add("printer", WARNING, f"printer:usb-error:{device.key}",
+                          _("The printer is not connected properly"),
+                          _("The computer sees this Canon printer but cannot talk to it over USB, so no driver "
+                            "can use it yet. Unplug the USB cable and plug it into another USB port of the "
+                            "computer, best one at the back and not through a hub; if it happens again, try "
+                            "another cable. Then turn the printer off and on, and check again."),
+                          device, (_action(REPORT),))
+                continue
             self._proposal(device)   # the driver below is this device's ubuntu-drivers proposal
             supported = device.product in knowledge.CAPTDRIVER_MODELS
             if "canon" in drivers or (supported and "captdriver" in drivers):

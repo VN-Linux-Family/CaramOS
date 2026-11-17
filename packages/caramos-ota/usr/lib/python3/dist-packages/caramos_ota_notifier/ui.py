@@ -13,6 +13,7 @@ from typing import Any
 
 from caramos_ota.i18n import _, localized, ngettext
 
+from .constants import BUSY, CANCELLED, DONE, FAILED
 from .state import format_value, normalize_package
 
 CARAMOS_ICON = Path("/usr/share/pixmaps/caramos-logo.png")
@@ -442,22 +443,40 @@ def build_progress_page():
     return page, progress, stage_lbl, log_view
 
 
-def build_result_page(success: bool, detail: str, on_close, on_help=None):
-    """Build the result page shown after update; on_help: after a failure, ask VNLF for help with the log."""
+def build_result_page(outcome: str, detail: str, on_close, on_help=None, on_retry=None):
+    """Build the result page shown after an update run (outcome: DONE, FAILED, CANCELLED or BUSY).
+
+    on_help: after a failure, ask VNLF for help with the log. on_retry: run the update again, offered when
+    no password was given or another update was running.
+    """
 
     Gtk, _gdk, _glib = import_gtk()
-    if success:
+    if outcome == DONE:
         hero = _hero(Gtk, "", _("Update complete!"), _("CaramOS was updated successfully."))
+    elif outcome == CANCELLED:
+        hero = _hero(Gtk, "", _("Not updated yet"),
+                     _("Updating CaramOS needs the password of an administrator account, and the password "
+                       "window was closed. Click Try again and type the password when it is asked for."))
+    elif outcome == BUSY:
+        hero = _hero(Gtk, "", _("Another update is running"),
+                     _("CaramOS is already updating, in another Update Center window or in the background. "
+                       "Wait until it finishes (on a slow connection it can take a while), then click Try "
+                       "again."))
     else:
         hero = _hero(
             Gtk, "", _("Update failed"),
             _("Something went wrong during the update. Try again or run sudo caramos-ota --repair."),
             error=True,
         )
-    details, _view = _details(Gtk, _("Update details"), detail or "", expanded=not success)
-    buttons = [_button(Gtk, _("Close"), "primary", lambda _button: on_close())]
+    details, _view = _details(Gtk, _("Update details"), detail or "", expanded=outcome == FAILED)
+    if on_retry is not None:
+        # The bar packs from the end: Try again stays at the right edge.
+        buttons = [_button(Gtk, _("Try again"), "primary", lambda _button: on_retry()),
+                   _button(Gtk, _("Close"), "secondary", lambda _button: on_close())]
+    else:
+        buttons = [_button(Gtk, _("Close"), "primary", lambda _button: on_close())]
     hint = ""
-    if not success and on_help is not None:
+    if outcome == FAILED and on_help is not None:
         # The bar packs from the end: Close stays at the right edge.
         buttons.append(_button(Gtk, _("Ask for help"), "secondary", lambda _button: on_help()))
         hint = _("Ask for help sends VNLF what the update logged, for its team only.")

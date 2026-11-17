@@ -1,3 +1,27 @@
+caramos-ota (1.3.10-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.3.10.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Update Center: closing the password window (pkexec 126), or an account
+    that may not update the system (127), no longer ends on "Update failed"
+    with a help button. The result page says nothing was updated and offers
+    Try again.
+  * Update Center: starting an update while another one runs (another
+    Update Center window or the daily check, caramos-ota exit 7) says so
+    and offers Try again instead of "Update failed". Try again starts with
+    an empty log.
+  * Driver Check: a Canon CAPT printer the kernel could not set up over USB
+    (no USB interfaces, e.g. "can't set config #1, error -71") is reported
+    as "The printer is not connected properly", with advice to use another
+    port or cable, instead of offering a driver that ubuntu-drivers then
+    refuses ("not a driver for this computer").
+  * Driver Check: Intel GM45 / Mobile 4 Series graphics no longer warn that
+    there is no driver. Their second display function (8086:2a43, PCI
+    function .1) never has a driver; display functions other than .0 are
+    skipped when function .0 of the same slot is a display device.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Tue, 17 Nov 2026 12:23:27 +0700
+
 caramos-ota (1.3.9-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.3.9.

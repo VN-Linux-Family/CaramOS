@@ -103,6 +103,22 @@ class CaptPrinterTests(unittest.TestCase):
         report = analyze(machine(LBP2900), proposals=[proposal])
         self.assertEqual(["printer:capt:usb:04a9:2676"], [finding.key for finding in report.findings])
 
+    def test_a_printer_the_kernel_could_not_set_up_gets_usb_advice_not_a_driver(self) -> None:
+        # dmesg: "usb 1-6: can't set config #1, error -71": the device is known, it has no interfaces.
+        unconfigured = replace(LBP2900, interfaces=())
+        for drivers in ((), ("captdriver",), ("canon",)):
+            with self.subTest(drivers=drivers):
+                report = analyze(machine(unconfigured, capt_drivers=drivers))
+
+                [finding] = report.findings
+                self.assertEqual(("printer", WARNING, "printer:usb-error:usb:04a9:2676"),
+                                 (finding.area, finding.level, finding.key))
+                self.assertEqual("The printer is not connected properly", finding.title)
+                self.assertIn("another USB port", finding.detail)
+                self.assertEqual([REPORT], [action.kind for action in finding.actions])
+                self.assertEqual((), report.installs)
+                self.assertEqual("usb:04a9:2676", user_state.device_key(finding.key))
+
     def test_no_printer_no_printer_area(self) -> None:
         self.assertNotIn("printer", [area.key for area in analyze(machine()).areas])
 

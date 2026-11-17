@@ -1,0 +1,52 @@
+# CaramOS live USB boot menu (UEFI). scripts/boot_config.sh copies it over Linux Mint's
+# /boot/grub/live-theme/theme.txt, with the two fonts next to it. The fonts are DejaVu Sans with the Vietnamese
+# letters (make-fonts.sh): Mint's Unifont 16 is tiny at the native resolution of today's laptop panels, which
+# gfxmode=auto picks. The logo is on the upper half of the splash, the menu on the lower half.
+desktop-image: "/boot/grub/splash.png"
+desktop-image-scale-method: "padding"
+desktop-color: "#000000"
+title-text: ""
+message-font: "DejaVu Sans Regular 18"
+terminal-font: "Unifont Regular 16"
+
++ boot_menu {
+        left = 5%
+        width = 90%
+        top = 52%
+        height = 48%-92
+        item_font = "DejaVu Sans Bold 24"
+        selected_item_font = "DejaVu Sans Bold 24"
+        item_color = "#b4b4b4"
+        selected_item_color = "#f6a623"
+        item_height = 34
+        item_padding = 0
+        item_spacing = 4
+        icon_width = 0
+        icon_height = 0
+        item_icon_space = 0
+}
+
++ progress_bar {
+        id = "__timeout__"
+        left = 15%
+        width = 70%
+        top = 100%-88
+        height = 28
+        font = "DejaVu Sans Regular 18"
+        text_color = "#000000"
+        fg_color = "#f6a623"
+        bg_color = "#a8a8a8"
+        border_color = "#ffffff"
+        text = "CaramOS tự khởi động sau %d giây"
+}
+
++ label {
+        top = 100%-48
+        left = 0
+        width = 100%
+        height = 26
+        align = "center"
+        color = "#ffffff"
+        font = "DejaVu Sans Regular 18"
+        text = "Enter: khởi động · e: sửa lệnh khởi động · c: dòng lệnh (Esc để quay lại)"
+}

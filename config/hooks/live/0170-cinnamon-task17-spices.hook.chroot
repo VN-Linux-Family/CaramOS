@@ -34,6 +34,14 @@ install_spice_from_repo() {
     if [ -n "$src" ] && [ -d "$src" ]; then
         rm -rf "${dest_base:?}/${uuid}"
         cp -a "$src" "$dest_base/"
+        # A Nemo action's <uuid>.nemo_action is built from <uuid>.nemo_action.in at the root of the spice, not in
+        # files/<uuid>. Keep the template next to the scripts: migration 20261117100100_nemo_actions_in_menu
+        # builds the action file from it, with the translations of the spice's po/ folder.
+        local template
+        template=$(find "$extract_dir" -type f -name "${uuid}.nemo_action.in" -print -quit 2>/dev/null || true)
+        if [ -n "$template" ]; then
+            cp "$template" "$dest_base/${uuid}/"
+        fi
     else
         echo "[CaramOS] WARNING: spice ${uuid} not found in ${repo}" >&2
     fi

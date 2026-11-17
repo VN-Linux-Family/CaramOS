@@ -1,0 +1,14 @@
+[Unit]
+Description=Today's photo of Vietnam for System Settings > Backgrounds (CaramOS)
+ConditionUser=!@system
+# Not in the live session of the USB stick: its photos would be gone at shutdown.
+ConditionKernelCommandLine=!boot=casper
+
+[Timer]
+OnStartupSec=2min
+OnCalendar=*-*-* 00:05:00
+RandomizedDelaySec=20min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

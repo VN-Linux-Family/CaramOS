@@ -1,0 +1,20 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Nguồn phần mềm",
+  "size_en": "Software sources",
+  "title": "apt update không còn báo dòng i386 của bộ gõ Lotus",
+  "summary": "Nguồn cài bộ gõ Lotus giờ chỉ hỏi bản 64-bit, nên lệnh sudo apt update thôi hiện dòng thông báo về i386 trông như báo lỗi.",
+  "title_en": "apt update no longer prints the Lotus i386 notice",
+  "summary_en": "The Lotus input method's package source now asks for 64-bit packages only, so sudo apt update no longer prints a notice about i386 that looks like an error.",
+  "release_notes_vi": [
+    "Lệnh sudo apt update thôi hiện dòng “doesn't support architecture 'i386'” của kho bộ gõ Lotus. Dòng đó chỉ là thông báo, máy không có lỗi gì.",
+    "Bộ gõ Lotus vẫn được cập nhật như trước."
+  ],
+  "release_notes_en": [
+    "sudo apt update no longer prints “doesn't support architecture 'i386'” for the Lotus input method's repository. It was only a notice; nothing was wrong.",
+    "Lotus keeps getting its updates as before."
+  ]
+}

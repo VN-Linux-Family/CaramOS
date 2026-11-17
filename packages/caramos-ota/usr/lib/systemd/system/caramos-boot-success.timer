@@ -1,0 +1,12 @@
+[Unit]
+Description=Wait for the desktop before telling GRUB this boot went well (CaramOS)
+ConditionPathExists=/boot/grub/grub.cfg
+ConditionKernelCommandLine=!boot=casper
+
+[Timer]
+OnBootSec=60s
+OnUnitInactiveSec=30s
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

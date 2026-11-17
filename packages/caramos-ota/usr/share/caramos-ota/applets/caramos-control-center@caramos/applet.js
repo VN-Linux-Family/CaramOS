@@ -58,6 +58,32 @@ const LIGHT_DEFAULT_WALLPAPERS = [
 ];
 const DARK_DEFAULT_WALLPAPER = 'file:///usr/share/backgrounds/caramos/02-indigo-night-2k.jpg';
 const WALLPAPER_MODE_SETTLE_MS = 800;
+// Accent colour of the popup (tiles, sliders, panel icons, primary buttons): the CaramOS orange, a colour the user
+// picks, or 'auto', the colour of the theme set in System Settings > Themes. The choice is the accent-color key of
+// ACCENT_SCHEMA (shipped with this package). stylesheet.css has a .caramos-cc-accent-<key> block for each colour
+// but orange, which is the base style.
+const ACCENT_SCHEMA = 'net.vietnamlinuxfamily.caramos.control-center';
+const ACCENT_KEY = 'accent-color';
+// 'custom' in ACCENT_KEY: the #rrggbb in ACCENT_CUSTOM_KEY, picked with GTK's colour chooser (ACCENT_PICKER). Its
+// stylesheet is written to ~/.cache/caramos-control-center and loaded into the running theme.
+const ACCENT_CUSTOM_KEY = 'custom-accent';
+const ACCENT_PICKER = '/usr/share/caramos-ota/control-center/caramos-accent-picker';
+const ACCENTS = [
+    { key: 'orange', color: '#f59f22' },
+    { key: 'blue', color: '#3584e4' },
+    { key: 'teal', color: '#1a9aa0' },
+    { key: 'green', color: '#2e9e57' },
+    { key: 'purple', color: '#8c5dd8' },
+    { key: 'pink', color: '#d9488b' },
+    { key: 'red', color: '#e0353b' },
+    { key: 'graphite', color: '#66707c' },
+];
+// Colour names of the Mint-Y/Mint-L variants in styles.d, and colour words in theme names, to the nearest accent.
+const ACCENT_WORDS = [
+    ['aqua', 'blue'], ['blue', 'blue'], ['teal', 'teal'], ['green', 'green'], ['purple', 'purple'],
+    ['magenta', 'purple'], ['pink', 'pink'], ['red', 'red'], ['grey', 'graphite'], ['gray', 'graphite'],
+    ['orange', 'orange'], ['yellow', 'orange'], ['sand', 'orange'], ['brown', 'orange'],
+];
 const BRIGHTNESS_BUS_NAME = 'org.cinnamon.SettingsDaemon.Power.Screen';
 const SESSION_BUS_NAME = 'org.gnome.SessionManager';
 const SESSION_OBJECT_PATH = '/org/gnome/SessionManager';
@@ -1610,6 +1636,7 @@ function spawnAllowed(command) {
         logout: 'cinnamon-session-quit --logout --no-prompt',
         switchUser: 'dm-tool switch-to-greeter',
         screenshot: commandExists('flameshot') ? 'flameshot gui' : 'gnome-screenshot -i',
+        accentPicker: ACCENT_PICKER,
     };
     if (allowed[command]) Util.spawnCommandLine(allowed[command]);
 }
@@ -1689,6 +1716,129 @@ function appearanceIsDark(styles, current) {
     const active = findActiveAppearance(styles, current);
     if (active) return active.mode === 'dark';
     return current.colorScheme === 'prefer-dark';
+}
+
+// The accent of 'auto': the colour of the active style variant (Mint-Y-Blue: blue), else a colour word in the GTK
+// theme name, else the CaramOS orange. CaramOS's own style lists its Cinnamon-Delight sets as "aqua" only because
+// Cinnamon Settings needs a colour name for them: that look stays orange.
+function accentFromAppearance(styles, current) {
+    const gtk = String((current && current.gtk) || '');
+    const active = findActiveAppearance(styles, current || {});
+    if ((active && active.style.name === 'CaramOS') || /^cinnamon-delight/i.test(gtk)) return 'orange';
+    const texts = [];
+    if (active && active.variant.name) texts.push(String(active.variant.name).toLowerCase());
+    texts.push(gtk.toLowerCase());
+    for (const text of texts) {
+        for (const [word, key] of ACCENT_WORDS) {
+            if (text.indexOf(word) !== -1) return key;
+        }
+    }
+    // Mint-X/Y/L without a colour word are Mint green; Adwaita is blue.
+    if (/^mint-[xyl](-dark(er)?)?$/i.test(gtk)) return 'green';
+    if (/^adwaita/i.test(gtk)) return 'blue';
+    return 'orange';
+}
+
+// The accent to show for the stored choice: one of ACCENTS, or the theme's for 'auto' and anything unknown.
+function accentKeyFor(choice, styles, current) {
+    if (ACCENTS.some(accent => accent.key === choice)) return choice;
+    return accentFromAppearance(styles, current);
+}
+
+function accentColor(key) {
+    return (ACCENTS.find(accent => accent.key === key) || ACCENTS[0]).color;
+}
+
+// #rrggbb as [r, g, b] (0-255), or null for anything else.
+function parseHexColor(text) {
+    const match = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(String(text || '').trim());
+    return match ? match.slice(1).map(part => parseInt(part, 16)) : null;
+}
+
+function hexColor(rgb) {
+    return '#' + rgb.map(value => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, '0')).join('');
+}
+
+// color moved toward other by amount (0 to 1): the hover shade of a tile.
+function mixColor(color, other, amount) {
+    const from = parseHexColor(color);
+    const to = parseHexColor(other);
+    return hexColor(from.map((value, index) => value + (to[index] - value) * amount));
+}
+
+// Light colours (relative luminance over 0.5, such as yellow or pastels) get dark text on the tiles; white text
+// stays on the others, as on the CaramOS orange.
+function isLightColor(color) {
+    const channel = value => {
+        const v = value / 255;
+        return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    };
+    const [r, g, b] = parseHexColor(color).map(channel);
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.5;
+}
+
+// The style class of a picked colour. Each colour has its own: St keeps the painted background of a tile for as
+// long as its classes stay the same, so a colour change must change the class.
+function customAccentClass(color) {
+    return `caramos-cc-accent-custom-${color.slice(1).toLowerCase()}`;
+}
+
+// The stylesheet of a colour picked with the colour chooser: what stylesheet.css has for each preset colour, plus
+// the text colour of the active tiles.
+function customAccentCss(color) {
+    const hover = mixColor(color, '#ffffff', 0.18);
+    const light = isLightColor(color);
+    const text = light ? '#1f2a22' : '#ffffff';
+    const divider = light ? 'rgba(0, 0, 0, 0.15)' : 'rgba(255, 255, 255, 0.22)';
+    const a = `.${customAccentClass(color)}`;
+    const dark = `.caramos-cc-popup.caramos-cc-dark${a}`;
+    const parts = ['.caramos-cc-tile-title', '.caramos-cc-tile-subtitle', '.caramos-cc-tile-icon', '.caramos-cc-arrow-icon'];
+    return [
+        `${a} .caramos-cc-tile-active,`,
+        `${dark} .caramos-cc-split-tile.caramos-cc-tile-active,`,
+        `${dark} .caramos-cc-simple-tile.caramos-cc-tile-active,`,
+        `${a} .caramos-cc-dialog-btn-primary {`,
+        `  background-color: ${color};`,
+        `  color: ${text};`,
+        '}',
+        '',
+        `${a} .caramos-cc-tile-active:hover,`,
+        `${dark} .caramos-cc-simple-tile.caramos-cc-tile-active:hover,`,
+        `${a} .caramos-cc-dialog-btn-primary:hover {`,
+        `  background-color: ${hover};`,
+        '}',
+        '',
+        parts.map(part => `${a} .caramos-cc-tile-active ${part},\n${dark} .caramos-cc-tile-active ${part}`).join(',\n') + ' {',
+        `  color: ${text};`,
+        '}',
+        '',
+        `${a} .caramos-cc-tile-active .caramos-cc-split-arrow {`,
+        `  border-left: 1px solid ${divider};`,
+        '}',
+        '',
+        `${a} .caramos-cc-slider-item .popup-slider-menu-item {`,
+        `  -slider-active-background-color: ${color};`,
+        '}',
+        '',
+        `${a} .caramos-cc-inline-head-icon,`,
+        `${a} .caramos-cc-overlay-head-icon {`,
+        `  color: ${color};`,
+        '}',
+        '',
+    ].join('\n');
+}
+
+function accentName(key) {
+    switch (key) {
+    case 'blue': return _('Blue');
+    case 'teal': return _('Teal');
+    case 'green': return _('Green');
+    case 'purple': return _('Purple');
+    case 'pink': return _('Pink');
+    case 'red': return _('Red');
+    case 'graphite': return _('Graphite');
+    default: return _('Orange');
+    }
 }
 
 // What to write for a light/dark switch: always the portal color scheme, plus the theme set of the
@@ -2042,6 +2192,53 @@ function createPowerProfileRow(iconName, text, selected, onActivate) {
     return item;
 }
 
+// A selectable row of the accent list: a dot of the colour, its name and the check mark of the current choice.
+function createAccentRow(color, text, selected, onActivate) {
+    const item = new PopupMenu.PopupBaseMenuItem({ activate: true, focusOnHover: false });
+    item.actor.set_style_class_name('popup-menu-item caramos-cc-list-row');
+    setAccessibleName(item.actor, text);
+    const row = new St.BoxLayout({ vertical: false, x_expand: true, x_align: Clutter.ActorAlign.FILL });
+    row.add_child(new St.Widget({ style_class: 'caramos-cc-accent-dot', style: `background-color: ${color};`,
+        y_align: Clutter.ActorAlign.CENTER }));
+    const label = new St.Label({ text, style_class: 'caramos-cc-list-label', y_align: Clutter.ActorAlign.CENTER, x_align: Clutter.ActorAlign.START });
+    label.clutter_text.set_ellipsize(Pango.EllipsizeMode.END);
+    row.add_child(label);
+    row.add_child(new St.Widget({ x_expand: true }));
+    const marker = createIcon('object-select-symbolic', 'caramos-cc-row-trail-icon');
+    marker.visible = !!selected;
+    row.add_child(marker);
+    item.addActor(row, { expand: true, span: -1 });
+    item.connect('activate', () => {
+        if (onActivate) onActivate();
+    });
+    item.activate = function (event) {
+        this.emit('activate', event, true);
+    };
+    return item;
+}
+
+// The preset accent colours as one row of round buttons, short enough for a 768-pixel-high screen; the current
+// one has a ring and a check mark. Each button's accessible name is its colour.
+function createAccentSwatches(choice, onPick) {
+    const row = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-accent-swatches', x_expand: true,
+        x_align: Clutter.ActorAlign.CENTER });
+    ACCENTS.forEach(accent => {
+        const selected = accent.key === choice;
+        const button = new St.Button({
+            style_class: selected ? 'caramos-cc-accent-swatch caramos-cc-accent-swatch-selected' : 'caramos-cc-accent-swatch',
+            style: `background-color: ${accent.color};`,
+            reactive: true,
+            can_focus: true,
+            track_hover: true,
+        });
+        setAccessibleName(button, accentName(accent.key));
+        if (selected) button.set_child(createIcon('object-select-symbolic', 'caramos-cc-accent-swatch-check'));
+        button.connect('clicked', () => onPick(accent.key));
+        row.add_child(button);
+    });
+    return row;
+}
+
 // Audio rows own pointer/key activation so release events never reach the parent popup.
 function createAudioDeviceRow(iconName, text, selected, onClick) {
     const item = new PopupMenu.PopupBaseMenuItem({ activate: true, focusOnHover: false });
@@ -2156,6 +2353,19 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._appearancePending = null;
         this._lastAppearanceDark = null;
         this._wallpaperModeId = 0;
+        this._accentSettings = optionalSettings(ACCENT_SCHEMA);
+        this._accentSignalId = 0;
+        if (this._accentSettings) {
+            this._accentSignalId = this._accentSettings.connect('changed', (_settings, key) => {
+                if (key === ACCENT_KEY || key === ACCENT_CUSTOM_KEY) this._onAccentChanged();
+            });
+        }
+        this._customAccentPath = null;
+        this._customAccentTheme = null;
+        this._customAccentClass = null;
+        // Cinnamon builds a new theme when the user changes it: the custom colour's stylesheet goes into that one.
+        this._themeContext = St.ThemeContext.get_for_stage(global.stage);
+        this._themeContextSignalId = this._themeContext.connect('changed', () => this._applyAccentClass());
         try {
             this._themeSettings = Gio.Settings.new('org.cinnamon.desktop.interface');
             this._themeSettingsSignalId = this._themeSettings.connect('changed', (_settings, key) => {
@@ -2342,6 +2552,17 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         }
         this._themeSettingsSignalId = 0;
         this._themeSettings = null;
+        if (this._accentSettings && this._accentSignalId) {
+            try { this._accentSettings.disconnect(this._accentSignalId); } catch (e) { /* disposed */ }
+        }
+        this._accentSignalId = 0;
+        this._accentSettings = null;
+        if (this._themeContext && this._themeContextSignalId) {
+            try { this._themeContext.disconnect(this._themeContextSignalId); } catch (e) { /* disposed */ }
+        }
+        this._themeContextSignalId = 0;
+        this._themeContext = null;
+        this._unloadCustomAccent();
         if (this._cinnamonThemeSettings && this._cinnamonThemeSignalId) {
             try { this._cinnamonThemeSettings.disconnect(this._cinnamonThemeSignalId); } catch (e) { /* disposed */ }
         }
@@ -2639,6 +2860,11 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._displayRow.add_child(this._nightLightTile.actor);
         this._powerRow = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-grid-row', x_expand: true, x_align: Clutter.ActorAlign.FILL });
         this._powerRow.add_child(this._powerModeTile.actor);
+        // Translators: the colour of this popup's tiles and sliders, as Windows calls it ("accent color").
+        this._accentTile = createSimpleTile('applications-graphics-symbolic', _('Accent colour'), '', false, () => this._openAccentPanel());
+        this._accentTile.icon.gicon = Gio.ThemedIcon.new_from_names(['preferences-color-symbolic', 'color-select-symbolic', 'applications-graphics-symbolic']);
+        if (this._accentSettings) this._powerRow.add_child(this._accentTile.actor);
+        this._refreshAccentTile();
 
         container.add_child(this._networkRow);
         container.add_child(this._connectionsRow);
@@ -2808,6 +3034,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         const dark = appearanceIsDark(this._appearanceStyles, this._currentAppearance()) || /dark/i.test(themeName);
         actor.add_style_class_name(dark ? 'caramos-cc-dark' : 'caramos-cc-light');
         if (highContrast || /high.?contrast/i.test(themeName)) actor.add_style_class_name('caramos-cc-high-contrast');
+        this._applyAccentClass(actor);
     }
 
     _applyMotion(actor, params) {
@@ -3599,6 +3826,146 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
                     this._gnomeBackgroundSettings.set_string('picture-uri', plan.uri);
                 }
             }
+        } catch (e) {
+            global.logError(e);
+        }
+    }
+
+    _accentChoice() {
+        try {
+            return this._accentSettings ? this._accentSettings.get_string(ACCENT_KEY) : 'auto';
+        } catch (e) {
+            return 'auto';
+        }
+    }
+
+    _customAccentColor() {
+        try {
+            const color = this._accentSettings ? this._accentSettings.get_string(ACCENT_CUSTOM_KEY) : '';
+            return parseHexColor(color) ? color.toLowerCase() : ACCENTS[0].color;
+        } catch (e) {
+            return ACCENTS[0].color;
+        }
+    }
+
+    _currentAccentKey() {
+        if (this._accentChoice() === 'custom') return 'custom';
+        return accentKeyFor(this._accentChoice(), this._appearanceStyles, this._currentAppearance());
+    }
+
+    _applyAccentClass(actor) {
+        actor = actor || (this.menu && this.menu.actor);
+        if (!actor) return;
+        const key = this._currentAccentKey();
+        const color = this._customAccentColor();
+        const loaded = key === 'custom' && this._loadCustomAccent(color);
+        ACCENTS.forEach(accent => actor.remove_style_class_name(`caramos-cc-accent-${accent.key}`));
+        if (this._customAccentClass) actor.remove_style_class_name(this._customAccentClass);
+        this._customAccentClass = null;
+        if (loaded) {
+            this._customAccentClass = customAccentClass(color);
+            actor.add_style_class_name(this._customAccentClass);
+        } else if (key !== 'orange' && key !== 'custom') {
+            actor.add_style_class_name(`caramos-cc-accent-${key}`);
+        }
+        if (key !== 'custom') this._unloadCustomAccent();
+        this._refreshAccentTile();
+    }
+
+    // Write the stylesheet of a picked colour and load it into the current theme; true when it is in use.
+    _loadCustomAccent(color) {
+        let theme = null;
+        try {
+            theme = this._themeContext ? this._themeContext.get_theme() : null;
+        } catch (e) {
+            theme = null;
+        }
+        if (!theme) return false;
+        const dir = GLib.build_filenamev([GLib.get_user_cache_dir(), 'caramos-control-center']);
+        const path = GLib.build_filenamev([dir, `accent-${color.slice(1)}.css`]);
+        if (path === this._customAccentPath && theme === this._customAccentTheme) return true;
+        try {
+            GLib.mkdir_with_parents(dir, 0o755);
+            GLib.file_set_contents(path, customAccentCss(color));
+            theme.load_stylesheet(path);
+        } catch (e) {
+            global.logError(e);
+            return false;
+        }
+        const old = { path: this._customAccentPath, theme: this._customAccentTheme };
+        this._customAccentPath = path;
+        this._customAccentTheme = theme;
+        if (old.path && (old.path !== path || old.theme !== theme)) {
+            try { if (old.theme) old.theme.unload_stylesheet(old.path); } catch (e) { /* that theme is gone */ }
+            if (old.path !== path) this._deleteFile(old.path);
+        }
+        return true;
+    }
+
+    _unloadCustomAccent() {
+        if (!this._customAccentPath) return;
+        try {
+            if (this._customAccentTheme) this._customAccentTheme.unload_stylesheet(this._customAccentPath);
+        } catch (e) { /* the theme is gone */ }
+        this._deleteFile(this._customAccentPath);
+        this._customAccentPath = null;
+        this._customAccentTheme = null;
+    }
+
+    _deleteFile(path) {
+        try {
+            Gio.File.new_for_path(path).delete(null);
+        } catch (e) { /* already gone */ }
+    }
+
+    _refreshAccentTile() {
+        const tile = this._accentTile;
+        if (!tile) return;
+        const key = this._currentAccentKey();
+        // Translators: subtitle of the accent colour tile for a colour picked with the colour chooser.
+        const name = key === 'custom' ? _('Custom colour') : accentName(key);
+        // Translators: subtitle of the accent colour tile when the colour follows the theme; %s is a colour name.
+        const label = this._accentChoice() === 'auto' ? _('%s · from the theme').format(name) : name;
+        tile.subtitleLabel.set_text(label);
+        setAccessibleName(tile.button, _('%s: %s').format(_('Accent colour'), label));
+    }
+
+    _onAccentChanged() {
+        this._applyAccentClass();
+        if (this._expandedKind === 'accent' && this._expandedPanel && this._expandedPanel.visible) this._fillAccentList();
+    }
+
+    _openAccentPanel() {
+        this._toggleInlinePanel('accent', 'applications-graphics-symbolic', _('Accent colour'),
+            body => this._fillAccentList(body), this._powerRow);
+    }
+
+    // The list stays open after a choice, so colours can be tried one after another.
+    _fillAccentList(body) {
+        body = body || this._expandedBody;
+        if (!body) return;
+        const restoreFocus = this._parkInlineFocus(body);
+        body.destroy_all_children();
+        const choice = this._accentChoice();
+        const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
+        const themed = accentFromAppearance(this._appearanceStyles, this._currentAppearance());
+        const auto = choice !== 'custom' && !ACCENTS.some(accent => accent.key === choice);
+        // Translators: first choice of the accent colour list: use the colour of the current theme.
+        list.add_child(createAccentRow(accentColor(themed), _('Follow the theme'), auto, () => this._setAccent('auto')).actor);
+        list.add_child(createAccentSwatches(choice, key => this._setAccent(key)));
+        // Translators: last row of the accent colour list; opens a colour chooser for any colour.
+        list.add_child(createAccentRow(this._customAccentColor(), _('Other colour…'), choice === 'custom', () => {
+            this.menu.close();
+            spawnAllowed('accentPicker');
+        }).actor);
+        body.add_child(list);
+        restoreFocus();
+    }
+
+    _setAccent(choice) {
+        if (!this._accentSettings) return;
+        try {
+            this._accentSettings.set_string(ACCENT_KEY, choice);
         } catch (e) {
             global.logError(e);
         }

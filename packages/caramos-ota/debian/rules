@@ -19,4 +19,5 @@ override_dh_install:
 # would stop, and the printers would stay off until the next boot.
 override_dh_installsystemd:
 	dh_installsystemd caramos-ota-check.service caramos-ota-check.timer
+	dh_installsystemd caramos-boot-success.timer
 	dh_installsystemd --no-start --no-stop-on-upgrade caramos-canon-capt.service caramos-canon-capt-setup.service

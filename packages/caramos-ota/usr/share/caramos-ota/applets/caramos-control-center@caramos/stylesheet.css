@@ -110,6 +110,12 @@
   color: rgba(48, 48, 48, 0.78);
 }
 
+/* The slider's drawing area (Cinnamon's .popup-slider-menu-item) reads the -slider-* colours itself, from the theme;
+   they are not inherited from this item, so the active colour is set on the drawing area. */
+.caramos-cc-slider-item .popup-slider-menu-item {
+  -slider-active-background-color: #f59f22;
+}
+
 .caramos-cc-slider-item {
   min-width: 210px;
   -slider-active-background-color: #f59f22;
@@ -736,3 +742,209 @@
 .caramos-cc-popup.caramos-cc-dark .caramos-cc-tile-active .caramos-cc-arrow-icon {
   color: #ffffff;
 }
+
+/* CARAMOS_ACCENT_COLOURS_START */
+/* The preset colours as round buttons (createAccentSwatches); focus and hover show as a darker ring. */
+.caramos-cc-accent-swatches {
+  spacing: 8px;
+  padding: 4px 6px 8px 6px;
+}
+
+.caramos-cc-accent-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 14px;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-accent-swatch:hover,
+.caramos-cc-accent-swatch:focus {
+  border: 2px solid rgba(0, 0, 0, 0.35);
+}
+
+.caramos-cc-accent-swatch-selected {
+  border: 2px solid rgba(0, 0, 0, 0.6);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-accent-swatch {
+  border: 2px solid rgba(255, 255, 255, 0.10);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-accent-swatch:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-accent-swatch:focus,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-accent-swatch-selected {
+  border: 2px solid rgba(255, 255, 255, 0.75);
+}
+
+.caramos-cc-accent-swatch-check {
+  icon-size: 14px;
+  color: #ffffff;
+}
+
+/* -------- Accent colours (applet.js ACCENTS; orange is the base style above) -------- */
+
+.caramos-cc-accent-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  margin: 0 12px 0 2px;
+}
+
+.caramos-cc-accent-blue .caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-blue .caramos-cc-split-tile.caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-blue .caramos-cc-simple-tile.caramos-cc-tile-active,
+.caramos-cc-accent-blue .caramos-cc-dialog-btn-primary {
+  background-color: #3584e4;
+}
+
+.caramos-cc-accent-blue .caramos-cc-tile-active:hover,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-blue .caramos-cc-simple-tile.caramos-cc-tile-active:hover,
+.caramos-cc-accent-blue .caramos-cc-dialog-btn-primary:hover {
+  background-color: #4f97ee;
+}
+
+.caramos-cc-accent-blue .caramos-cc-slider-item .popup-slider-menu-item {
+  -slider-active-background-color: #3584e4;
+}
+
+.caramos-cc-accent-blue .caramos-cc-inline-head-icon,
+.caramos-cc-accent-blue .caramos-cc-overlay-head-icon {
+  color: #3584e4;
+}
+
+.caramos-cc-accent-teal .caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-teal .caramos-cc-split-tile.caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-teal .caramos-cc-simple-tile.caramos-cc-tile-active,
+.caramos-cc-accent-teal .caramos-cc-dialog-btn-primary {
+  background-color: #1a9aa0;
+}
+
+.caramos-cc-accent-teal .caramos-cc-tile-active:hover,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-teal .caramos-cc-simple-tile.caramos-cc-tile-active:hover,
+.caramos-cc-accent-teal .caramos-cc-dialog-btn-primary:hover {
+  background-color: #2fb2b8;
+}
+
+.caramos-cc-accent-teal .caramos-cc-slider-item .popup-slider-menu-item {
+  -slider-active-background-color: #1a9aa0;
+}
+
+.caramos-cc-accent-teal .caramos-cc-inline-head-icon,
+.caramos-cc-accent-teal .caramos-cc-overlay-head-icon {
+  color: #1a9aa0;
+}
+
+.caramos-cc-accent-green .caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-green .caramos-cc-split-tile.caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-green .caramos-cc-simple-tile.caramos-cc-tile-active,
+.caramos-cc-accent-green .caramos-cc-dialog-btn-primary {
+  background-color: #2e9e57;
+}
+
+.caramos-cc-accent-green .caramos-cc-tile-active:hover,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-green .caramos-cc-simple-tile.caramos-cc-tile-active:hover,
+.caramos-cc-accent-green .caramos-cc-dialog-btn-primary:hover {
+  background-color: #3fb56b;
+}
+
+.caramos-cc-accent-green .caramos-cc-slider-item .popup-slider-menu-item {
+  -slider-active-background-color: #2e9e57;
+}
+
+.caramos-cc-accent-green .caramos-cc-inline-head-icon,
+.caramos-cc-accent-green .caramos-cc-overlay-head-icon {
+  color: #2e9e57;
+}
+
+.caramos-cc-accent-purple .caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-purple .caramos-cc-split-tile.caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-purple .caramos-cc-simple-tile.caramos-cc-tile-active,
+.caramos-cc-accent-purple .caramos-cc-dialog-btn-primary {
+  background-color: #8c5dd8;
+}
+
+.caramos-cc-accent-purple .caramos-cc-tile-active:hover,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-purple .caramos-cc-simple-tile.caramos-cc-tile-active:hover,
+.caramos-cc-accent-purple .caramos-cc-dialog-btn-primary:hover {
+  background-color: #a077e2;
+}
+
+.caramos-cc-accent-purple .caramos-cc-slider-item .popup-slider-menu-item {
+  -slider-active-background-color: #8c5dd8;
+}
+
+.caramos-cc-accent-purple .caramos-cc-inline-head-icon,
+.caramos-cc-accent-purple .caramos-cc-overlay-head-icon {
+  color: #8c5dd8;
+}
+
+.caramos-cc-accent-pink .caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-pink .caramos-cc-split-tile.caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-pink .caramos-cc-simple-tile.caramos-cc-tile-active,
+.caramos-cc-accent-pink .caramos-cc-dialog-btn-primary {
+  background-color: #d9488b;
+}
+
+.caramos-cc-accent-pink .caramos-cc-tile-active:hover,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-pink .caramos-cc-simple-tile.caramos-cc-tile-active:hover,
+.caramos-cc-accent-pink .caramos-cc-dialog-btn-primary:hover {
+  background-color: #e6649f;
+}
+
+.caramos-cc-accent-pink .caramos-cc-slider-item .popup-slider-menu-item {
+  -slider-active-background-color: #d9488b;
+}
+
+.caramos-cc-accent-pink .caramos-cc-inline-head-icon,
+.caramos-cc-accent-pink .caramos-cc-overlay-head-icon {
+  color: #d9488b;
+}
+
+.caramos-cc-accent-red .caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-red .caramos-cc-split-tile.caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-red .caramos-cc-simple-tile.caramos-cc-tile-active,
+.caramos-cc-accent-red .caramos-cc-dialog-btn-primary {
+  background-color: #e0353b;
+}
+
+.caramos-cc-accent-red .caramos-cc-tile-active:hover,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-red .caramos-cc-simple-tile.caramos-cc-tile-active:hover,
+.caramos-cc-accent-red .caramos-cc-dialog-btn-primary:hover {
+  background-color: #ea5559;
+}
+
+.caramos-cc-accent-red .caramos-cc-slider-item .popup-slider-menu-item {
+  -slider-active-background-color: #e0353b;
+}
+
+.caramos-cc-accent-red .caramos-cc-inline-head-icon,
+.caramos-cc-accent-red .caramos-cc-overlay-head-icon {
+  color: #e0353b;
+}
+
+.caramos-cc-accent-graphite .caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-graphite .caramos-cc-split-tile.caramos-cc-tile-active,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-graphite .caramos-cc-simple-tile.caramos-cc-tile-active,
+.caramos-cc-accent-graphite .caramos-cc-dialog-btn-primary {
+  background-color: #66707c;
+}
+
+.caramos-cc-accent-graphite .caramos-cc-tile-active:hover,
+.caramos-cc-popup.caramos-cc-dark.caramos-cc-accent-graphite .caramos-cc-simple-tile.caramos-cc-tile-active:hover,
+.caramos-cc-accent-graphite .caramos-cc-dialog-btn-primary:hover {
+  background-color: #7b8592;
+}
+
+.caramos-cc-accent-graphite .caramos-cc-slider-item .popup-slider-menu-item {
+  -slider-active-background-color: #66707c;
+}
+
+.caramos-cc-accent-graphite .caramos-cc-inline-head-icon,
+.caramos-cc-accent-graphite .caramos-cc-overlay-head-icon {
+  color: #66707c;
+}
+
+/* A colour picked with the colour chooser ("Other colour…"): applet.js writes its rules, for the class
+   caramos-cc-accent-custom-<rrggbb> (customAccentCss), to ~/.cache/caramos-control-center/accent-<rrggbb>.css and loads
+   them into the running theme. */
+/* CARAMOS_ACCENT_COLOURS_END */

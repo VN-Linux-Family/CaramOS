@@ -338,6 +338,15 @@ class SchemaOverrideTests(unittest.TestCase):
         self.assertIn(f"{override.relative_to(ROOT)} usr/share/glib-2.0/schemas/",
                       (ROOT / "debian/install").read_text(encoding="utf-8"))
 
+    def test_nemo_shows_thumbnails_on_phones_and_network_shares(self) -> None:
+        parser = configparser.ConfigParser(interpolation=None)
+        parser.read(ROOT / "usr/share/glib-2.0/schemas/60_caramos-ota.gschema.override", encoding="utf-8")
+        self.assertEqual("'always'", parser["org.nemo.preferences"]["show-image-thumbnails"])
+        iso = ROOT.resolve().parents[1] / "config/includes.chroot/usr/share/glib-2.0/schemas/99_caramos.gschema.override"
+        if iso.exists():  # the source package has no config/
+            self.assertNotIn("show-image-thumbnails", iso.read_text(encoding="utf-8"),
+                             "the ISO's 99_ override would win over this 60_ one")
+
 
 if __name__ == "__main__":
     unittest.main()

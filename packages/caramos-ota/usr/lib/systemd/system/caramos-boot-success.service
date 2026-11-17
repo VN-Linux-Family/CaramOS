@@ -1,0 +1,10 @@
+[Unit]
+Description=Tell GRUB this boot reached the desktop (CaramOS)
+Documentation=file:///usr/share/caramos-ota/boot-success/caramos-boot-success
+ConditionPathExists=/boot/grub/grub.cfg
+ConditionPathExists=!/run/caramos-boot-success
+ConditionKernelCommandLine=!boot=casper
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/caramos-ota/boot-success/caramos-boot-success

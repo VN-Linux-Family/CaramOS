@@ -92,17 +92,15 @@ step_boot_config() {
             cp "$BOOT_SPLASH" "$ISO_DIR/boot/grub/splash.png"
         fi
 
-        # Theme live của Mint đặt menu ở nửa dưới màn hình, không đè logo ở
-        # nửa trên của splash. Ảnh 4:3 được chèn viền thay vì kéo méo trên
-        # màn hình rộng. Mục đang chọn tô cam như logo; trắng trên xám của
-        # Mint khó nhận ra.
-        if [ -f "$ISO_DIR/boot/grub/splash.png" ] && [ -f "$GRUB_THEME_FILE" ]; then
-            sed -i \
-                -e '/^desktop-image-scale-method:/d' \
-                -e '/^desktop-color:/d' \
-                -e 's|^desktop-image:.*|desktop-image: "/boot/grub/splash.png"\ndesktop-image-scale-method: "padding"\ndesktop-color: "#000000"|' \
-                -e 's|^\([[:space:]]*selected_item_color[[:space:]]*=[[:space:]]*\).*|\1"#f6a623"|' \
-                "$GRUB_THEME_FILE"
+        # Theme của CaramOS (assets/grub/live-theme.txt) thay theme live của Mint. Như theme của Mint, menu ở nửa
+        # dưới màn hình, không đè logo ở nửa trên của splash; ảnh 4:3 được chèn viền thay vì kéo méo trên màn hình
+        # rộng; mục đang chọn tô cam như logo. Chữ là DejaVu Sans 24 (menu) và 18, có dấu tiếng Việt: Unifont 16 của
+        # Mint quá nhỏ ở độ phân giải gốc của màn hình laptop mà gfxmode=auto chọn. Dòng đếm giờ ghi tiếng Việt.
+        local GRUB_ASSETS="$SCRIPT_DIR/assets/grub"
+        if [ -f "$ISO_DIR/boot/grub/splash.png" ] && [ -f "$GRUB_ASSETS/live-theme.txt" ]; then
+            mkdir -p "$ISO_DIR/boot/grub/live-theme"
+            cp "$GRUB_ASSETS/live-theme.txt" "$GRUB_THEME_FILE"
+            cp "$GRUB_ASSETS/dejavu-sans-bold-24.pf2" "$GRUB_ASSETS/dejavu-sans-18.pf2" "$ISO_DIR/boot/grub/live-theme/"
         fi
 
         echo "$GRUB_FILES" | while IFS= read -r cfg; do
@@ -131,8 +129,13 @@ step_boot_config() {
             # Chỉ grub.cfg chính; stub i386-efi/x86_64-efi tự source nó.
             if [ -f "$ISO_DIR/boot/grub/splash.png" ] && [ "$cfg" = "$ISO_DIR/boot/grub/grub.cfg" ]; then
                 local GRUB_LOOK="set theme=/boot/grub/live-theme/theme.txt"
+                if [ -f "$ISO_DIR/boot/grub/live-theme/dejavu-sans-bold-24.pf2" ]; then
+                    GRUB_LOOK="loadfont /boot/grub/live-theme/dejavu-sans-bold-24.pf2\nloadfont /boot/grub/live-theme/dejavu-sans-18.pf2\n${GRUB_LOOK}"
+                fi
                 [ -f "$GRUB_THEME_FILE" ] || GRUB_LOOK="background_image -m stretch /boot/grub/splash.png"
-                local GRUB_BLOCK="# CaramOS boot menu: begin\ninsmod all_video\ninsmod gfxterm\ninsmod gfxmenu\ninsmod png\nset gfxmode=auto\nterminal_output gfxterm\n${GRUB_LOOK}\n# CaramOS boot menu: end"
+                # Không ai bấm phím thì sau 10 giây vào mục đầu (Start CaramOS), như menu BIOS (timeout 100 trong
+                # live.cfg của Mint). Trước đây menu UEFI chờ mãi.
+                local GRUB_BLOCK="# CaramOS boot menu: begin\ninsmod all_video\ninsmod gfxterm\ninsmod gfxmenu\ninsmod png\nset gfxmode=auto\nterminal_output gfxterm\n${GRUB_LOOK}\nset timeout_style=menu\nset timeout=10\n# CaramOS boot menu: end"
                 # Chèn sau loadfont (gfxterm cần font), hoặc lên đầu file.
                 local AT_TOP=1
                 grep -q '^loadfont ' "$cfg" && AT_TOP=0

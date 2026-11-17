@@ -3,3 +3,8 @@
 # busiest process of an idle desktop. Those jobs take minutes, so the icon can appear up to a minute late.
 [com.linuxmint.report]
 automonitor-seconds=60
+
+# Files (Nemo) shows picture thumbnails everywhere: also on phones (MTP), network shares and Google Drive, which
+# Nemo's 'local-only' left as plain icons. Someone who changed the setting keeps their choice.
+[org.nemo.preferences]
+show-image-thumbnails='always'

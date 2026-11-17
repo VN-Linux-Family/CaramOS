@@ -1,3 +1,38 @@
+caramos-ota (1.3.11-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.3.11.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Daily Vietnam wallpaper (ticket H-1161): a "Việt Nam mỗi ngày" folder in
+    System Settings > Backgrounds gets one photo of Vietnam a day (a user
+    timer, caramos-daily-wallpaper). Picking one of its photos, or a
+    slideshow of the folder, turns the daily change on; another wallpaper
+    turns it off. Not on by default. The list of 45 freely licensed
+    Wikimedia Commons photos lives on caramos.vietnamlinuxfamily.net
+    (/wallpapers/photos.json, with a copy in this package); each photo is
+    checked against its SHA-256, and file names carry author and licence.
+    Metered connections wait.
+  * Control Center: an Accent colour tile (ticket H-1113) with the theme's
+    colour, eight presets and "Other colour…" (a colour chooser for any
+    colour). Active tiles, sliders and buttons follow it; the tile appears
+    after the next login.
+  * Boot menu after a failed start: GRUB's recordfail mark is cleared only
+    once a local desktop session has lasted a minute (caramos-boot-success
+    timer; grub-common.service waits for it), so a start that never
+    reached the desktop shows the boot menu next time, with recovery mode
+    under Advanced options.
+  * Files: "Copy path to clipboard" and "Create a desktop shortcut" in the
+    right-click menu, which CaramOS installed but Nemo never showed
+    (migration 20261117100100; installs xclip).
+  * Files shows picture thumbnails on phones, network shares and Google
+    Drive too (org.nemo.preferences show-image-thumbnails 'always').
+  * Lotus input method: its APT source asks for amd64 only, so apt update
+    no longer prints the i386 notice (migration 20261117100000).
+  * ISO: the UEFI boot menu of the live USB counts down 10 s and uses a
+    larger font with Vietnamese help text (machines with Secure Boot keep
+    GRUB's built-in font).
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Tue, 17 Nov 2026 19:27:37 +0700
+
 caramos-ota (1.3.10-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.3.10.

@@ -1,0 +1,7 @@
+#!/usr/bin/env python3
+"""Save today's photo of Vietnam for System Settings > Backgrounds; see caramos_daily_wallpaper.core."""
+
+from caramos_daily_wallpaper.cli import main
+
+if __name__ == "__main__":
+    raise SystemExit(main())

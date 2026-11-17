@@ -1,0 +1,26 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Hình nền, Control Center, menu khởi động (~1 MB ảnh mỗi ngày)",
+  "size_en": "Wallpaper, Control Center, boot menu (~1 MB of photo a day)",
+  "title": "Hình nền Việt Nam mỗi ngày, chọn màu cho Control Center",
+  "summary": "Mỗi ngày một ảnh đẹp về Việt Nam trong mục Hình nền; Control Center có ô Màu nhấn; máy khởi động không vào được màn hình làm việc thì lần sau tự hiện menu khởi động.",
+  "title_en": "A photo of Vietnam a day, an accent colour for the Control Center",
+  "summary_en": "A new photo of Vietnam every day in Backgrounds; a Control Center tile to pick its colour; after a start that never reached the desktop, the boot menu shows by itself.",
+  "release_notes_vi": [
+    "Hình nền Việt Nam mỗi ngày: mở Cài đặt hệ thống > Hình nền, bấm thư mục Việt Nam mỗi ngày rồi chọn ảnh. Từ đó mỗi ngày hình nền là một ảnh mới về thiên nhiên, cảnh đẹp, công trình của Việt Nam. Chọn hình nền khác là tắt.",
+    "Ảnh lấy từ Wikimedia Commons, có giấy phép tự do; tên ảnh ghi tác giả và giấy phép. Mỗi ngày tải một ảnh, khoảng 1 MB.",
+    "Control Center (góc phải thanh tác vụ) có ô Màu nhấn: Cam, Xanh dương, Xanh ngọc, Xanh lá, Tím, Hồng, Đỏ, Xám, theo chủ đề hệ thống, hoặc bấm Màu khác… để tự chọn màu bất kỳ. Ô này có từ lần đăng nhập sau.",
+    "Tệp hiện ảnh thu nhỏ cả trên điện thoại, ổ mạng và Google Drive, không chỉ trên ổ của máy (từ lần đăng nhập sau).",
+    "Máy khởi động mà không vào được màn hình làm việc (màn hình đen, đứng máy) thì lần bật sau menu khởi động tự hiện 30 giây, có mục Advanced options để vào chế độ khôi phục."
+  ],
+  "release_notes_en": [
+    "A photo of Vietnam a day: open System Settings > Backgrounds, click the Việt Nam mỗi ngày folder and pick a photo. From then on, every day brings a new photo of Vietnam's nature, landscapes and buildings. Picking another wallpaper turns it off.",
+    "The photos come from Wikimedia Commons under free licences; each file name gives the author and licence. One photo a day, about 1 MB.",
+    "The Control Center (right end of the taskbar) has an Accent colour tile: orange, blue, teal, green, purple, pink, red, graphite, the colour of the theme, or any colour you pick (Other colour…). The tile appears from the next login.",
+    "Files shows picture thumbnails on phones, network shares and Google Drive too, not only on this computer's disks (from the next login).",
+    "After a start that never reached the desktop (a black screen, a hang), the boot menu shows for 30 seconds at the next start, with Advanced options for the recovery mode."
+  ]
+}

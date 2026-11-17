@@ -66,9 +66,12 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261105120200_start_menu_file_search_without_freeze",
                 "20261111090000_start_menu_ctrl_scroll_icon_size",
                 "20261112100000_screenshot_shortcuts",
+                "20261117100000_lotus_source_amd64_only",
+                "20261117100100_nemo_actions_in_menu",
+                "20261117100200_daily_wallpaper",
             ],
         )
-        self.assertEqual(23, run_one.call_count)
+        self.assertEqual(26, run_one.call_count)
         self.assertEqual(
             [
                 "20260805111120_update_taskbar_pins_cleanup_desktop",
@@ -94,6 +97,9 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261105120200_start_menu_file_search_without_freeze",
                 "20261111090000_start_menu_ctrl_scroll_icon_size",
                 "20261112100000_screenshot_shortcuts",
+                "20261117100000_lotus_source_amd64_only",
+                "20261117100100_nemo_actions_in_menu",
+                "20261117100200_daily_wallpaper",
             ],
             [entry.args[0].migration_id for entry in run_one.call_args_list],
         )

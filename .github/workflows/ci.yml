@@ -1,0 +1,254 @@
+name: CaramOS Auto-Prune & Debian Trixie CI
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - testing
+  pull_request:
+    branches:
+      - main
+      - master
+      - testing
+  workflow_dispatch:
+    inputs:
+      build_mode:
+        description: "Chế độ nén ISO (fast-zstd hoặc release-xz)"
+        required: true
+        default: "fast-zstd"
+        type: choice
+        options:
+          - "fast-zstd"
+          - "release-xz"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: "1"
+  RUSTFLAGS: "-D warnings"
+
+jobs:
+  # ==========================================================================
+  # JOB 1: TỰ ĐỘNG GIẢI CỨU APPLET, XÓA FILE CŨ & COMMIT LẠI LÊN GITHUB
+  # ==========================================================================
+  auto-prune-legacy:
+    name: "1. Auto-Delete Legacy Files & Salvage Applets"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository with write access
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Rust stable toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+
+      - name: Cache Cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "crates/caramos-ctl -> target"
+
+      - name: Run Rust caramos-ctl prune & format code
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -f "crates/caramos-ctl/Cargo.toml" ]; then
+            cargo fmt --manifest-path crates/caramos-ctl/Cargo.toml --all
+            cargo run --manifest-path crates/caramos-ctl/Cargo.toml --release -- prune --repo-root . --execute
+          else
+            echo "::warning::Chưa thấy crates/caramos-ctl, chạy nhánh dọn dẹp dự phòng..."
+            if [ -d "packages/caramos-ota/usr/share/cinnamon/applets" ]; then
+              mkdir -p config/includes.chroot/usr/share/cinnamon/applets
+              cp -rn packages/caramos-ota/usr/share/cinnamon/applets/* config/includes.chroot/usr/share/cinnamon/applets/ || true
+            fi
+            rm -rf build.sh install-caramos-ota.sh scripts packages/caramos-ota config/hooks/live debian Dockerfile docker-compose.yml "CaramOS Project Finalization.md" .github/workflows/build.yml .github/workflows/release.yml
+          fi
+
+      - name: Auto-Commit & Push cleaned repository back to GitHub
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          if ! git diff --cached --quiet; then
+            echo "==> Phát hiện file cũ cần xóa, đang tự động commit lên nhánh ${GITHUB_REF_NAME}..."
+            git commit -m "chore(auto-prune): salvage Cinnamon applets and remove legacy Mint/Bash/Python OTA files [skip ci]"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+            echo "OK  Đã xóa sạch file cũ trên repo GitHub của bạn!"
+          else
+            echo "OK  Repo đã sạch, không còn file di sản nào cần xóa."
+          fi
+
+  # ==========================================================================
+  # JOB 2: KIỂM ĐỊNH MÃ NGUỒN RUST & CHẠY UNIT TESTS
+  # ==========================================================================
+  rust-verification:
+    name: "2. Verify Rust Engine (caramos-ctl)"
+    needs: auto-prune-legacy
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout cleaned repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Check crates/caramos-ctl exists
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ ! -f "crates/caramos-ctl/Cargo.toml" ] || [ ! -f "crates/caramos-ctl/src/main.rs" ]; then
+            echo "::error::Bạn chưa tạo file 'crates/caramos-ctl/Cargo.toml' và 'crates/caramos-ctl/src/main.rs'!"
+            exit 1
+          fi
+
+      - name: Install Rust stable toolchain (clippy)
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+
+      - name: Cache Cargo build
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "crates/caramos-ctl -> target"
+
+      - name: Strict Clippy Audit (Zero-Panic & Zero-Unsafe)
+        working-directory: crates/caramos-ctl
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo clippy --all-targets -- \
+            -D warnings \
+            -D clippy::unwrap_used \
+            -D clippy::expect_used \
+            -D clippy::panic \
+            -D clippy::indexing_slicing \
+            -D unsafe_code
+
+      - name: Run Unit Tests
+        working-directory: crates/caramos-ctl
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo test --verbose
+
+      - name: Build release binary & test dry-run
+        shell: bash
+        run: |
+          set -euo pipefail
+          cargo build --manifest-path crates/caramos-ctl/Cargo.toml --release
+          BIN="./crates/caramos-ctl/target/release/caramos-ctl"
+
+          "${BIN}" build --dry-run --work-dir ./ci_dryrun
+          ISO_PATH="./ci_dryrun/CaramOS-2.0.0-debian-trixie-amd64.iso"
+
+          RUST_SHA="$("${BIN}" hash "${ISO_PATH}" | awk '{print $1}')"
+          GNU_SHA="$(sha256sum "${ISO_PATH}" | awk '{print $1}')"
+          if [ "${RUST_SHA}" != "${GNU_SHA}" ]; then
+            echo "::error::Sai lệch SHA-256!"
+            exit 1
+          fi
+          rm -rf ./ci_dryrun
+
+      - name: Upload caramos-ctl binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: caramos-ctl-binary
+          path: crates/caramos-ctl/target/release/caramos-ctl
+          if-no-files-found: error
+          retention-days: 7
+
+  # ==========================================================================
+  # JOB 3: ĐÓNG GÓI ISO DEBIAN 13 TRIXIE THỰC TẾ TRÊN GITHUB RUNNER
+  # ==========================================================================
+  build-debian-trixie-iso:
+    name: "3. Build Debian 13 Trixie ISO"
+    needs: rust-verification
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Checkout cleaned repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Download caramos-ctl binary
+        uses: actions/download-artifact@v4
+        with:
+          name: caramos-ctl-binary
+          path: ./bin
+
+      - name: Free up runner disk space
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
+          df -h /
+
+      - name: Install mmdebstrap, squashfs-tools & xorriso
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            mmdebstrap \
+            debian-archive-keyring \
+            squashfs-tools \
+            xorriso \
+            ca-certificates
+
+          for keyring in /usr/share/keyrings/debian-archive-*.gpg; do
+            if [ -f "${keyring}" ]; then
+              sudo ln -sf "${keyring}" "/etc/apt/trusted.gpg.d/$(basename "${keyring}")"
+            fi
+          done
+
+      - name: Build CaramOS 2.0.0 ISO (Debian Trixie + Rust Core)
+        shell: bash
+        run: |
+          set -euo pipefail
+          chmod +x ./bin/caramos-ctl
+          FLAGS=("--work-dir" "./build")
+          if [ "${{ inputs.build_mode }}" = "release-xz" ]; then
+            FLAGS+=("--release")
+          fi
+          sudo ./bin/caramos-ctl build "${FLAGS[@]}"
+          ./bin/caramos-ctl hash "./build/CaramOS-2.0.0-debian-trixie-amd64.iso" | tee "./build/SHA256SUMS"
+
+      - name: Cleanup Chroot Mounts Safely
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d "./build/rootfs" ]; then
+            ROOTFS_REAL="$(realpath -m ./build/rootfs)"
+            tac /proc/mounts | awk '{print $2}' | while read -r mp; do
+              if [[ "${mp}" == "${ROOTFS_REAL}"* ]]; then
+                sudo umount -lf "${mp}" || true
+              fi
+            done
+          fi
+
+      - name: Upload ISO Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CaramOS-2.0.0-debian-trixie-amd64-iso
+          path: |
+            ./build/CaramOS-2.0.0-debian-trixie-amd64.iso
+            ./build/SHA256SUMS
+          if-no-files-found: error
+          retention-days: 5

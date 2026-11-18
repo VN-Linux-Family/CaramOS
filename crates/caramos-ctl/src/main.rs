@@ -8,10 +8,7 @@
 )]
 
 //! `caramos-ctl` — Trình điều phối hợp nhất cho CaramOS 2.0 (Debian 13 Trixie Base).
-//! Tích hợp 3 chức năng trong 1 binary duy nhất:
-//! 1. `caramos-ctl prune` : Tự động giải cứu Cinnamon Applet và xóa toàn bộ file Bash/Mint/Python OTA cũ.
-//! 2. `caramos-ctl build` : Bootstrap Debian Trixie qua `mmdebstrap`, gắn chroot RAII và đóng gói ISO.
-//! 3. `caramos-ctl hash`  : Tính mã băm mật mã học SHA-256 (FIPS 180-4) thuần Rust.
+//! Tích hợp 4 lệnh: `prune`, `build`, `hash`, `ota-apply`.
 
 use std::collections::BTreeMap;
 use std::env;
@@ -23,10 +20,6 @@ use std::marker::PhantomData;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
-
-// ============================================================================
-// 1. KIẾN TRÚC LỖI CÓ CẤU TRÚC (STRUCTURED DOMAIN ERRORS)
-// ============================================================================
 
 /// Toàn bộ các nhánh lỗi được định danh rõ ràng của `caramos-ctl`.
 #[derive(Debug)]
@@ -159,10 +152,6 @@ impl Error for CaramError {
     }
 }
 
-// ============================================================================
-// 2. DOMAIN TYPES (CHỐNG PRIMITIVE OBSESSION & PATH TRAVERSAL)
-// ============================================================================
-
 /// Tên gói chuẩn Debian Policy 5.6.1.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct DebianPackageName(String);
@@ -271,7 +260,7 @@ impl SemVer {
 
 impl fmt::Display for SemVer {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}.{ }", self.major, self.minor, self.patch)
+        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
     }
 }
 
@@ -363,10 +352,6 @@ impl Sha256Digest {
     }
 }
 
-// ============================================================================
-// 3. THUẬT TOÁN SHA-256 THUẦN RUST (FIPS 180-4, ZERO-PANIC)
-// ============================================================================
-
 const SHA256_K: [u32; 64] = [
     0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
     0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
@@ -446,8 +431,8 @@ impl Sha256Hasher {
         let mut hex = String::with_capacity(64);
         for word in &self.state {
             for byte in word.to_be_bytes() {
-                hex.push(char::from_digit((byte >> 4) as u32, 16).unwrap_or('0'));
-                hex.push(char::from_digit((byte & 0x0f) as u32, 16).unwrap_or('0'));
+                hex.push(char::from_digit(u32::from(byte >> 4), 16).unwrap_or('0'));
+                hex.push(char::from_digit(u32::from(byte & 0x0f), 16).unwrap_or('0'));
             }
         }
         Sha256Digest(hex)
@@ -536,10 +521,6 @@ impl Sha256Hasher {
     }
 }
 
-// ============================================================================
-// 4. MODULE DỌN DẸP FILE CŨ & GIẢI CỨU APPLET (`caramos-ctl prune`)
-// ============================================================================
-
 const LEGACY_FILES_TO_REMOVE: &[&str] = &[
     "build.sh",
     "install-caramos-ota.sh",
@@ -572,6 +553,8 @@ const MODERN_DEBIAN_TRIXIE_PACKAGES_TXT: &str = "\
 linux-image-amd64
 live-boot
 systemd-sysv
+dbus
+libpam-systemd
 firmware-linux-free
 earlyoom
 zram-tools
@@ -653,7 +636,6 @@ pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport
     let ota_root = repo_root.join("packages").join("caramos-ota");
     let overlay_root = repo_root.join("config").join("includes.chroot");
 
-    // Bước 1: Giải cứu Cinnamon Applets trước khi xóa packages/caramos-ota
     if ota_root.is_dir() {
         for sub in SALVAGE_SUBPATHS_FROM_OTA {
             let safe_rel = SafeRelativePath::parse(sub)?;
@@ -665,7 +647,6 @@ pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport
         }
     }
 
-    // Bước 2: Xóa các tệp đơn lẻ cũ
     for rel_file in LEGACY_FILES_TO_REMOVE {
         let safe_rel = SafeRelativePath::parse(rel_file)?;
         let target = safe_rel.join_under(repo_root);
@@ -681,7 +662,6 @@ pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport
         }
     }
 
-    // Bước 3: Xóa các thư mục di sản cũ
     for rel_dir in LEGACY_DIRS_TO_REMOVE {
         let safe_rel = SafeRelativePath::parse(rel_dir)?;
         let target_dir = safe_rel.join_under(repo_root);
@@ -697,7 +677,6 @@ pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport
         }
     }
 
-    // Bước 4: Cập nhật config/packages.txt và Makefile mới
     if execute {
         let pkg_file = repo_root.join("config").join("packages.txt");
         atomic_write_bytes(&pkg_file, MODERN_DEBIAN_TRIXIE_PACKAGES_TXT.as_bytes())?;
@@ -749,10 +728,6 @@ fn salvage_dir_recursive(
     }
     Ok(())
 }
-
-// ============================================================================
-// 5. RAII GUARDS & TYPESTATE DEBIAN TRIXIE BUILDER (`caramos-ctl build`)
-// ============================================================================
 
 /// Khóa tiến trình độc quyền theo cơ chế RAII.
 pub struct ProcessLockGuard {
@@ -1105,10 +1080,6 @@ impl CaramBuilder<RootfsCustomized> {
     }
 }
 
-// ============================================================================
-// 6. DECLARATIVE TRANSACTIONAL OTA ENGINE (ATOMIC COMMIT & ROLLBACK)
-// ============================================================================
-
 /// Mục tệp khai báo trong gói cập nhật OTA.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct OtaFileDirective {
@@ -1199,7 +1170,12 @@ impl OtaTransaction<VerifiedOta> {
             if let Err(err) = self.apply_one(idx, d, &target, &mut journal) {
                 let report = Self::rollback(&journal);
                 return Err(CaramError::TransactionAborted {
-                    failed_step: format!("#{} ({}): {}", idx, target.display(), err),
+                    failed_step: format!(
+                        "#{} ({}): {}",
+                        idx,
+                        d.target_rel_path.as_path().display(),
+                        err
+                    ),
                     rollback_report: report,
                 });
             }
@@ -1273,10 +1249,6 @@ impl OtaTransaction<VerifiedOta> {
         format!("Đã hoàn tác an toàn {} tệp.", count)
     }
 }
-
-// ============================================================================
-// 7. CÁC HÀM HỖ TRỢ HỆ THỐNG (ATOMIC WRITE & SAFE OVERLAY COPY)
-// ============================================================================
 
 /// Ghi tệp nguyên tử (`write temp` -> `sync_all` -> `rename`).
 pub fn atomic_write_bytes(target: &Path, content: &[u8]) -> Result<(), CaramError> {
@@ -1404,7 +1376,9 @@ fn run_checked_command(cmd: &mut Command, label: &str) -> Result<(), CaramError>
 }
 
 /// Đọc và làm sạch danh sách gói từ `config/packages.txt` cho Debian 13 (`trixie`).
-pub fn load_and_modernize_packages(packages_txt: &Path) -> Result<Vec<DebianPackageName>, CaramError> {
+pub fn load_and_modernize_packages(
+    packages_txt: &Path,
+) -> Result<Vec<DebianPackageName>, CaramError> {
     let raw = if packages_txt.exists() {
         fs::read_to_string(packages_txt).map_err(|source| CaramError::Io {
             context: "Đọc config/packages.txt",
@@ -1421,7 +1395,6 @@ pub fn load_and_modernize_packages(packages_txt: &Path) -> Result<Vec<DebianPack
         if clean.is_empty() {
             continue;
         }
-        // Tự động bỏ qua các gói đặc thù của Ubuntu/Linux Mint cũ nếu còn sót
         if clean.starts_with("mint-")
             || clean.starts_with("ubuntu-")
             || clean.starts_with("language-pack-")
@@ -1446,6 +1419,8 @@ pub fn load_and_modernize_packages(packages_txt: &Path) -> Result<Vec<DebianPack
         "linux-image-amd64",
         "live-boot",
         "systemd-sysv",
+        "dbus",
+        "libpam-systemd",
         "cinnamon-core",
         "lightdm",
         "fcitx5",
@@ -1465,10 +1440,6 @@ pub fn load_and_modernize_packages(packages_txt: &Path) -> Result<Vec<DebianPack
     Ok(map.into_values().collect())
 }
 
-// ============================================================================
-// 8. CLI ENTRYPOINT HỢP NHẤT (`prune`, `build`, `hash`)
-// ============================================================================
-
 fn print_usage() {
     println!(
         "caramos-ctl — Công cụ Hợp nhất của CaramOS 2.0 (Debian Trixie & Rust Core)\n\
@@ -1476,7 +1447,8 @@ fn print_usage() {
          CÁCH DÙNG:\n\
          \x20 caramos-ctl prune [--repo-root <DIR>] [--dry-run | --execute]\n\
          \x20 caramos-ctl build [--release] [--dry-run] [--work-dir <DIR>]\n\
-         \x20 caramos-ctl hash <FILE_PATH>\n"
+         \x20 caramos-ctl hash <FILE_PATH>\n\
+         \x20 caramos-ctl ota-apply <SYS_ROOT> <REL_PATH> <SRC_FILE> <SHA256> <VERSION>\n"
     );
 }
 
@@ -1539,6 +1511,49 @@ fn run_cli() -> Result<(), CaramError> {
             println!("{}  {}", digest.as_str(), file_arg);
             Ok(())
         }
+        "ota-apply" => {
+            let sys_root = args.next().ok_or_else(|| CaramError::Validation {
+                field: "sys_root",
+                value: String::new(),
+                reason: "Thiếu đường dẫn gốc hệ thống",
+            })?;
+            let rel_path = args.next().ok_or_else(|| CaramError::Validation {
+                field: "rel_path",
+                value: String::new(),
+                reason: "Thiếu đường dẫn tương đối của tệp đích",
+            })?;
+            let src_file = args.next().ok_or_else(|| CaramError::Validation {
+                field: "src_file",
+                value: String::new(),
+                reason: "Thiếu tệp nguồn OTA",
+            })?;
+            let sha_hex = args.next().ok_or_else(|| CaramError::Validation {
+                field: "sha256",
+                value: String::new(),
+                reason: "Thiếu mã băm SHA-256 kỳ vọng",
+            })?;
+            let ver_str = args.next().ok_or_else(|| CaramError::Validation {
+                field: "version",
+                value: String::new(),
+                reason: "Thiếu phiên bản đích",
+            })?;
+
+            let manifest = OtaManifest {
+                target_version: SemVer::parse(&ver_str)?,
+                directives: vec![OtaFileDirective {
+                    target_rel_path: SafeRelativePath::parse(&rel_path)?,
+                    staged_source_path: PathBuf::from(src_file),
+                    expected_sha256: Sha256Digest::parse(&sha_hex)?,
+                }],
+            };
+            let root_path = PathBuf::from(&sys_root);
+            let backup_dir = root_path.join(".caramos-ota-backup");
+            let committed_ver = OtaTransaction::new(manifest, root_path, backup_dir)
+                .verify_payloads()?
+                .commit_atomic()?;
+            println!("OK  OTA cập nhật nguyên tử lên phiên bản {}", committed_ver);
+            Ok(())
+        }
         "build" => {
             let mut compression = SquashfsCompression::ZstdFast;
             let mut dry_run = false;
@@ -1594,7 +1609,7 @@ fn run_cli() -> Result<(), CaramError> {
         other => Err(CaramError::Validation {
             field: "subcommand",
             value: other.to_owned(),
-            reason: "Lệnh không hợp lệ (hỗ trợ: prune, build, hash)",
+            reason: "Lệnh không hợp lệ (hỗ trợ: prune, build, hash, ota-apply)",
         }),
     }
 }
@@ -1608,10 +1623,6 @@ fn main() -> ExitCode {
         }
     }
 }
-
-// ============================================================================
-// 9. UNIT TESTS
-// ============================================================================
 
 #[cfg(test)]
 mod tests {

@@ -67,7 +67,6 @@ jobs:
             cargo fmt --manifest-path crates/caramos-ctl/Cargo.toml --all
             cargo run --manifest-path crates/caramos-ctl/Cargo.toml --release -- prune --repo-root . --execute
           else
-            echo "::warning::Chưa thấy crates/caramos-ctl, chạy nhánh dọn dẹp dự phòng..."
             if [ -d "packages/caramos-ota/usr/share/cinnamon/applets" ]; then
               mkdir -p config/includes.chroot/usr/share/cinnamon/applets
               cp -rn packages/caramos-ota/usr/share/cinnamon/applets/* config/includes.chroot/usr/share/cinnamon/applets/ || true
@@ -85,10 +84,8 @@ jobs:
 
           git add -A
           if ! git diff --cached --quiet; then
-            echo "==> Phát hiện file cũ cần xóa, đang tự động commit lên nhánh ${GITHUB_REF_NAME}..."
             git commit -m "chore(auto-prune): salvage Cinnamon applets and remove legacy Mint/Bash/Python OTA files [skip ci]"
             git push origin "HEAD:${GITHUB_REF_NAME}"
-            echo "OK  Đã xóa sạch file cũ trên repo GitHub của bạn!"
           else
             echo "OK  Repo đã sạch, không còn file di sản nào cần xóa."
           fi
@@ -106,15 +103,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
-
-      - name: Check crates/caramos-ctl exists
-        shell: bash
-        run: |
-          set -euo pipefail
-          if [ ! -f "crates/caramos-ctl/Cargo.toml" ] || [ ! -f "crates/caramos-ctl/src/main.rs" ]; then
-            echo "::error::Bạn chưa tạo file 'crates/caramos-ctl/Cargo.toml' và 'crates/caramos-ctl/src/main.rs'!"
-            exit 1
-          fi
 
       - name: Install Rust stable toolchain (clippy)
         uses: dtolnay/rust-toolchain@stable
@@ -227,7 +215,14 @@ jobs:
             FLAGS+=("--release")
           fi
           sudo ./bin/caramos-ctl build "${FLAGS[@]}"
-          ./bin/caramos-ctl hash "./build/CaramOS-2.0.0-debian-trixie-amd64.iso" | tee "./build/SHA256SUMS"
+
+          ISO_FILE="./build/CaramOS-2.0.0-debian-trixie-amd64.iso"
+          SUM_FILE="./build/SHA256SUMS"
+
+          ./bin/caramos-ctl hash "${ISO_FILE}" | sudo tee "${SUM_FILE}"
+          sudo chown "$(id -u):$(id -g)" "${ISO_FILE}" "${SUM_FILE}"
+          sudo chmod 0644 "${ISO_FILE}" "${SUM_FILE}"
+          ls -lh "${ISO_FILE}" "${SUM_FILE}"
 
       - name: Cleanup Chroot Mounts Safely
         if: always()

@@ -1,7 +1,34 @@
-# CaramOS — Package cần THÊM vào ISO
-# Mint ISO đã có: wifi, ethernet, bluetooth, linux-firmware
-# Chỉ thêm những gì Mint CHƯA CÓ
-
-# Display Manager: Giữ nguyên LightDM + Slick-Greeter mặc định của Mint
-#5 @dungdinhmanh
-flameshot
+# =============================================================================
+# CaramOS 2.0 (Debian 13 Trixie Base + Rust Core Userland)
+# =============================================================================
+linux-image-amd64
+live-boot
+systemd-sysv
+dbus
+libpam-systemd
+firmware-linux-free
+earlyoom
+zram-tools
+rust-coreutils
+sudo-rs
+ripgrep
+fd-find
+cinnamon-core
+lightdm
+lightdm-gtk-greeter
+network-manager-gnome
+blueman
+pulseaudio-utils
+gvfs-backends
+xdg-user-dirs-gtk
+fcitx5
+fcitx5-unikey
+fcitx5-config-qt
+fonts-noto-core
+fonts-noto-color-emoji
+fonts-liberation2
+ca-certificates
+curl
+flatpak
+pkexec
+polkitd

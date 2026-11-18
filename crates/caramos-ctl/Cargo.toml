@@ -1,0 +1,17 @@
+[package]
+name = "caramos-ctl"
+version = "2.0.0"
+edition = "2021"
+description = "Unified Rust Engine for CaramOS: Legacy Pruner, Debian Trixie Builder & Atomic OTA"
+license = "GPL-3.0-only"
+
+[[bin]]
+name = "caramos-ctl"
+path = "src/main.rs"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

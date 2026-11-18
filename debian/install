@@ -1,5 +1,0 @@
-etc/sddm.conf.d/caramos.conf
-etc/skel/.config/autostart/flameshot.desktop
-etc/skel/.config/fcitx5/profile/default
-etc/skel/.config/mimeapps.list
-usr/share/glib-2.0/schemas/99_caramos.gschema.override

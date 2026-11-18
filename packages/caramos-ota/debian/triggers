@@ -1,5 +1,0 @@
-# A Cinnamon update puts back the files CaramOS changes (caramos_ota_update/cinnamon_patches.py);
-# postinst makes the changes again.
-interest-noawait /usr/share/cinnamon/applets/grouped-window-list@cinnamon.org
-interest-noawait /usr/share/cinnamon/applets/systray@cinnamon.org
-interest-noawait /usr/share/cinnamon/cinnamon-settings/modules

@@ -1,9 +1,0 @@
-caramos-default-settings (0.1.0) wilma; urgency=medium
-
-  * Initial release
-  * Chrome OS style theme defaults
-  * Vietnamese localization defaults
-  * LightDM Slick Greeter configuration
-  * Default user skeleton configuration
-
- -- Vietnam Linux Family <contact@vietnamlinuxfamily.net>  Mon, 24 Feb 2025 00:00:00 +0700

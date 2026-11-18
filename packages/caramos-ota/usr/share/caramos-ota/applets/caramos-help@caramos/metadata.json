@@ -1,7 +1,0 @@
-{
-  "uuid": "caramos-help@caramos",
-  "name": "CaramOS Feedback & Help",
-  "description": "Ask the VNLF community for help, report a bug or send feedback about CaramOS",
-  "version": "1.0.22",
-  "max-instances": 1
-}

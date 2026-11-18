@@ -197,6 +197,10 @@ jobs:
             debian-archive-keyring \
             squashfs-tools \
             xorriso \
+            grub-common \
+            grub-pc-bin \
+            grub-efi-amd64-bin \
+            mtools \
             ca-certificates
 
           for keyring in /usr/share/keyrings/debian-archive-*.gpg; do

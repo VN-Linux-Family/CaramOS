@@ -2,7 +2,7 @@
 # CaramOS 2.0 Full Bootable Live Desktop (Debian 13 Trixie + Rust Core)
 # =============================================================================
 
-# --- Kernel, Live Boot & Live Session Auto-Login và Trình cài đặt ---
+# --- Kernel, Live Boot & Live Session Auto-Login ---
 linux-image-amd64
 live-boot
 live-boot-initramfs-tools
@@ -14,22 +14,6 @@ libpam-systemd
 sudo
 user-setup
 locales
-calamares
-calamares-settings-debian
-grub-efi-amd64-bin
-grub-efi-amd64-signed
-shim-signed
-grub-pc-bin
-grub2-common
-efibootmgr
-os-prober
-dosfstools
-e2fsprogs
-btrfs-progs
-lvm2
-cryptsetup
-parted
-rsync
 
 # --- Hardware Firmware (Wi-Fi, Bluetooth, Audio DSP, AMD/Intel GPU) ---
 firmware-linux-free

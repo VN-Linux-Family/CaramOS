@@ -1,29 +1,61 @@
 # =============================================================================
-# CaramOS 2.0 (Debian 13 Trixie Base + Rust Core Userland)
+# CaramOS 2.0 Full Bootable Live Desktop (Debian 13 Trixie + Rust Core)
 # =============================================================================
+
+# --- Kernel, Live Boot & Live Session Auto-Login ---
 linux-image-amd64
 live-boot
+live-boot-initramfs-tools
+live-config
+live-config-systemd
 systemd-sysv
 dbus
 libpam-systemd
+sudo
+user-setup
+locales
+
+# --- Hardware Firmware (Wi-Fi, Bluetooth, Audio DSP, AMD/Intel GPU) ---
 firmware-linux-free
+firmware-sof-signed
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-amd-graphics
+firmware-misc-nonfree
 earlyoom
 zram-tools
+
+# --- Rust Core Replacements ---
 rust-coreutils
 sudo-rs
 ripgrep
 fd-find
-cinnamon-core
+
+# --- Xorg Display Server, Mesa 3D & Full Cinnamon Desktop ---
+xorg
+xserver-xorg-input-all
+xserver-xorg-video-all
+mesa-vulkan-drivers
+cinnamon
 lightdm
 lightdm-gtk-greeter
+nemo
+nemo-fileroller
+gnome-terminal
 network-manager-gnome
 blueman
-pulseaudio-utils
+pipewire-audio
+wireplumber
 gvfs-backends
 xdg-user-dirs-gtk
+
+# --- Tiếng Việt (Fcitx5 Unikey), Trình duyệt & Ứng dụng Thiết yếu ---
 fcitx5
 fcitx5-unikey
 fcitx5-config-qt
+firefox-esr
+firefox-esr-l10n-vi
 fonts-noto-core
 fonts-noto-color-emoji
 fonts-liberation2

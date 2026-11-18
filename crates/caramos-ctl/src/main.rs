@@ -381,8 +381,8 @@ impl Sha256Hasher {
     pub fn new() -> Self {
         Self {
             state: [
-                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
-                0x5be0cd19,
+                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c,
+                0x1f83d9ab, 0x5be0cd19,
             ],
             buffer: Vec::with_capacity(64),
             total_bytes: 0,
@@ -393,13 +393,13 @@ impl Sha256Hasher {
     pub fn update(&mut self, data: &[u8]) {
         self.total_bytes = self.total_bytes.wrapping_add(data.len() as u64);
         self.buffer.extend_from_slice(data);
-        while self.buffer.len() >= 64 {
-            let mut block = [0u8; 64];
-            for (dst, src) in block.iter_mut().zip(self.buffer.iter()) {
-                *dst = *src;
+        let blocks: Vec<[u8; 64]> = self.buffer.as_chunks::<64>().0.to_vec();
+        if !blocks.is_empty() {
+            for b in &blocks {
+                self.compress_block(b);
             }
-            self.compress_block(&block);
-            self.buffer.drain(..64);
+            let consumed = blocks.len().wrapping_mul(64);
+            self.buffer.drain(..consumed);
         }
     }
 
@@ -407,22 +407,12 @@ impl Sha256Hasher {
     pub fn finalize(mut self) -> Sha256Digest {
         let bit_len = self.total_bytes.wrapping_mul(8);
         self.buffer.push(0x80);
-        while (self.buffer.len() + 8) % 64 != 0 {
+        while !(self.buffer.len() + 8).is_multiple_of(64) {
             self.buffer.push(0x00);
         }
         self.buffer.extend_from_slice(&bit_len.to_be_bytes());
 
-        let blocks: Vec<[u8; 64]> = self
-            .buffer
-            .chunks_exact(64)
-            .map(|c| {
-                let mut arr = [0u8; 64];
-                for (dst, src) in arr.iter_mut().zip(c.iter()) {
-                    *dst = *src;
-                }
-                arr
-            })
-            .collect();
+        let blocks: Vec<[u8; 64]> = self.buffer.as_chunks::<64>().0.to_vec();
 
         for b in &blocks {
             self.compress_block(b);
@@ -440,12 +430,8 @@ impl Sha256Hasher {
 
     fn compress_block(&mut self, block: &[u8; 64]) {
         let mut w = [0u32; 64];
-        for (slot, chunk) in w.iter_mut().take(16).zip(block.chunks_exact(4)) {
-            let mut b = [0u8; 4];
-            for (dst, src) in b.iter_mut().zip(chunk.iter()) {
-                *dst = *src;
-            }
-            *slot = u32::from_be_bytes(b);
+        for (slot, &chunk) in w.iter_mut().take(16).zip(block.as_chunks::<4>().0) {
+            *slot = u32::from_be_bytes(chunk);
         }
         for i in 16..64 {
             let w15 = w.get(i - 15).copied().unwrap_or(0);
@@ -988,17 +974,14 @@ impl CaramBuilder<RootfsBootstrapped> {
         atomic_write_bytes(&release_target, release_content.as_bytes())?;
 
         {
-            let _mount_guard = ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
+            let _mount_guard =
+                ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
             if !self.config.dry_run {
                 let mut cmd = Command::new("chroot");
-                cmd.arg(&self.rootfs_dir)
-                    .arg("/bin/sh")
-                    .arg("-e")
-                    .arg("-c")
-                    .arg(
-                        "if command -v dconf >/dev/null 2>&1; then dconf update; fi && \
+                cmd.arg(&self.rootfs_dir).arg("/bin/sh").arg("-e").arg("-c").arg(
+                    "if command -v dconf >/dev/null 2>&1; then dconf update; fi && \
                      if command -v locale-gen >/dev/null 2>&1; then locale-gen; fi",
-                    );
+                );
                 run_checked_command(&mut cmd, "chroot-customize")?;
             }
         }

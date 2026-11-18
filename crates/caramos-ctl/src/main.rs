@@ -7,7 +7,7 @@
     missing_docs
 )]
 
-//! `caramos-ctl` — Trình điều phối hợp nhất cho CaramOS 2.0 (Debian 13 Trixie Base).
+//! `caramos-ctl` — Trình điều phối hợp nhất cho CaramOS 2.0 (Debian 13 Trixie Live Desktop).
 //! Tích hợp 4 lệnh: `prune`, `build`, `hash`, `ota-apply`.
 
 use std::collections::BTreeMap;
@@ -42,7 +42,7 @@ pub enum CaramError {
         /// Lý do từ chối.
         reason: &'static str,
     },
-    /// Lỗi khi gọi tiến trình ngoài (`mmdebstrap`, `mksquashfs`, `xorriso`, `mount`).
+    /// Lỗi khi gọi tiến trình ngoài (`mmdebstrap`, `mksquashfs`, `grub-mkrescue`, `mount`).
     CommandFailed {
         /// Tên chương trình.
         program: String,
@@ -381,8 +381,8 @@ impl Sha256Hasher {
     pub fn new() -> Self {
         Self {
             state: [
-                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
-                0x5be0cd19,
+                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c,
+                0x1f83d9ab, 0x5be0cd19,
             ],
             buffer: Vec::with_capacity(64),
             total_bytes: 0,
@@ -532,33 +532,66 @@ const SALVAGE_SUBPATHS_FROM_OTA: &[&str] = &[
     "usr/share/applications",
 ];
 
+/// Danh sách gói đầy đủ cho một bản Live Desktop CaramOS 2.0 khởi động được ngay trên máy thật & VM.
 const MODERN_DEBIAN_TRIXIE_PACKAGES_TXT: &str = "\
 # =============================================================================
-# CaramOS 2.0 (Debian 13 Trixie Base + Rust Core Userland)
+# CaramOS 2.0 Full Bootable Live Desktop (Debian 13 Trixie + Rust Core)
 # =============================================================================
+
+# --- Kernel, Live Boot & Live Session Auto-Login ---
 linux-image-amd64
 live-boot
+live-boot-initramfs-tools
+live-config
+live-config-systemd
 systemd-sysv
 dbus
 libpam-systemd
+sudo
+user-setup
+locales
+
+# --- Hardware Firmware (Wi-Fi, Bluetooth, Audio DSP, AMD/Intel GPU) ---
 firmware-linux-free
+firmware-sof-signed
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+firmware-amd-graphics
+firmware-misc-nonfree
 earlyoom
 zram-tools
+
+# --- Rust Core Replacements ---
 rust-coreutils
 sudo-rs
 ripgrep
 fd-find
-cinnamon-core
+
+# --- Xorg Display Server, Mesa 3D & Full Cinnamon Desktop ---
+xorg
+xserver-xorg-input-all
+xserver-xorg-video-all
+mesa-vulkan-drivers
+cinnamon
 lightdm
 lightdm-gtk-greeter
+nemo
+nemo-fileroller
+gnome-terminal
 network-manager-gnome
 blueman
-pulseaudio-utils
+pipewire-audio
+wireplumber
 gvfs-backends
 xdg-user-dirs-gtk
+
+# --- Tiếng Việt (Fcitx5 Unikey), Trình duyệt & Ứng dụng Thiết yếu ---
 fcitx5
 fcitx5-unikey
 fcitx5-config-qt
+firefox-esr
+firefox-esr-l10n-vi
 fonts-noto-core
 fonts-noto-color-emoji
 fonts-liberation2
@@ -603,6 +636,25 @@ release: build-bin
 
 clean:
 \tsudo rm -rf $(WORK_DIR) $(WORK_DIR)_dryrun
+";
+
+/// Cấu hình menu GRUB khởi động lai cho cả Legacy BIOS và UEFI.
+const GRUB_LIVE_CFG: &str = "\
+set default=0
+set timeout=5
+
+insmod all_video
+insmod gfxterm
+
+menuentry \"CaramOS 2.0 (Debian 13 Trixie - Live Desktop)\" {
+    linux /live/vmlinuz boot=live components quiet splash locales=vi_VN.UTF-8,en_US.UTF-8 keyboard-layouts=us username=caram user-fullname=CaramOS hostname=caramos
+    initrd /live/initrd.img
+}
+
+menuentry \"CaramOS 2.0 (Safe Graphics / Fallback Mode)\" {
+    linux /live/vmlinuz boot=live components nomodeset locales=vi_VN.UTF-8,en_US.UTF-8 keyboard-layouts=us username=caram user-fullname=CaramOS hostname=caramos
+    initrd /live/initrd.img
+}
 ";
 
 /// Báo cáo kết quả dọn dẹp kho mã nguồn.
@@ -951,7 +1003,8 @@ impl CaramBuilder<Uninitialized> {
 }
 
 impl CaramBuilder<RootfsBootstrapped> {
-    /// Bước 2: Áp dụng Overlay (`config/includes.chroot`), ghi `/etc/caramos-release` và cập nhật dconf.
+    /// Bước 2: Áp dụng Overlay (`config/includes.chroot`), ghi `/etc/caramos-release`,
+    /// kích hoạt locale Tiếng Việt và tạo lại `initramfs` chứa hook `live-boot`.
     pub fn customize(self) -> Result<CaramBuilder<RootfsCustomized>, CaramError> {
         if self.config.overlay_dir.exists() {
             copy_overlay_tree_safely(&self.config.overlay_dir, &self.rootfs_dir)?;
@@ -973,18 +1026,24 @@ impl CaramBuilder<RootfsBootstrapped> {
         );
         atomic_write_bytes(&release_target, release_content.as_bytes())?;
 
+        // Khai báo sẵn locale Tiếng Việt và Tiếng Anh trước khi gọi locale-gen
+        let locale_gen_rel = SafeRelativePath::parse("etc/locale.gen")?;
+        atomic_write_bytes(
+            &locale_gen_rel.join_under(&self.rootfs_dir),
+            b"vi_VN.UTF-8 UTF-8\nen_US.UTF-8 UTF-8\n",
+        )?;
+
         {
-            let _mount_guard = ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
+            let _mount_guard =
+                ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
             if !self.config.dry_run {
                 let mut cmd = Command::new("chroot");
-                cmd.arg(&self.rootfs_dir)
-                    .arg("/bin/sh")
-                    .arg("-e")
-                    .arg("-c")
-                    .arg(
-                        "if command -v dconf >/dev/null 2>&1; then dconf update; fi && \
-                     if command -v locale-gen >/dev/null 2>&1; then locale-gen; fi",
-                    );
+                cmd.arg(&self.rootfs_dir).arg("/bin/sh").arg("-e").arg("-c").arg(
+                    "if command -v dconf >/dev/null 2>&1; then dconf update; fi && \
+                     if command -v locale-gen >/dev/null 2>&1; then locale-gen; fi && \
+                     if command -v update-initramfs >/dev/null 2>&1; then update-initramfs -u -k all; fi && \
+                     apt-get clean && rm -rf /var/lib/apt/lists/*",
+                );
                 run_checked_command(&mut cmd, "chroot-customize")?;
             }
         }
@@ -1001,17 +1060,29 @@ impl CaramBuilder<RootfsBootstrapped> {
 }
 
 impl CaramBuilder<RootfsCustomized> {
-    /// Bước 3: Nén `filesystem.squashfs`, tạo ảnh `.iso` và băm SHA-256.
+    /// Bước 3: Trích xuất `vmlinuz` + `initrd.img` ra `/live/`, tạo `boot/grub/grub.cfg`,
+    /// nén `filesystem.squashfs` và đóng gói Hybrid Bootable ISO bằng `grub-mkrescue`.
     pub fn repack_iso(
         self,
         output_iso_path: &Path,
     ) -> Result<(CaramBuilder<IsoPackaged>, Sha256Digest), CaramError> {
-        let squashfs_target = self
-            .iso_staging_dir
-            .join("live")
-            .join("filesystem.squashfs");
+        let live_dir = self.iso_staging_dir.join("live");
+        let grub_dir = self.iso_staging_dir.join("boot").join("grub");
+        fs::create_dir_all(&grub_dir).map_err(|source| CaramError::Io {
+            context: "Tạo thư mục boot/grub trong iso_staging",
+            path: Some(grub_dir.clone()),
+            source,
+        })?;
+
+        atomic_write_bytes(&grub_dir.join("grub.cfg"), GRUB_LIVE_CFG.as_bytes())?;
+
+        let squashfs_target = live_dir.join("filesystem.squashfs");
 
         if !self.config.dry_run {
+            // 1. Trích xuất vmlinuz và initrd.img từ rootfs/boot/ ra iso_staging/live/
+            stage_kernel_and_initrd(&self.rootfs_dir.join("boot"), &live_dir)?;
+
+            // 2. Đóng gói rootfs thành filesystem.squashfs
             let mut mksquash = Command::new("mksquashfs");
             mksquash
                 .arg(&self.rootfs_dir)
@@ -1037,21 +1108,20 @@ impl CaramBuilder<RootfsCustomized> {
             }
             run_checked_command(&mut mksquash, "mksquashfs")?;
 
-            let mut xorriso = Command::new("xorriso");
-            xorriso
-                .arg("-as")
-                .arg("mkisofs")
-                .arg("-iso-level")
-                .arg("3")
-                .arg("-full-iso9660-filenames")
-                .arg("-volid")
-                .arg(format!("CARAMOS_{}", self.config.version))
-                .arg("-output")
+            // 3. Tạo ảnh ISO lai khởi động được trên cả BIOS và UEFI bằng grub-mkrescue
+            let mut mkrescue = Command::new("grub-mkrescue");
+            mkrescue
+                .arg("-o")
                 .arg(output_iso_path)
-                .arg(&self.iso_staging_dir);
-            run_checked_command(&mut xorriso, "xorriso")?;
+                .arg(&self.iso_staging_dir)
+                .arg("--")
+                .arg("-volid")
+                .arg("CARAMOS_LIVE");
+            run_checked_command(&mut mkrescue, "grub-mkrescue")?;
         } else {
             let dummy = format!("CARAMOS-DRYRUN-ISO-v{}-trixie", self.config.version);
+            atomic_write_bytes(&live_dir.join("vmlinuz"), b"KERNEL_DRYRUN")?;
+            atomic_write_bytes(&live_dir.join("initrd.img"), b"INITRD_DRYRUN")?;
             atomic_write_bytes(&squashfs_target, b"SQUASHFS_DRYRUN")?;
             atomic_write_bytes(output_iso_path, dummy.as_bytes())?;
         }
@@ -1067,6 +1137,61 @@ impl CaramBuilder<RootfsCustomized> {
             digest,
         ))
     }
+}
+
+/// Tìm tệp `vmlinuz-*` và `initrd.img-*` mới nhất trong `boot_dir` và sao chép sang `live_dir`.
+fn stage_kernel_and_initrd(boot_dir: &Path, live_dir: &Path) -> Result<(), CaramError> {
+    let entries = fs::read_dir(boot_dir).map_err(|source| CaramError::Io {
+        context: "Đọc thư mục rootfs/boot để trích xuất kernel",
+        path: Some(boot_dir.to_path_buf()),
+        source,
+    })?;
+
+    let mut kernels: Vec<PathBuf> = Vec::new();
+    let mut initrds: Vec<PathBuf> = Vec::new();
+
+    for entry_res in entries {
+        let entry = entry_res.map_err(|source| CaramError::Io {
+            context: "Đọc mục trong rootfs/boot",
+            path: Some(boot_dir.to_path_buf()),
+            source,
+        })?;
+        let path = entry.path();
+        if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
+            if name.starts_with("vmlinuz-") {
+                kernels.push(path);
+            } else if name.starts_with("initrd.img-") {
+                initrds.push(path);
+            }
+        }
+    }
+
+    kernels.sort();
+    initrds.sort();
+
+    let chosen_kernel = kernels.last().ok_or_else(|| CaramError::Validation {
+        field: "rootfs/boot/vmlinuz-*",
+        value: boot_dir.display().to_string(),
+        reason: "Không tìm thấy nhân Linux (vmlinuz-*) trong rootfs/boot",
+    })?;
+    let chosen_initrd = initrds.last().ok_or_else(|| CaramError::Validation {
+        field: "rootfs/boot/initrd.img-*",
+        value: boot_dir.display().to_string(),
+        reason: "Không tìm thấy initramfs (initrd.img-*) trong rootfs/boot",
+    })?;
+
+    fs::copy(chosen_kernel, live_dir.join("vmlinuz")).map_err(|source| CaramError::Io {
+        context: "Sao chép vmlinuz sang iso_staging/live/vmlinuz",
+        path: Some(chosen_kernel.clone()),
+        source,
+    })?;
+    fs::copy(chosen_initrd, live_dir.join("initrd.img")).map_err(|source| CaramError::Io {
+        context: "Sao chép initrd.img sang iso_staging/live/initrd.img",
+        path: Some(chosen_initrd.clone()),
+        source,
+    })?;
+
+    Ok(())
 }
 
 /// Mục tệp khai báo trong gói cập nhật OTA.
@@ -1407,13 +1532,30 @@ pub fn load_and_modernize_packages(
     let mandatory = [
         "linux-image-amd64",
         "live-boot",
+        "live-boot-initramfs-tools",
+        "live-config",
+        "live-config-systemd",
         "systemd-sysv",
         "dbus",
         "libpam-systemd",
-        "cinnamon-core",
+        "sudo",
+        "user-setup",
+        "locales",
+        "xorg",
+        "xserver-xorg-input-all",
+        "xserver-xorg-video-all",
+        "mesa-vulkan-drivers",
+        "cinnamon",
         "lightdm",
+        "lightdm-gtk-greeter",
+        "nemo",
+        "gnome-terminal",
+        "network-manager-gnome",
+        "pipewire-audio",
+        "wireplumber",
         "fcitx5",
         "fcitx5-unikey",
+        "firefox-esr",
         "rust-coreutils",
         "sudo-rs",
         "ripgrep",
@@ -1702,6 +1844,7 @@ mod tests {
             .customize()?
             .repack_iso(&iso)?;
         assert_eq!(digest.as_str().len(), 64);
+        assert!(work.join("iso_staging/boot/grub/grub.cfg").is_file());
 
         let _ = fs::remove_dir_all(&root);
         Ok(())

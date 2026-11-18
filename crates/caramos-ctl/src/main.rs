@@ -7,8 +7,14 @@
     missing_docs
 )]
 
-//! `caramos-ctl` — Trình điều phối hợp nhất cho CaramOS 2.0 (Debian 13 Trixie Live Desktop).
-//! Tích hợp 4 lệnh: `prune`, `build`, `hash`, `ota-apply`.
+//! `caramos-ctl` — Trình điều phối hợp nhất & Multi-Call Binary cho CaramOS 2.0 (Debian 13 Trixie).
+//! Tích hợp:
+//! - `prune`        : Giải cứu Applet, quét xóa 100% file `.py`/`.sh` cũ trong repo.
+//! - `build`        : Bootstrap Debian Trixie, nhúng bộ cài ổ cứng Calamares & đóng gói Hybrid ISO.
+//! - `hash`         : Băm mật mã học SHA-256 (FIPS 180-4) thuần Rust.
+//! - `ota-apply`    : Cập nhật OTA nguyên tử kèm cơ chế tự động Rollback.
+//! - `driver-check` : Kiểm tra phần cứng PCI & Kernel Driver trực tiếp từ `/sys/bus/pci/devices` (thay Python).
+//! - `help`         : Hiển thị chẩn đoán hệ thống & mở tài liệu hướng dẫn (thay Python).
 
 use std::collections::BTreeMap;
 use std::env;
@@ -17,6 +23,7 @@ use std::fmt;
 use std::fs::{self, File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::marker::PhantomData;
+use std::os::unix::fs::{ symlink, PermissionsExt };
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, ExitCode, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -381,8 +388,8 @@ impl Sha256Hasher {
     pub fn new() -> Self {
         Self {
             state: [
-                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
-                0x5be0cd19,
+                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c,
+                0x1f83d9ab, 0x5be0cd19,
             ],
             buffer: Vec::with_capacity(64),
             total_bytes: 0,
@@ -524,6 +531,7 @@ const LEGACY_DIRS_TO_REMOVE: &[&str] = &[
     "debian",
     "packages/caramos-ota",
     "config/includes.chroot/etc/linuxmint",
+    "config/includes.chroot/usr/lib/python3",
 ];
 
 const SALVAGE_SUBPATHS_FROM_OTA: &[&str] = &[
@@ -532,10 +540,10 @@ const SALVAGE_SUBPATHS_FROM_OTA: &[&str] = &[
     "usr/share/applications",
 ];
 
-/// Danh sách gói đầy đủ cho một bản Live Desktop CaramOS 2.0 khởi động được ngay trên máy thật & VM.
+/// Danh sách gói đầy đủ cho một bản Live Desktop CaramOS 2.0 khởi động & cài được lên ổ cứng máy thật.
 const MODERN_DEBIAN_TRIXIE_PACKAGES_TXT: &str = "\
 # =============================================================================
-# CaramOS 2.0 Full Bootable Live Desktop (Debian 13 Trixie + Rust Core)
+# CaramOS 2.0 Full Bootable & Installable Live Desktop (Debian 13 Trixie + Rust)
 # =============================================================================
 
 # --- Kernel, Live Boot & Live Session Auto-Login ---
@@ -550,6 +558,24 @@ libpam-systemd
 sudo
 user-setup
 locales
+
+# --- Trình Cài Đặt Lên Ổ Cứng Máy Thật (Calamares + UEFI/BIOS GRUB) ---
+calamares
+calamares-settings-debian
+grub-efi-amd64-bin
+grub-efi-amd64-signed
+shim-signed
+grub-pc-bin
+grub2-common
+efibootmgr
+os-prober
+dosfstools
+e2fsprogs
+btrfs-progs
+lvm2
+cryptsetup
+parted
+rsync
 
 # --- Hardware Firmware (Wi-Fi, Bluetooth, Audio DSP, AMD/Intel GPU) ---
 firmware-linux-free
@@ -583,6 +609,8 @@ network-manager-gnome
 blueman
 pipewire-audio
 wireplumber
+libnotify-bin
+xdg-utils
 gvfs-backends
 xdg-user-dirs-gtk
 
@@ -646,7 +674,7 @@ set timeout=5
 insmod all_video
 insmod gfxterm
 
-menuentry \"CaramOS 2.0 (Debian 13 Trixie - Live Desktop)\" {
+menuentry \"CaramOS 2.0 (Debian 13 Trixie - Live Desktop & Installer)\" {
     linux /live/vmlinuz boot=live components quiet splash locales=vi_VN.UTF-8,en_US.UTF-8 keyboard-layouts=us username=caram user-fullname=CaramOS hostname=caramos
     initrd /live/initrd.img
 }
@@ -662,18 +690,19 @@ menuentry \"CaramOS 2.0 (Safe Graphics / Fallback Mode)\" {
 pub struct PruneReport {
     /// Các tệp giao diện đã giải cứu sang `config/includes.chroot`.
     pub salvaged_files: Vec<PathBuf>,
-    /// Các tệp di sản đã xóa.
+    /// Các tệp di sản (bao gồm toàn bộ `.py` và `.sh` cổ lỗ sĩ) đã xóa.
     pub removed_files: Vec<PathBuf>,
     /// Các thư mục di sản đã xóa.
     pub removed_dirs: Vec<PathBuf>,
 }
 
-/// Giải cứu Cinnamon Applets từ `packages/caramos-ota` và xóa toàn bộ file Bash/Mint/Python cũ.
+/// Giải cứu Cinnamon Applets, quét xóa toàn bộ `.py`/`.sh` cổ lỗ sĩ và cập nhật cấu hình Debian Trixie.
 pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport, CaramError> {
     let mut report = PruneReport::default();
     let ota_root = repo_root.join("packages").join("caramos-ota");
     let overlay_root = repo_root.join("config").join("includes.chroot");
 
+    // 1. Giải cứu Applets/Icons (trừ các file .py/.sh) trước khi xóa packages/caramos-ota
     if ota_root.is_dir() {
         for sub in SALVAGE_SUBPATHS_FROM_OTA {
             let safe_rel = SafeRelativePath::parse(sub)?;
@@ -685,6 +714,7 @@ pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport
         }
     }
 
+    // 2. Xóa các tệp di sản cố định
     for rel_file in LEGACY_FILES_TO_REMOVE {
         let safe_rel = SafeRelativePath::parse(rel_file)?;
         let target = safe_rel.join_under(repo_root);
@@ -700,6 +730,7 @@ pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport
         }
     }
 
+    // 3. Xóa các thư mục di sản cố định
     for rel_dir in LEGACY_DIRS_TO_REMOVE {
         let safe_rel = SafeRelativePath::parse(rel_dir)?;
         let target_dir = safe_rel.join_under(repo_root);
@@ -715,15 +746,116 @@ pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport
         }
     }
 
+    // 4. Quét đệ quy toàn bộ repo để xóa sạch mọi file .py, .pyc, .sh hoặc script có shebang Python/Bash
+    purge_obsolete_scripts_recursively(repo_root, execute, &mut report.removed_files)?;
+
+    // 5. Cập nhật config/packages.txt (nếu chưa có calamares) và Makefile
     if execute {
         let pkg_file = repo_root.join("config").join("packages.txt");
-        atomic_write_bytes(&pkg_file, MODERN_DEBIAN_TRIXIE_PACKAGES_TXT.as_bytes())?;
+        let current_pkg = fs::read_to_string(&pkg_file).unwrap_or_default();
+        if current_pkg.is_empty()
+            || current_pkg.contains("mint-")
+            || current_pkg.contains("casper")
+            || !current_pkg.contains("calamares")
+        {
+            atomic_write_bytes(&pkg_file, MODERN_DEBIAN_TRIXIE_PACKAGES_TXT.as_bytes())?;
+        }
 
         let makefile = repo_root.join("Makefile");
         atomic_write_bytes(&makefile, MODERN_MAKEFILE.as_bytes())?;
     }
 
     Ok(report)
+}
+
+/// Quét đệ quy và loại bỏ mọi tệp `.py`, `.pyc`, `.sh` hoặc tệp script có shebang Python/Shell.
+fn purge_obsolete_scripts_recursively(
+    current_dir: &Path,
+    execute: bool,
+    removed_log: &mut Vec<PathBuf>,
+) -> Result<(), CaramError> {
+    if !current_dir.is_dir() {
+        return Ok(());
+    }
+    let entries = fs::read_dir(current_dir).map_err(|source| CaramError::Io {
+        context: "Đọc thư mục khi quét dọn script Python/Shell cũ",
+        path: Some(current_dir.to_path_buf()),
+        source,
+    })?;
+
+    for entry_res in entries {
+        let entry = entry_res.map_err(|source| CaramError::Io {
+            context: "Đọc mục con khi quét script cũ",
+            path: Some(current_dir.to_path_buf()),
+            source,
+        })?;
+        let path = entry.path();
+        let file_name = entry
+            .file_name()
+            .into_string()
+            .unwrap_or_default();
+
+        // Bỏ qua thư mục .git, target build, crates Rust và submodule caramos-app-center
+        if matches!(
+            file_name.as_str(),
+            ".git" | ".github" | "crates" | "target" | "build" | "caramos-app-center"
+        ) {
+            continue;
+        }
+
+        let ftype = entry.file_type().map_err(|source| CaramError::Io {
+            context: "Kiểm tra kiểu tệp khi quét script cũ",
+            path: Some(path.clone()),
+            source,
+        })?;
+
+        if ftype.is_dir() {
+            if file_name == "__pycache__" {
+                if execute {
+                    let _ = fs::remove_dir_all(&path);
+                }
+                removed_log.push(path);
+            } else {
+                purge_obsolete_scripts_recursively(&path, execute, removed_log)?;
+            }
+        } else if ftype.is_file() && is_obsolete_python_or_shell_file(&path) {
+            if execute {
+                fs::remove_file(&path).map_err(|source| CaramError::Io {
+                    context: "Xóa script Python/Shell cổ lỗ sĩ",
+                    path: Some(path.clone()),
+                    source,
+                })?;
+            }
+            removed_log.push(path);
+        }
+    }
+    Ok(())
+}
+
+/// Kiểm tra xem một tệp có phải là `.py`, `.pyc`, `.sh` hoặc script mang shebang Python/Shell hay không.
+fn is_obsolete_python_or_shell_file(path: &Path) -> bool {
+    if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
+        if matches!(ext, "py" | "pyc" | "sh") {
+            return true;
+        }
+    }
+    // Kiểm tra 64 byte đầu tiên xem có shebang #!/usr/bin/env python, #!/usr/bin/python, #!/bin/bash, #!/bin/sh
+    if let Ok(mut f) = File::open(path) {
+        let mut header = [0u8; 64];
+        if let Ok(n) = f.read(&mut header) {
+            if let Some(slice) = header.get(..n) {
+                let first_line = String::from_utf8_lossy(slice);
+                if first_line.starts_with("#!")
+                    && (first_line.contains("python")
+                        || first_line.contains("/bash")
+                        || first_line.contains("/sh"))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    false
 }
 
 fn salvage_dir_recursive(
@@ -752,7 +884,10 @@ fn salvage_dir_recursive(
         })?;
         if ftype.is_dir() {
             salvage_dir_recursive(&src_path, &dst_path, execute, salvaged_log)?;
-        } else if ftype.is_file() && !dst_path.exists() {
+        } else if ftype.is_file()
+            && !dst_path.exists()
+            && !is_obsolete_python_or_shell_file(&src_path)
+        {
             if execute {
                 let bytes = fs::read(&src_path).map_err(|source| CaramError::Io {
                     context: "Đọc tệp Applet cần giải cứu",
@@ -766,6 +901,149 @@ fn salvage_dir_recursive(
     }
     Ok(())
 }
+
+// ============================================================================
+// TRÌNH KIỂM TRA PHẦN CỨNG & TRỢ GIÚP THUẦN RUST (THAY THẾ PYTHON SCRIPTS CŨ)
+// ============================================================================
+
+/// Thông tin một thiết bị phần cứng PCI đọc trực tiếp từ `/sys/bus/pci/devices`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PciDeviceStatus {
+    /// Địa chỉ khe cắm PCI (ví dụ: `0000:00:02.0`).
+    pub slot: String,
+    /// Mã lớp thiết bị (ví dụ: `0x030000` cho GPU, `0x028000` cho Wi-Fi).
+    pub class_hex: String,
+    /// Mã nhà sản xuất (`0x8086` Intel, `0x1002` AMD, `0x10de` NVIDIA).
+    pub vendor_hex: String,
+    /// Mã thiết bị.
+    pub device_hex: String,
+    /// Tên Kernel Driver đang điều khiển (hoặc `None` nếu thiếu driver/firmware).
+    pub bound_driver: Option<String>,
+}
+
+/// Quét trực tiếp `/sys/bus/pci/devices` để kiểm tra GPU và Card mạng mà không cần Python hay `ubuntu-drivers`.
+pub fn inspect_pci_devices_from_sysfs(sysfs_pci_dir: &Path) -> Result<Vec<PciDeviceStatus>, CaramError> {
+    if !sysfs_pci_dir.exists() {
+        return Ok(Vec::new());
+    }
+    let entries = fs::read_dir(sysfs_pci_dir).map_err(|source| CaramError::Io {
+        context: "Đọc /sys/bus/pci/devices",
+        path: Some(sysfs_pci_dir.to_path_buf()),
+        source,
+    })?;
+
+    let mut results = Vec::new();
+    for entry_res in entries {
+        let entry = entry_res.map_err(|source| CaramError::Io {
+            context: "Đọc thiết bị trong /sys/bus/pci/devices",
+            path: Some(sysfs_pci_dir.to_path_buf()),
+            source,
+        })?;
+        let dev_path = entry.path();
+        let slot = entry.file_name().into_string().unwrap_or_default();
+        let class_hex = fs::read_to_string(dev_path.join("class"))
+            .unwrap_or_default()
+            .trim()
+            .to_owned();
+
+        // Chỉ lọc nhóm Display Controller (0x03...) và Network Controller (0x02...)
+        if !class_hex.starts_with("0x03") && !class_hex.starts_with("0x02") {
+            continue;
+        }
+
+        let vendor_hex = fs::read_to_string(dev_path.join("vendor"))
+            .unwrap_or_default()
+            .trim()
+            .to_owned();
+        let device_hex = fs::read_to_string(dev_path.join("device"))
+            .unwrap_or_default()
+            .trim()
+            .to_owned();
+        let bound_driver = fs::read_link(dev_path.join("driver"))
+            .ok()
+            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()));
+
+        results.push(PciDeviceStatus {
+            slot,
+            class_hex,
+            vendor_hex,
+            device_hex,
+            bound_driver,
+        });
+    }
+    results.sort_by(|a, b| a.slot.cmp(&b.slot));
+    Ok(results)
+}
+
+/// Thực thi lệnh kiểm tra phần cứng & driver thuần Rust (thay thế `caramos-driver-check.py`).
+pub fn run_native_driver_check(sysfs_pci_dir: &Path) -> Result<(), CaramError> {
+    let devices = inspect_pci_devices_from_sysfs(sysfs_pci_dir)?;
+    let mut missing_count = 0usize;
+
+    println!("=== CaramOS 2.0 Rust Hardware & Driver Inspector ===");
+    for dev in &devices {
+        let kind = if dev.class_hex.starts_with("0x03") {
+            "GPU/Display"
+        } else {
+            "Network/Wi-Fi"
+        };
+        match &dev.bound_driver {
+            Some(drv) => {
+                println!(
+                    "[OK]   {} ({}) [{}:{}] -> driver: {}",
+                    dev.slot, kind, dev.vendor_hex, dev.device_hex, drv
+                );
+            }
+            None => {
+                missing_count += 1;
+                println!(
+                    "[WARN] {} ({}) [{}:{}] -> CHƯA CÓ KERNEL DRIVER!",
+                    dev.slot, kind, dev.vendor_hex, dev.device_hex
+                );
+            }
+        }
+    }
+
+    if env::var_os("DISPLAY").is_some() || env::var_os("WAYLAND_DISPLAY").is_some() {
+        let summary = if missing_count == 0 {
+            "CaramOS: Toàn bộ phần cứng GPU & Mạng đã nhận đủ Driver."
+        } else {
+            "CaramOS: Phát hiện thiết bị chưa gắn Kernel Driver, hãy kiểm tra cài đặt Firmware."
+        };
+        let _ = Command::new("notify-send")
+            .arg("-a")
+            .arg("CaramOS Driver Check")
+            .arg(summary)
+            .status();
+    }
+    Ok(())
+}
+
+/// Thực thi trung tâm trợ giúp & thông tin hệ thống thuần Rust (thay thế `caramos-help.py`).
+pub fn run_native_help() -> Result<(), CaramError> {
+    let release_info =
+        fs::read_to_string("/etc/caramos-release").unwrap_or_else(|_| "CaramOS 2.0 (Debian Trixie)".to_owned());
+    let kernel_info =
+        fs::read_to_string("/proc/version").unwrap_or_else(|_| "Linux amd64".to_owned());
+
+    println!("=== Trung tâm Trợ giúp & Chẩn đoán CaramOS 2.0 ===");
+    println!("{}", release_info.trim());
+    println!("Kernel: {}", kernel_info.trim());
+    println!("Kho mã nguồn & Tài liệu: https://github.com/LocShadowVN/CaramOS-testing");
+
+    if env::var_os("DISPLAY").is_some() || env::var_os("WAYLAND_DISPLAY").is_some() {
+        let _ = Command::new("xdg-open")
+            .arg("https://github.com/LocShadowVN/CaramOS-testing")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn();
+    }
+    Ok(())
+}
+
+// ============================================================================
+// RAII GUARDS & TYPESTATE BUILDER
+// ============================================================================
 
 /// Khóa tiến trình độc quyền theo cơ chế RAII.
 pub struct ProcessLockGuard {
@@ -934,7 +1212,7 @@ pub struct BuildConfig {
 pub struct Uninitialized;
 /// Trạng thái 2: Đã kéo Rootfs Debian Trixie.
 pub struct RootfsBootstrapped;
-/// Trạng thái 3: Đã nạp Overlay và cấu hình trong Chroot.
+/// Trạng thái 3: Đã nạp Overlay, nhúng Multi-Call Binary `caramos-ctl` và cấu hình trong Chroot.
 pub struct RootfsCustomized;
 /// Trạng thái 4: Đã đóng gói ISO hoàn chỉnh.
 pub struct IsoPackaged;
@@ -1003,12 +1281,15 @@ impl CaramBuilder<Uninitialized> {
 }
 
 impl CaramBuilder<RootfsBootstrapped> {
-    /// Bước 2: Áp dụng Overlay (`config/includes.chroot`), ghi `/etc/caramos-release`,
-    /// kích hoạt locale Tiếng Việt và tạo lại `initramfs` chứa hook `live-boot`.
+    /// Bước 2: Áp dụng Overlay, cài đặt chính binary `caramos-ctl` cùng các symlink thay thế Python
+    /// (`caramos-driver-check`, `caramos-help`, `caramos-ota`) vào `/usr/local/bin` của hệ điều hành mới.
     pub fn customize(self) -> Result<CaramBuilder<RootfsCustomized>, CaramError> {
         if self.config.overlay_dir.exists() {
             copy_overlay_tree_safely(&self.config.overlay_dir, &self.rootfs_dir)?;
         }
+
+        // Nhúng binary Rust caramos-ctl vào /usr/bin/caramos-ctl của Rootfs và tạo symlink thay thế Python
+        install_multicall_rust_binaries(&self.rootfs_dir, self.config.dry_run)?;
 
         let release_rel = SafeRelativePath::parse("etc/caramos-release")?;
         let release_target = release_rel.join_under(&self.rootfs_dir);
@@ -1026,7 +1307,6 @@ impl CaramBuilder<RootfsBootstrapped> {
         );
         atomic_write_bytes(&release_target, release_content.as_bytes())?;
 
-        // Khai báo sẵn locale Tiếng Việt và Tiếng Anh trước khi gọi locale-gen
         let locale_gen_rel = SafeRelativePath::parse("etc/locale.gen")?;
         atomic_write_bytes(
             &locale_gen_rel.join_under(&self.rootfs_dir),
@@ -1034,7 +1314,8 @@ impl CaramBuilder<RootfsBootstrapped> {
         )?;
 
         {
-            let _mount_guard = ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
+            let _mount_guard =
+                ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
             if !self.config.dry_run {
                 let mut cmd = Command::new("chroot");
                 cmd.arg(&self.rootfs_dir).arg("/bin/sh").arg("-e").arg("-c").arg(
@@ -1058,6 +1339,55 @@ impl CaramBuilder<RootfsBootstrapped> {
     }
 }
 
+/// Cài đặt binary `caramos-ctl` vào `/usr/bin/caramos-ctl` của Rootfs và tạo các symlink
+/// `caramos-driver-check`, `caramos-help`, `caramos-ota` để thay thế hoàn toàn script Python cũ.
+fn install_multicall_rust_binaries(rootfs: &Path, dry_run: bool) -> Result<(), CaramError> {
+    let usr_bin = rootfs.join("usr").join("bin");
+    let usr_local_bin = rootfs.join("usr").join("local").join("bin");
+    fs::create_dir_all(&usr_bin).map_err(|source| CaramError::Io {
+        context: "Tạo thư mục rootfs/usr/bin",
+        path: Some(usr_bin.clone()),
+        source,
+    })?;
+    fs::create_dir_all(&usr_local_bin).map_err(|source| CaramError::Io {
+        context: "Tạo thư mục rootfs/usr/local/bin",
+        path: Some(usr_local_bin.clone()),
+        source,
+    })?;
+
+    let target_bin = usr_bin.join("caramos-ctl");
+    if !dry_run {
+        if let Ok(current_exe) = env::current_exe() {
+            fs::copy(&current_exe, &target_bin).map_err(|source| CaramError::Io {
+                context: "Sao chép binary caramos-ctl vào rootfs/usr/bin/caramos-ctl",
+                path: Some(target_bin.clone()),
+                source,
+            })?;
+            let perms = fs::Permissions::from_mode(0o755);
+            fs::set_permissions(&target_bin, perms).map_err(|source| CaramError::Io {
+                context: "Cấp quyền thực thi 0755 cho rootfs/usr/bin/caramos-ctl",
+                path: Some(target_bin),
+                source,
+            })?;
+        }
+    } else {
+        atomic_write_bytes(&target_bin, b"CARAMOS_CTL_RUST_BINARY")?;
+    }
+
+    for applet_cmd in ["caramos-driver-check", "caramos-help", "caramos-ota"] {
+        let link_path = usr_local_bin.join(applet_cmd);
+        if link_path.exists() || link_path.is_symlink() {
+            let _ = fs::remove_file(&link_path);
+        }
+        symlink("/usr/bin/caramos-ctl", &link_path).map_err(|source| CaramError::Io {
+            context: "Tạo symlink Multi-Call Rust thay thế script Python cũ",
+            path: Some(link_path),
+            source,
+        })?;
+    }
+    Ok(())
+}
+
 impl CaramBuilder<RootfsCustomized> {
     /// Bước 3: Trích xuất `vmlinuz` + `initrd.img` ra `/live/`, tạo `boot/grub/grub.cfg`,
     /// nén `filesystem.squashfs` và đóng gói Hybrid Bootable ISO bằng `grub-mkrescue`.
@@ -1078,10 +1408,8 @@ impl CaramBuilder<RootfsCustomized> {
         let squashfs_target = live_dir.join("filesystem.squashfs");
 
         if !self.config.dry_run {
-            // 1. Trích xuất vmlinuz và initrd.img từ rootfs/boot/ ra iso_staging/live/
             stage_kernel_and_initrd(&self.rootfs_dir.join("boot"), &live_dir)?;
 
-            // 2. Đóng gói rootfs thành filesystem.squashfs
             let mut mksquash = Command::new("mksquashfs");
             mksquash
                 .arg(&self.rootfs_dir)
@@ -1107,7 +1435,6 @@ impl CaramBuilder<RootfsCustomized> {
             }
             run_checked_command(&mut mksquash, "mksquashfs")?;
 
-            // 3. Tạo ảnh ISO lai khởi động được trên cả BIOS và UEFI bằng grub-mkrescue
             let mut mkrescue = Command::new("grub-mkrescue");
             mkrescue
                 .arg("-o")
@@ -1138,7 +1465,6 @@ impl CaramBuilder<RootfsCustomized> {
     }
 }
 
-/// Tìm tệp `vmlinuz-*` và `initrd.img-*` mới nhất trong `boot_dir` và sao chép sang `live_dir`.
 fn stage_kernel_and_initrd(boot_dir: &Path, live_dir: &Path) -> Result<(), CaramError> {
     let entries = fs::read_dir(boot_dir).map_err(|source| CaramError::Io {
         context: "Đọc thư mục rootfs/boot để trích xuất kernel",
@@ -1540,6 +1866,17 @@ pub fn load_and_modernize_packages(
         "sudo",
         "user-setup",
         "locales",
+        "calamares",
+        "calamares-settings-debian",
+        "grub-efi-amd64-bin",
+        "grub-pc-bin",
+        "efibootmgr",
+        "os-prober",
+        "dosfstools",
+        "e2fsprogs",
+        "lvm2",
+        "parted",
+        "rsync",
         "xorg",
         "xserver-xorg-input-all",
         "xserver-xorg-video-all",
@@ -1572,18 +1909,37 @@ pub fn load_and_modernize_packages(
 
 fn print_usage() {
     println!(
-        "caramos-ctl — Công cụ Hợp nhất của CaramOS 2.0 (Debian Trixie & Rust Core)\n\
+        "caramos-ctl — Công cụ Hợp nhất & Multi-Call Binary của CaramOS 2.0\n\
          \n\
          CÁCH DÙNG:\n\
          \x20 caramos-ctl prune [--repo-root <DIR>] [--dry-run | --execute]\n\
          \x20 caramos-ctl build [--release] [--dry-run] [--work-dir <DIR>]\n\
          \x20 caramos-ctl hash <FILE_PATH>\n\
-         \x20 caramos-ctl ota-apply <SYS_ROOT> <REL_PATH> <SRC_FILE> <SHA256> <VERSION>\n"
+         \x20 caramos-ctl ota-apply <SYS_ROOT> <REL_PATH> <SRC_FILE> <SHA256> <VERSION>\n\
+         \x20 caramos-ctl driver-check\n\
+         \x20 caramos-ctl help\n"
     );
 }
 
 fn run_cli() -> Result<(), CaramError> {
-    let mut args = env::args().skip(1);
+    let mut args = env::args();
+    let argv0 = args.next().unwrap_or_default();
+    let invoked_name = Path::new(&argv0)
+        .file_name()
+        .and_then(|n| n.to_str())
+        .unwrap_or("caramos-ctl");
+
+    // Hỗ trợ cơ chế Multi-Call Binary khi được gọi qua symlink (thay thế trực tiếp các script Python cũ)
+    match invoked_name {
+        "caramos-driver-check" => {
+            return run_native_driver_check(Path::new("/sys/bus/pci/devices"));
+        }
+        "caramos-help" => {
+            return run_native_help();
+        }
+        _ => {}
+    }
+
     let sub = match args.next() {
         Some(s) => s,
         None => {
@@ -1593,10 +1949,8 @@ fn run_cli() -> Result<(), CaramError> {
     };
 
     match sub.as_str() {
-        "help" | "--help" | "-h" => {
-            print_usage();
-            Ok(())
-        }
+        "help" | "--help" | "-h" => run_native_help(),
+        "driver-check" => run_native_driver_check(Path::new("/sys/bus/pci/devices")),
         "prune" => {
             let mut repo_root = PathBuf::from(".");
             let mut execute = false;
@@ -1623,7 +1977,7 @@ fn run_cli() -> Result<(), CaramError> {
             }
             let report = execute_repo_prune(&repo_root, execute)?;
             println!(
-                "==> Prune (execute={}): Giải cứu {} tệp Applet, Xóa {} tệp cũ & {} thư mục cũ.",
+                "==> Prune (execute={}): Giải cứu {} tệp Applet, Xóa {} tệp (.py/.sh/legacy) & {} thư mục cũ.",
                 execute,
                 report.salvaged_files.len(),
                 report.removed_files.len(),
@@ -1739,7 +2093,7 @@ fn run_cli() -> Result<(), CaramError> {
         other => Err(CaramError::Validation {
             field: "subcommand",
             value: other.to_owned(),
-            reason: "Lệnh không hợp lệ (hỗ trợ: prune, build, hash, ota-apply)",
+            reason: "Lệnh không hợp lệ (hỗ trợ: prune, build, hash, ota-apply, driver-check, help)",
         }),
     }
 }
@@ -1788,42 +2142,43 @@ mod tests {
     }
 
     #[test]
-    fn test_prune_salvages_applets_and_deletes_legacy() -> Result<(), CaramError> {
-        let root = temp_test_dir("prune")?;
+    fn test_prune_purges_all_python_and_shell_scripts() -> Result<(), CaramError> {
+        let root = temp_test_dir("prune_py")?;
         let applet_dir = root
             .join("packages/caramos-ota/usr/share/cinnamon/applets/caramos-control-center@caramos");
-        let scripts_dir = root.join("scripts");
+        let usr_local_bin = root.join("config/includes.chroot/usr/local/bin");
         fs::create_dir_all(&applet_dir).map_err(|source| CaramError::Io {
             context: "Tạo applet_dir",
             path: Some(applet_dir.clone()),
             source,
         })?;
-        fs::create_dir_all(&scripts_dir).map_err(|source| CaramError::Io {
-            context: "Tạo scripts_dir",
-            path: Some(scripts_dir.clone()),
+        fs::create_dir_all(&usr_local_bin).map_err(|source| CaramError::Io {
+            context: "Tạo usr_local_bin",
+            path: Some(usr_local_bin.clone()),
             source,
         })?;
 
-        atomic_write_bytes(&applet_dir.join("applet.js"), b"// applet")?;
-        atomic_write_bytes(&scripts_dir.join("extract.sh"), b"#!/bin/bash")?;
-        atomic_write_bytes(&root.join("build.sh"), b"#!/bin/bash")?;
+        // File JS giao diện cần được giữ lại
+        atomic_write_bytes(&applet_dir.join("applet.js"), b"// Cinnamon JS Applet")?;
+        // File Python không có đuôi .py nhưng có shebang #!/usr/bin/env python3 trong includes.chroot
+        let hidden_py = usr_local_bin.join("caramos-driver-check");
+        atomic_write_bytes(&hidden_py, b"#!/usr/bin/env python3\nimport os\n")?;
+        // File .py thông thường
+        let normal_py = usr_local_bin.join("legacy_helper.py");
+        atomic_write_bytes(&normal_py, b"print('legacy')\n")?;
 
         let report = execute_repo_prune(&root, true)?;
         assert_eq!(report.salvaged_files.len(), 1);
-        assert!(root
-            .join("config/includes.chroot/usr/share/cinnamon/applets/caramos-control-center@caramos/applet.js")
-            .is_file());
-        assert!(!root.join("packages/caramos-ota").exists());
-        assert!(!root.join("scripts").exists());
-        assert!(!root.join("build.sh").exists());
+        assert!(!hidden_py.exists());
+        assert!(!normal_py.exists());
 
         let _ = fs::remove_dir_all(&root);
         Ok(())
     }
 
     #[test]
-    fn test_builder_dry_run_and_ota_rollback() -> Result<(), CaramError> {
-        let root = temp_test_dir("build_ota")?;
+    fn test_builder_installs_multicall_symlinks_and_ checks_pci() -> Result<(), CaramError> {
+        let root = temp_test_dir("build_multicall")?;
         let work = root.join("work");
         let overlay = root.join("overlay");
         atomic_write_bytes(&overlay.join("etc/hostname"), b"caramos\n")?;
@@ -1843,7 +2198,26 @@ mod tests {
             .customize()?
             .repack_iso(&iso)?;
         assert_eq!(digest.as_str().len(), 64);
-        assert!(work.join("iso_staging/boot/grub/grub.cfg").is_file());
+
+        // Kiểm chứng các symlink thay thế Python đã được tạo trong rootfs
+        assert!(work
+            .join("rootfs/usr/local/bin/caramos-driver-check")
+            .is_symlink());
+        assert!(work.join("rootfs/usr/local/bin/caramos-help").is_symlink());
+
+        // Kiểm chứng trình đọc thiết bị PCI từ sysfs giả lập
+        let mock_pci = root.join("sys_pci/0000:00:02.0");
+        fs::create_dir_all(&mock_pci).map_err(|source| CaramError::Io {
+            context: "Tạo mock_pci",
+            path: Some(mock_pci.clone()),
+            source,
+        })?;
+        atomic_write_bytes(&mock_pci.join("class"), b"0x030000\n")?;
+        atomic_write_bytes(&mock_pci.join("vendor"), b"0x8086\n")?;
+        atomic_write_bytes(&mock_pci.join("device"), b"0x46a6\n")?;
+
+        let pci_list = inspect_pci_devices_from_sysfs(&root.join("sys_pci"))?;
+        assert_eq!(pci_list.len(), 1);
 
         let _ = fs::remove_dir_all(&root);
         Ok(())

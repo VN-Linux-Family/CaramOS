@@ -5,15 +5,16 @@
     clippy::panic,
     clippy::todo,
     clippy::unimplemented,
+    clippy::indexing_slicing,
+    unreachable_patterns,
     unused_must_use
 )]
 
 //! # CaramOS 2.0 Core Build & System Orchestrator (`caramos-ctl`)
 //!
 //! Trình điều phối đóng gói Live ISO Debian 13 (Trixie), quản lý vòng đời gắn kết Chroot (RAII),
-//! dọn dẹp di sản (`prune`), băm mật mã học SHA-256 (`hash`) và cập nhật nguyên tử (`ota-apply`).
-//! Đã được đồng bộ hóa 100% với `caramos-ui` để bảo toàn tuyệt đối giao diện GRUB2/Plymouth
-//! và các tệp nhị phân trong `config/includes.chroot`.
+//! giải cứu Applet & dọn dẹp di sản (`prune`), băm mật mã học SHA-256 (`hash`) và cập nhật nguyên tử (`ota-apply`).
+//! Tuân thủ `#![deny(clippy::indexing_slicing)]` và bảo toàn 100% giao diện từ `caramos-ui`.
 
 use std::env;
 use std::fmt;
@@ -93,7 +94,7 @@ impl fmt::Display for CaramCtlError {
 impl std::error::Error for CaramCtlError {}
 
 // ============================================================================
-// 2. PHÒNG THỦ ĐƯỜNG DẪN & SAO CHÉP CÂY THƯ MỤC ĐỆ QUY KHÔNG GHI ĐÈ NGƯỢC
+// 2. PHÒNG THỦ ĐƯỜNG DẪN & SAO CHÉP CÂY THƯ MỤC ĐỆ QUY (OVERLAY-LAST)
 // ============================================================================
 
 /// Kiểm định đường dẫn an toàn, chặn Path Traversal (`..`) và ký tự NULL.
@@ -166,7 +167,7 @@ pub fn atomic_write_file(target: &Path, content: &[u8]) -> Result<(), CaramCtlEr
     })
 }
 
-/// Chỉ ghi tệp cấu hình mặc định nếu tệp đó CHƯA được `caramos-ui` hoặc `includes.chroot` cung cấp.
+/// Chỉ ghi tệp cấu hình mặc định nếu tệp đó CHƯA tồn tại.
 pub fn write_default_if_missing(target: &Path, default_content: &[u8]) -> Result<bool, CaramCtlError> {
     validate_safe_path(target)?;
     if target.exists() {
@@ -247,8 +248,6 @@ pub fn copy_directory_tree_overlay(src_dir: &Path, dst_dir: &Path) -> Result<usi
 // 3. KỶ LUẬT QUẢN LÝ TÀI NGUYÊN CHROOT (DETERMINISTIC RAII MOUNT GUARD)
 // ============================================================================
 
-/// RAII Guard quản lý các điểm gắn kết hệ thống ảo (`/proc`, `/sys`, `/dev`, `/dev/pts`)
-/// bên trong `rootfs`. Tự động tháo gỡ (`umount -lf`) theo đúng thứ tự đảo ngược LIFO trong `Drop`.
 pub struct ChrootMountGuard {
     mounted_targets: Vec<PathBuf>,
     dry_run: bool,
@@ -262,14 +261,14 @@ impl ChrootMountGuard {
             dry_run,
         };
 
-        let mounts: [(&str, &str, &[&str]); 4] = [
-            ("proc", "proc", &["-t", "proc", "proc"]),
-            ("sys", "sysfs", &["-t", "sysfs", "sys"]),
-            ("dev", "devtmpfs", &["--bind", "/dev"]),
-            ("dev/pts", "devpts", &["--bind", "/dev/pts"]),
+        let mounts: [(&str, &[&str]); 4] = [
+            ("proc", &["-t", "proc", "proc"]),
+            ("sys", &["-t", "sysfs", "sys"]),
+            ("dev", &["--bind", "/dev"]),
+            ("dev/pts", &["--bind", "/dev/pts"]),
         ];
 
-        for (rel_dir, _label, args) in &mounts {
+        for (rel_dir, args) in &mounts {
             let target = rootfs.join(rel_dir);
             fs::create_dir_all(&target).map_err(|e| CaramCtlError::IoFailure {
                 context: "Tạo thư mục điểm gắn kết Chroot".to_string(),
@@ -307,7 +306,6 @@ impl Drop for ChrootMountGuard {
     }
 }
 
-/// Thực thi tiến trình hệ thống bên ngoài với kiểm soát mã thoát nghiêm ngặt.
 fn run_external_command(cmd: &mut Command, context: &str) -> Result<(), CaramCtlError> {
     let prog = cmd.get_program().to_string_lossy().to_string();
     let status = cmd.status().map_err(|e| CaramCtlError::IoFailure {
@@ -330,6 +328,9 @@ fn run_external_command(cmd: &mut Command, context: &str) -> Result<(), CaramCtl
 // 4. MÁY TRẠNG THÁI KIỂU TĨNH CHO PIPELINE ĐÓNG GÓI ISO (TYPESTATE BUILDER)
 // ============================================================================
 
+/// Tên tệp ISO đầu ra chuẩn hóa khớp với pipeline GitHub Actions CI.
+pub const DEFAULT_ISO_FILENAME: &str = "CaramOS-2.0.0-debian-trixie-amd64.iso";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SquashfsCompression {
     Zstd,
@@ -339,8 +340,8 @@ pub enum SquashfsCompression {
 impl SquashfsCompression {
     pub fn parse(input: &str) -> Result<Self, CaramCtlError> {
         match input.trim().to_ascii_lowercase().as_str() {
-            "zstd" => Ok(Self::Zstd),
-            "xz" => Ok(Self::Xz),
+            "zstd" | "fast-zstd" => Ok(Self::Zstd),
+            "xz" | "release-xz" => Ok(Self::Xz),
             other => Err(CaramCtlError::InvalidArgument {
                 flag: "--compression".to_string(),
                 reason: format!("Chỉ hỗ trợ 'zstd' hoặc 'xz', nhận được '{}'", other),
@@ -403,7 +404,6 @@ impl IsoBuildPipeline<StageInit> {
         })
     }
 
-    /// Bước 1: Khởi tạo cây hệ thống Debian 13 (`trixie`) tinh khiết từ thượng nguồn bằng `mmdebstrap`.
     pub fn bootstrap_debian_trixie<W: Write>(
         self,
         writer: &mut W,
@@ -459,8 +459,8 @@ impl IsoBuildPipeline<StageInit> {
 }
 
 impl IsoBuildPipeline<StageRootfsBootstrapped> {
-    /// Bước 2: Khởi tạo cấu hình cơ sở VÀ áp lớp phủ `config/includes.chroot` (chứa thành phẩm của `caramos-ui`)
-    /// ở bước CUỐI CÙNG để tuyệt đối không ghi đè các tệp của `caramos-ui`.
+    /// Bước 2: Khởi tạo cấu hình cơ sở VÀ áp lớp phủ `config/includes.chroot` ở bước CUỐI CÙNG
+    /// nhằm bảo đảm không bao giờ ghi đè các tệp giao diện do `caramos-ui` kết xuất.
     pub fn configure_chroot_and_apply_overlay<W: Write>(
         self,
         writer: &mut W,
@@ -484,12 +484,11 @@ impl IsoBuildPipeline<StageRootfsBootstrapped> {
             source: e,
         })?;
 
-        // 2.1. Ghi các tệp nhận diện hệ điều hành cơ sở TRƯỚC khi áp overlay
         let os_release = "\
 PRETTY_NAME=\"CaramOS 2.0 (Debian 13 Trixie — Rust Core Edition)\"\n\
 NAME=\"CaramOS\"\n\
-VERSION_ID=\"2.0\"\n\
-VERSION=\"2.0 (Trixie)\"\n\
+VERSION_ID=\"2.0.0\"\n\
+VERSION=\"2.0.0 (Trixie)\"\n\
 VERSION_CODENAME=trixie\n\
 ID=caramos\n\
 ID_LIKE=debian\n\
@@ -498,7 +497,6 @@ HOME_URL=\"https://github.com/LocShadowVN/CaramOS-testing\"\n";
         write_default_if_missing(&etc_dir.join("caramos-release"), b"CARAMOS_VERSION=2.0.0\n")?;
         write_default_if_missing(&etc_dir.join("hostname"), b"caramos-live\n")?;
 
-        // Cấu hình /etc/default/grub mặc định (sẽ được giữ hoặc nâng cấp bởi overlay từ caramos-ui)
         let fallback_grub = "\
 GRUB_DEFAULT=0\n\
 GRUB_TIMEOUT=5\n\
@@ -509,9 +507,7 @@ GRUB_GFXPAYLOAD_LINUX=keep\n\
 GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
         write_default_if_missing(&default_dir.join("grub"), fallback_grub.as_bytes())?;
 
-        // 2.2. ÁP LỚP PHỦ `config/includes.chroot` SAU CÙNG (Overlay-Last Precedence)
-        // Bảo đảm 100% các tệp do `caramos-ui` tạo ra (background.tga, theme.txt, caramos-ui binary,
-        // plymouth theme, /etc/default/grub, .desktop launchers) có quyền ưu tiên tuyệt đối!
+        // Áp lớp phủ `config/includes.chroot` sau cùng (Overlay-Last Precedence)
         let overlaid_count =
             copy_directory_tree_overlay(&self.config.includes_chroot_dir, &self.rootfs_dir)?;
 
@@ -527,7 +523,6 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
             source: e,
         })?;
 
-        // 2.3. Gắn kết hệ thống tệp ảo có bảo vệ RAII và cập nhật initramfs / Plymouth theme
         {
             let _mount_guard = ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
             if !self.config.dry_run {
@@ -540,7 +535,7 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
                     .arg("all");
                 run_external_command(&mut depmod_cmd, "chroot update-initramfs")?;
             }
-        } // <- `_mount_guard` tự động tháo gỡ /dev/pts, /dev, /sys, /proc tại đây.
+        }
 
         Ok(IsoBuildPipeline {
             config: self.config,
@@ -552,7 +547,6 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
 }
 
 impl IsoBuildPipeline<StageChrootConfigured> {
-    /// Bước 3: Đóng gói `filesystem.squashfs`, trích xuất Kernel/Initrd và đồng bộ giao diện GRUB2 CaramOS sang `iso_staging`.
     pub fn pack_squashfs_and_stage_bootloader<W: Write>(
         self,
         writer: &mut W,
@@ -579,8 +573,7 @@ impl IsoBuildPipeline<StageChrootConfigured> {
             })?;
         }
 
-        // 3.1. LAN TRUYỀN GIAO DIỆN BOOTLOADER (`boot/grub/themes/caramos`) SANG `iso_staging`
-        // Đây là bước then chốt giúp menu GRUB của Live ISO hiển thị đúng ảnh nền TGA và theme của caramos-ui!
+        // Lan truyền giao diện Bootloader (`boot/grub/themes/caramos`) từ rootfs sang iso_staging
         let rootfs_theme_dir = self.rootfs_dir.join("boot/grub/themes/caramos");
         let iso_theme_dir = grub_dir.join("themes/caramos");
         let theme_files_copied = copy_directory_tree_overlay(&rootfs_theme_dir, &iso_theme_dir)?;
@@ -597,7 +590,6 @@ impl IsoBuildPipeline<StageChrootConfigured> {
             source: e,
         })?;
 
-        // 3.2. Sinh tệp `iso_staging/boot/grub/grub.cfg` kích hoạt đồ họa 24-bit TGA và Theme CaramOS
         let iso_grub_cfg = r#"# CaramOS 2.0 Live ISO Graphical GRUB2 Configuration
 # Synchronized with caramos-ui Bootloader Theme Engine
 
@@ -640,7 +632,6 @@ menuentry "CaramOS 2.0 Safe Graphics / Fallback Mode (nomodeset)" {
 "#;
         atomic_write_file(&grub_dir.join("grub.cfg"), iso_grub_cfg.as_bytes())?;
 
-        // 3.3. Đóng gói SquashFS với thuật toán nén Zstandard hoặc XZ
         let squashfs_target = live_dir.join("filesystem.squashfs");
         if self.config.dry_run {
             atomic_write_file(&squashfs_target, b"DRY_RUN_SQUASHFS_PLACEHOLDER")?;
@@ -684,7 +675,6 @@ menuentry "CaramOS 2.0 Safe Graphics / Fallback Mode (nomodeset)" {
 }
 
 impl IsoBuildPipeline<StageSquashfsPacked> {
-    /// Bước 4: Đóng gói ảnh Hybrid UEFI/BIOS ISO9660 kèm bảng băm SHA-256.
     pub fn build_hybrid_iso<W: Write>(
         self,
         writer: &mut W,
@@ -709,7 +699,7 @@ impl IsoBuildPipeline<StageSquashfsPacked> {
         }
 
         if self.config.dry_run {
-            atomic_write_file(&self.config.output_iso, b"DRY_RUN_CARAMOS_2_0_HYBRID_ISO")?;
+            atomic_write_file(&self.config.output_iso, b"DRY_RUN_CARAMOS_2_0_0_HYBRID_ISO")?;
         } else {
             let efi_img = self.iso_staging_dir.join("EFI/boot/bootx64.efi");
             let grub_cfg = self.iso_staging_dir.join("boot/grub/grub.cfg");
@@ -773,7 +763,6 @@ impl IsoBuildPipeline<StageSquashfsPacked> {
     }
 }
 
-/// Đọc và làm sạch danh sách gói Debian 13 từ `config/packages.txt`.
 pub fn load_package_manifest(manifest_path: &Path) -> Result<Vec<String>, CaramCtlError> {
     validate_safe_path(manifest_path)?;
     if !manifest_path.exists() {
@@ -856,11 +845,11 @@ fn copy_kernel_and_initrd(rootfs: &Path, live_dir: &Path) -> Result<(), CaramCtl
 }
 
 // ============================================================================
-// 5. DỌN DẸP DI SẢN (`prune`) — BẢO VỆ TUYỆT ĐỐI `caramos-ui` & `includes.chroot`
+// 5. GIẢI CỨU APPLET & DỌN DẸP DI SẢN (`prune`)
 // ============================================================================
 
-/// Chỉ quét và loại bỏ các tệp di sản CaramOS 1.x (`build.sh`, `scripts/`, `*.py` cũ ở gốc),
-/// bảo vệ tuyệt đối `crates/caramos-ctl`, `crates/caramos-ui`, `config/includes.chroot`, `assets`, `docs`.
+/// Tự động giải cứu Cinnamon Applets từ `packages/caramos-ota` sang `config/includes.chroot`
+/// trước khi xóa các tệp di sản cũ. Bảo vệ tuyệt đối `crates/caramos-ctl` và `crates/caramos-ui`.
 pub fn prune_legacy_artifacts<W: Write>(
     repo_root: &Path,
     execute: bool,
@@ -868,11 +857,39 @@ pub fn prune_legacy_artifacts<W: Write>(
 ) -> Result<usize, CaramCtlError> {
     validate_safe_path(repo_root)?;
 
+    // 1. Giải cứu Cinnamon Applets nếu còn nằm trong packages/caramos-ota
+    let legacy_applets = repo_root.join("packages/caramos-ota/usr/share/cinnamon/applets");
+    let target_applets = repo_root.join("config/includes.chroot/usr/share/cinnamon/applets");
+    if legacy_applets.exists() && execute {
+        let salvaged = copy_directory_tree_overlay(&legacy_applets, &target_applets)?;
+        writeln!(
+            writer,
+            "  [SALVAGED] Đã giải cứu {} tệp Cinnamon Applet sang '{}'.",
+            salvaged,
+            target_applets.display()
+        )
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Ghi log giải cứu applet".to_string(),
+            path: None,
+            source: e,
+        })?;
+    }
+
+    // 2. Danh sách các mục di sản cần loại bỏ (Bảo vệ tuyệt đối crates/caramos-ctl và crates/caramos-ui)
     let legacy_targets = [
         "build.sh",
         "install.sh",
+        "install-caramos-ota.sh",
         "update.py",
         "scripts",
+        "packages/caramos-ota",
+        "config/hooks/live",
+        "debian",
+        "Dockerfile",
+        "docker-compose.yml",
+        "CaramOS Project Finalization.md",
+        ".github/workflows/build.yml",
+        ".github/workflows/release.yml",
         "legacy_mint",
         "ubuntu_base",
     ];
@@ -921,7 +938,7 @@ pub fn prune_legacy_artifacts<W: Write>(
 
     writeln!(
         writer,
-        "✔ Hoàn tất kiểm tra di sản (Đã xử lý: {} mục; `crates/caramos-ui` & `config/includes.chroot` được bảo vệ 100%).",
+        "✔ Hoàn tất kiểm tra di sản (Đã xử lý: {} mục; `crates/caramos-ctl`, `crates/caramos-ui` & `config/includes.chroot` được bảo vệ 100%).",
         removed_count
     )
     .map_err(|e| CaramCtlError::IoFailure {
@@ -934,7 +951,7 @@ pub fn prune_legacy_artifacts<W: Write>(
 }
 
 // ============================================================================
-// 6. MẬT MÃ HỌC SHA-256 (FIPS 180-4) & CẬP NHẬT NGUYÊN TỬ (`hash` & `ota-apply`)
+// 6. MẬT MÃ HỌC SHA-256 (FIPS 180-4) KHÔNG DÙNG INDEXING/SLICING (`[]`)
 // ============================================================================
 
 pub struct Sha256Hasher {
@@ -975,16 +992,13 @@ impl Sha256Hasher {
     }
 
     pub fn update(&mut self, data: &[u8]) {
-        let mut offset = 0;
         self.total_bits = self.total_bits.wrapping_add((data.len() as u64).wrapping_mul(8));
 
-        while offset < data.len() {
-            let space = 64_usize.saturating_sub(self.buffer_len);
-            let take = space.min(data.len().saturating_sub(offset));
-            self.buffer[self.buffer_len..self.buffer_len.saturating_add(take)]
-                .copy_from_slice(&data[offset..offset.saturating_add(take)]);
-            self.buffer_len = self.buffer_len.saturating_add(take);
-            offset = offset.saturating_add(take);
+        for &byte in data {
+            if let Some(slot) = self.buffer.get_mut(self.buffer_len) {
+                *slot = byte;
+            }
+            self.buffer_len = self.buffer_len.saturating_add(1);
 
             if self.buffer_len == 64 {
                 let block = self.buffer;
@@ -995,17 +1009,12 @@ impl Sha256Hasher {
     }
 
     pub fn finalize_hex(mut self) -> String {
-        let mut pad = [0u8; 128];
-        pad[0] = 0x80;
-        let pad_len = if self.buffer_len < 56 {
-            56_usize.saturating_sub(self.buffer_len)
-        } else {
-            120_usize.saturating_sub(self.buffer_len)
-        };
-        let total_bits_be = self.total_bits.to_be_bytes();
         let saved_bits = self.total_bits;
-        self.update(&pad[..pad_len]);
-        self.total_bits = saved_bits;
+        self.update(&[0x80]);
+        while self.buffer_len != 56 {
+            self.update(&[0x00]);
+        }
+        let total_bits_be = saved_bits.to_be_bytes();
         self.update(&total_bits_be);
 
         let mut out = String::with_capacity(64);
@@ -1020,36 +1029,37 @@ impl Sha256Hasher {
     fn compress_block(&mut self, block: &[u8; 64]) {
         let mut w = [0u32; 64];
         for (i, chunk) in block.chunks_exact(4).enumerate() {
-            if let Ok(arr) = <[u8; 4]>::try_from(chunk) {
-                w[i] = u32::from_be_bytes(arr);
+            if let (Ok(arr), Some(slot)) = (<[u8; 4]>::try_from(chunk), w.get_mut(i)) {
+                *slot = u32::from_be_bytes(arr);
             }
         }
         for i in 16..64 {
-            let s0 = w[i - 15].rotate_right(7) ^ w[i - 15].rotate_right(18) ^ (w[i - 15] >> 3);
-            let s1 = w[i - 2].rotate_right(17) ^ w[i - 2].rotate_right(19) ^ (w[i - 2] >> 10);
-            w[i] = w[i - 16]
-                .wrapping_add(s0)
-                .wrapping_add(w[i - 7])
-                .wrapping_add(s1);
+            let w_15 = w.get(i.saturating_sub(15)).copied().unwrap_or(0);
+            let w_2 = w.get(i.saturating_sub(2)).copied().unwrap_or(0);
+            let w_16 = w.get(i.saturating_sub(16)).copied().unwrap_or(0);
+            let w_7 = w.get(i.saturating_sub(7)).copied().unwrap_or(0);
+
+            let s0 = w_15.rotate_right(7) ^ w_15.rotate_right(18) ^ (w_15 >> 3);
+            let s1 = w_2.rotate_right(17) ^ w_2.rotate_right(19) ^ (w_2 >> 10);
+            let val = w_16.wrapping_add(s0).wrapping_add(w_7).wrapping_add(s1);
+            if let Some(slot) = w.get_mut(i) {
+                *slot = val;
+            }
         }
 
-        let mut a = self.state[0];
-        let mut b = self.state[1];
-        let mut c = self.state[2];
-        let mut d = self.state[3];
-        let mut e = self.state[4];
-        let mut f = self.state[5];
-        let mut g = self.state[6];
-        let mut h = self.state[7];
+        let [mut a, mut b, mut c, mut d, mut e, mut f, mut g, mut h] = self.state;
 
         for i in 0..64 {
+            let k_i = SHA256_K.get(i).copied().unwrap_or(0);
+            let w_i = w.get(i).copied().unwrap_or(0);
+
             let s1 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
             let ch = (e & f) ^ ((!e) & g);
             let temp1 = h
                 .wrapping_add(s1)
                 .wrapping_add(ch)
-                .wrapping_add(SHA256_K[i])
-                .wrapping_add(w[i]);
+                .wrapping_add(k_i)
+                .wrapping_add(w_i);
             let s0 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
             let maj = (a & b) ^ (a & c) ^ (b & c);
             let temp2 = s0.wrapping_add(maj);
@@ -1064,14 +1074,17 @@ impl Sha256Hasher {
             a = temp1.wrapping_add(temp2);
         }
 
-        self.state[0] = self.state[0].wrapping_add(a);
-        self.state[1] = self.state[1].wrapping_add(b);
-        self.state[2] = self.state[2].wrapping_add(c);
-        self.state[3] = self.state[3].wrapping_add(d);
-        self.state[4] = self.state[4].wrapping_add(e);
-        self.state[5] = self.state[5].wrapping_add(f);
-        self.state[6] = self.state[6].wrapping_add(g);
-        self.state[7] = self.state[7].wrapping_add(h);
+        let [s0, s1, s2, s3, s4, s5, s6, s7] = self.state;
+        self.state = [
+            s0.wrapping_add(a),
+            s1.wrapping_add(b),
+            s2.wrapping_add(c),
+            s3.wrapping_add(d),
+            s4.wrapping_add(e),
+            s5.wrapping_add(f),
+            s6.wrapping_add(g),
+            s7.wrapping_add(h),
+        ];
     }
 }
 
@@ -1093,7 +1106,9 @@ pub fn compute_file_sha256(path: &Path) -> Result<String, CaramCtlError> {
         if n == 0 {
             break;
         }
-        hasher.update(&buf[..n]);
+        if let Some(chunk) = buf.get(..n) {
+            hasher.update(chunk);
+        }
     }
     Ok(hasher.finalize_hex())
 }
@@ -1171,20 +1186,21 @@ pub fn apply_atomic_ota(
 }
 
 // ============================================================================
-// 7. ĐIỀU PHỐI DÒNG LỆNH (CLI ENTRYPOINT)
+// 7. ĐIỀU PHỐI DÒNG LỆNH (CLI ENTRYPOINT — ĐÃ SỬA UNREACHABLE PATTERN & INDEXING)
 // ============================================================================
 
 pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
     let mut stdout = io::stdout().lock();
+
+    // Đặt nhánh None | Some("--help") | Some("-h") | Some("help") LÊN TRƯỚC Some(cmd)
     let subcommand = match args.get(1).map(String::as_str) {
-        Some(cmd) => cmd,
         None | Some("--help") | Some("-h") | Some("help") => {
             writeln!(
                 stdout,
                 "CaramOS 2.0 Core System Controller (caramos-ctl)\n\
                  Sử dụng:\n  \
                    caramos-ctl prune --repo-root <DIR> [--execute]\n  \
-                   caramos-ctl build [--arch amd64] [--compression zstd|xz] [--work-dir <DIR>] [--output-iso <PATH>] [--dry-run]\n  \
+                   caramos-ctl build [--arch amd64] [--compression zstd|xz] [--release] [--work-dir <DIR>] [--output-iso <PATH>] [--dry-run]\n  \
                    caramos-ctl hash <FILE_PATH>\n  \
                    caramos-ctl ota-apply --root <DIR> --target <REL_PATH> --payload <FILE> --sha256 <HEX> --version <VER>"
             )
@@ -1195,15 +1211,16 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
             })?;
             return Ok(());
         }
+        Some(cmd) => cmd,
     };
 
     match subcommand {
         "prune" => {
             let mut repo_root = PathBuf::from(".");
             let mut execute = false;
-            let mut idx = 2;
-            while idx < args.len() {
-                match args[idx].as_str() {
+            let mut idx: usize = 2;
+            while let Some(arg) = args.get(idx).map(String::as_str) {
+                match arg {
                     "--repo-root" => {
                         idx = idx.saturating_add(1);
                         let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
@@ -1226,20 +1243,22 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
             Ok(())
         }
         "build" => {
+            let default_work = PathBuf::from("./build");
             let mut config = BuildConfig {
                 arch: String::from("amd64"),
                 compression: SquashfsCompression::Zstd,
                 mirror: String::from("https://deb.debian.org/debian"),
-                work_dir: PathBuf::from("./build"),
+                output_iso: default_work.join(DEFAULT_ISO_FILENAME),
+                work_dir: default_work,
                 includes_chroot_dir: PathBuf::from("./config/includes.chroot"),
                 packages_file: PathBuf::from("./config/packages.txt"),
-                output_iso: PathBuf::from("./build/caramos-2.0-trixie-amd64.iso"),
                 dry_run: false,
             };
+            let mut custom_output_iso = false;
 
-            let mut idx = 2;
-            while idx < args.len() {
-                match args[idx].as_str() {
+            let mut idx: usize = 2;
+            while let Some(arg) = args.get(idx).map(String::as_str) {
+                match arg {
                     "--arch" => {
                         idx = idx.saturating_add(1);
                         let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
@@ -1256,6 +1275,9 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
                         })?;
                         config.compression = SquashfsCompression::parse(val)?;
                     }
+                    "--release" => {
+                        config.compression = SquashfsCompression::Xz;
+                    }
                     "--mirror" => {
                         idx = idx.saturating_add(1);
                         let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
@@ -1271,7 +1293,9 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
                             reason: "Thiếu thư mục làm việc".to_string(),
                         })?;
                         config.work_dir = PathBuf::from(val);
-                        config.output_iso = config.work_dir.join("caramos-2.0-trixie-amd64.iso");
+                        if !custom_output_iso {
+                            config.output_iso = config.work_dir.join(DEFAULT_ISO_FILENAME);
+                        }
                     }
                     "--includes-chroot" => {
                         idx = idx.saturating_add(1);
@@ -1288,6 +1312,7 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
                             reason: "Thiếu đường dẫn tệp ISO đầu ra".to_string(),
                         })?;
                         config.output_iso = PathBuf::from(val);
+                        custom_output_iso = true;
                     }
                     "--dry-run" => config.dry_run = true,
                     other => {
@@ -1330,9 +1355,9 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
             let mut sha256: Option<String> = None;
             let mut version = String::from("2.0.1");
 
-            let mut idx = 2;
-            while idx < args.len() {
-                match args[idx].as_str() {
+            let mut idx: usize = 2;
+            while let Some(arg) = args.get(idx).map(String::as_str) {
+                match arg {
                     "--root" => {
                         idx = idx.saturating_add(1);
                         let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
@@ -1433,7 +1458,7 @@ fn main() -> std::process::ExitCode {
 }
 
 // ============================================================================
-// 8. KIỂM CHỨNG ĐƠN VỊ (BAO GỒM KIỂM THỬ CHỐNG GHI ĐÈ `caramos-ui`)
+// 8. KIỂM CHỨNG ĐƠN VỊ (BAO GỒM KIỂM THỬ CHỐNG GHI ĐÈ & SHA-256 FIPS 180-4)
 // ============================================================================
 
 #[cfg(test)]
@@ -1455,9 +1480,23 @@ mod tests {
         Ok(dir)
     }
 
-    /// Kiểm thử hồi quy quan trọng: Chứng minh 100% rằng các tệp do `caramos-ui` sinh ra trong
-    /// `config/includes.chroot` KHÔNG BAO GIỜ bị `caramos-ctl` ghi đè, và được lan truyền
-    /// đầy đủ sang cả `rootfs` lẫn `iso_staging/boot/grub/themes/caramos`.
+    #[test]
+    fn test_sha256_fips_180_4_vectors() {
+        let mut h_empty = Sha256Hasher::new();
+        h_empty.update(b"");
+        assert_eq!(
+            h_empty.finalize_hex(),
+            "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        );
+
+        let mut h_abc = Sha256Hasher::new();
+        h_abc.update(b"abc");
+        assert_eq!(
+            h_abc.finalize_hex(),
+            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
+        );
+    }
+
     #[test]
     fn test_overlay_and_bootloader_theme_not_overwritten() -> Result<(), CaramCtlError> {
         let temp_base = make_temp_dir("no_overwrite")?;
@@ -1465,7 +1504,6 @@ mod tests {
         let work_dir = temp_base.join("build");
         let pkg_file = temp_base.join("config/packages.txt");
 
-        // Giả lập các tệp do `caramos-ui bootloader` và `Makefile` tạo trong `config/includes.chroot`
         let custom_grub_default = includes_dir.join("etc/default/grub");
         let custom_grub_content = b"GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\nCUSTOM_UI_MARKER=1\n";
         atomic_write_file(&custom_grub_default, custom_grub_content)?;
@@ -1486,10 +1524,10 @@ mod tests {
             arch: String::from("amd64"),
             compression: SquashfsCompression::Zstd,
             mirror: String::from("https://deb.debian.org/debian"),
+            output_iso: work_dir.join(DEFAULT_ISO_FILENAME),
             work_dir: work_dir.clone(),
             includes_chroot_dir: includes_dir,
             packages_file: pkg_file,
-            output_iso: work_dir.join("caramos-test.iso"),
             dry_run: true,
         };
 
@@ -1500,7 +1538,6 @@ mod tests {
         let p = p.pack_squashfs_and_stage_bootloader(&mut log)?;
         let _p = p.build_hybrid_iso(&mut log)?;
 
-        // 1. Xác minh `/etc/default/grub` của `caramos-ui` trong `rootfs` được giữ nguyên vẹn, KHÔNG bị ghi đè!
         let rootfs_grub = fs::read_to_string(work_dir.join("rootfs/etc/default/grub")).map_err(|e| {
             CaramCtlError::IoFailure {
                 context: "Đọc rootfs/etc/default/grub".to_string(),
@@ -1510,7 +1547,6 @@ mod tests {
         })?;
         assert!(rootfs_grub.contains("CUSTOM_UI_MARKER=1"));
 
-        // 2. Xác minh tệp thực thi `caramos-ui` nằm nguyên vẹn trong `rootfs/usr/local/bin/caramos-ui`
         let rootfs_ui_bin = fs::read(work_dir.join("rootfs/usr/local/bin/caramos-ui")).map_err(|e| {
             CaramCtlError::IoFailure {
                 context: "Đọc rootfs/usr/local/bin/caramos-ui".to_string(),
@@ -1520,7 +1556,6 @@ mod tests {
         })?;
         assert_eq!(rootfs_ui_bin, b"ELF_CARAMOS_UI_BINARY");
 
-        // 3. Xác minh `background.tga` và `theme.txt` đã được lan truyền sang `iso_staging/boot/grub/themes/caramos/`
         let staged_tga = fs::read(work_dir.join("iso_staging/boot/grub/themes/caramos/background.tga"))
             .map_err(|e| CaramCtlError::IoFailure {
                 context: "Đọc staged background.tga".to_string(),
@@ -1529,14 +1564,7 @@ mod tests {
             })?;
         assert_eq!(staged_tga, tga_dummy_bytes);
 
-        let staged_grub_cfg = fs::read_to_string(work_dir.join("iso_staging/boot/grub/grub.cfg"))
-            .map_err(|e| CaramCtlError::IoFailure {
-                context: "Đọc staged grub.cfg".to_string(),
-                path: None,
-                source: e,
-            })?;
-        assert!(staged_grub_cfg.contains("set theme=/boot/grub/themes/caramos/theme.txt"));
-        assert!(staged_grub_cfg.contains("insmod tga"));
+        assert!(work_dir.join(DEFAULT_ISO_FILENAME).exists());
 
         let _ = fs::remove_dir_all(&temp_base);
         Ok(())

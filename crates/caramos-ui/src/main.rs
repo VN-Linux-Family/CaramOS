@@ -13,7 +13,7 @@
 //! # CaramOS 2.0 UI & System Experience Suite (`caramos-ui`)
 //!
 //! Cung cấp 3 phân hệ cốt lõi viết hoàn toàn bằng Rust chuẩn (`std`), tuân thủ
-//! `#![deny(clippy::indexing_slicing)]` và đồng bộ 100% với `caramos-ctl`:
+//! `#![deny(clippy::indexing_slicing)]` và định kiểu số học tường minh 100%:
 //! 1. `installer`: Trình cài đặt hệ điều hành tương tác có hình hiệu CaramOS, 4 trang giới thiệu
 //!    kiến trúc Debian 13 (Trixie) & Rust Core, kiểm định ổ cứng và máy trạng thái Typestate.
 //! 2. `bootloader`: Trình kết xuất đồ họa TGA 24-bit (`background.tga`), sinh giao diện
@@ -633,7 +633,7 @@ impl CaramInstaller<StageUserConfigured> {
             source: e,
         })?;
 
-        let steps = [
+        let steps: [(u8, &str); 5] = [
             (20, "Khởi tạo bảng phân vùng GPT & Phân vùng EFI (512 MiB FAT32)"),
             (45, "Định dạng phân vùng Rootfs với chuẩn ext4 (noatime, journal_checksum)"),
             (70, "Triển khai hệ thống tệp Debian 13 (Trixie) & Rust Core Stack"),
@@ -663,6 +663,7 @@ impl CaramInstaller<StageUserConfigured> {
              SLIDES_VIEWED={}\n\
              TARGET_DISK=\"{}\"\n\
              EFI_PARTITION=\"{}\"\n\
+             EFI_SIZE_MIB={}\n\
              ROOT_PARTITION=\"{}\"\n\
              FILESYSTEM=\"{}\"\n\
              ADMIN_USER=\"{}\"\n\
@@ -674,6 +675,7 @@ impl CaramInstaller<StageUserConfigured> {
             self.slides_viewed,
             disk.as_path().display(),
             layout.efi_partition,
+            layout.efi_size_mib,
             layout.root_partition,
             layout.filesystem,
             username.as_str(),
@@ -732,11 +734,13 @@ pub fn generate_caramos_tga_wallpaper(
         });
     }
 
-    let pixel_count = usize::from(width).saturating_mul(usize::from(height));
-    let data_size = pixel_count.saturating_mul(3);
-    let mut buffer = Vec::with_capacity(18_usize.saturating_add(data_size));
+    let width_usize: usize = usize::from(width);
+    let height_usize: usize = usize::from(height);
+    let pixel_count: usize = width_usize.saturating_mul(height_usize);
+    let data_size: usize = pixel_count.saturating_mul(3);
+    let total_capacity: usize = 18_usize.saturating_add(data_size);
+    let mut buffer: Vec<u8> = Vec::with_capacity(total_capacity);
 
-    // Destructuring mảng cố định [u8; 2] không sử dụng phép indexing `[]`
     let [w0, w1] = width.to_le_bytes();
     let [h0, h1] = height.to_le_bytes();
     let header: [u8; 18] = [
@@ -744,29 +748,36 @@ pub fn generate_caramos_tga_wallpaper(
     ];
     buffer.extend_from_slice(&header);
 
-    let center_x = i32::from(width) / 2;
-    let center_y = i32::from(height) / 2;
-    let emblem_radius = i32::from(width.min(height)) / 6;
-    let inner_radius = (emblem_radius.saturating_mul(3)) / 4;
+    let width_i32: i32 = i32::from(width).max(1);
+    let height_i32: i32 = i32::from(height).max(1);
+    let center_x: i32 = width_i32 / 2;
+    let center_y: i32 = height_i32 / 2;
+    let emblem_radius: i32 = i32::from(width.min(height)) / 6;
+    let inner_radius: i32 = (emblem_radius.saturating_mul(3)) / 4;
 
-    for y in 0..i32::from(height) {
-        for x in 0..i32::from(width) {
-            let dx = (x - center_x).abs();
-            let dy = (y - center_y).abs();
-            let hex_dist = dx.saturating_add(dy / 2);
+    for y in 0_i32..height_i32 {
+        for x in 0_i32..width_i32 {
+            let dx: i32 = (x - center_x).abs();
+            let dy: i32 = (y - center_y).abs();
+            let hex_dist: i32 = dx.saturating_add(dy / 2);
 
-            let (r, g, b) = if hex_dist <= emblem_radius && hex_dist >= inner_radius && dy <= emblem_radius {
-                (245_u8, 158_u8, 11_u8)
-            } else if hex_dist < inner_radius / 2 && dy < inner_radius / 2 {
-                (217_u8, 119_u8, 6_u8)
-            } else {
-                let grad_y = (y.saturating_mul(24)) / i32::from(height).max(1);
-                let grad_x = (x.saturating_mul(12)) / i32::from(width).max(1);
-                let base_r = 20_u8.saturating_add(u8::try_from(grad_y).unwrap_or(0));
-                let base_g = 16_u8.saturating_add(u8::try_from(grad_y / 2).unwrap_or(0));
-                let base_b = 14_u8.saturating_add(u8::try_from(grad_x / 2).unwrap_or(0));
-                (base_r, base_g, base_b)
-            };
+            let (r, g, b): (u8, u8, u8) =
+                if hex_dist <= emblem_radius && hex_dist >= inner_radius && dy <= emblem_radius {
+                    (245_u8, 158_u8, 11_u8)
+                } else if hex_dist < inner_radius / 2 && dy < inner_radius / 2 {
+                    (217_u8, 119_u8, 6_u8)
+                } else {
+                    let grad_y: i32 = (y.saturating_mul(24)) / height_i32;
+                    let grad_x: i32 = (x.saturating_mul(12)) / width_i32;
+                    let add_r: u8 = u8::try_from(grad_y).unwrap_or(0);
+                    let add_g: u8 = u8::try_from(grad_y / 2).unwrap_or(0);
+                    let add_b: u8 = u8::try_from(grad_x / 2).unwrap_or(0);
+
+                    let base_r: u8 = 20_u8.saturating_add(add_r);
+                    let base_g: u8 = 16_u8.saturating_add(add_g);
+                    let base_b: u8 = 14_u8.saturating_add(add_b);
+                    (base_r, base_g, base_b)
+                };
 
             buffer.push(b);
             buffer.push(g);
@@ -962,7 +973,7 @@ Categories=System;Settings;
 }
 
 // ============================================================================
-// 6. PHÂN HỆ 3: TRÌNH CẬP NHẬT HỆ THỐNG CÓ GIAO DIỆN TUI (`updater`) — ZERO INDEXING
+// 6. PHÂN HỆ 3: TRÌNH CẬP NHẬT HỆ THỐNG CÓ GIAO DIỆN TUI (`updater`)
 // ============================================================================
 
 pub struct Sha256Hasher {
@@ -1003,7 +1014,8 @@ impl Sha256Hasher {
     }
 
     pub fn update(&mut self, data: &[u8]) {
-        self.total_bits = self.total_bits.wrapping_add((data.len() as u64).wrapping_mul(8));
+        let added_bits: u64 = (data.len() as u64).wrapping_mul(8);
+        self.total_bits = self.total_bits.wrapping_add(added_bits);
 
         for &byte in data {
             if let Some(slot) = self.buffer.get_mut(self.buffer_len) {
@@ -1020,12 +1032,12 @@ impl Sha256Hasher {
     }
 
     pub fn finalize_hex(mut self) -> String {
-        let saved_bits = self.total_bits;
+        let saved_bits: u64 = self.total_bits;
         self.update(&[0x80]);
         while self.buffer_len != 56 {
             self.update(&[0x00]);
         }
-        let total_bits_be = saved_bits.to_be_bytes();
+        let total_bits_be: [u8; 8] = saved_bits.to_be_bytes();
         self.update(&total_bits_be);
 
         let mut out = String::with_capacity(64);
@@ -1044,15 +1056,21 @@ impl Sha256Hasher {
                 *slot = u32::from_be_bytes(arr);
             }
         }
-        for i in 16..64 {
-            let w_15 = w.get(i.saturating_sub(15)).copied().unwrap_or(0);
-            let w_2 = w.get(i.saturating_sub(2)).copied().unwrap_or(0);
-            let w_16 = w.get(i.saturating_sub(16)).copied().unwrap_or(0);
-            let w_7 = w.get(i.saturating_sub(7)).copied().unwrap_or(0);
 
-            let s0 = w_15.rotate_right(7) ^ w_15.rotate_right(18) ^ (w_15 >> 3);
-            let s1 = w_2.rotate_right(17) ^ w_2.rotate_right(19) ^ (w_2 >> 10);
-            let val = w_16.wrapping_add(s0).wrapping_add(w_7).wrapping_add(s1);
+        for i in 16_usize..64_usize {
+            let idx_15: usize = i.saturating_sub(15);
+            let idx_2: usize = i.saturating_sub(2);
+            let idx_16: usize = i.saturating_sub(16);
+            let idx_7: usize = i.saturating_sub(7);
+
+            let w_15: u32 = w.get(idx_15).copied().unwrap_or(0);
+            let w_2: u32 = w.get(idx_2).copied().unwrap_or(0);
+            let w_16: u32 = w.get(idx_16).copied().unwrap_or(0);
+            let w_7: u32 = w.get(idx_7).copied().unwrap_or(0);
+
+            let s0: u32 = w_15.rotate_right(7) ^ w_15.rotate_right(18) ^ (w_15 >> 3);
+            let s1: u32 = w_2.rotate_right(17) ^ w_2.rotate_right(19) ^ (w_2 >> 10);
+            let val: u32 = w_16.wrapping_add(s0).wrapping_add(w_7).wrapping_add(s1);
             if let Some(slot) = w.get_mut(i) {
                 *slot = val;
             }
@@ -1060,20 +1078,20 @@ impl Sha256Hasher {
 
         let [mut a, mut b, mut c, mut d, mut e, mut f, mut g, mut h] = self.state;
 
-        for i in 0..64 {
-            let k_i = SHA256_K.get(i).copied().unwrap_or(0);
-            let w_i = w.get(i).copied().unwrap_or(0);
+        for i in 0_usize..64_usize {
+            let k_i: u32 = SHA256_K.get(i).copied().unwrap_or(0);
+            let w_i: u32 = w.get(i).copied().unwrap_or(0);
 
-            let s1 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
-            let ch = (e & f) ^ ((!e) & g);
-            let temp1 = h
+            let s1: u32 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
+            let ch: u32 = (e & f) ^ ((!e) & g);
+            let temp1: u32 = h
                 .wrapping_add(s1)
                 .wrapping_add(ch)
                 .wrapping_add(k_i)
                 .wrapping_add(w_i);
-            let s0 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
-            let maj = (a & b) ^ (a & c) ^ (b & c);
-            let temp2 = s0.wrapping_add(maj);
+            let s0: u32 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
+            let maj: u32 = (a & b) ^ (a & c) ^ (b & c);
+            let temp2: u32 = s0.wrapping_add(maj);
 
             h = g;
             g = f;
@@ -1108,7 +1126,7 @@ pub fn compute_file_sha256(path: &Path) -> Result<String, CaramUiError> {
     let mut hasher = Sha256Hasher::new();
     let mut buf = [0u8; 8192];
     loop {
-        let n = file.read(&mut buf).map_err(|e| CaramUiError::IoFailure {
+        let n: usize = file.read(&mut buf).map_err(|e| CaramUiError::IoFailure {
             context: "Đọc luồng dữ liệu SHA-256".to_string(),
             path: Some(path.to_path_buf()),
             source: e,
@@ -1123,36 +1141,41 @@ pub fn compute_file_sha256(path: &Path) -> Result<String, CaramUiError> {
     Ok(hasher.finalize_hex())
 }
 
+/// Cấu trúc đóng gói yêu cầu cập nhật OTA giao diện TUI.
+pub struct OtaUpdateRequest<'a> {
+    pub root_dir: &'a Path,
+    pub relative_target: &'a Path,
+    pub payload_path: &'a Path,
+    pub expected_sha256: &'a str,
+    pub new_version: &'a str,
+    pub channel: &'a str,
+}
+
 pub fn run_ota_updater_ui<W: Write>(
-    root_dir: &Path,
-    relative_target: &Path,
-    payload_path: &Path,
-    expected_sha256: &str,
-    new_version: &str,
-    channel: &str,
+    req: &OtaUpdateRequest<'_>,
     writer: &mut W,
 ) -> Result<(), CaramUiError> {
-    validate_safe_path(root_dir)?;
-    validate_safe_path(relative_target)?;
-    validate_safe_path(payload_path)?;
+    validate_safe_path(req.root_dir)?;
+    validate_safe_path(req.relative_target)?;
+    validate_safe_path(req.payload_path)?;
 
-    if relative_target.is_absolute() {
+    if req.relative_target.is_absolute() {
         return Err(CaramUiError::UnsafePath {
-            path: relative_target.to_path_buf(),
+            path: req.relative_target.to_path_buf(),
             reason: "Đường dẫn tệp đích trong root_dir phải là đường dẫn tương đối",
         });
     }
 
-    let expected_clean = expected_sha256.trim().to_ascii_lowercase();
+    let expected_clean = req.expected_sha256.trim().to_ascii_lowercase();
     if expected_clean.len() != 64 || !expected_clean.chars().all(|c| c.is_ascii_hexdigit()) {
         return Err(CaramUiError::ValidationFailed {
             field: "expected_sha256",
-            value: expected_sha256.to_string(),
+            value: req.expected_sha256.to_string(),
             reason: "Mã băm SHA-256 kỳ vọng phải gồm đúng 64 ký tự thập lục phân (hex)",
         });
     }
 
-    let target_full_path = root_dir.join(relative_target);
+    let target_full_path = req.root_dir.join(req.relative_target);
     let short_digest = expected_clean.get(..16).unwrap_or(expected_clean.as_str());
 
     writeln!(
@@ -1193,10 +1216,10 @@ pub fn run_ota_updater_ui<W: Write>(
            • Chuẩn toàn vẹn mật mã    : FIPS 180-4 SHA-256 ({}...){}",
         ANSI_CREAM,
         ANSI_BOLD,
-        channel,
+        req.channel,
         ANSI_CREAM,
         ANSI_EMERALD,
-        new_version,
+        req.new_version,
         ANSI_CREAM,
         target_full_path.display(),
         short_digest,
@@ -1219,7 +1242,7 @@ pub fn run_ota_updater_ui<W: Write>(
     })?;
 
     render_progress_bar(writer, 25, "Đang tính toán và đối chiếu chữ ký băm SHA-256...")?;
-    let actual_sha256 = compute_file_sha256(payload_path)?;
+    let actual_sha256 = compute_file_sha256(req.payload_path)?;
     if actual_sha256 != expected_clean {
         writeln!(
             writer,
@@ -1232,7 +1255,7 @@ pub fn run_ota_updater_ui<W: Write>(
             source: e,
         })?;
         return Err(CaramUiError::DigestMismatch {
-            target: payload_path.to_path_buf(),
+            target: req.payload_path.to_path_buf(),
             expected: expected_clean,
             actual: actual_sha256,
         });
@@ -1260,9 +1283,9 @@ pub fn run_ota_updater_ui<W: Write>(
     }
 
     render_progress_bar(writer, 80, "Đang nạp gói cập nhật vào vùng đệm Staging & đồng bộ I/O...")?;
-    let payload_bytes = fs::read(payload_path).map_err(|e| CaramUiError::IoFailure {
+    let payload_bytes = fs::read(req.payload_path).map_err(|e| CaramUiError::IoFailure {
         context: "Đọc nội dung gói Payload".to_string(),
-        path: Some(payload_path.to_path_buf()),
+        path: Some(req.payload_path.to_path_buf()),
         source: e,
     })?;
 
@@ -1299,7 +1322,7 @@ pub fn run_ota_updater_ui<W: Write>(
     writeln!(
         writer,
         "\n{}{}✔ CẬP NHẬT HỆ THỐNG THÀNH CÔNG LÊN PHIÊN BẢN {}! (SHA-256 Verified){}",
-        ANSI_BOLD, ANSI_EMERALD, new_version, ANSI_RESET
+        ANSI_BOLD, ANSI_EMERALD, req.new_version, ANSI_RESET
     )
     .map_err(|e| CaramUiError::IoFailure {
         context: "Ghi thông báo hoàn tất OTA".to_string(),
@@ -1319,10 +1342,11 @@ pub fn render_progress_bar<W: Write>(
     percentage: u8,
     label: &str,
 ) -> Result<(), CaramUiError> {
-    let clamped = percentage.min(100);
+    let clamped: u8 = percentage.min(100);
     let total_blocks: usize = 28;
-    let filled_blocks = (usize::from(clamped).saturating_mul(total_blocks)) / 100;
-    let empty_blocks = total_blocks.saturating_sub(filled_blocks);
+    let clamped_usize: usize = usize::from(clamped);
+    let filled_blocks: usize = (clamped_usize.saturating_mul(total_blocks)) / 100;
+    let empty_blocks: usize = total_blocks.saturating_sub(filled_blocks);
 
     let filled_str = "█".repeat(filled_blocks);
     let empty_str = "░".repeat(empty_blocks);
@@ -1424,7 +1448,7 @@ fn prompt_line_with_default(prompt: &str, default_val: &str) -> Result<String, C
 }
 
 // ============================================================================
-// 8. ĐIỀU PHỐI DÒNG LỆNH (CLI ENTRYPOINT — ĐÃ SỬA UNREACHABLE PATTERN & INDEXING)
+// 8. ĐIỀU PHỐI DÒNG LỆNH (CLI ENTRYPOINT)
 // ============================================================================
 
 fn print_usage<W: Write>(writer: &mut W) -> Result<(), CaramUiError> {
@@ -1472,7 +1496,6 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramUiError> {
 
     let mut stdout = io::stdout().lock();
 
-    // Đặt nhánh None | Some("--help") | Some("-h") | Some("help") LÊN TRƯỚC Some(cmd)
     let subcommand = match args.get(1).map(String::as_str) {
         None | Some("--help") | Some("-h") | Some("help") => {
             return print_usage(&mut stdout);
@@ -1705,7 +1728,15 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramUiError> {
                 reason: "Bắt buộc phải cung cấp --sha256 <HEX_64>".to_string(),
             })?;
 
-            run_ota_updater_ui(&root, &target, &payload, &sha256, &version, &channel, &mut stdout)
+            let req = OtaUpdateRequest {
+                root_dir: &root,
+                relative_target: &target,
+                payload_path: &payload,
+                expected_sha256: &sha256,
+                new_version: &version,
+                channel: &channel,
+            };
+            run_ota_updater_ui(&req, &mut stdout)
         }
         unknown => Err(CaramUiError::InvalidCliArgument {
             argument: unknown.to_string(),
@@ -1797,6 +1828,7 @@ mod tests {
         })?;
 
         assert!(manifest_text.contains("EFI_PARTITION=\"/dev/nvme0n1p1\""));
+        assert!(manifest_text.contains("EFI_SIZE_MIB=512"));
         assert!(manifest_text.contains("ROOT_PARTITION=\"/dev/nvme0n1p2\""));
         assert!(manifest_text.contains("ADMIN_USER=\"locshadow\""));
 
@@ -1821,7 +1853,8 @@ mod tests {
             source: e,
         })?;
 
-        assert_eq!(tga_bytes.len(), 18 + (320 * 240 * 3));
+        let expected_len: usize = 18_usize + (320_usize * 240_usize * 3_usize);
+        assert_eq!(tga_bytes.len(), expected_len);
         assert_eq!(tga_bytes.get(2).copied(), Some(2));
         assert_eq!(tga_bytes.get(16).copied(), Some(24));
 
@@ -1856,16 +1889,15 @@ mod tests {
         let mut log = Vec::new();
 
         let bad_hash = "0000000000000000000000000000000000000000000000000000000000000000";
-        let res_err = run_ota_updater_ui(
-            &temp_root,
-            target_rel,
-            &payload_path,
-            bad_hash,
-            "2.0.1",
-            "stable",
-            &mut log,
-        );
-        assert!(res_err.is_err());
+        let bad_req = OtaUpdateRequest {
+            root_dir: &temp_root,
+            relative_target: target_rel,
+            payload_path: &payload_path,
+            expected_sha256: bad_hash,
+            new_version: "2.0.1",
+            channel: "stable",
+        };
+        assert!(run_ota_updater_ui(&bad_req, &mut log).is_err());
 
         let current_text = fs::read_to_string(&target_full).map_err(|e| CaramUiError::IoFailure {
             context: "Đọc tệp đích sau khi chặn SHA-256 sai".to_string(),
@@ -1874,15 +1906,15 @@ mod tests {
         })?;
         assert_eq!(current_text, "CARAMOS_VERSION=2.0.0\n");
 
-        run_ota_updater_ui(
-            &temp_root,
-            target_rel,
-            &payload_path,
-            &valid_hash,
-            "2.0.1",
-            "stable",
-            &mut log,
-        )?;
+        let valid_req = OtaUpdateRequest {
+            root_dir: &temp_root,
+            relative_target: target_rel,
+            payload_path: &payload_path,
+            expected_sha256: &valid_hash,
+            new_version: "2.0.1",
+            channel: "stable",
+        };
+        run_ota_updater_ui(&valid_req, &mut log)?;
 
         let updated_text = fs::read_to_string(&target_full).map_err(|e| CaramUiError::IoFailure {
             context: "Đọc tệp đích sau khi OTA thành công".to_string(),

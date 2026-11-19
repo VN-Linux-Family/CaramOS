@@ -14,7 +14,6 @@
 //!
 //! Trình điều phối đóng gói Live ISO Debian 13 (Trixie), quản lý vòng đời gắn kết Chroot (RAII),
 //! giải cứu Applet & dọn dẹp di sản (`prune`), băm mật mã học SHA-256 (`hash`) và cập nhật nguyên tử (`ota-apply`).
-//! Tuân thủ `#![deny(clippy::indexing_slicing)]` và bảo toàn 100% giao diện từ `caramos-ui`.
 
 use std::env;
 use std::fmt;
@@ -97,7 +96,6 @@ impl std::error::Error for CaramCtlError {}
 // 2. PHÒNG THỦ ĐƯỜNG DẪN & SAO CHÉP CÂY THƯ MỤC ĐỆ QUY (OVERLAY-LAST)
 // ============================================================================
 
-/// Kiểm định đường dẫn an toàn, chặn Path Traversal (`..`) và ký tự NULL.
 pub fn validate_safe_path(path: &Path) -> Result<(), CaramCtlError> {
     let raw = path.to_string_lossy();
     if raw.is_empty() {
@@ -123,7 +121,6 @@ pub fn validate_safe_path(path: &Path) -> Result<(), CaramCtlError> {
     Ok(())
 }
 
-/// Ghi tệp tin nguyên tử thông qua vùng đệm tạm và lệnh `fs::rename` kèm `sync_all`.
 pub fn atomic_write_file(target: &Path, content: &[u8]) -> Result<(), CaramCtlError> {
     validate_safe_path(target)?;
     if let Some(parent) = target.parent() {
@@ -167,7 +164,6 @@ pub fn atomic_write_file(target: &Path, content: &[u8]) -> Result<(), CaramCtlEr
     })
 }
 
-/// Chỉ ghi tệp cấu hình mặc định nếu tệp đó CHƯA tồn tại.
 pub fn write_default_if_missing(target: &Path, default_content: &[u8]) -> Result<bool, CaramCtlError> {
     validate_safe_path(target)?;
     if target.exists() {
@@ -177,8 +173,6 @@ pub fn write_default_if_missing(target: &Path, default_content: &[u8]) -> Result
     Ok(true)
 }
 
-/// Sao chép đệ quy toàn bộ cây thư mục nguồn (`src_dir`) đè lên thư mục đích (`dst_dir`),
-/// bảo toàn quyền thực thi (permissions) của các tệp nhị phân như `caramos-ui` và `caramos-ctl`.
 pub fn copy_directory_tree_overlay(src_dir: &Path, dst_dir: &Path) -> Result<usize, CaramCtlError> {
     validate_safe_path(src_dir)?;
     validate_safe_path(dst_dir)?;
@@ -218,7 +212,7 @@ pub fn copy_directory_tree_overlay(src_dir: &Path, dst_dir: &Path) -> Result<usi
         })?;
 
         if file_type.is_dir() {
-            let sub_count = copy_directory_tree_overlay(&src_path, &dst_path)?;
+            let sub_count: usize = copy_directory_tree_overlay(&src_path, &dst_path)?;
             copied_files = copied_files.saturating_add(sub_count);
         } else if file_type.is_file() {
             if let Some(parent) = dst_path.parent() {
@@ -328,7 +322,6 @@ fn run_external_command(cmd: &mut Command, context: &str) -> Result<(), CaramCtl
 // 4. MÁY TRẠNG THÁI KIỂU TĨNH CHO PIPELINE ĐÓNG GÓI ISO (TYPESTATE BUILDER)
 // ============================================================================
 
-/// Tên tệp ISO đầu ra chuẩn hóa khớp với pipeline GitHub Actions CI.
 pub const DEFAULT_ISO_FILENAME: &str = "CaramOS-2.0.0-debian-trixie-amd64.iso";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -459,8 +452,6 @@ impl IsoBuildPipeline<StageInit> {
 }
 
 impl IsoBuildPipeline<StageRootfsBootstrapped> {
-    /// Bước 2: Khởi tạo cấu hình cơ sở VÀ áp lớp phủ `config/includes.chroot` ở bước CUỐI CÙNG
-    /// nhằm bảo đảm không bao giờ ghi đè các tệp giao diện do `caramos-ui` kết xuất.
     pub fn configure_chroot_and_apply_overlay<W: Write>(
         self,
         writer: &mut W,
@@ -508,7 +499,7 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
         write_default_if_missing(&default_dir.join("grub"), fallback_grub.as_bytes())?;
 
         // Áp lớp phủ `config/includes.chroot` sau cùng (Overlay-Last Precedence)
-        let overlaid_count =
+        let overlaid_count: usize =
             copy_directory_tree_overlay(&self.config.includes_chroot_dir, &self.rootfs_dir)?;
 
         writeln!(
@@ -573,10 +564,9 @@ impl IsoBuildPipeline<StageChrootConfigured> {
             })?;
         }
 
-        // Lan truyền giao diện Bootloader (`boot/grub/themes/caramos`) từ rootfs sang iso_staging
         let rootfs_theme_dir = self.rootfs_dir.join("boot/grub/themes/caramos");
         let iso_theme_dir = grub_dir.join("themes/caramos");
-        let theme_files_copied = copy_directory_tree_overlay(&rootfs_theme_dir, &iso_theme_dir)?;
+        let theme_files_copied: usize = copy_directory_tree_overlay(&rootfs_theme_dir, &iso_theme_dir)?;
 
         writeln!(
             writer,
@@ -848,8 +838,6 @@ fn copy_kernel_and_initrd(rootfs: &Path, live_dir: &Path) -> Result<(), CaramCtl
 // 5. GIẢI CỨU APPLET & DỌN DẸP DI SẢN (`prune`)
 // ============================================================================
 
-/// Tự động giải cứu Cinnamon Applets từ `packages/caramos-ota` sang `config/includes.chroot`
-/// trước khi xóa các tệp di sản cũ. Bảo vệ tuyệt đối `crates/caramos-ctl` và `crates/caramos-ui`.
 pub fn prune_legacy_artifacts<W: Write>(
     repo_root: &Path,
     execute: bool,
@@ -857,11 +845,10 @@ pub fn prune_legacy_artifacts<W: Write>(
 ) -> Result<usize, CaramCtlError> {
     validate_safe_path(repo_root)?;
 
-    // 1. Giải cứu Cinnamon Applets nếu còn nằm trong packages/caramos-ota
     let legacy_applets = repo_root.join("packages/caramos-ota/usr/share/cinnamon/applets");
     let target_applets = repo_root.join("config/includes.chroot/usr/share/cinnamon/applets");
     if legacy_applets.exists() && execute {
-        let salvaged = copy_directory_tree_overlay(&legacy_applets, &target_applets)?;
+        let salvaged: usize = copy_directory_tree_overlay(&legacy_applets, &target_applets)?;
         writeln!(
             writer,
             "  [SALVAGED] Đã giải cứu {} tệp Cinnamon Applet sang '{}'.",
@@ -875,7 +862,6 @@ pub fn prune_legacy_artifacts<W: Write>(
         })?;
     }
 
-    // 2. Danh sách các mục di sản cần loại bỏ (Bảo vệ tuyệt đối crates/caramos-ctl và crates/caramos-ui)
     let legacy_targets = [
         "build.sh",
         "install.sh",
@@ -951,7 +937,7 @@ pub fn prune_legacy_artifacts<W: Write>(
 }
 
 // ============================================================================
-// 6. MẬT MÃ HỌC SHA-256 (FIPS 180-4) KHÔNG DÙNG INDEXING/SLICING (`[]`)
+// 6. MẬT MÃ HỌC SHA-256 (FIPS 180-4) ĐỊNH KIỂU TƯỜNG MINH (`usize` / `u32` / `u64`)
 // ============================================================================
 
 pub struct Sha256Hasher {
@@ -992,7 +978,8 @@ impl Sha256Hasher {
     }
 
     pub fn update(&mut self, data: &[u8]) {
-        self.total_bits = self.total_bits.wrapping_add((data.len() as u64).wrapping_mul(8));
+        let added_bits: u64 = (data.len() as u64).wrapping_mul(8);
+        self.total_bits = self.total_bits.wrapping_add(added_bits);
 
         for &byte in data {
             if let Some(slot) = self.buffer.get_mut(self.buffer_len) {
@@ -1009,12 +996,12 @@ impl Sha256Hasher {
     }
 
     pub fn finalize_hex(mut self) -> String {
-        let saved_bits = self.total_bits;
+        let saved_bits: u64 = self.total_bits;
         self.update(&[0x80]);
         while self.buffer_len != 56 {
             self.update(&[0x00]);
         }
-        let total_bits_be = saved_bits.to_be_bytes();
+        let total_bits_be: [u8; 8] = saved_bits.to_be_bytes();
         self.update(&total_bits_be);
 
         let mut out = String::with_capacity(64);
@@ -1033,15 +1020,21 @@ impl Sha256Hasher {
                 *slot = u32::from_be_bytes(arr);
             }
         }
-        for i in 16..64 {
-            let w_15 = w.get(i.saturating_sub(15)).copied().unwrap_or(0);
-            let w_2 = w.get(i.saturating_sub(2)).copied().unwrap_or(0);
-            let w_16 = w.get(i.saturating_sub(16)).copied().unwrap_or(0);
-            let w_7 = w.get(i.saturating_sub(7)).copied().unwrap_or(0);
 
-            let s0 = w_15.rotate_right(7) ^ w_15.rotate_right(18) ^ (w_15 >> 3);
-            let s1 = w_2.rotate_right(17) ^ w_2.rotate_right(19) ^ (w_2 >> 10);
-            let val = w_16.wrapping_add(s0).wrapping_add(w_7).wrapping_add(s1);
+        for i in 16_usize..64_usize {
+            let idx_15: usize = i.saturating_sub(15);
+            let idx_2: usize = i.saturating_sub(2);
+            let idx_16: usize = i.saturating_sub(16);
+            let idx_7: usize = i.saturating_sub(7);
+
+            let w_15: u32 = w.get(idx_15).copied().unwrap_or(0);
+            let w_2: u32 = w.get(idx_2).copied().unwrap_or(0);
+            let w_16: u32 = w.get(idx_16).copied().unwrap_or(0);
+            let w_7: u32 = w.get(idx_7).copied().unwrap_or(0);
+
+            let s0: u32 = w_15.rotate_right(7) ^ w_15.rotate_right(18) ^ (w_15 >> 3);
+            let s1: u32 = w_2.rotate_right(17) ^ w_2.rotate_right(19) ^ (w_2 >> 10);
+            let val: u32 = w_16.wrapping_add(s0).wrapping_add(w_7).wrapping_add(s1);
             if let Some(slot) = w.get_mut(i) {
                 *slot = val;
             }
@@ -1049,20 +1042,20 @@ impl Sha256Hasher {
 
         let [mut a, mut b, mut c, mut d, mut e, mut f, mut g, mut h] = self.state;
 
-        for i in 0..64 {
-            let k_i = SHA256_K.get(i).copied().unwrap_or(0);
-            let w_i = w.get(i).copied().unwrap_or(0);
+        for i in 0_usize..64_usize {
+            let k_i: u32 = SHA256_K.get(i).copied().unwrap_or(0);
+            let w_i: u32 = w.get(i).copied().unwrap_or(0);
 
-            let s1 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
-            let ch = (e & f) ^ ((!e) & g);
-            let temp1 = h
+            let s1: u32 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
+            let ch: u32 = (e & f) ^ ((!e) & g);
+            let temp1: u32 = h
                 .wrapping_add(s1)
                 .wrapping_add(ch)
                 .wrapping_add(k_i)
                 .wrapping_add(w_i);
-            let s0 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
-            let maj = (a & b) ^ (a & c) ^ (b & c);
-            let temp2 = s0.wrapping_add(maj);
+            let s0: u32 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
+            let maj: u32 = (a & b) ^ (a & c) ^ (b & c);
+            let temp2: u32 = s0.wrapping_add(maj);
 
             h = g;
             g = f;
@@ -1098,7 +1091,7 @@ pub fn compute_file_sha256(path: &Path) -> Result<String, CaramCtlError> {
     let mut hasher = Sha256Hasher::new();
     let mut buf = [0u8; 8192];
     loop {
-        let n = file.read(&mut buf).map_err(|e| CaramCtlError::IoFailure {
+        let n: usize = file.read(&mut buf).map_err(|e| CaramCtlError::IoFailure {
             context: "Đọc luồng dữ liệu SHA-256".to_string(),
             path: Some(path.to_path_buf()),
             source: e,
@@ -1113,35 +1106,38 @@ pub fn compute_file_sha256(path: &Path) -> Result<String, CaramCtlError> {
     Ok(hasher.finalize_hex())
 }
 
-pub fn apply_atomic_ota(
-    root_dir: &Path,
-    relative_target: &Path,
-    payload_path: &Path,
-    expected_sha256: &str,
-    new_version: &str,
-) -> Result<(), CaramCtlError> {
-    validate_safe_path(root_dir)?;
-    validate_safe_path(relative_target)?;
-    validate_safe_path(payload_path)?;
+/// Cấu trúc đóng gói yêu cầu cập nhật OTA nguyên tử.
+pub struct OtaApplyRequest<'a> {
+    pub root_dir: &'a Path,
+    pub relative_target: &'a Path,
+    pub payload_path: &'a Path,
+    pub expected_sha256: &'a str,
+    pub new_version: &'a str,
+}
 
-    if relative_target.is_absolute() {
+pub fn apply_atomic_ota(req: &OtaApplyRequest<'_>) -> Result<(), CaramCtlError> {
+    validate_safe_path(req.root_dir)?;
+    validate_safe_path(req.relative_target)?;
+    validate_safe_path(req.payload_path)?;
+
+    if req.relative_target.is_absolute() {
         return Err(CaramCtlError::UnsafePath {
-            path: relative_target.to_path_buf(),
+            path: req.relative_target.to_path_buf(),
             reason: "Đường dẫn --target phải là đường dẫn tương đối bên trong --root",
         });
     }
 
-    let expected_norm = expected_sha256.trim().to_ascii_lowercase();
-    let actual_payload_hash = compute_file_sha256(payload_path)?;
+    let expected_norm = req.expected_sha256.trim().to_ascii_lowercase();
+    let actual_payload_hash = compute_file_sha256(req.payload_path)?;
     if actual_payload_hash != expected_norm {
         return Err(CaramCtlError::DigestMismatch {
-            path: payload_path.to_path_buf(),
+            path: req.payload_path.to_path_buf(),
             expected: expected_norm,
             actual: actual_payload_hash,
         });
     }
 
-    let target_full = root_dir.join(relative_target);
+    let target_full = req.root_dir.join(req.relative_target);
     let backup_path = target_full.with_extension("caramos-ctl.bak");
     let had_original = target_full.exists();
 
@@ -1153,9 +1149,9 @@ pub fn apply_atomic_ota(
         })?;
     }
 
-    let payload_bytes = fs::read(payload_path).map_err(|e| CaramCtlError::IoFailure {
+    let payload_bytes = fs::read(req.payload_path).map_err(|e| CaramCtlError::IoFailure {
         context: "Đọc dữ liệu gói Payload OTA".to_string(),
-        path: Some(payload_path.to_path_buf()),
+        path: Some(req.payload_path.to_path_buf()),
         source: e,
     })?;
 
@@ -1172,10 +1168,10 @@ pub fn apply_atomic_ota(
         return Err(write_err);
     }
 
-    let release_file = root_dir.join("etc/caramos-release");
+    let release_file = req.root_dir.join("etc/caramos-release");
     let _ = atomic_write_file(
         &release_file,
-        format!("CARAMOS_VERSION={}\n", new_version.trim()).as_bytes(),
+        format!("CARAMOS_VERSION={}\n", req.new_version.trim()).as_bytes(),
     );
 
     if backup_path.exists() {
@@ -1186,13 +1182,12 @@ pub fn apply_atomic_ota(
 }
 
 // ============================================================================
-// 7. ĐIỀU PHỐI DÒNG LỆNH (CLI ENTRYPOINT — ĐÃ SỬA UNREACHABLE PATTERN & INDEXING)
+// 7. ĐIỀU PHỐI DÒNG LỆNH (CLI ENTRYPOINT)
 // ============================================================================
 
 pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
     let mut stdout = io::stdout().lock();
 
-    // Đặt nhánh None | Some("--help") | Some("-h") | Some("help") LÊN TRƯỚC Some(cmd)
     let subcommand = match args.get(1).map(String::as_str) {
         None | Some("--help") | Some("-h") | Some("help") => {
             writeln!(
@@ -1425,7 +1420,14 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
                 reason: "Bắt buộc".to_string(),
             })?;
 
-            apply_atomic_ota(&r, &t, &p, &s, &version)?;
+            let req = OtaApplyRequest {
+                root_dir: &r,
+                relative_target: &t,
+                payload_path: &p,
+                expected_sha256: &s,
+                new_version: &version,
+            };
+            apply_atomic_ota(&req)?;
             writeln!(
                 stdout,
                 "✔ Đã áp dụng bản cập nhật OTA nguyên tử lên phiên bản {}.",

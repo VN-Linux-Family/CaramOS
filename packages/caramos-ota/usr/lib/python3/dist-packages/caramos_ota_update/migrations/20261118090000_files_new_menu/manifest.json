@@ -1,0 +1,24 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Menu chuột phải của Tệp, mẫu tài liệu (dưới 1 MB)",
+  "size_en": "Files right-click menu, document templates (under 1 MB)",
+  "title": "Tệp: chuột phải > Mới > Thư mục, như Windows và sách Tin học",
+  "summary": "Bấm chuột phải vào chỗ trống trong Tệp hay trên màn hình nền, chọn Mới rồi Thư mục, Văn bản Word, Bảng tính Excel hoặc Trình chiếu PowerPoint.",
+  "title_en": "Files: right-click > New > Folder, as in Windows and the school textbooks",
+  "summary_en": "Right-click an empty area in Files or on the desktop, choose New, then Folder, Word Document, Excel Spreadsheet or PowerPoint Presentation.",
+  "release_notes_vi": [
+    "Bấm chuột phải vào chỗ trống trong Tệp hay trên màn hình nền, chọn Mới > Thư mục: thư mục mới hiện ra, gõ tên rồi bấm Enter, giống Windows và sách giáo khoa Tin học.",
+    "Trong Mới còn có Văn bản Word, Bảng tính Excel, Trình chiếu PowerPoint và Tệp văn bản: tạo ngay một tệp trống, mở bằng ONLYOFFICE, WPS hay LibreOffice.",
+    "Muốn khung bên trái của Tệp là cây thư mục bấm sổ ra như Windows Explorer: bấm nút hình cây ở góc dưới bên trái cửa sổ Tệp. Máy cài mới có sẵn cây thư mục.",
+    "Menu mới có từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "Right-click an empty area in Files or on the desktop and choose New > Folder: the new folder appears, type its name and press Enter, as in Windows and the Tin học textbooks.",
+    "New also has Word Document, Excel Spreadsheet, PowerPoint Presentation and Text Document: an empty file, ready for ONLYOFFICE, WPS or LibreOffice.",
+    "For a folder tree in the left pane of Files that opens out like Windows Explorer's, click the tree button at the bottom left of the Files window. New installs have the tree already.",
+    "The new menu appears from the next login."
+  ]
+}

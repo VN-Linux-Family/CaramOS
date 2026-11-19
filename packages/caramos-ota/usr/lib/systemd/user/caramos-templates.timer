@@ -1,0 +1,11 @@
+[Unit]
+Description=Put the document templates of Files into the Templates folder once, a minute after login (CaramOS)
+ConditionUser=!@system
+ConditionPathExists=!%h/.local/state/caramos/templates.json
+
+[Timer]
+# xdg-user-dirs creates the Templates folder (~/Mẫu) when the session starts.
+OnStartupSec=1min
+
+[Install]
+WantedBy=timers.target

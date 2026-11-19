@@ -12,6 +12,8 @@ from importlib import resources
 from pathlib import Path
 from typing import Any
 
+from .desktop import KNOWN as KNOWN_DESKTOPS
+
 MIGRATIONS_PACKAGE = "caramos_ota_update.migrations"
 TIMESTAMP_ID_RE = re.compile(r"^\d{14}_[a-z0-9][a-z0-9_]*$")
 LEGACY_ID_RE = re.compile(r"^v\d+(?:_\d+)+(?:_[A-Za-z0-9_]+)?$")
@@ -46,6 +48,8 @@ class MigrationDescriptor:
     title_en: str = ""
     summary_en: str = ""
     size_en: str = ""
+    # The desktops the migration applies to (desktop.KNOWN); empty: every edition.
+    desktops: tuple[str, ...] = ()
 
     @property
     def legacy(self) -> bool:
@@ -223,6 +227,9 @@ def _descriptor(directory: Path) -> MigrationDescriptor:
         notes_vi = list(changes)
 
     summary = str(raw.get("summary") or "Bản cập nhật này sẽ chạy migration CaramOS.")
+    desktops = raw.get("desktops", [])
+    if not (isinstance(desktops, list) and all(item in KNOWN_DESKTOPS for item in desktops)):
+        raise MigrationRegistryError(f"desktops in {manifest_path} must be a list of {', '.join(KNOWN_DESKTOPS)}")
     return MigrationDescriptor(
         migration_id=migration_id,
         release=release,
@@ -244,6 +251,7 @@ def _descriptor(directory: Path) -> MigrationDescriptor:
         title_en=str(raw.get("title_en") or ""),
         summary_en=str(raw.get("summary_en") or ""),
         size_en=str(raw.get("size_en") or ""),
+        desktops=tuple(desktops),
     )
 
 

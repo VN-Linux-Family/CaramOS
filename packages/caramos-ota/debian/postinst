@@ -19,11 +19,16 @@ case "$1" in
             systemctl enable caramos-ota-check.timer || true
             systemctl start caramos-ota-check.timer || true
         fi
+
+        # Files (Nemo): right-click > "Mới" > "Thư mục" from the next login (see the script).
+        /usr/share/caramos-ota/nemo-menu/caramos-nemo-menu || true
         ;;
     triggered)
         # A Cinnamon update put back its own panel files: make the CaramOS changes again. A failure is
         # logged in /var/log/caramos-ota and must not fail the Cinnamon update.
         python3 -I -m caramos_ota_update.cinnamon_patches || true
+        # A Nemo update: the "Mới > Thư mục" menus are written again from its library.
+        /usr/share/caramos-ota/nemo-menu/caramos-nemo-menu || true
         ;;
 esac
 

@@ -1,7 +1,11 @@
-"""Gettext checks for the CaramOS Control Center applet and its Vietnamese catalog."""
+"""Gettext checks for the CaramOS Control Center and its Vietnamese catalog.
+
+One catalog (the caramos-control-center domain) serves the Cinnamon applet (applet.js) and the Control Center of the
+Xfce edition (the caramos_xfce_cc Python package), so the two say the same things in the same words."""
 
 from __future__ import annotations
 
+import ast
 import re
 import shutil
 import subprocess
@@ -10,6 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
 APPLET_JS = ROOT / "usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js"
+XFCE_CC = ROOT / "usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc"
 PO_DIR = ROOT / "po/caramos-control-center"
 VI_PO = PO_DIR / "vi.po"
 POT = PO_DIR / "caramos-control-center.pot"
@@ -27,12 +32,7 @@ function ngettext(singular, plural, count) {
 }
 """
 
-REGENERATE_HINT = (
-    "regenerate the template from packages/caramos-ota with: xgettext --language=JavaScript "
-    "--from-code=UTF-8 --keyword=_ --keyword=ngettext:1,2 --add-comments=Translators: "
-    "--package-name=caramos-control-center -o po/caramos-control-center/caramos-control-center.pot "
-    "usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js"
-)
+REGENERATE_HINT = "regenerate the template as po/README.md says (applet.js, then the Xfce Python files)"
 
 # Letters that only appear in Vietnamese text (vowels with Vietnamese diacritics, plus Đ/đ).
 VIETNAMESE = re.compile("[àáâãèéêìíòóôõùúýăđĩũơưÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠ-ỹ]")
@@ -316,11 +316,37 @@ def applet_messages(source: str):
     return messages
 
 
+def python_messages(path: Path):
+    """The (msgid, msgid_plural or None) of the _() and ngettext() calls in a Python file; every call must pass
+    literal strings, so xgettext finds them."""
+
+    messages = set()
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"), str(path))):
+        if not isinstance(node, ast.Call) or not isinstance(node.func, ast.Name) or node.func.id not in ("_", "ngettext"):
+            continue
+        count = 1 if node.func.id == "_" else 2
+        args = node.args[:count]
+        where = f"{path.name}:{node.lineno} {node.func.id}()"
+        if len(args) != count or not all(isinstance(arg, ast.Constant) and isinstance(arg.value, str) for arg in args):
+            raise AssertionError(f"{where}: expected string literals")
+        messages.add((args[0].value, args[1].value if count == 2 else None))
+    return messages
+
+
+def xfce_messages():
+    messages = set()
+    for path in sorted(XFCE_CC.rglob("*.py")):
+        messages |= python_messages(path)
+    return messages
+
+
 class ControlCenterGettextTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.source = APPLET_JS.read_text(encoding="utf-8")
-        cls.messages = applet_messages(cls.source)
+        cls.applet_messages = applet_messages(cls.source)
+        cls.xfce_messages = xfce_messages()
+        cls.messages = cls.applet_messages | cls.xfce_messages
         cls.catalog = po_catalog(VI_PO)
 
     def test_applet_uses_its_own_gettext_domain(self) -> None:
@@ -329,7 +355,24 @@ class ControlCenterGettextTests(unittest.TestCase):
         self.assertEqual(1, len(re.findall(r"\bfunction ngettext\(", self.source)))
         self.assertNotRegex(self.source, r"function _\(\s*(\w+)\s*\)\s*\{\s*return\s+\1\s*;?\s*\}")
         self.assertNotRegex(self.source, r"(?:const|let|var)\s+(?:_|ngettext)\s*=")
-        self.assertGreater(len(self.messages), 100)
+        self.assertGreater(len(self.applet_messages), 100)
+
+    def test_xfce_control_center_uses_the_same_domain(self) -> None:
+        i18n = (XFCE_CC / "i18n.py").read_text(encoding="utf-8")
+        self.assertIn('DOMAIN = "caramos-control-center"', i18n)
+        self.assertIn("gettext.translation(DOMAIN, ", i18n)
+        self.assertGreater(len(self.xfce_messages), 60)
+        # The tiles and rows of both Control Centers have the same names.
+        for shared in ("Wi\u2011Fi", "Bluetooth", "Dark mode", "Night Light", "Power mode", "Accent colour"):
+            self.assertIn((shared, None), self.applet_messages & self.xfce_messages, shared)
+
+    def test_xfce_string_literals_are_not_vietnamese(self) -> None:
+        offenders = []
+        for path in sorted(XFCE_CC.rglob("*.py")):
+            for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
+                if isinstance(node, ast.Constant) and isinstance(node.value, str) and VIETNAMESE.search(node.value):
+                    offenders.append(f"{path.name}:{node.lineno}: {node.value!r}")
+        self.assertEqual([], offenders, "user-visible text must be an English msgid translated in vi.po")
 
     def test_string_literals_are_not_vietnamese(self) -> None:
         _code, strings = scan_js(self.source)
@@ -377,7 +420,7 @@ class ControlCenterGettextTests(unittest.TestCase):
             self.assertNotIn("${", msgid)
             self.assertNotIn("${", plural or "")
 
-    def test_template_matches_applet(self) -> None:
+    def test_template_matches_the_sources(self) -> None:
         template = set(po_catalog(POT))
         self.assertEqual(sorted(self.messages - template, key=str), [], f"missing from the template; {REGENERATE_HINT}")
         self.assertEqual(sorted(template - self.messages, key=str), [], f"stale in the template; {REGENERATE_HINT}")

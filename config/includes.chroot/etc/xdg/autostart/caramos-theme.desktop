@@ -6,3 +6,5 @@ Exec=/usr/bin/caramos-theme-apply
 AutostartCondition=unless-exists .config/caramos-theme-applied
 X-GNOME-Autostart-Phase=Desktop
 NoDisplay=true
+# Cinnamon only: it writes Cinnamon settings. The Xfce edition gets its theme from /etc/xdg/caramos-xfce.
+OnlyShowIn=X-Cinnamon;

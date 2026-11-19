@@ -144,7 +144,8 @@ class RunTests(unittest.TestCase):
         for name, replacement in (("gsettings_get", lambda schema, key: self.settings[(schema, key)]),
                                   ("gsettings_set_string", self.set_setting),
                                   ("pictures_dir", lambda home: home / "Pictures"),
-                                  ("metered", lambda: self.metered)):
+                                  ("metered", lambda: self.metered),
+                                  ("edition", lambda: "cinnamon")):
             patcher = mock.patch.object(cli, name, replacement)
             patcher.start()
             self.addCleanup(patcher.stop)
@@ -235,6 +236,145 @@ class RunTests(unittest.TestCase):
         self.manifest.write_text(json.dumps(data), encoding="utf-8")
         self.assertEqual(0, self.run_day(DAY))
         self.assertEqual([], list(self.folder.glob("2026-*")))
+
+
+class XfceRunTests(unittest.TestCase):
+    """CaramOS Xfce: the folder is a bookmark (Desktop settings > Folder) and each monitor and workspace showing one
+    of its photos follows the daily photo."""
+
+    WORKSPACE = "/backdrop/screen0/monitorVirtual-1/workspace0/last-image"
+    OTHER = "/backdrop/screen0/monitorVirtual-1/workspace1/last-image"
+
+    def setUp(self) -> None:
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.root = Path(tmp.name)
+        self.home = self.root / "home"
+        self.bookmarks = self.home / ".config/gtk-3.0/bookmarks"
+        self.bookmarks.parent.mkdir(parents=True)
+        self.bookmarks.write_text("file:///home/caram/T%C3%A0i%20li%E1%BB%87u\nfile:///home/caram/%E1%BA%A2nh\n",
+                                  encoding="utf-8")
+        source = self.root / "source"
+        source.mkdir()
+        self.manifest = self.root / "photos.json"
+        self.manifest.write_text(json.dumps({"photos": [photo(i, f"photo {i}".encode(), source) for i in range(3)]}),
+                                 encoding="utf-8")
+        sage = "/usr/share/backgrounds/CaramOS/03-sage-mist-2k.jpg"
+        self.images = {self.WORKSPACE: sage, self.OTHER: sage, "/backdrop/screen0/monitor0/image-path": sage}
+        self.wallpapers = self.root / "usr/share/backgrounds/CaramOS"   # the five CaramOS wallpapers
+        self.wallpapers.mkdir(parents=True)
+        patcher = mock.patch.object(core, "XFCE_WALLPAPERS", self.wallpapers)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+        refuse = lambda *args: self.fail("no Cinnamon settings on Xfce")
+        for name, replacement in (("gsettings_get", refuse), ("gsettings_set_string", refuse),
+                                  ("pictures_dir", lambda home: home / "Pictures"), ("metered", lambda: False),
+                                  ("edition", lambda: "xfce"), ("xfconf_images", lambda: dict(self.images)),
+                                  ("xfconf_set", self.set_image)):
+            patcher = mock.patch.object(cli, name, replacement)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def set_image(self, name: str, value: str) -> bool:
+        self.images[name] = value
+        return True
+
+    def run_day(self, day: dt.date) -> int:
+        with mock.patch("builtins.print"):
+            return cli.run(self.home, day, self.manifest, list_url=self.manifest.as_uri())
+
+    @property
+    def folder(self) -> Path:
+        return core.folder_of(self.home)
+
+    def test_first_run_bookmarks_the_folder_and_keeps_the_wallpaper(self) -> None:
+        before = dict(self.images)
+        self.assertEqual(0, self.run_day(DAY))
+        lines = self.bookmarks.read_text(encoding="utf-8").splitlines()
+        self.assertEqual(4, len(lines), "the other bookmarks stay")
+        self.assertEqual([self.wallpapers, self.folder], [core.uri_path(line) for line in lines[-2:]])
+        self.assertIn("Vi%E1%BB%87t%20Nam", lines[-1], "percent-encoded, as GTK writes it")
+        self.assertFalse((self.home / ".config/cinnamon").exists())
+        self.assertEqual(before, self.images)
+        self.assertEqual(1, len(list(self.folder.glob("2026-*"))))
+        self.run_day(DAY + dt.timedelta(days=1))
+        self.assertEqual(4, len(self.bookmarks.read_text(encoding="utf-8").splitlines()), "added once")
+
+    def test_the_caramos_wallpapers_are_bookmarked_once(self) -> None:
+        # A user who already had the daily photos bookmarked (before 2026-11-19) gets the five wallpapers too.
+        state = self.home / ".local/state/caramos/daily-wallpaper.json"
+        state.parent.mkdir(parents=True)
+        state.write_text(json.dumps({"bookmarked": True}), encoding="utf-8")
+        with self.bookmarks.open("a", encoding="utf-8") as handle:
+            handle.write(core.file_uri(self.folder) + "\n")
+        self.run_day(DAY)
+        lines = self.bookmarks.read_text(encoding="utf-8").splitlines()
+        self.assertEqual([self.folder, self.wallpapers], [core.uri_path(line) for line in lines[-2:]])
+        # Removed by the user: it stays removed, and the daily photos go on.
+        self.bookmarks.write_text("\n".join(lines[:-1]) + "\n", encoding="utf-8")
+        self.run_day(DAY + dt.timedelta(days=1))
+        self.assertFalse(core.bookmarked(self.wallpapers, self.bookmarks))
+        self.assertEqual(2, len(list(self.folder.glob("2026-*"))))
+
+    def test_no_caramos_wallpapers_no_bookmark(self) -> None:
+        self.wallpapers.rmdir()
+        self.run_day(DAY)
+        self.assertFalse(core.bookmarked(self.wallpapers, self.bookmarks))
+        self.assertTrue(core.bookmarked(self.folder, self.bookmarks))
+
+    def test_a_workspace_showing_a_daily_photo_follows_it(self) -> None:
+        self.run_day(DAY)
+        first = next(self.folder.glob("2026-*"))
+        self.images[self.WORKSPACE] = str(first)            # the user picks it in Desktop settings
+        self.run_day(DAY + dt.timedelta(days=1))
+        newest = sorted(self.folder.glob("2026-*"))[-1]
+        self.assertNotEqual(first, newest)
+        self.assertEqual(str(newest), self.images[self.WORKSPACE])
+        self.assertEqual("/usr/share/backgrounds/CaramOS/03-sage-mist-2k.jpg", self.images[self.OTHER])
+        self.images[self.WORKSPACE] = "/home/caram/Pictures/mine.jpg"   # another picture: that one stops following
+        self.run_day(DAY + dt.timedelta(days=2))
+        self.assertEqual("/home/caram/Pictures/mine.jpg", self.images[self.WORKSPACE])
+
+    def test_removing_the_bookmark_turns_it_off_for_good(self) -> None:
+        self.run_day(DAY)
+        self.bookmarks.write_text("file:///home/caram/T%C3%A0i%20li%E1%BB%87u\n", encoding="utf-8")
+        self.run_day(DAY + dt.timedelta(days=1))
+        self.assertEqual(1, len(self.bookmarks.read_text(encoding="utf-8").splitlines()))
+        self.assertEqual(1, len(list(self.folder.glob("2026-*"))))
+
+    def test_a_mint_xfce_that_ran_the_cinnamon_steps_gets_the_bookmark(self) -> None:
+        state = self.home / ".local/state/caramos/daily-wallpaper.json"
+        state.parent.mkdir(parents=True)
+        state.write_text(json.dumps({"registered": True}), encoding="utf-8")
+        self.run_day(DAY)
+        self.assertTrue(core.bookmarked(self.folder, self.bookmarks))
+
+    def test_bookmarks_with_a_name_and_the_desktop_properties(self) -> None:
+        folder = Path("/home/caram/.local/share/caramos/wallpapers") / core.FOLDER_NAME
+        with tempfile.TemporaryDirectory() as tmp:
+            bookmarks = Path(tmp) / "bookmarks"
+            bookmarks.write_text(core.file_uri(folder) + " Ảnh nền\n", encoding="utf-8")
+            self.assertTrue(core.bookmarked(folder, bookmarks))
+            self.assertFalse(core.add_bookmark(folder, bookmarks))
+        photo_path = str(folder / "2026-11-17 Hạ Long.jpg")
+        images = {"/backdrop/screen0/monitorHDMI-1/workspace2/last-image": photo_path,
+                  "/backdrop/screen0/monitor0/last-image": photo_path,
+                  "/backdrop/screen0/monitor0/image-path": photo_path,
+                  "/backdrop/screen0/monitorDP-1/workspace0/last-image": "/usr/share/backgrounds/x.jpg"}
+        self.assertEqual(["/backdrop/screen0/monitor0/last-image", "/backdrop/screen0/monitorHDMI-1/workspace2/last-image"],
+                         core.xfce_following(folder, images))
+
+    def test_prune_keeps_every_picture_on_screen(self) -> None:
+        folder = self.root / "photos"
+        folder.mkdir()
+        days = [DAY + dt.timedelta(days=offset) for offset in range(5)]
+        for day in days:
+            (folder / f"{day.isoformat()} Ảnh.jpg").write_bytes(JPEG)
+        oldest, second = (folder / f"{day.isoformat()} Ảnh.jpg" for day in days[:2])
+        removed = core.prune(folder, 2, None, also={oldest})
+        self.assertNotIn(oldest, removed)
+        self.assertIn(second, removed)
+        self.assertTrue(oldest.exists())
 
 
 class ListTests(unittest.TestCase):

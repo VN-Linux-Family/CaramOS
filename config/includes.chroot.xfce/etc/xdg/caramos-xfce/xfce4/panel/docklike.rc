@@ -1,0 +1,15 @@
+[user]
+pinned=firefox;nemo;caramos-app-center;xfce-settings-manager;
+forceIconSize=true
+iconSize=32
+indicatorStyle=1
+inactiveIndicatorStyle=1
+indicatorOrientation=1
+indicatorColorFromTheme=false
+indicatorColor=rgb(31,158,222)
+inactiveColor=rgb(31,158,222)
+middleButtonBehavior=1
+showPreviews=false
+showWindowCount=false
+onlyDisplayVisible=false
+onlyDisplayScreen=false

@@ -76,6 +76,8 @@ class DriverCheckPackagingTests(unittest.TestCase):
     def test_login_check_starts_after_the_app_center_picker(self) -> None:
         entry = desktop_entry(ROOT / "etc/xdg/autostart/caramos-driver-check.desktop")
         self.assertEqual("/usr/bin/caramos-driver-check --autostart", entry["Exec"])
+        # The Xfce edition (2 GB computers, school labs) checks the drivers at login too.
+        self.assertEqual("X-Cinnamon;XFCE;", entry["OnlyShowIn"])
         self.assertEqual("true", entry["NoDisplay"])
         picker = desktop_entry(APP_CENTER_FIRST_RUN)
         # A missing network driver must end up above the picker, which cannot install anything offline.

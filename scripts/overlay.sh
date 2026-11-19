@@ -3,13 +3,21 @@
 
 step_overlay() {
     ensure_work_tree
+    # config/includes.chroot cho mọi phiên bản, rồi config/includes.chroot.<phiên bản> (vd. xfce) đè lên.
+    copy_overlay_dir "$SCRIPT_DIR/config/includes.chroot"
+    if [ -d "$SCRIPT_DIR/config/includes.chroot.${MINT_EDITION:-cinnamon}" ]; then
+        copy_overlay_dir "$SCRIPT_DIR/config/includes.chroot.${MINT_EDITION:-cinnamon}"
+    fi
+}
 
-    if [ -d "$SCRIPT_DIR/config/includes.chroot" ]; then
-        info "Copy overlay files..."
+copy_overlay_dir() {
+    local source_dir="$1"
+    if [ -d "$source_dir" ]; then
+        info "Copy overlay files ($(basename "$source_dir"))..."
         shopt -s nullglob dotglob
-        local overlay_files=("$SCRIPT_DIR/config/includes.chroot"/*)
+        local overlay_files=("$source_dir"/*)
         if [ ${#overlay_files[@]} -eq 0 ]; then
-            warn "Overlay rỗng: config/includes.chroot"
+            warn "Overlay rỗng: $source_dir"
         else
             # Older builds accidentally created fcitx5/profile as a directory.
             # The correct Fcitx5 profile path is a file, so remove the stale
@@ -26,7 +34,7 @@ step_overlay() {
             # /etc/os-release -> ../usr/lib/os-release) được ghi xuyên qua symlink như cp -a trước đây.
             # rsync sẽ thay symlink bằng file: lúc boot systemd-tmpfiles (L+ /etc/default/locale) dựng lại
             # symlink tới locale.conf vẫn là C.UTF-8, nên live session và trình cài đặt mất tiếng Việt.
-            local overlay_dir="$SCRIPT_DIR/config/includes.chroot" through=() rel
+            local overlay_dir="$source_dir" through=() rel
             while IFS= read -r -d '' rel; do
                 [ -L "$WORK_DIR/squashfs/$rel" ] && through+=("$rel")
             done < <(cd "$overlay_dir" && find . -type f -printf '%P\0')
@@ -51,6 +59,6 @@ step_overlay() {
         fi
         shopt -u nullglob dotglob
     else
-        warn "Không tìm thấy config/includes.chroot, bỏ qua overlay."
+        warn "Không tìm thấy $source_dir, bỏ qua overlay."
     fi
 }

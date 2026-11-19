@@ -17,6 +17,3 @@ video/webm=celluloid.desktop
 audio/mpeg=celluloid.desktop
 
 text/plain=xed.desktop
-
-application/zip=nemo.desktop
-application/x-tar=nemo.desktop

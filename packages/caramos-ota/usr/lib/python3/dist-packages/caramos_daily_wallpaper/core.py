@@ -14,6 +14,8 @@ Nothing changes the user's wallpaper unless they ask for it, in the place they a
 - Picking one of its photos as the wallpaper turns the daily change on: while the wallpaper is a photo of that
   folder, each new day's photo becomes the wallpaper. Picking any other wallpaper turns it off again.
 - A Backgrounds slideshow of that folder also works: Cinnamon's slideshow picks up each new photo by itself.
+- On CaramOS Xfce the folder is a GTK bookmark instead, so Desktop settings list it under Folder; the same
+  rules hold for each monitor and workspace, and Xfce's "Change the background" plays the folder.
 
 The file names carry the title, author and licence, which Backgrounds shows under each photo, and NOTES_NAME in the
 folder lists each photo's source page. A download goes to a hidden file next to the folder, so a slideshow never
@@ -182,6 +184,46 @@ def folder_listed(folder: Path, folders_list: Path) -> bool:
         return False
 
 
+# CaramOS Xfce: Xfce's Desktop settings show one folder's pictures, picked under Folder, which lists the GTK
+# bookmarks (Nemo's sidebar shows them too). The folder is added there once; removing the bookmark turns the feature
+# off for good, as removing it from Cinnamon's Backgrounds does. The desktop's pictures are xfconf properties.
+XFCE_LAST_IMAGE_RE = re.compile(r"^/backdrop/screen\d+/monitor[^/]+(?:/workspace\d+)?/last-image$")
+# The five CaramOS wallpapers of the Xfce edition (migration 20261118090100). Folder lists a folder only while it is
+# the current one or a bookmark, so they were out of sight once another folder was picked (the owner could not find
+# them, 2026-11-19): they are bookmarked too, once, before the daily photos.
+XFCE_WALLPAPERS = Path("/usr/share/backgrounds/CaramOS")
+
+
+def _bookmarks(bookmarks: Path) -> list[str]:
+    try:
+        return bookmarks.read_text(encoding="utf-8").splitlines()
+    except FileNotFoundError:
+        return []
+
+
+def bookmarked(folder: Path, bookmarks: Path) -> bool:
+    return any(uri_path(line.split(" ", 1)[0]) == folder for line in _bookmarks(bookmarks) if line.strip())
+
+
+def add_bookmark(folder: Path, bookmarks: Path) -> bool:
+    """Add folder to the GTK bookmarks; True when it was added. Its name there is the folder's, FOLDER_NAME."""
+
+    if bookmarked(folder, bookmarks):
+        return False
+    lines = [line for line in _bookmarks(bookmarks) if line.strip()] + [file_uri(folder)]
+    bookmarks.parent.mkdir(parents=True, exist_ok=True)
+    bookmarks.write_text("".join(f"{line}\n" for line in lines), encoding="utf-8")
+    return True
+
+
+def xfce_following(folder: Path, images: dict[str, str]) -> list[str]:
+    """The Xfce desktop properties (monitor, workspace) whose picture is a photo of folder: they follow the daily
+    photo. Another picture on one of them leaves that one alone."""
+
+    return [name for name, value in sorted(images.items())
+            if XFCE_LAST_IMAGE_RE.match(name) and value and Path(value).parent == folder]
+
+
 def uri_path(uri: str) -> Path | None:
     """The file of a file:// URI, as Backgrounds writes it (percent-encoded)."""
 
@@ -254,14 +296,15 @@ def write_notes(folder: Path, photos: dict[str, dict]) -> None:
     (folder / NOTES_NAME).write_text("\n".join(lines), encoding="utf-8")
 
 
-def prune(folder: Path, keep: int, current: Path | None) -> list[Path]:
-    """Delete the oldest daily photos beyond keep; the current wallpaper stays."""
+def prune(folder: Path, keep: int, current: Path | None, also: frozenset[Path] | set[Path] = frozenset()) -> list[Path]:
+    """Delete the oldest daily photos beyond keep; the current wallpaper stays, and so do the pictures in also (the
+    Xfce desktop's, one per monitor and workspace)."""
 
     photos = sorted(path for path in folder.iterdir()
                     if path.is_file() and re.match(r"^\d{4}-\d{2}-\d{2} ", path.name))
     removed = []
     for path in photos[:-keep] if keep > 0 else photos:
-        if current is not None and path == current:
+        if (current is not None and path == current) or path in also:
             continue
         path.unlink(missing_ok=True)
         removed.append(path)

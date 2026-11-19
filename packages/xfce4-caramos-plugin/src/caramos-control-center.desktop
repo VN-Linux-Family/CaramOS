@@ -1,0 +1,11 @@
+[Xfce Panel]
+Type=X-XFCE-PanelPlugin
+Name=CaramOS Control Center
+Name[vi]=Trung tâm điều khiển CaramOS
+Comment=Sound, network, Bluetooth, battery, power mode, dark mode and Night Light, as on CaramOS Cinnamon
+Comment[vi]=Âm thanh, mạng, Bluetooth, pin, chế độ nguồn, chế độ tối và ánh sáng đêm, như trên CaramOS Cinnamon
+Icon=preferences-system
+X-XFCE-Module=caramos-control-center
+X-XFCE-Internal=false
+X-XFCE-Unique=true
+X-XFCE-API=2.0

@@ -143,6 +143,12 @@ class UnitTests(unittest.TestCase):
         self.assertIn("OnUnitInactiveSec", timer["Timer"])
         self.assertEqual(boot.TIMER, "caramos-boot-success.timer")
 
+    def test_an_upgrade_does_not_start_the_timer_again(self) -> None:
+        # An upgrade of caramos-ota restarts the timer. In a boot that already told GRUB, the service skips itself
+        # and never stops the timer: a "skipped" line in the journal every 30 seconds until the next boot.
+        text = (UNITS / "caramos-boot-success.timer").read_text(encoding="utf-8")
+        self.assertIn(f"ConditionPathExists=!{boot.FLAG}\n", text)
+
     def test_the_package_ships_and_enables_them(self) -> None:
         install = (ROOT / "debian/install").read_text(encoding="utf-8")
         for path in ("usr/lib/systemd/system/caramos-boot-success.service",

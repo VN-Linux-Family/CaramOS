@@ -1,3 +1,51 @@
+caramos-ota (1.4.0-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.4.0.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * CaramOS Xfce, a light edition for 2 GB computers and school computer labs
+    (a Tin học teacher's request): its own ISO, built from Linux Mint 22.3
+    Xfce. It speaks English by default, as the Tin học textbooks use Windows'
+    English words; Vietnamese typing is unchanged, and choosing Vietnamese in
+    the installer still gives Vietnamese. It has the three taskbar islands of
+    the Cinnamon edition (xfce4-docklike-plugin), its own Control Center
+    (sound, network, Bluetooth, battery, power mode, dark mode, accent colour
+    and Night Light, in the taskbar through xfce4-caramos-plugin), the level
+    display of the sound keys, Files (Nemo) as the file manager, the five
+    CaramOS wallpapers, Driver Check and the Update Center. os-release and
+    lsb-release name the edition.
+  * Migrations say which desktop they are for ("desktops" in the manifest):
+    the 14 that change only Cinnamon are skipped on the Xfce edition, and the
+    Update Center does not list them there.
+  * The Xfce edition uses over 100 MB less memory: calendar reminders and the
+    Bluetooth icon start only when needed; System Reports, the Flameshot
+    daemon, the print queue icon, xiccd and colord, GNOME Online Accounts,
+    fwupd's twice-daily refresh and ModemManager no longer run in the
+    background; xfwm4 follows the screen through XPresent instead of OpenGL. A
+    2 GB computer shows about 612 MB in Task Manager after boot.
+  * Xfce: the launchers on the Desktop open at the first double-click (Xfce
+    4.18 asked whether to trust them, then failed with "Timeout was reached"),
+    and the power button asks what to do, as on Cinnamon.
+  * Files: right-click > New > Folder (Mới > Thư mục on the Cinnamon edition),
+    with Word, Excel, PowerPoint and text templates, as in Windows and the
+    school textbooks; new installs show the folder tree in the left pane, like
+    Windows Explorer.
+  * Computer Lab (Phòng máy): classroom management with Veyon or Epoptes in
+    one click. The teacher's computer shows a 6-digit code; students'
+    computers find it on the school network, check the code and set themselves
+    up.
+  * Word, Excel and PowerPoint files open in the right app: without an office
+    suite, opening one offers ONLYOFFICE, WPS Office or LibreOffice from the
+    App Center instead of only showing its folder, and .zip files open in the
+    archive manager.
+  * The daily Vietnam wallpaper works on Xfce (Desktop settings > Folder),
+    next to a "CaramOS" folder with the five CaramOS wallpapers.
+  * The Control Center's sliders on Cinnamon are longer, and their track shows
+    in the dark theme.
+  * The boot-success timer no longer fires every 30 seconds after an upgrade
+    of this package until the next boot.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 19 Nov 2026 21:06:34 +0700
+
 caramos-ota (1.3.11-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.3.11.

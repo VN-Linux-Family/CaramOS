@@ -14,8 +14,19 @@ permissions:
 
 jobs:
   build:
-    name: Build ISO (${{ startsWith(github.ref, 'refs/tags/v') && 'release' || 'dev' }})
+    name: Build ISO ${{ matrix.edition }} (${{ startsWith(github.ref, 'refs/tags/v') && 'release' || 'dev' }})
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      # Release builds one edition after the other, so only one of them creates the GitHub Release.
+      max-parallel: ${{ startsWith(github.ref, 'refs/tags/v') && 1 || 2 }}
+      matrix:
+        # cinnamon: the main edition; xfce: the light edition for 2 GB computers and school labs.
+        edition: [cinnamon, xfce]
+    env:
+      MINT_EDITION: ${{ matrix.edition }}
+      # Cinnamon keeps the SHA256SUMS name that the README and the landing link to.
+      CHECKSUMS: ${{ matrix.edition == 'cinnamon' && 'SHA256SUMS' || format('SHA256SUMS-{0}', matrix.edition) }}
 
     steps:
       - name: Checkout
@@ -39,8 +50,8 @@ jobs:
       - name: Cache Mint ISO
         uses: actions/cache@v5
         with:
-          path: linuxmint-22.3-cinnamon-64bit.iso
-          key: mint-iso-22.3-cinnamon
+          path: linuxmint-22.3-${{ matrix.edition }}-64bit.iso
+          key: mint-iso-22.3-${{ matrix.edition }}
 
       - name: Verify release tag matches source version
         if: startsWith(github.ref, 'refs/tags/v')
@@ -65,15 +76,15 @@ jobs:
           fi
 
       - name: Generate checksums
-        run: sha256sum CaramOS-*.iso > SHA256SUMS
+        run: sha256sum CaramOS-*.iso > "${CHECKSUMS}"
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v5
         with:
-          name: CaramOS-ISO
+          name: CaramOS-ISO-${{ matrix.edition }}
           path: |
             CaramOS-*.iso
-            SHA256SUMS
+            ${{ env.CHECKSUMS }}
           retention-days: 7
 
       - name: Upload ISO to SourceForge
@@ -101,7 +112,7 @@ jobs:
           -mkdir ${RELEASE_DIR}
           cd ${RELEASE_DIR}
           put ${ISO_FILE}
-          put SHA256SUMS
+          put ${CHECKSUMS}
           EOF
 
           sftp -i ~/.ssh/sourceforge \
@@ -110,7 +121,7 @@ jobs:
             "${SOURCEFORGE_USERNAME}@frs.sourceforge.net"
 
           DOWNLOAD_URL="https://sourceforge.net/projects/${SOURCEFORGE_PROJECT}/files/${GITHUB_REF_NAME}/${ISO_BASENAME}/download"
-          CHECKSUM_URL="https://sourceforge.net/projects/${SOURCEFORGE_PROJECT}/files/${GITHUB_REF_NAME}/SHA256SUMS/download"
+          CHECKSUM_URL="https://sourceforge.net/projects/${SOURCEFORGE_PROJECT}/files/${GITHUB_REF_NAME}/${CHECKSUMS}/download"
           python3 - <<PY
           from pathlib import Path
           import textwrap
@@ -120,9 +131,11 @@ jobs:
           download_url = "${DOWNLOAD_URL}"
           checksum_url = "${CHECKSUM_URL}"
           sourceforge_project = "${SOURCEFORGE_PROJECT}"
+          edition = "${MINT_EDITION}".capitalize()
+          checksums = "${CHECKSUMS}"
 
           release_body = f"""
-          ## Download CaramOS {github_ref_name}
+          ## Download CaramOS {github_ref_name} {edition}
 
           > GitHub Release cannot host the ISO directly because release assets have a
           > per-file size limit. The ISO is hosted as one complete file on SourceForge.
@@ -134,13 +147,13 @@ jobs:
           </p>
 
           - **ISO:** [{iso_basename}]({download_url})
-          - **SHA256SUMS:** [SHA256SUMS]({checksum_url})
+          - **{checksums}:** [{checksums}]({checksum_url})
           - **SourceForge folder:** https://sourceforge.net/projects/{sourceforge_project}/files/{github_ref_name}/
 
           ### Verify the ISO
 
           ```bash
-          sha256sum -c SHA256SUMS
+          sha256sum -c {checksums}
           ```
           """
 
@@ -152,7 +165,7 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            SHA256SUMS
+            ${{ env.CHECKSUMS }}
           body_path: RELEASE_DOWNLOADS.md
           append_body: true
           generate_release_notes: true

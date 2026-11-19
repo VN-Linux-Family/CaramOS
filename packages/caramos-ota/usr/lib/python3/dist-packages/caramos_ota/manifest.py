@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from functools import cmp_to_key
 
+from caramos_ota_update.desktop import applies, current_desktop
 from caramos_ota_update.ledger import applied_ids, bootstrap_ledger
 from caramos_ota_update.registry import (
     MigrationDescriptor,
@@ -98,7 +99,11 @@ def _manifest_from_descriptors(
     release_info: ReleaseInfo,
     target_version: str,
 ) -> Manifest:
-    if not descriptors:
+    # Notes of migrations for another desktop (Cinnamon's panel on the Xfce edition) are not shown: the runner
+    # skips those migrations here.
+    desktop = current_desktop()
+    shown = [item for item in descriptors if applies(item.desktops, desktop)]
+    if not shown:
         target_newer = version_lt(release_info.version, target_version)
         return Manifest(
             release=target_version,
@@ -139,27 +144,27 @@ def _manifest_from_descriptors(
                 EXIT_STATE,
             )
 
-    target_items = [item for item in descriptors if item.release == target_version]
+    target_items = [item for item in shown if item.release == target_version]
     # The Update Center leads with the newest change worth telling: housekeeping ("normal", such as freeing
     # disk space) does not take the place of a new feature or an important fix.
-    candidates = target_items or descriptors
+    candidates = target_items or shown
     display = ([item for item in candidates if item.severity != "normal"] or candidates)[-1]
     notes_vi: list[str] = []
     notes_en: list[str] = []
-    for item in descriptors:
+    for item in shown:
         label = item.migration_id
         notes_vi.extend(f"{label}: {note}" for note in (item.release_notes_vi or [item.summary]))
         notes_en.extend(f"{label}: {note}" for note in (item.release_notes_en or [item.summary]))
-    sizes_en = [item.size_en or item.size for item in descriptors if item.size_en or item.size]
+    sizes_en = [item.size_en or item.size for item in shown if item.size_en or item.size]
 
     return Manifest(
         release=target_version,
         codename=display.codename,
-        source=", ".join(item.source for item in descriptors),
+        source=", ".join(item.source for item in shown),
         min_client_version=TOOL_VERSION,
         channel=display.channel,
         severity=display.severity,
-        size=" + ".join(item.size for item in descriptors if item.size) or "Cập nhật hệ thống",
+        size=" + ".join(item.size for item in shown if item.size) or "Cập nhật hệ thống",
         title=display.title,
         summary=display.summary,
         release_notes_vi=notes_vi,

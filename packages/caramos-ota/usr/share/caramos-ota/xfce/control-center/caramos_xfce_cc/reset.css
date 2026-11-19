@@ -1,0 +1,20 @@
+/* Loaded one priority below style.css, still above the GTK theme: every button of the popup starts plain, and the
+   Control Center's own rules (style.css) give each kind its look, whatever their CSS specificity. */
+.caramos-cc-card button {
+  background-image: none;
+  background-color: transparent;
+  border: none;
+  box-shadow: none;
+  text-shadow: none;
+  -gtk-icon-shadow: none;
+  outline-color: rgba(0, 0, 0, 0.25);
+  min-height: 0;
+  min-width: 0;
+  padding: 0;
+  color: inherit;
+}
+
+.caramos-cc-card label {
+  color: inherit;
+}
+

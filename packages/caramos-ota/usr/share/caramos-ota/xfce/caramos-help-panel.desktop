@@ -1,0 +1,15 @@
+[Desktop Entry]
+# The Feedback & Help button at the right end of the CaramOS Xfce taskbar (the launcher in xfce4-panel.xml). It is
+# caramos-help.desktop with the panel icon of CaramOS Cinnamon's Feedback & Help applet: the icon theme's question
+# mark, drawn in the colour of the panel's text.
+Type=Application
+Name=Feedback & Help
+Name[vi]=Góp ý & hỗ trợ
+Comment=Ask the VNLF community for help, report a bug or send feedback about CaramOS
+Comment[vi]=Nhờ cộng đồng VNLF giúp đỡ, báo lỗi hoặc góp ý cho CaramOS
+Exec=/usr/bin/caramos-help
+Icon=dialog-question-symbolic
+Terminal=false
+NoDisplay=true
+StartupNotify=true
+StartupWMClass=caramos-help

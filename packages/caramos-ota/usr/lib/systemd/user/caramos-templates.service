@@ -1,0 +1,8 @@
+[Unit]
+Description=Put the Word, Excel and PowerPoint templates of Files > right-click > New into the Templates folder (CaramOS)
+ConditionUser=!@system
+ConditionPathExists=!%h/.local/state/caramos/templates.json
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/caramos-ota/nemo-menu/caramos-templates

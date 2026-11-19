@@ -1,0 +1,467 @@
+/* The CaramOS Control Center popup on Xfce: the look of the Cinnamon applet's stylesheet.css, in GTK 3 CSS.
+   @cc_accent and @cc_accent_hover are defined by the program (the accent colour setting). Loaded only into the
+   Control Center's own process, at application priority, so the GTK theme does not restyle its buttons. */
+
+window.caramos-cc {
+  background-color: transparent;
+}
+
+/* The sizes are those of the Cinnamon applet as Cinnamon draws it (measured on a 1.3.11 screenshot): a 362 px card,
+   48 px between the sliders, 44 px tiles. The card fills its window, without a shadow, as on Cinnamon: a shadow drawn
+   in the window was cut off at the window's edges, a grey band with square ends over the right island. */
+.caramos-cc-card {
+  background-color: rgba(240, 238, 237, 0.99);
+  color: rgba(48, 48, 48, 0.94);
+  border-radius: 28px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  padding: 10px 12px;
+}
+
+.dark .caramos-cc-card {
+  background-color: rgba(41, 32, 38, 0.99);
+  color: rgba(245, 245, 247, 0.96);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+/* -------- Header (battery pill + round buttons) -------- */
+.caramos-cc-header {
+  padding-bottom: 2px;
+}
+
+.caramos-cc-battery-pill,
+.caramos-cc-round-button {
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-round-button {
+  min-width: 15px;
+}
+
+.caramos-cc-battery-pill:hover,
+.caramos-cc-round-button:hover {
+  background-color: rgba(0, 0, 0, 0.10);
+}
+
+.caramos-cc-pill-icon,
+.caramos-cc-round-icon,
+.caramos-cc-tile-icon,
+.caramos-cc-row-lead-icon,
+.caramos-cc-row-trail-icon {
+  color: rgba(48, 48, 48, 0.86);
+}
+
+.caramos-cc-pill-label {
+  font-weight: bold;
+  font-size: 0.86em;
+}
+
+/* -------- Sliders: Cinnamon's popup slider, inside the padding of a popup menu item -------- */
+.caramos-cc-slider-row {
+  min-height: 40px;
+  padding: 0 4px;
+}
+
+.caramos-cc-slider-icon {
+  color: rgba(48, 48, 48, 0.78);
+}
+
+.caramos-cc-slider-icon-button {
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 999px;
+}
+
+.caramos-cc-slider-icon-button:hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+/* The track runs from 63 to 300 px of the 362 px card, as the Cinnamon applet's since the slider lost the menu
+   item's wide padding (owner 2026-11-18: the sliders were short with empty space around them). */
+.caramos-cc-card scale {
+  padding: 0 7px 0 15px;
+}
+
+/* The colours of the Cinnamon theme's slider (Cinnamon-Delight): the applet only sets the active part. */
+.caramos-cc-card scale trough {
+  min-height: 3px;
+  border-radius: 999px;
+  border: none;
+  background-image: none;
+  background-color: #a39394;
+  box-shadow: none;
+}
+
+.caramos-cc-card scale highlight {
+  border-radius: 999px;
+  border: none;
+  background-image: none;
+  background-color: @cc_accent;
+}
+
+/* Cinnamon draws the handle in the text colour. */
+.caramos-cc-card scale slider {
+  min-width: 13px;
+  min-height: 13px;
+  margin: -5px 0;
+  border-radius: 999px;
+  border: none;
+  background-image: none;
+  background-color: #3b3b3b;
+  box-shadow: none;
+}
+
+.caramos-cc-audio-disclosure {
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+}
+
+.caramos-cc-audio-disclosure:hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+.caramos-cc-arrow-icon {
+  color: rgba(48, 48, 48, 0.68);
+}
+
+/* -------- Tiles -------- */
+.caramos-cc-split-tile,
+.caramos-cc-simple-tile {
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-simple-tile {
+  padding: 0 10px;
+}
+
+.caramos-cc-simple-tile:hover,
+.caramos-cc-split-main:hover,
+.caramos-cc-split-arrow:hover {
+  background-color: rgba(0, 0, 0, 0.09);
+}
+
+.caramos-cc-split-main {
+  min-height: 42px;
+  padding: 0 6px 0 8px;
+  border-radius: 999px 0 0 999px;
+}
+
+/* No line between the two halves: the applet asks for one, but Cinnamon draws no border on one side of a round
+   box. */
+.caramos-cc-split-arrow {
+  min-width: 26px;
+  min-height: 42px;
+  padding: 0 5px;
+  border-radius: 0 999px 999px 0;
+}
+
+.caramos-cc-tile-title {
+  font-weight: bold;
+  font-size: 0.86em;
+}
+
+.caramos-cc-tile-subtitle {
+  font-size: 0.74em;
+  color: rgba(60, 60, 60, 0.72);
+}
+
+.caramos-cc-tile-active.caramos-cc-simple-tile,
+.caramos-cc-tile-active.caramos-cc-split-tile {
+  background-color: @cc_accent;
+}
+
+.caramos-cc-tile-active.caramos-cc-simple-tile:hover {
+  background-color: @cc_accent_hover;
+}
+
+.caramos-cc-tile-active .caramos-cc-split-main:hover,
+.caramos-cc-tile-active .caramos-cc-split-arrow:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.caramos-cc-tile-active,
+.caramos-cc-tile-active label,
+.caramos-cc-tile-active .caramos-cc-tile-subtitle,
+.caramos-cc-tile-active .caramos-cc-tile-icon,
+.caramos-cc-tile-active .caramos-cc-arrow-icon {
+  color: #ffffff;
+}
+
+/* Cinnamon has no CSS opacity: an unavailable tile or slider looks like the others and says so in its subtitle (its
+   buttons do nothing), and a tile that is changing gets a faint border and a lighter icon. */
+.caramos-cc-disabled image {
+  -gtk-icon-effect: none;
+}
+
+.caramos-cc-loading {
+  border-color: rgba(0, 0, 0, 0.10);
+}
+
+.caramos-cc-loading .caramos-cc-tile-icon {
+  color: rgba(48, 48, 48, 0.72);
+}
+
+/* -------- Inline card (Wi-Fi, Bluetooth, power, ... lists) -------- */
+.caramos-cc-inline-card {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background-color: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-inline-head-icon {
+  color: @cc_accent;
+}
+
+.caramos-cc-inline-title {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: rgba(30, 30, 30, 0.94);
+}
+
+.caramos-cc-inline-close {
+  min-width: 28px;
+  min-height: 28px;
+  border-radius: 999px;
+}
+
+.caramos-cc-inline-close:hover {
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-inline-close-icon {
+  color: rgba(48, 48, 48, 0.62);
+}
+
+.caramos-cc-list-row {
+  min-height: 30px;
+  padding: 4px 6px;
+  border-radius: 10px;
+}
+
+.caramos-cc-list-row:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.caramos-cc-list-label {
+  font-size: 0.82em;
+  color: rgba(38, 38, 38, 0.90);
+}
+
+.caramos-cc-row-lead-icon {
+  color: rgba(48, 48, 48, 0.78);
+}
+
+.caramos-cc-expand-empty {
+  font-size: 0.82em;
+  padding: 4px 6px;
+  color: rgba(48, 48, 48, 0.60);
+}
+
+.caramos-cc-expand-separator {
+  min-height: 1px;
+  margin: 5px 2px 4px 2px;
+  background-color: rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-detail-key {
+  font-size: 0.78em;
+  color: rgba(48, 48, 48, 0.62);
+}
+
+.caramos-cc-detail-value {
+  font-size: 0.82em;
+}
+
+/* Accent swatches */
+.caramos-cc-accent-swatch {
+  min-width: 22px;
+  min-height: 22px;
+  border-radius: 999px;
+  border: 2px solid rgba(0, 0, 0, 0.08);
+}
+
+.caramos-cc-accent-swatch:hover,
+.caramos-cc-accent-swatch.selected {
+  border: 2px solid rgba(0, 0, 0, 0.55);
+}
+
+/* Restart / shut down / log out: the question and its buttons */
+.caramos-cc-dialog-btn {
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 11px;
+  background-color: rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-dialog-btn:hover {
+  background-color: rgba(0, 0, 0, 0.10);
+}
+
+.caramos-cc-dialog-btn-primary {
+  background-color: @cc_accent;
+  color: #ffffff;
+}
+
+.caramos-cc-dialog-btn-primary:hover {
+  background-color: @cc_accent_hover;
+}
+
+.caramos-cc-dialog-question {
+  font-weight: bold;
+  font-size: 0.9em;
+  padding: 2px 6px 6px 6px;
+}
+
+/* -------- Dark mode -------- */
+.dark .caramos-cc-battery-pill,
+.dark .caramos-cc-round-button,
+.dark .caramos-cc-split-tile,
+.dark .caramos-cc-simple-tile,
+.dark .caramos-cc-dialog-btn {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.dark .caramos-cc-battery-pill:hover,
+.dark .caramos-cc-round-button:hover,
+.dark .caramos-cc-simple-tile:hover,
+.dark .caramos-cc-split-main:hover,
+.dark .caramos-cc-split-arrow:hover,
+.dark .caramos-cc-dialog-btn:hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+.dark .caramos-cc-pill-icon,
+.dark .caramos-cc-round-icon,
+.dark .caramos-cc-tile-icon,
+.dark .caramos-cc-row-lead-icon,
+.dark .caramos-cc-row-trail-icon {
+  color: rgba(235, 235, 240, 0.88);
+}
+
+.dark .caramos-cc-slider-icon {
+  color: rgba(235, 235, 240, 0.80);
+}
+
+.dark .caramos-cc-arrow-icon,
+.dark .caramos-cc-inline-close-icon {
+  color: rgba(235, 235, 240, 0.66);
+}
+
+.dark .caramos-cc-tile-subtitle,
+.dark .caramos-cc-expand-empty,
+.dark .caramos-cc-detail-key {
+  color: rgba(220, 220, 224, 0.72);
+}
+
+.dark .caramos-cc-inline-card {
+  background-color: rgba(55, 45, 51, 0.98);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.dark .caramos-cc-inline-title,
+.dark .caramos-cc-list-label {
+  color: rgba(245, 245, 247, 0.96);
+}
+
+/* In dark mode the part not filled is light (Cinnamon-Delight-Dark's own colour, #261d23, was the colour of the card
+   and could not be seen; the Cinnamon applet sets the same). */
+.dark .caramos-cc-card scale trough {
+  background-color: rgba(255, 255, 255, 0.24);
+}
+
+.dark .caramos-cc-card scale slider {
+  background-color: #eeedef;
+}
+
+.dark .caramos-cc-list-row:hover,
+.dark .caramos-cc-slider-icon-button:hover,
+.dark .caramos-cc-audio-disclosure:hover,
+.dark .caramos-cc-inline-close:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.dark .caramos-cc-expand-separator {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.dark .caramos-cc-accent-swatch {
+  border: 2px solid rgba(255, 255, 255, 0.10);
+}
+
+.dark .caramos-cc-accent-swatch:hover,
+.dark .caramos-cc-accent-swatch.selected {
+  border: 2px solid rgba(255, 255, 255, 0.75);
+}
+
+.dark .caramos-cc-tile-active.caramos-cc-simple-tile,
+.dark .caramos-cc-tile-active.caramos-cc-split-tile {
+  background-color: @cc_accent;
+}
+
+.dark .caramos-cc-tile-active .caramos-cc-tile-title,
+.dark .caramos-cc-tile-active .caramos-cc-tile-subtitle,
+.dark .caramos-cc-tile-active .caramos-cc-tile-icon,
+.dark .caramos-cc-tile-active .caramos-cc-arrow-icon {
+  color: #ffffff;
+}
+
+/* -------- The sound level shown by the sound keys (osd.py), as Cinnamon's OSD -------- */
+.caramos-cc-osd {
+  min-width: 92px;
+  min-height: 92px;
+  padding: 20px 20px 24px;
+  border-radius: 28px;
+  background-color: rgba(240, 238, 237, 0.99);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.caramos-cc-osd-icon {
+  color: rgba(48, 48, 48, 0.86);
+}
+
+.caramos-cc-osd-level trough {
+  min-width: 92px;
+  min-height: 6px;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background-color: rgba(0, 0, 0, 0.12);
+  background-image: none;
+  box-shadow: none;
+}
+
+.caramos-cc-osd-level block {
+  min-height: 6px;
+  border: none;
+  border-radius: 999px;
+  background-image: none;
+  box-shadow: none;
+}
+
+.caramos-cc-osd-level block.filled {
+  background-color: @cc_accent;
+}
+
+.caramos-cc-osd-level block.empty {
+  background-color: transparent;
+}
+
+.dark .caramos-cc-osd {
+  background-color: rgba(41, 32, 38, 0.99);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.dark .caramos-cc-osd-icon {
+  color: rgba(245, 245, 247, 0.92);
+}
+
+.dark .caramos-cc-osd-level trough {
+  background-color: rgba(255, 255, 255, 0.16);
+}

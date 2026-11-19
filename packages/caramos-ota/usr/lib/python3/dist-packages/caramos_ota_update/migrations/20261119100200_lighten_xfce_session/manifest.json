@@ -1,0 +1,41 @@
+{
+  "schema": 2,
+  "desktops": ["xfce"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Bộ nhớ lúc đăng nhập (dưới 1 MB)",
+  "size_en": "Memory at login (under 1 MB)",
+  "title": "Bản Xfce bớt hơn 100 MB RAM",
+  "summary": "Bản Xfce dành cho phòng máy chỉ chạy những thứ cần dùng. Trình nhắc lịch và biểu tượng Bluetooth chỉ chạy khi cần; Báo cáo hệ thống, Flameshot, biểu tượng hàng đợi in, quản lý màu, tài khoản trực tuyến, việc tự tải danh sách firmware và ModemManager không còn chạy nền; xfwm4 không nạp OpenGL nữa. Phím Print Screen vẫn chụp màn hình như cũ.",
+  "title_en": "The Xfce edition uses over 100 MB less memory",
+  "summary_en": "The Xfce edition for school labs runs only what is used. Calendar reminders and the Bluetooth icon start only when needed; System Reports, Flameshot, the print queue icon, colour management, online accounts, the automatic firmware refresh and ModemManager no longer run in the background; xfwm4 no longer loads OpenGL. Print Screen takes screenshots as before.",
+  "release_notes_vi": [
+    "Trình nhắc lịch của Evolution chỉ chạy khi bạn có sự kiện, việc cần làm hay tài khoản lịch, như bản Cinnamon. Máy bớt khoảng 63 MB RAM lúc đăng nhập.",
+    "Biểu tượng Bluetooth trên khay chỉ chạy trên máy có Bluetooth, bớt khoảng 26 MB trên máy không có. Cắm USB Bluetooth sau thì biểu tượng có từ lần đăng nhập sau; ô Bluetooth trong Trung tâm điều khiển vẫn dùng được.",
+    "Biểu tượng Báo cáo hệ thống của Linux Mint không chạy lúc đăng nhập nữa (khoảng 30 MB). Báo cáo hệ thống vẫn mở được từ menu.",
+    "Flameshot không chạy nền từ lúc đăng nhập nữa (khoảng 26 MB). Print Screen và Super+Shift+S vẫn chụp màn hình như cũ; sau lần chụp đầu, biểu tượng Flameshot hiện trên khay đến khi đăng xuất.",
+    "Biểu tượng hàng đợi in trên khay không chạy lúc đăng nhập nữa (khoảng 21 MB). Máy in vẫn in như cũ; muốn xem hàng đợi thì mở Printers trong menu.",
+    "Phần quản lý màu màn hình (xiccd và colord, khoảng 8 MB) không chạy nữa. Phần này chỉ cần cho màn hình đã cân màu.",
+    "Tài khoản trực tuyến GNOME không tự chạy nữa (khoảng 10 MB). Bản Xfce không có chỗ nào dùng đến nó.",
+    "Máy không tự tải danh sách firmware mới mỗi ngày hai lần nữa. Việc đó làm fwupd chạy (27 đến 47 MB) và bật cả Bluetooth. Khi cần cập nhật firmware, lệnh fwupdmgr vẫn dùng được.",
+    "ModemManager không chạy nữa (khoảng 6 MB); nó chỉ cần cho USB 3G/4G. Máy nào cần thì chạy: sudo systemctl enable --now ModemManager",
+    "Trình quản lý cửa sổ xfwm4 đồng bộ khung hình bằng XPresent thay vì OpenGL, nên không phải nạp Mesa và LLVM (khoảng 20 MB).",
+    "Cần bật lại biểu tượng nào thì vào Session and Startup, thẻ Application Autostart.",
+    "Có hiệu lực đầy đủ sau khi khởi động lại máy."
+  ],
+  "release_notes_en": [
+    "Evolution's calendar reminders start only once you have an event, a task or a calendar account, as on the Cinnamon edition. About 63 MB less memory at login.",
+    "The Bluetooth tray icon starts only on computers with Bluetooth: about 26 MB less on the others. A Bluetooth dongle plugged in later gets the icon from the next login; the Bluetooth tile of the Control Center works either way.",
+    "Linux Mint's System Reports tray icon no longer starts at login (about 30 MB). System Reports still opens from the menu.",
+    "Flameshot no longer waits in the background from login (about 26 MB). Print Screen and Super+Shift+S take screenshots as before; after the first one, the Flameshot icon stays in the tray until you log out.",
+    "The print queue icon no longer starts at login (about 21 MB). Printing works as before; Printers in the menu shows the queues.",
+    "Screen colour management (xiccd and colord, about 8 MB) no longer runs. Only calibrated screens need it.",
+    "GNOME Online Accounts no longer starts by itself (about 10 MB). Nothing in the Xfce edition uses it.",
+    "The computer no longer downloads the list of new firmware twice a day. That started fwupd (27 to 47 MB) and Bluetooth with it. fwupdmgr still works when a firmware update is needed.",
+    "ModemManager no longer runs (about 6 MB); only USB 3G/4G modems need it. Where one is needed, run: sudo systemctl enable --now ModemManager",
+    "The xfwm4 window manager synchronises with the screen through XPresent instead of OpenGL, so it no longer loads Mesa and LLVM (about 20 MB).",
+    "To turn an icon on again, open Session and Startup, Application Autostart.",
+    "It takes full effect after a restart."
+  ]
+}

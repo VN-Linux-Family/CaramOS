@@ -69,9 +69,13 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261117100000_lotus_source_amd64_only",
                 "20261117100100_nemo_actions_in_menu",
                 "20261117100200_daily_wallpaper",
+                "20261118090000_files_new_menu",
+                "20261118090100_xfce_wallpapers",
+                "20261119100000_open_office_documents",
+                "20261119100200_lighten_xfce_session",
             ],
         )
-        self.assertEqual(26, run_one.call_count)
+        self.assertEqual(30, run_one.call_count)
         self.assertEqual(
             [
                 "20260805111120_update_taskbar_pins_cleanup_desktop",
@@ -100,6 +104,10 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261117100000_lotus_source_amd64_only",
                 "20261117100100_nemo_actions_in_menu",
                 "20261117100200_daily_wallpaper",
+                "20261118090000_files_new_menu",
+                "20261118090100_xfce_wallpapers",
+                "20261119100000_open_office_documents",
+                "20261119100200_lighten_xfce_session",
             ],
             [entry.args[0].migration_id for entry in run_one.call_args_list],
         )

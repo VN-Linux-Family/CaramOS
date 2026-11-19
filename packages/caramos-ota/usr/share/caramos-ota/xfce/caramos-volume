@@ -1,0 +1,17 @@
+#!/bin/sh
+# The sound keys of CaramOS Xfce (xfce4-keyboard-shortcuts): change the sound with wpctl, then ask the CaramOS
+# Control Center to show the new level, as Cinnamon does (raising the volume also unmutes, as there). Without the
+# Control Center the keys still work.
+#   caramos-volume up | down | mute | mic-mute
+
+case "${1:-}" in
+  up) wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+; kind=output ;;
+  down) wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-; kind=output ;;
+  mute) wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; kind=output ;;
+  mic-mute) wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle; kind=input ;;
+  *) echo "usage: caramos-volume up|down|mute|mic-mute" >&2; exit 2 ;;
+esac
+
+gdbus call --session --timeout 2 --dest net.vietnamlinuxfamily.caramos.ControlCenter \
+  --object-path /net/vietnamlinuxfamily/caramos/ControlCenter \
+  --method org.gtk.Actions.Activate "'osd'" "[<'$kind'>]" '{}' >/dev/null 2>&1 || true

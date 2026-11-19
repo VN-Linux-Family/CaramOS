@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""Opens office documents for which no office suite is installed yet (see caramos_open_document.py)."""
+
+import sys
+
+sys.path.insert(0, "/usr/share/caramos-ota/open-document")
+
+from caramos_open_document import main  # noqa: E402
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

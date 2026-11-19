@@ -13,14 +13,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.3.11"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t&color=F59F22" alt="Bản mới nhất"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.4.0"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t&color=F59F22" alt="Bản mới nhất"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.3.11/CaramOS-1.3.11-cinnamon-amd64.iso/download"><strong>Tải CaramOS 1.3.11</strong></a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.4.0/CaramOS-1.4.0-cinnamon-amd64.iso/download"><strong>Tải CaramOS 1.4.0</strong></a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.4.0/CaramOS-1.4.0-xfce-amd64.iso/download">Bản Xfce</a> ·
   <a href="https://caramos.vietnamlinuxfamily.net">Website</a> ·
   <a href="README_EN.md">English</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -41,16 +42,18 @@
 **CaramOS** là bản phân phối Linux dựa trên **Linux Mint 22.3 Cinnamon** (nền Ubuntu 24.04 LTS),
 làm riêng cho **người dùng Việt Nam**. Mục tiêu của CaramOS là phổ thông hoá Linux: người đang dùng
 Windows chuyển sang mà không phải mày mò, có sẵn tiếng Việt, bộ gõ, giao diện thân thiện, và mọi thứ
-khác chỉ cần vài cú bấm.
+khác chỉ cần vài cú bấm. Từ 1.4.0 có thêm **bản Xfce**, nhẹ hơn, cho máy 2 GB và phòng máy ở trường học.
 
 > [!IMPORTANT]
-> **CaramOS 1.3.11 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
+> **CaramOS 1.4.0 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
 > sau chuỗi bản Open Beta 1.0.x.
 >
-> - **Cài mới:** [tải ISO 1.3.11](https://sourceforge.net/projects/caramos/files/v1.3.11/CaramOS-1.3.11-cinnamon-amd64.iso/download)
->   (2,8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.11/SHA256SUMS) ·
+> - **Cài mới:** [tải ISO 1.4.0](https://sourceforge.net/projects/caramos/files/v1.4.0/CaramOS-1.4.0-cinnamon-amd64.iso/download)
+>   (2,8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.4.0/SHA256SUMS) ·
 >   [ghi chú phát hành](https://caramos.vietnamlinuxfamily.net/#release-notes)
-> - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.3.11, bấm
+> - **Máy 2 GB, phòng máy ở trường:** [tải bản Xfce 1.4.0](https://sourceforge.net/projects/caramos/files/v1.4.0/CaramOS-1.4.0-xfce-amd64.iso/download)
+>   (2,7 GB) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.4.0/SHA256SUMS-xfce)
+> - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.4.0, bấm
 >   **Cập nhật ngay** là xong. Xem [Nâng cấp từ bản cũ](#nâng-cấp-từ-bản-cũ).
 
 ## Tính năng nổi bật
@@ -219,6 +222,18 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
 - ISO 2,8 GB, nhỏ hơn ISO Linux Mint 22.3 (3,1 GB) dù có thêm App Center, Kiểm tra driver và Góp ý & hỗ
   trợ.
 
+### Cho trường học: bản Xfce, phòng máy, ứng dụng học tập
+
+- **Bản Xfce** cho máy 2 GB: vừa bật máy, Task Manager báo khoảng 610 MB RAM (máy ảo 2 GB). Vẫn có thanh tác vụ
+  ba đảo, Control Center, App Center, Kiểm tra driver và bộ gõ tiếng Việt. Giao diện mặc định là tiếng Anh cho
+  khớp với sách Tin học; chọn tiếng Việt lúc cài thì có tiếng Việt.
+- **Tệp (Files):** chuột phải ▸ **Mới ▸ Thư mục** (bản Xfce: **New ▸ Folder**) như Windows và sách giáo khoa, có
+  sẵn mẫu Word, Excel, PowerPoint. Khung bên trái là cây thư mục như Windows Explorer.
+- **Phòng máy (Computer Lab):** tự cài và thiết lập Veyon hoặc Epoptes để giáo viên xem và điều khiển máy học
+  sinh. Máy giáo viên hiện một mã 6 số; máy học sinh tìm máy giáo viên trong mạng của trường, nhập mã là xong.
+- **App Center** có mục Giáo dục: GCompris, Tux Paint, Klavaro, KTurtle, Thonny, Stellarium, TurboWarp
+  (Scratch 3) và GeoGebra 6.
+
 ## Trải nghiệm CaramOS
 
 | | |
@@ -237,15 +252,17 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
 ### Yêu cầu máy
 
 - Máy tính 64-bit (x86_64), UEFI hoặc BIOS.
-- RAM 2 GB trở lên, khuyên dùng 4 GB.
+- RAM 2 GB trở lên (máy 2 GB nên dùng bản Xfce), khuyên dùng 4 GB.
 - Ổ đĩa trống 20 GB trở lên, khuyên dùng 100 GB.
 - USB từ 4 GB để tạo bộ cài.
 
 ### 1. Tải ISO
 
-- [CaramOS-1.3.11-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.3.11/CaramOS-1.3.11-cinnamon-amd64.iso/download)
+- [CaramOS-1.4.0-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.4.0/CaramOS-1.4.0-cinnamon-amd64.iso/download)
   (2,8 GB, trên SourceForge vì GitHub giới hạn dung lượng mỗi tệp đính kèm).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.3.11/SHA256SUMS) để kiểm tra
+- Bản Xfce cho máy 2 GB và phòng máy: [CaramOS-1.4.0-xfce-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.4.0/CaramOS-1.4.0-xfce-amd64.iso/download)
+  (2,7 GB), kiểm tra bằng [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.4.0/SHA256SUMS-xfce).
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.4.0/SHA256SUMS) để kiểm tra
   tệp tải về:
 
 ```bash
@@ -258,7 +275,7 @@ Dùng [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net)
 Trên Linux có thể dùng `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.3.11-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.4.0-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Chạy thử và cài đặt
@@ -272,7 +289,7 @@ sudo dd if=CaramOS-1.3.11-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress o
 
 Máy đã cài CaramOS không cần cài lại ISO.
 
-- **Từ CaramOS 1.0.2 trở lên:** Trung tâm cập nhật tự kiểm tra mỗi ngày và báo bản 1.3.11; bấm **Cập nhật
+- **Từ CaramOS 1.0.2 trở lên:** Trung tâm cập nhật tự kiểm tra mỗi ngày và báo bản 1.4.0; bấm **Cập nhật
   ngay**. Muốn nâng cấp liền, mở Terminal và chạy:
 
   ```bash
@@ -368,7 +385,7 @@ Landing page [caramos.vietnamlinuxfamily.net](https://caramos.vietnamlinuxfamily
 Version sản phẩm nằm trong source tree, ở [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.3.11"
+CARAMOS_VERSION="1.4.0"
 ```
 
 `make release VERSION=x.y.z` đóng dấu version này cùng lúc vào `scripts/config.sh`, metadata release và
@@ -380,7 +397,7 @@ CARAMOS_VERSION="1.3.11"
 - `neofetch` / `fastfetch`
 - GitHub Release và package `caramos-ota` trên PPA
 
-Khi release, Git tag phải khớp version trong source: version `1.3.11` thì tag là `v1.3.11`. Nếu tag
+Khi release, Git tag phải khớp version trong source: version `1.4.0` thì tag là `v1.4.0`. Nếu tag
 không khớp, GitHub Actions dừng trước khi build.
 
 ### Cập nhật OTA
@@ -524,17 +541,17 @@ Workflow CI nằm ở [.github/workflows/build.yml](.github/workflows/build.yml)
 - Push tag `v*`: kiểm tra tag khớp `CARAMOS_VERSION`, build release bằng `./build.sh --release`, tạo
   `SHA256SUMS`, đưa ISO lên SourceForge và tạo GitHub Release có link tải.
 
-Ví dụ release `1.3.11`:
+Ví dụ release `1.4.0`:
 
 ```bash
 # 1. Đóng dấu version: scripts/config.sh, metadata và changelog của caramos-ota
-make -C packages/caramos-ota prepare-release VERSION=1.3.11
-git commit -am "[build] Release 1.3.11"
+make -C packages/caramos-ota prepare-release VERSION=1.4.0
+git commit -am "[build] Release 1.4.0"
 git push origin main
 
 # 2. Tag: GitHub Actions build ISO, SourceForge và GitHub Release
-git tag -a v1.3.11 -m "CaramOS 1.3.11"
-git push origin v1.3.11
+git tag -a v1.4.0 -m "CaramOS 1.4.0"
+git push origin v1.4.0
 
 # 3. Gói caramos-ota lên PPA (cần chìa GPG của người release)
 make -C packages/caramos-ota source

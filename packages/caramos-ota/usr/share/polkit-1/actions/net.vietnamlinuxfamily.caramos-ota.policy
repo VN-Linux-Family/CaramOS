@@ -47,4 +47,19 @@
     <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/hw-probe</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
+  <!-- Phòng máy (computer lab): install Veyon or Epoptes and pair the teacher's and students' computers. _keep so the
+       pairing page that follows the setup does not ask again. -->
+  <action id="net.vietnamlinuxfamily.caramos-ota.lab">
+    <description>Set up the computer lab (Veyon, Epoptes)</description>
+    <description xml:lang="vi">Thiết lập phòng máy (Veyon, Epoptes)</description>
+    <message>Authentication is required to set up this computer for the computer lab</message>
+    <message xml:lang="vi">Cần xác thực để thiết lập máy này cho phòng máy</message>
+    <icon_name>applications-education</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/caramos-ota/lab/caramos-lab-helper</annotate>
+  </action>
 </policyconfig>

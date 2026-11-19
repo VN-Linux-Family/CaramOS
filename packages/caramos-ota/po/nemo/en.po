@@ -1,0 +1,20 @@
+# Words CaramOS changes in the menus of Files (Nemo, gettext domain "nemo") for English sessions without a catalog of
+# their own (en_US): right-click > "New" > "Folder", as in Windows. The menu layout comes from
+# /usr/share/caramos-ota/nemo-menu/caramos-nemo-menu.
+msgid ""
+msgstr ""
+"Project-Id-Version: caramos-ota (nemo)\n"
+"PO-Revision-Date: 2026-11-17 20:30+0700\n"
+"Last-Translator: Vietnam Linux Family <developer@vietnamlinuxfamily.net>\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Create New _Document"
+msgstr "_New"
+
+msgid "Create New _Folder"
+msgstr "_Folder"

@@ -5,8 +5,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-control-center\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 19:29+0700\n"
-"PO-Revision-Date: 2026-10-06 00:09+0700\n"
+"POT-Creation-Date: 2026-11-19 21:09+0700\n"
+"PO-Revision-Date: 2026-11-18 21:30+0700\n"
 "Last-Translator: CaramOS Team\n"
 "Language-Team: Vietnamese\n"
 "Language: vi\n"
@@ -23,11 +23,16 @@ msgstr ""
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:284
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:286
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3210
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:41
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:47
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:49
 msgid "Unknown"
 msgstr "Không xác định"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:243
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:262
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
 msgid "Unmanaged"
 msgstr "Không được quản lý"
 
@@ -40,50 +45,66 @@ msgstr "Không được quản lý"
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4607
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4663
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4677
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:313
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:326
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:361
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:385
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:395
 msgid "Unavailable"
 msgstr "Không khả dụng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:245
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:260
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4293
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
 msgid "Disconnected"
 msgstr "Đã ngắt kết nối"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:246
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
 msgid "Preparing"
 msgstr "Đang chuẩn bị"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:247
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:37
 msgid "Configuring"
 msgstr "Đang cấu hình"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:248
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:37
 msgid "Authentication required"
 msgstr "Cần xác thực"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:249
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:37
 msgid "Getting network address"
 msgstr "Đang lấy địa chỉ mạng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:250
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:38
 msgid "Checking connection"
 msgstr "Đang kiểm tra kết nối"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:251
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:38
 msgid "Finishing"
 msgstr "Đang hoàn tất"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:252
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:259
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:38
 msgid "Connected"
 msgstr "Đã kết nối"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:253
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:38
 msgid "Disconnecting"
 msgstr "Đang ngắt kết nối"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:254
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:264
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:39
 msgid "Connection failed"
 msgstr "Kết nối thất bại"
 
@@ -93,20 +114,24 @@ msgstr "Đang kết nối"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:272
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:280
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:47
 msgid "No network"
 msgstr "Không có mạng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:273
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:47
 msgid "Local network only"
 msgstr "Chỉ mạng cục bộ"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:274
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:281
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:47
 msgid "Network sign-in required"
 msgstr "Cần đăng nhập mạng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:275
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:283
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:48
 msgid "Internet access"
 msgstr "Có Internet"
 
@@ -116,42 +141,52 @@ msgstr "Kết nối hạn chế"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:825
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4748
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:371
 msgid "Battery"
 msgstr "Pin"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1056
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:598
 msgid "Could not change the power mode"
 msgstr "Không thể đổi chế độ nguồn"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1833
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:721
 msgid "Blue"
 msgstr "Xanh dương"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1834
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:721
 msgid "Teal"
 msgstr "Xanh ngọc"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1835
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:721
 msgid "Green"
 msgstr "Xanh lá"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1836
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:722
 msgid "Purple"
 msgstr "Tím"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1837
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:722
 msgid "Pink"
 msgstr "Hồng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1838
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:722
 msgid "Red"
 msgstr "Đỏ"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1839
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:722
 msgid "Graphite"
 msgstr "Xám"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1840
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:721
 msgid "Orange"
 msgstr "Cam"
 
@@ -161,14 +196,17 @@ msgstr "Trạng thái pin và nguồn điện"
 
 #. Translators: accessible name of the icon button in front of a slider; %s is the slider name.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1983
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:100
+#, python-format, javascript-format
 msgid "Mute or unmute %s"
 msgstr "Bật hoặc tắt tiếng %s"
 
 #. Translators: accessible name of a disclosure button; %s is a slider or tile name.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2007
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2076
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:121
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:188
+#, python-format, javascript-format
 msgid "Open details for %s"
 msgstr "Mở chi tiết %s"
 
@@ -181,100 +219,139 @@ msgstr "Mở chi tiết %s"
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3988
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4343
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4749
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:372
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:202
+#, python-format, javascript-format
 msgid "%s: %s"
 msgstr "%s: %s"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2270
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/indicator.py:26
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/indicator.py:27
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:49
 msgid "CaramOS Control Center"
 msgstr "Trung tâm điều khiển CaramOS"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2781
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:78
 msgid "Take a screenshot"
 msgstr "Chụp màn hình"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2782
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:79
 msgid "Open system settings"
 msgstr "Mở cài đặt hệ thống"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2783
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:80
 msgid "Lock screen"
 msgstr "Khóa màn hình"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2784
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:81
 msgid "Open power menu"
 msgstr "Mở menu nguồn"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2788
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:89
 msgid "Volume"
 msgstr "Âm lượng"
 
 #. Translators: screen-reader name of the microphone volume slider; a short form is fine.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2797
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:94
 msgid "Microphone"
 msgstr "Mic"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2815
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:100
 msgid "Brightness"
 msgstr "Ánh sáng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2834
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4337
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4359
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:105
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:107
 msgid "Wired network"
 msgstr "Mạng dây"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2834
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2835
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2841
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:105
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:109
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:115
 msgid "Checking…"
 msgstr "Đang kiểm tra"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2835
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3201
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4401
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:109
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:110
 msgid "Wi‑Fi"
 msgstr "Wi‑Fi"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2840
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4144
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4333
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:347
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:112
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:113
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:432
 msgid "VPN"
 msgstr "VPN"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2840
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4240
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:112
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:344
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:354
 msgid "Not connected"
 msgstr "Chưa kết nối"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2841
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4408
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:115
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:116
 msgid "Bluetooth"
 msgstr "Bluetooth"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2848
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3226
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3292
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:122
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:463
 msgid "Power mode"
 msgstr "Chế độ nguồn"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2849
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3287
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:122
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:379
 msgid "Loading…"
 msgstr "Đang tải"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2854
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3988
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:118
 msgid "Dark mode"
 msgstr "Chế độ tối"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2854
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3986
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4604
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:118
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:121
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:395
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:399
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:447
 msgid "Disabled"
 msgstr "Đang tắt"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2857
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:120
 msgid "Night Light"
 msgstr "Ánh sáng đêm"
 
@@ -286,6 +363,8 @@ msgstr "Bật/tắt Night Light"
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2864
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3930
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3939
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:125
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:127
 msgid "Accent colour"
 msgstr "Màu nhấn"
 
@@ -295,57 +374,70 @@ msgstr "Đóng hộp thoại"
 
 #. Translators: accessible name of the close button of an inline panel; %s is the panel title.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3130
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:280
+#, python-format, javascript-format
 msgid "Close %s"
 msgstr "Đóng %s"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3206
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:36
 msgid "Performance"
 msgstr "Hiệu năng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3207
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:36
 msgid "Balanced"
 msgstr "Cân bằng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3208
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:37
 msgid "Power saver"
 msgstr "Tiết kiệm pin"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3240
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:592
 msgid "Loading power modes…"
 msgstr "Đang tải chế độ nguồn…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3242
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:594
 msgid "Power mode service unavailable"
 msgstr "Dịch vụ chế độ nguồn không khả dụng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3244
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:596
 msgid "No power modes"
 msgstr "Không có chế độ nguồn"
 
 #. Translators: %s is a power mode name; shown when the daemon reports degraded performance.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3249
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:383
+#, python-format, javascript-format
 msgid "%s · limited"
 msgstr "%s · bị giới hạn"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3264
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:605
 msgid "Power settings"
 msgstr "Cài đặt nguồn"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3283
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:375
 msgid "Changing…"
 msgstr "Đang đổi…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3285
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:377
 msgid "Change failed"
 msgstr "Không đổi được"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3299
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:82
 msgid "Power"
 msgstr "Nguồn"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3314
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:614
 msgid "Session service unavailable"
 msgstr "Dịch vụ phiên không khả dụng"
 
@@ -354,34 +446,42 @@ msgid "Processing…"
 msgstr "Đang xử lý…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3320
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:617
 msgid "Suspend"
 msgstr "Tạm ngưng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3321
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:618
 msgid "Hibernate"
 msgstr "Ngủ đông"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3322
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:619
 msgid "Restart…"
 msgstr "Khởi động lại…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3323
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:620
 msgid "Shut down…"
 msgstr "Tắt máy…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3325
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:625
 msgid "Log out…"
 msgstr "Đăng xuất…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3326
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:626
 msgid "Switch user…"
 msgstr "Chuyển người dùng…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3377
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:92
 msgid "Output device"
 msgstr "Thiết bị phát"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3377
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:98
 msgid "Input device"
 msgstr "Thiết bị thu"
 
@@ -394,36 +494,45 @@ msgid "Sound input devices"
 msgstr "Thiết bị thu âm"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3435
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:472
 msgid "No sound devices"
 msgstr "Không có thiết bị âm thanh"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3468
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:479
 msgid "Open sound settings"
 msgstr "Mở cài đặt âm thanh"
 
 #. Translators: subtitle of the accent colour tile for a colour picked with the colour chooser.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3926
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:713
 msgid "Custom colour"
 msgstr "Màu tự chọn"
 
 #. Translators: subtitle of the accent colour tile when the colour follows the theme; %s is a colour name.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3928
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:717
+#, python-format, javascript-format
 msgid "%s · from the theme"
 msgstr "%s · theo chủ đề"
 
 #. Translators: first choice of the accent colour list: use the colour of the current theme.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3954
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:668
 msgid "Follow the theme"
 msgstr "Theo chủ đề hệ thống"
 
 #. Translators: last row of the accent colour list; opens a colour chooser for any colour.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3957
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:683
 msgid "Other colour…"
 msgstr "Màu khác…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3986
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4604
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:395
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:399
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:447
 msgid "Enabled"
 msgstr "Đang bật"
 
@@ -432,6 +541,10 @@ msgstr "Đang bật"
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4062
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4084
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4111
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:334
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:361
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:418
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:439
 msgid "On"
 msgstr "Bật"
 
@@ -440,34 +553,45 @@ msgstr "Bật"
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4061
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4084
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4111
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:332
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:361
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:418
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:439
 msgid "Off"
 msgstr "Tắt"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4058
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4664
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4678
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:315
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:328
 msgid "No device"
 msgstr "Không có thiết bị"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4059
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:330
 msgid "Blocked by hardware"
 msgstr "Bị chặn bởi phần cứng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4199
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:376
 msgid "Could not read the VPN status"
 msgstr "Không thể đọc trạng thái VPN"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4239
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:350
+#, python-format, javascript-format
 msgid "%d active connection"
 msgid_plural "%d active connections"
 msgstr[0] "%d kết nối đang hoạt động"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4240
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:352
 msgid "No profiles"
 msgstr "Không có cấu hình"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4275
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:386
 msgid "Could not change the VPN connection"
 msgstr "Không thể thay đổi VPN"
 
@@ -485,145 +609,180 @@ msgstr "WireGuard"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4304
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4354
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:551
 msgid "NetworkManager unavailable"
 msgstr "NetworkManager không khả dụng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4306
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:549
 msgid "Reading VPN profiles…"
 msgstr "Đang đọc cấu hình VPN…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4309
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:552
 msgid "Try again"
 msgstr "Thử lại"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4311
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:554
 msgid "No VPN profiles"
 msgstr "Không có cấu hình VPN"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4325
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:564
 msgid "Open VPN settings"
 msgstr "Mở cài đặt VPN"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4356
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:485
 msgid "No wired network devices"
 msgstr "Không có thiết bị mạng dây"
 
 #. Translators: %s is a network interface name; marks the device that carries the default route.
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4361
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:489
+#, python-format, javascript-format
 msgid "%s · default route"
 msgstr "%s · tuyến mặc định"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4369
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:490
 msgid "Status"
 msgstr "Trạng thái"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4370
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:490
 msgid "Profile"
 msgstr "Cấu hình"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4371
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:491
 msgid "Link"
 msgstr "Liên kết"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4371
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:491
 msgid "Signal detected"
 msgstr "Có tín hiệu"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4371
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:491
 msgid "No signal"
 msgstr "Mất tín hiệu"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4372
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:492
 msgid "Speed"
 msgstr "Tốc độ"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4373
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:492
 msgid "Address"
 msgstr "Địa chỉ"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4374
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:493
 msgid "Gateway"
 msgstr "Cổng mạng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4375
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:493
 msgid "DNS"
 msgstr "DNS"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4389
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:505
 msgid "Open network sign-in page"
 msgstr "Mở trang đăng nhập mạng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4394
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4453
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:508
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:535
 msgid "Open network settings"
 msgstr "Mở cài đặt mạng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4426
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:518
 msgid "No Wi‑Fi device"
 msgstr "Không có thiết bị Wi‑Fi"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4428
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:520
 msgid "Wi‑Fi is blocked by hardware"
 msgstr "Wi‑Fi bị chặn bởi phần cứng"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4430
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:522
 msgid "Wi‑Fi is off"
 msgstr "Wi‑Fi đang tắt"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4433
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:524
 msgid "Searching for Wi‑Fi networks…"
 msgstr "Đang tìm mạng Wi‑Fi…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4433
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:525
 msgid "No Wi‑Fi networks found"
 msgstr "Không thấy mạng Wi‑Fi"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4449
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:533
 msgid "Scan for Wi‑Fi networks again"
 msgstr "Tìm lại mạng Wi‑Fi"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4509
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:570
 msgid "Searching for Bluetooth devices…"
 msgstr "Đang tìm thiết bị Bluetooth…"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4527
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:578
 msgid "No available or connected devices"
 msgstr "Không có thiết bị khả dụng hoặc đã kết nối"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4528
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:579
 msgid "BlueZ unavailable; open Bluetooth settings"
 msgstr "BlueZ không khả dụng; mở cài đặt Bluetooth"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4538
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:584
 msgid "Stop searching"
 msgstr "Dừng tìm thiết bị"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4538
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:584
 msgid "Search for new devices"
 msgstr "Tìm thiết bị mới"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4546
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:586
 msgid "Bluetooth settings"
 msgstr "Cài đặt Bluetooth"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4665
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:317
 msgid "In use for Internet"
 msgstr "Đang dùng Internet"
 
 #. Translators: remaining battery time, abbreviated hours and minutes (e.g. "2h 15m").
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4736
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:55
+#, python-format, javascript-format
 msgid "%dh %dm"
 msgstr "%dh %dm"
 
 #. Translators: remaining battery time, abbreviated minutes (e.g. "45m").
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4738
-#, javascript-format
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:55
+#, python-format, javascript-format
 msgid "%dm"
 msgstr "%dm"
 
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4748
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:371
 msgid "UPS"
 msgstr "UPS"
 
@@ -632,3 +791,31 @@ msgstr "UPS"
 msgid "%d power device"
 msgid_plural "%d power devices"
 msgstr[0] "%d thiết bị nguồn"
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:640
+msgid "Restart the computer?"
+msgstr "Khởi động lại máy?"
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:640
+msgid "Restart"
+msgstr "Khởi động lại"
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:641
+msgid "Shut down the computer?"
+msgstr "Tắt máy?"
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:641
+msgid "Shut down"
+msgstr "Tắt máy"
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:642
+msgid "Log out of CaramOS?"
+msgstr "Đăng xuất khỏi CaramOS?"
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:642
+msgid "Log out"
+msgstr "Đăng xuất"
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:646
+msgid "Cancel"
+msgstr "Hủy"

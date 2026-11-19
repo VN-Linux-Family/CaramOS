@@ -24,6 +24,10 @@ step_boot_config() {
     local LIVE_USER="caram"
     local LIVE_HOST="caram"
     local LIVE_LOCALE="vi_VN.UTF-8"
+    # Bản Xfce mặc định tiếng Anh (hook 0100); trình cài đặt chọn sẵn ngôn ngữ của phiên chạy thử.
+    if [ "${MINT_EDITION:-cinnamon}" = xfce ]; then
+        LIVE_LOCALE="en_US.UTF-8"
+    fi
 
     # Một ảnh cho cả isolinux lẫn GRUB. vesamenu.c32 chỉ vẽ hình nền đúng
     # 640x480; ảnh khác cỡ (hay JPEG đặt đuôi .png) làm boot menu BIOS đen.

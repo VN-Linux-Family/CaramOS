@@ -105,6 +105,10 @@ resolve_iso "$ISO_ARG"
 validate_customized_rootfs() {
     [ -f "$WORK_DIR/squashfs/etc/caramos-customized" ] || return 1
 
+    if [ "${MINT_EDITION:-cinnamon}" = xfce ]; then
+        chroot "$WORK_DIR/squashfs" /bin/bash -c "test -f /etc/dconf/db/local && test -f /etc/xdg/caramos-xfce/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml && test -f /etc/xdg/caramos-xfce/xfce4/panel/docklike.rc && test -f /usr/share/xfce4/panel/plugins/docklike.desktop && test -f /usr/share/caramos-ota/xfce/panel-islands.css && test -f /usr/share/caramos-ota/xfce/caramos-help-panel.desktop && test -x /usr/share/caramos-ota/xfce/caramos-control-center && test -f /usr/share/xfce4/panel/plugins/caramos-control-center.desktop && test -f /usr/share/backgrounds/CaramOS/03-sage-mist-2k.jpg && grep -q panel-islands.css /usr/share/themes/Cinnamon-Delight/gtk-3.0/gtk.css && command -v nemo >/dev/null && test -f /usr/share/plymouth/themes/caramos/caramos.plymouth"
+        return
+    fi
     chroot "$WORK_DIR/squashfs" /bin/bash -c "test -f /etc/dconf/db/local && test -f /etc/xdg/autostart/caramos-theme.desktop && test -f /etc/xdg/autostart/plank.desktop && test -d /etc/skel/.config/plank/dock1 && test -d /usr/share/cinnamon/applets/Cinnamenu@json && find /usr/share/cinnamon/applets/Cinnamenu@json -name settings-schema.json -print -quit | grep -q . && test -f /usr/share/plymouth/themes/caramos/caramos.plymouth"
 }
 

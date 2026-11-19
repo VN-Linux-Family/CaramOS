@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(40, len(catalog))
+        self.assertEqual(44, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -117,6 +117,10 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261117100000_lotus_source_amd64_only",
                 "20261117100100_nemo_actions_in_menu",
                 "20261117100200_daily_wallpaper",
+                "20261118090000_files_new_menu",
+                "20261118090100_xfce_wallpapers",
+                "20261119100000_open_office_documents",
+                "20261119100200_lighten_xfce_session",
             ],
             timestamp_ids,
         )
@@ -169,6 +173,10 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261117100000_lotus_source_amd64_only",
                 "20261117100100_nemo_actions_in_menu",
                 "20261117100200_daily_wallpaper",
+                "20261118090000_files_new_menu",
+                "20261118090100_xfce_wallpapers",
+                "20261119100000_open_office_documents",
+                "20261119100200_lighten_xfce_session",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -217,6 +225,10 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261117100000_lotus_source_amd64_only",
                 "20261117100100_nemo_actions_in_menu",
                 "20261117100200_daily_wallpaper",
+                "20261118090000_files_new_menu",
+                "20261118090100_xfce_wallpapers",
+                "20261119100000_open_office_documents",
+                "20261119100200_lighten_xfce_session",
             ],
             [item.migration_id for item in plan.migrations],
         )

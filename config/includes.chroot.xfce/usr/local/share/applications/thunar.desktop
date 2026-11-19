@@ -1,0 +1,8 @@
+[Desktop Entry]
+# CaramOS Xfce: Files (Nemo) is the file manager; Thunar stays for Xfce's own tools but not in the menu, so pupils
+# meet one file manager only.
+Type=Application
+Name=Thunar File Manager
+Exec=thunar %F
+Icon=org.xfce.thunar
+NoDisplay=true

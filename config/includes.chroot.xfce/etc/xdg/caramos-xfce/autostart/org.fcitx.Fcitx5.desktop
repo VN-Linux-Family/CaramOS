@@ -1,0 +1,12 @@
+# CaramOS Xfce: Fcitx is started by caramos-fcitx5-lotus-enable alone (it starts Fcitx when it is not running, and
+# restarts it after adding a new user's defaults). Fcitx's own entry is hidden here, for Xfce sessions only.
+# cinnamon-session runs one of the two entries, since both provide "inputmethod"; xfce4-session runs both, and the two
+# "fcitx5 -d --replace" at login could stop each other: the live session came up with no Fcitx (2026-11-18).
+# This directory comes first in XDG_CONFIG_DIRS on Xfce (/etc/X11/Xsession.d/61caramos-xfce), so this file wins over
+# /etc/xdg/autostart/org.fcitx.Fcitx5.desktop, which stays as the package installed it.
+[Desktop Entry]
+Type=Application
+Name=Fcitx 5
+Exec=fcitx5 -d
+Hidden=true
+OnlyShowIn=XFCE;

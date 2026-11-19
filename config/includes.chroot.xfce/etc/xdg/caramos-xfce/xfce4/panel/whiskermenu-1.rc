@@ -1,0 +1,11 @@
+button-icon=/usr/share/pixmaps/caramos-logo.png
+launcher-show-name=true
+launcher-show-description=true
+favorites=firefox.desktop,nemo.desktop,caramos-app-center.desktop,caramos-lab.desktop,caramos-update-center.desktop,caramos-driver-check.desktop,xfce4-terminal.desktop,xfce-settings-manager.desktop
+hover-switch-category=true
+position-search-alternate=true
+position-commands-alternate=false
+position-categories-alternate=true
+command-switchuser=dm-tool switch-to-greeter
+item-icon-size=2
+view-as-icons=false

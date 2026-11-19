@@ -1,0 +1,33 @@
+#!/bin/sh
+# CaramOS Xfce: the launchers CaramOS puts on the Desktop open at the first double-click.
+#
+# Since Xfce 4.18, a .desktop file in the user's folders runs only when it is executable and its SHA-256 is stored in
+# its GIO metadata (metadata::xfce-exe-checksum). Otherwise Thunar asks "Untrusted application launcher", and
+# xfdesktop, which waits for Thunar, then reports "Failed to run …: Timeout was reached". /etc/skel gives every user
+# Files and CaramOS App Center on the Desktop without that checksum, and casper's own try for the live session's
+# Install CaramOS fails at boot (no metadata daemon yet).
+#
+# At each login this stores the checksum of a launcher on the Desktop only when the file is the same, byte for byte,
+# as the one in /etc/skel/Desktop or /usr/share/applications: what root installed. Anything else, a launcher the user
+# downloaded or changed, still asks first. The Cinnamon edition never runs it (OnlyShowIn=XFCE).
+
+SKEL_DESKTOP=${CARAMOS_SKEL_DESKTOP:-/etc/skel/Desktop}
+APPLICATIONS=${CARAMOS_APPLICATIONS:-/usr/share/applications}
+
+desktop=$(xdg-user-dir DESKTOP 2>/dev/null) || exit 0
+[ -n "$desktop" ] && [ -d "$desktop" ] && [ "$desktop" != "$HOME" ] || exit 0
+
+for launcher in "$desktop"/*.desktop; do
+    [ -f "$launcher" ] && [ ! -L "$launcher" ] || continue
+    name=$(basename "$launcher")
+    for source in "$SKEL_DESKTOP/$name" "$APPLICATIONS/$name"; do
+        [ -f "$source" ] && cmp -s "$source" "$launcher" || continue
+        sum=$(sha256sum "$launcher" | cut -d ' ' -f 1)
+        stored=$(gio info -a metadata::xfce-exe-checksum "$launcher" 2>/dev/null |
+                 sed -n 's/^ *metadata::xfce-exe-checksum: *//p')
+        [ -x "$launcher" ] || chmod u+x "$launcher"
+        [ "$stored" = "$sum" ] || gio set "$launcher" metadata::xfce-exe-checksum "$sum"
+        break
+    done
+done
+exit 0

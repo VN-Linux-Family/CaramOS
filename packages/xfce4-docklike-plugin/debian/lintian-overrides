@@ -1,0 +1,2 @@
+# we do use hardening flags
+xfce4-docklike-plugin: hardening-no-fortify-functions [usr/lib/*/xfce4/panel/plugins/libdocklike.so]

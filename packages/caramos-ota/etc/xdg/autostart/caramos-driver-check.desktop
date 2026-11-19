@@ -6,7 +6,7 @@ Exec=/usr/bin/caramos-driver-check --autostart
 Icon=hardinfo
 Terminal=false
 NoDisplay=true
-OnlyShowIn=X-Cinnamon;
+OnlyShowIn=X-Cinnamon;XFCE;
 X-GNOME-Autostart-Phase=Applications
 # After the App Center's first-run picker (8 s), so a missing network driver is shown on top of it:
 # without internet the picker cannot install anything.

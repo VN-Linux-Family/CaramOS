@@ -8,6 +8,8 @@ case "$1" in
             systemctl stop caramos-ota-check.timer || true
             systemctl disable caramos-ota-check.timer || true
         fi
+        # Nemo goes back to its own menus (the Xsession.d file only points at menus that exist).
+        /usr/share/caramos-ota/nemo-menu/caramos-nemo-menu --remove || true
         ;;
 esac
 

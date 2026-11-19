@@ -6,5 +6,6 @@ Exec=/usr/bin/caramos-ota-notifier --autostart
 Icon=caramos-logo
 Terminal=false
 NoDisplay=true
+OnlyShowIn=X-Cinnamon;XFCE;
 X-GNOME-Autostart-Phase=Applications
 X-GNOME-Autostart-Delay=30

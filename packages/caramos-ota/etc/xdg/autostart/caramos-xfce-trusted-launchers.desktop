@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Desktop launchers
+Comment=Lets the launchers CaramOS puts on the Desktop open without asking
+Exec=/usr/share/caramos-ota/xfce/caramos-trust-desktop-launchers
+NoDisplay=true
+OnlyShowIn=XFCE;
+X-GNOME-Autostart-enabled=true

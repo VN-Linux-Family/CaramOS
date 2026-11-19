@@ -1,0 +1,18 @@
+#!/usr/bin/make -f
+
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+export DEB_LDFLAGS_MAINT_APPEND = -Wl,-z,defs -Wl,--as-needed
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	$(MAKE) -C src
+
+override_dh_auto_install:
+	$(MAKE) -C src install DESTDIR=$(CURDIR)/debian/xfce4-caramos-plugin
+
+override_dh_auto_clean:
+	$(MAKE) -C src clean

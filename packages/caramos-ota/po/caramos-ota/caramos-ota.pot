@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-16 16:54+0700\n"
+"POT-Creation-Date: 2026-11-19 21:09+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -384,6 +384,8 @@ msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:106
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:176
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:303
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:484
 msgid "Done"
 msgstr ""
 
@@ -1303,6 +1305,8 @@ msgstr ""
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/canon.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/canon.py:116
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:168
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:200
 msgid "Cancel"
 msgstr ""
 
@@ -1366,6 +1370,7 @@ msgid "CaramOS"
 msgstr ""
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:239
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:188
 msgid "Details"
 msgstr ""
 
@@ -1618,6 +1623,7 @@ msgstr ""
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:688
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:178
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:122
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:82
 msgid "Back"
 msgstr ""
 
@@ -2317,6 +2323,339 @@ msgstr ""
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/window.py:212
 #, python-format
 msgid "Driver Check could not install %s."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:79
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:112
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:503
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:521
+msgid "Computer Lab"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:123
+msgid ""
+"Classroom management in a few clicks: the teacher's computer sees every "
+"student's screen, shows its own screen to the class, locks the screens, "
+"sends files and turns the computers off."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:128
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:244
+msgid "Teacher's computer"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:128
+msgid "Installs Veyon and shows a code for pairing the students' computers."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:130
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:376
+msgid "Student's computer"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:130
+msgid "Finds the teacher's computer on the network and pairs with its code."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:137
+msgid ""
+"All the computers must be on the same network: the school's cable or Wi-Fi."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:141
+#, python-brace-format
+msgid "This is the teacher's computer of “{room}” ({backend})."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:143
+msgid "Pair students' computers"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:146
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:301
+msgid "Open Veyon Master"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:146
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:301
+msgid "Open Epoptes"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:149
+msgid "Stop being the teacher's computer"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:153
+#, python-brace-format
+msgid ""
+"This is a student's computer of “{room}”, paired with the teacher's computer "
+"{name} ({host})."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:156
+msgid "Pair again"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:159
+msgid "Leave the computer lab"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:166
+msgid ""
+"Veyon or Epoptes stops on this computer and it leaves the room. You can set "
+"it up again later."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:172
+msgid "Leaving the computer lab"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:185
+msgid "Waiting for the password…"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:191
+msgid "Installing the software (it may take a few minutes)…"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:192
+msgid "Updating the list of software…"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:193
+msgid "Setting up…"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:232
+msgid "Cancelled: the password window was closed."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:234
+msgid "Something went wrong. The details below say what."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:246
+msgid "Room name"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:249
+msgid "Software"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:253
+msgid "Veyon (recommended)"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:254
+msgid ""
+"See and control the students' screens, show the teacher's screen, lock "
+"screens, send files, turn computers off. Works with Veyon on Windows too."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:256
+msgid "Epoptes (lighter)"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:257
+msgid ""
+"For computers with 2 GB of memory. The students' computers connect to the "
+"teacher's by themselves."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:265
+msgid "Set up this computer"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:271
+msgid "Use letters, digits, spaces or dashes for the room name (up to 40)."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:275
+msgid "Setting up the teacher's computer"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:285
+msgid "The teacher's key is missing: set this computer up again."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:288
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:413
+msgid "Pairing code"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:293
+#, python-brace-format
+msgid ""
+"On each student's computer open Computer Lab > Student's computer, choose "
+"“{room}” (teacher's computer {name}, {address}) and type this code."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:296
+msgid "Paired computers"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:298
+msgid "None yet. Keep this page open while you pair."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:319
+msgid "added to the room"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:319
+msgid "adding…"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:355
+#, python-brace-format
+msgid "Pairing cannot start: {error}"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:377
+msgid "Looking for the teacher's computer on the network…"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:383
+msgid "Search again"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:394
+msgid ""
+"No teacher's computer found. On the teacher's computer open Computer Lab and "
+"keep its pairing page open, then search again."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:397
+msgid "Choose the teacher's computer of your room:"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:410
+#, python-brace-format
+msgid "Pair with “{room}”"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:411
+msgid "Type the 6-digit code shown on the teacher's computer."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:419
+msgid "Pair"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:428
+msgid "The code does not match. Check the code on the teacher's computer."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:436
+msgid "Setting up the student's computer"
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:442
+msgid "The code has 6 digits."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:451
+msgid ""
+"The teacher's computer does not answer. Keep its pairing page open and try "
+"again."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:477
+#, python-brace-format
+msgid "This computer is in “{room}”."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:479
+#, python-brace-format
+msgid "The teacher can see it now in {software}."
+msgstr ""
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:482
+msgid ""
+"The teacher's computer did not add it to the room's list: keep the pairing "
+"page open on the teacher's computer and pair again."
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:114
+msgid "No app on this computer can open this file yet"
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:117
+#, python-format
+msgid "“%s” is a spreadsheet."
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:119
+#, python-format
+msgid "“%s” is a presentation."
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:121
+#, python-format
+msgid "“%s” is a text document."
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:123
+#, python-format
+msgid "“%s” is an office document."
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:124
+msgid ""
+"To open and edit it, install a free office suite from the App Center: "
+"ONLYOFFICE, WPS Office or LibreOffice."
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:127
+msgid "No app on this computer can open these files yet"
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:128
+#, python-format
+msgid "“%(name)s” and %(count)d other file are office documents."
+msgid_plural "“%(name)s” and %(count)d other files are office documents."
+msgstr[0] ""
+msgstr[1] ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:131
+msgid ""
+"To open and edit them, install a free office suite from the App Center: "
+"ONLYOFFICE, WPS Office or LibreOffice."
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:198
+msgid "Choose an App"
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:201
+msgid "Open"
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:205
+#, python-format
+msgid "Open “%s” with:"
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:256
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:296
+msgid "Office Suite"
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:259
+msgid "Choose Another App…"
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:261
+msgid "Open App Center"
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:269
+msgid "Could not open the App Center."
+msgstr ""
+
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:276
+#, python-format
+msgid "Could not open “%(file)s” with %(app)s."
 msgstr ""
 
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:174

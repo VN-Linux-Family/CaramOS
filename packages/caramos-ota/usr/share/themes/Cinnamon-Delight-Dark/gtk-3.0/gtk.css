@@ -4176,3 +4176,6 @@ hdyleaflet:last-child headerbar {
 
 hdyleaflet:first-child headerbar {
   border-top-left-radius: 8px; }
+
+/* CaramOS Xfce: the panel islands (on Cinnamon nothing matches these selectors). */
+@import url("file:///usr/share/caramos-ota/xfce/panel-islands-dark.css");

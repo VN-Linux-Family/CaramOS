@@ -55,9 +55,10 @@
   border-radius: 28px;
 }
 
+/* 336 px inside: the width the slider rows used to give the popup, now that they no longer need it. */
 .caramos-cc-container {
   padding: 10px 12px;
-  min-width: 326px;
+  min-width: 336px;
   spacing: 8px;
 }
 
@@ -124,6 +125,13 @@
   -slider-active-border-color: transparent;
   -slider-height: 0.35em;
   -slider-handle-radius: 0.55em;
+}
+
+/* The theme pads every popup menu item 1.75em on each side, which left the slider short with empty space around it:
+   a few pixels are enough in this row. Three classes, to outrank the theme's ".popup-menu .popup-menu-item". */
+.caramos-cc-popup .caramos-cc-slider-row .caramos-cc-slider-item {
+  padding-left: 4px;
+  padding-right: 4px;
 }
 
 /* -------- Tile grid -------- */
@@ -661,7 +669,10 @@
   border-radius: 999px;
 }
 
-.caramos-cc-popup.caramos-cc-dark .caramos-cc-slider-item {
+/* On the drawing area too: the dark theme's own track colour (#261d23) is the colour of the dark card, so the part
+   not yet filled could not be seen. */
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-slider-item,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-slider-item .popup-slider-menu-item {
   -slider-background-color: rgba(255, 255, 255, 0.24);
 }
 

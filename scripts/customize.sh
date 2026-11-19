@@ -23,10 +23,13 @@ step_customize() {
     # --- Tuỳ biến ---
     info "[5/7] Tuỳ biến CaramOS..."
 
-    # Cài thêm packages
+    # Cài thêm packages: config/packages.txt cho mọi phiên bản, config/packages-<phiên bản>.txt riêng (vd. xfce)
     if [ -f "$SCRIPT_DIR/config/packages.txt" ]; then
         info "  → Cài thêm packages..."
-        cp "$SCRIPT_DIR/config/packages.txt" "$WORK_DIR/squashfs/tmp/packages.txt"
+        cat "$SCRIPT_DIR/config/packages.txt" > "$WORK_DIR/squashfs/tmp/packages.txt"
+        if [ -f "$SCRIPT_DIR/config/packages-${MINT_EDITION}.txt" ]; then
+            cat "$SCRIPT_DIR/config/packages-${MINT_EDITION}.txt" >> "$WORK_DIR/squashfs/tmp/packages.txt"
+        fi
         chroot "$WORK_DIR/squashfs" /bin/bash -c '
             export DEBIAN_FRONTEND=noninteractive
             APT_LOCK_TIMEOUT="${APT_LOCK_TIMEOUT:-600}"
@@ -67,21 +70,31 @@ step_customize() {
     # Chỉ đánh dấu customized sau khi TOÀN BỘ hook + OTA bootstrap đã chạy xong.
     # Nếu bị Ctrl+C giữa chừng, marker không được tạo và make quick sẽ buộc
     # chạy lại customize thay vì repack rootfs thiếu Plymouth/Cinnamenu/dock.
-    chroot "$WORK_DIR/squashfs" /bin/bash -c '
+    chroot "$WORK_DIR/squashfs" /usr/bin/env MINT_EDITION="$MINT_EDITION" /bin/bash -c '
         set -e
         test -f /etc/dconf/db/local
         test -f /etc/xdg/autostart/caramos-theme.desktop
         test -f /etc/systemd/zram-generator.conf
         grep -q "^zram-size = ram / 2$" /etc/systemd/zram-generator.conf
-        test -d /usr/share/cinnamon/applets/Cinnamenu@json
-        find /usr/share/cinnamon/applets/Cinnamenu@json -name settings-schema.json -print -quit | grep -q .
         test -f /usr/share/plymouth/themes/caramos/caramos.plymouth
         # Driver Check runs at the first login; its hardware reports need hw-probe (OTA migration).
         test -f /etc/xdg/autostart/caramos-driver-check.desktop
         command -v hw-probe
-        # Feedback & Help: the question mark on the panel (hook 0170 and an OTA migration put it there).
-        test -f /usr/share/cinnamon/applets/caramos-help@caramos/applet.js
-        grep -q "caramos-help@caramos" /etc/dconf/db/local.d/01-caramos-task17-panel
+        if [ "$MINT_EDITION" = xfce ]; then
+            # Bản Xfce: panel CaramOS (Whisker menu, Góp ý & hỗ trợ) và Nemo làm trình quản lý tệp.
+            test -f /etc/xdg/caramos-xfce/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+            grep -q /usr/share/caramos-ota/xfce/caramos-help-panel.desktop /etc/xdg/caramos-xfce/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml
+            test -f /usr/share/caramos-ota/xfce/caramos-help-panel.desktop
+            test -f /etc/X11/Xsession.d/61caramos-xfce
+            command -v nemo
+            test -f /usr/share/applications/caramos-help.desktop
+        else
+            test -d /usr/share/cinnamon/applets/Cinnamenu@json
+            find /usr/share/cinnamon/applets/Cinnamenu@json -name settings-schema.json -print -quit | grep -q .
+            # Feedback & Help: the question mark on the panel (hook 0170 and an OTA migration put it there).
+            test -f /usr/share/cinnamon/applets/caramos-help@caramos/applet.js
+            grep -q "caramos-help@caramos" /etc/dconf/db/local.d/01-caramos-task17-panel
+        fi
         date -u +"%Y-%m-%dT%H:%M:%SZ" > /etc/caramos-customized
     '
     ok "Rootfs đã được customize đầy đủ."

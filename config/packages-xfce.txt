@@ -1,0 +1,6 @@
+# CaramOS Xfce — thêm vào Linux Mint Xfce (cùng với packages.txt)
+# Tệp (Nemo) làm trình quản lý tệp như bản Cinnamon: menu Mới > Thư mục, cây thư mục, các mục chuột phải
+nemo
+nemo-fileroller
+# Bản dịch tiếng Việt của Nemo (Mint Xfce không cài sẵn)
+cinnamon-l10n

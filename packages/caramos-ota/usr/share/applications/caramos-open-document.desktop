@@ -1,0 +1,15 @@
+[Desktop Entry]
+# The last default app of Word, Excel, PowerPoint and OpenDocument files in /etc/xdg/mimeapps.list, after the office
+# suites of the App Center: it runs only when none of them is installed, and then opens the file with another app
+# that opens it, or suggests the App Center. It is not in the menu and does not claim any file type itself.
+Type=Application
+Name=Office Suite
+Name[vi]=Bộ ứng dụng văn phòng
+Comment=Open office documents with an office suite, or install one from the App Center
+Comment[vi]=Mở tài liệu văn phòng bằng một bộ ứng dụng văn phòng, hoặc cài một bộ trong App Center
+Exec=/usr/share/caramos-ota/open-document/caramos-open-document %U
+Icon=applications-office
+Terminal=false
+NoDisplay=true
+StartupNotify=true
+StartupWMClass=caramos-open-document

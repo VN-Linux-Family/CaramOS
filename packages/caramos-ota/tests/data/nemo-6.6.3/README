@@ -1,0 +1,4 @@
+nemo-directory-view-ui.xml and nemo-tree-sidebar-ui.xml are copied unchanged from Nemo 6.6.3 (gresources/,
+https://github.com/linuxmint/nemo, GPL-2.0-or-later). Linux Mint 22.3 ships this version (6.6.3+zena), and the copies
+are identical to the XML compiled into its libnemo-extension.so.1. tests/test_nemo_new_menu.py checks that
+caramos-nemo-menu changes them as expected.

@@ -84,6 +84,20 @@ if git clone --depth 1 https://github.com/DrMcC0y/Cinnamon-Delight-Icons.git /tm
 fi
 rm -rf /tmp/Cinnamon-Delight /tmp/Cinnamon-Delight-Icons
 
+# The Xfce edition (MINT_EDITION=xfce) has no Cinnamon: it keeps the themes, the icons and the Nemo actions
+# (Nemo is its file manager too) and skips the applets, extensions, panel and systray changes.
+CINNAMON=1
+[ "${MINT_EDITION:-cinnamon}" = xfce ] && CINNAMON=0
+
+# The Xfce edition's taskbar is the three islands of CaramOS Cinnamon. Their look is caramos-ota's
+# panel-islands.css (installed later, with caramos-ota); the theme imports it so it stays below the panels' own
+# background settings in priority. Cinnamon-Delight-Dark, packaged in caramos-ota, imports the dark one itself.
+DELIGHT_GTK3=/usr/share/themes/Cinnamon-Delight/gtk-3.0/gtk.css
+if [ "$CINNAMON" = 0 ] && [ -f "$DELIGHT_GTK3" ] && ! grep -q 'panel-islands.css' "$DELIGHT_GTK3"; then
+    printf '\n/* CaramOS Xfce: the panel islands (caramos-ota). */\n@import url("file:///usr/share/caramos-ota/xfce/panel-islands.css");\n' >> "$DELIGHT_GTK3"
+fi
+
+if [ "$CINNAMON" = 1 ]; then
 # Applets from task 17.
 install_spice_from_repo "linuxmint/cinnamon-spices-applets" "Cinnamenu@json" "/usr/share/cinnamon/applets" "cinnamon-spices-applets"
 install_spice_from_repo "linuxmint/cinnamon-spices-applets" "weather@mockturtl" "/usr/share/cinnamon/applets" "cinnamon-spices-applets"
@@ -92,6 +106,7 @@ install_spice_from_repo "linuxmint/cinnamon-spices-applets" "weather@mockturtl" 
 install_spice_from_repo "linuxmint/cinnamon-spices-extensions" "blur-overview@nailfarmer.nailfarmer.com" "/usr/share/cinnamon/extensions" "cinnamon-spices-extensions"
 install_spice_from_repo "linuxmint/cinnamon-spices-extensions" "cinnamon-dynamic-wallpaper@TobiZog" "/usr/share/cinnamon/extensions" "cinnamon-spices-extensions"
 install_spice_from_repo "linuxmint/cinnamon-spices-extensions" "Watermark@germanfr" "/usr/share/cinnamon/extensions" "cinnamon-spices-extensions"
+fi
 
 # Nemo actions from task 17.
 install_spice_from_repo "linuxmint/cinnamon-spices-actions" "copy-path-to-clipboard@claudiux" "/usr/share/nemo/actions" "cinnamon-spices-actions"
@@ -100,6 +115,7 @@ install_spice_from_repo "linuxmint/cinnamon-spices-actions" "send-with-kdeconnec
 find /usr/share/nemo/actions -name '*.nemo_action.in' -exec sh -c 'for f; do cp -f "$f" "${f%.in}"; done' sh {} + 2>/dev/null || true
 find /usr/share/nemo/actions -type f \( -name '*.py' -o -name '*.sh' \) -exec chmod +x {} \; 2>/dev/null || true
 
+if [ "$CINNAMON" = 1 ]; then
 # Cinnamenu uses its own icon settings. Force the menu icon to CaramOS.
 find /usr/share/cinnamon/applets/Cinnamenu@json -name settings-schema.json -exec python3 -c '
 import json, sys
@@ -170,6 +186,7 @@ s = s.replace(
 )
 p.write_text(s)
 PY
+fi
 fi
 
 dconf update || true

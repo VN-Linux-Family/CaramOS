@@ -1,0 +1,22 @@
+{
+  "schema": 2,
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Ứng dụng mở tệp (dưới 1 MB)",
+  "size_en": "Apps that open files (under 1 MB)",
+  "title": "Tệp Word, Excel, PowerPoint và tệp nén mở đúng ứng dụng",
+  "summary": "Máy chưa có bộ ứng dụng văn phòng thì mở tệp Word, Excel hay PowerPoint sẽ gợi ý cài ONLYOFFICE, WPS Office hoặc LibreOffice trong App Center, thay vì chỉ mở thư mục chứa tệp. Tệp .zip mở bằng trình quản lý tệp nén.",
+  "title_en": "Word, Excel, PowerPoint and archive files open in the right app",
+  "summary_en": "Without an office suite, opening a Word, Excel or PowerPoint file now suggests installing ONLYOFFICE, WPS Office or LibreOffice from the App Center, instead of only showing the folder the file is in. .zip files open in the archive manager.",
+  "release_notes_vi": [
+    "Mở tệp Word, Excel hay PowerPoint khi máy chưa có bộ ứng dụng văn phòng: một hộp thoại báo máy chưa có ứng dụng mở được tệp, rồi mời bạn mở App Center để cài miễn phí ONLYOFFICE, WPS Office hoặc LibreOffice, hoặc chọn một ứng dụng khác. Trước đây máy chỉ mở thư mục chứa tệp.",
+    "Đã có bộ văn phòng thì tệp mở thẳng bằng bộ đó.",
+    "Tệp nén .zip và .tar mở bằng trình quản lý tệp nén để xem và giải nén, thay vì mở thư mục chứa tệp."
+  ],
+  "release_notes_en": [
+    "Opening a Word, Excel or PowerPoint file without an office suite now shows a dialog: no app on this computer opens the file yet, with the App Center, to install ONLYOFFICE, WPS Office or LibreOffice for free, or another app of your choice. Before, only the folder the file is in opened.",
+    "With an office suite installed, the file opens in it straight away.",
+    ".zip and .tar files open in the archive manager, to see and extract what is inside, instead of the folder they are in."
+  ]
+}

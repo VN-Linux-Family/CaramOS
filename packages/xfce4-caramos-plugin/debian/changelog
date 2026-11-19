@@ -1,0 +1,7 @@
+xfce4-caramos-plugin (1.0.0) noble; urgency=medium
+
+  * The CaramOS Control Center button for the Xfce panel: an XEmbed socket in
+    the taskbar's right island, where caramos-ota's Control Center draws its
+    button and opens its popup.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 18 Nov 2026 21:10:00 +0700

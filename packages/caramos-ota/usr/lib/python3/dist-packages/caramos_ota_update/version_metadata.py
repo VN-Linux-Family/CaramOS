@@ -20,6 +20,14 @@ MINT_BASE_NAME = "Linux Mint 22.3"
 MINT_BASE_CODENAME = "zena"
 
 
+def edition_name(desktop: str | None = None) -> str:
+    """The edition in CaramOS's names ("CaramOS 1.4.0 Xfce"): Xfce on the Xfce edition, Cinnamon otherwise."""
+
+    from .desktop import XFCE, current_desktop
+
+    return "Xfce" if (current_desktop() if desktop is None else desktop) == XFCE else "Cinnamon"
+
+
 class VersionMetadataError(ValueError):
     """Raised when version metadata input is unsafe or invalid."""
 
@@ -44,16 +52,17 @@ def caramos_release_content(version: str) -> str:
     )
 
 
-def os_release_content(version: str) -> str:
-    """Return /etc/os-release content for CaramOS Cinnamon."""
+def os_release_content(version: str, edition: str | None = None) -> str:
+    """Return /etc/os-release content for CaramOS (Cinnamon or Xfce edition)."""
 
     version = validate_version(version)
+    edition = edition or edition_name()
     return (
         'NAME="CaramOS"\n'
         f'VERSION="{version}"\n'
         'ID=caramos\n'
         'ID_LIKE="ubuntu debian linuxmint"\n'
-        f'PRETTY_NAME="CaramOS {version} Cinnamon"\n'
+        f'PRETTY_NAME="CaramOS {version} {edition}"\n'
         f'VERSION_ID="{version}"\n'
         'HOME_URL="https://github.com/VN-Linux-Family/CaramOS"\n'
         'SUPPORT_URL="https://github.com/VN-Linux-Family/CaramOS/issues"\n'
@@ -65,33 +74,35 @@ def os_release_content(version: str) -> str:
     )
 
 
-def lsb_release_content(version: str) -> str:
+def lsb_release_content(version: str, edition: str | None = None) -> str:
     """Return /etc/lsb-release content for CaramOS."""
 
     version = validate_version(version)
+    edition = edition or edition_name()
     return (
         'DISTRIB_ID=CaramOS\n'
         f'DISTRIB_RELEASE={version}\n'
         f'DISTRIB_CODENAME={MINT_BASE_CODENAME}\n'
-        f'DISTRIB_DESCRIPTION="CaramOS {version} Cinnamon"\n'
+        f'DISTRIB_DESCRIPTION="CaramOS {version} {edition}"\n'
     )
 
 
-def linuxmint_info_content(version: str) -> str:
+def linuxmint_info_content(version: str, edition: str | None = None) -> str:
     """Return /etc/linuxmint/info content expected by Mint tools."""
 
     version = validate_version(version)
+    edition = edition or edition_name()
     return (
         f'RELEASE={version}\n'
         f'CODENAME={MINT_BASE_CODENAME}\n'
-        'EDITION="Cinnamon"\n'
-        f'DESCRIPTION="CaramOS {version} Cinnamon"\n'
+        f'EDITION="{edition}"\n'
+        f'DESCRIPTION="CaramOS {version} {edition}"\n'
         'DESKTOP=Gnome\n'
         'TOOLKIT=GTK\n'
         'NEW_FEATURES_URL=https://caramos.org/\n'
         'RELEASE_NOTES_URL=https://caramos.org/\n'
         'USER_GUIDE_URL=https://caramos.org/\n'
-        f'GRUB_TITLE=CaramOS {version} Cinnamon\n'
+        f'GRUB_TITLE=CaramOS {version} {edition}\n'
     )
 
 

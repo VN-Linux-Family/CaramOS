@@ -1,0 +1,155 @@
+#!/usr/bin/python3 -I
+"""Files (Nemo) menus like Windows and the school textbooks: right-click > "Mới" > "Thư mục".
+
+Nemo builds its menus from GtkUIManager XML compiled into libnemo-extension. This script reads that XML from the
+installed library and writes changed copies to /var/lib/caramos-ota/nemo-menu:
+
+- the view menus (right-click on an empty area, the desktop, the File menu) get "Create New Folder" as the first
+  item of the "Create New Document" submenu, which /usr/share/locale/vi_VN/LC_MESSAGES/nemo.mo calls "Mới" with
+  "Thư mục" inside (en: "New" > "Folder");
+- the folder tree's menu drops its lone "Create New Folder", which would read "Thư mục" on its own there.
+
+/etc/X11/Xsession.d/85caramos-nemo-menu points G_RESOURCE_OVERLAYS at the copies, so Nemo uses them from the next
+login. When the XML is not shaped as expected (a Nemo update changed it), nothing is written and Nemo keeps its own
+menus. The package runs this on install and whenever libnemo-extension changes (dpkg trigger).
+"""
+
+from __future__ import annotations
+
+import argparse
+import glob
+import os
+import sys
+import tempfile
+from pathlib import Path
+
+OUT_DIR = Path("/var/lib/caramos-ota/nemo-menu")
+LIBRARIES = "/usr/lib/*-linux-gnu/libnemo-extension.so.1"
+VIEW = "/org/nemo/nemo-directory-view-ui.xml"
+TREE = "/org/nemo/nemo-tree-sidebar-ui.xml"
+# A GVDB file (GResource) starts with "GVariant", version 0 and options 0.
+GVDB_HEADER = b"GVariant" + bytes(8)
+
+VIEW_NEW_FOLDER = '<menuitem name="New Folder" action="New Folder"/>'
+VIEW_NEW_DOCUMENTS = '<menu action="New Documents">'
+TREE_NEW_FOLDER = '<menuitem name="NewFolder" action="New Folder"/>'
+
+
+class MenuError(Exception):
+    """The XML is not the one this script knows how to change."""
+
+
+def view_menus(xml: str) -> str:
+    """The File menu and the right-click menu: "New Folder" becomes the first item of "New Documents"."""
+
+    if 'name="After New Folder"' in xml:
+        raise MenuError("the view menus are changed already")
+    if xml.count(VIEW_NEW_FOLDER) != 2 or xml.count(VIEW_NEW_DOCUMENTS) != 2:
+        raise MenuError("the view menus do not have one New Folder and one New Documents in each of two places")
+    changed = xml.replace(VIEW_NEW_FOLDER, "")
+    changed = changed.replace(VIEW_NEW_DOCUMENTS, VIEW_NEW_DOCUMENTS + "\n\t\t\t\t" + VIEW_NEW_FOLDER
+                              + '\n\t\t\t\t<separator name="After New Folder"/>')
+    return changed
+
+
+def tree_menu(xml: str) -> str:
+    """The folder tree's right-click menu without its own "New Folder"."""
+
+    if xml.count(TREE_NEW_FOLDER) != 1:
+        raise MenuError("the folder tree menu does not have exactly one New Folder")
+    return xml.replace(TREE_NEW_FOLDER, "")
+
+
+CHANGES = {VIEW: view_menus, TREE: tree_menu}
+
+
+def gio():
+    import gi
+    gi.require_version("Gio", "2.0")
+    from gi.repository import Gio, GLib
+    return Gio, GLib
+
+
+def resources_in(data: bytes) -> list[object]:
+    """Every GResource bundle compiled into a binary (the bytes from each GVDB header on)."""
+
+    Gio, GLib = gio()
+    found, start = [], 0
+    while (at := data.find(GVDB_HEADER, start)) >= 0:
+        start = at + 1
+        try:
+            found.append(Gio.Resource.new_from_data(GLib.Bytes.new(data[at:])))
+        except GLib.Error:
+            continue
+    return found
+
+
+def read_resources(library: Path, paths: list[str]) -> dict[str, str]:
+    Gio, GLib = gio()
+    wanted: dict[str, str] = {}
+    for resource in resources_in(library.read_bytes()):
+        for path in paths:
+            if path in wanted:
+                continue
+            try:
+                wanted[path] = resource.lookup_data(path, Gio.ResourceLookupFlags.NONE).get_data().decode("utf-8")
+            except GLib.Error:
+                continue
+    missing = [path for path in paths if path not in wanted]
+    if missing:
+        raise MenuError(f"{library} has no {', '.join(missing)}")
+    return wanted
+
+
+def find_library() -> Path | None:
+    libraries = sorted(glob.glob(LIBRARIES))
+    return Path(libraries[0]) if libraries else None
+
+
+def write(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    handle, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+    with os.fdopen(handle, "w", encoding="utf-8") as stream:
+        stream.write(text)
+    os.chmod(temporary, 0o644)
+    os.replace(temporary, path)
+
+
+def remove(out_dir: Path = OUT_DIR) -> None:
+    for path in CHANGES:
+        (out_dir / Path(path).name).unlink(missing_ok=True)
+
+
+def update(library: Path | None, out_dir: Path = OUT_DIR) -> bool:
+    """Write the changed menus; on any surprise remove them all so Nemo keeps its own. True when written."""
+
+    try:
+        if library is None:
+            raise MenuError("Nemo is not installed")
+        originals = read_resources(library, list(CHANGES))
+        changed = {path: change(originals[path]) for path, change in CHANGES.items()}
+    except (MenuError, OSError, ImportError, ValueError) as error:
+        remove(out_dir)
+        print(f"caramos-nemo-menu: Nemo keeps its own menus ({error})")
+        return False
+    for path, text in changed.items():
+        write(out_dir / Path(path).name, text)
+    print(f"caramos-nemo-menu: wrote the Mới > Thư mục menus to {out_dir} (from {library})")
+    return True
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--remove", action="store_true", help="remove the changed menus (Nemo keeps its own)")
+    parser.add_argument("--library", type=Path, help="libnemo-extension to read (default: the installed one)")
+    parser.add_argument("--out", type=Path, default=OUT_DIR, help=argparse.SUPPRESS)
+    args = parser.parse_args(argv)
+    if args.remove:
+        remove(args.out)
+        return 0
+    update(args.library or find_library(), args.out)
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

@@ -1,6 +1,9 @@
 [Unit]
 Description=Wait for the desktop before telling GRUB this boot went well (CaramOS)
 ConditionPathExists=/boot/grub/grub.cfg
+# Not again in a boot that already told GRUB: an upgrade of the package restarts the timer, and the service, which
+# then skips itself, never stops it ("skipped because of an unmet condition" every 30 seconds until the next boot).
+ConditionPathExists=!/run/caramos-boot-success
 ConditionKernelCommandLine=!boot=casper
 
 [Timer]

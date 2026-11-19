@@ -1,0 +1,203 @@
+/* CaramOS Xfce: the panels as the three islands of CaramOS Cinnamon, 40 px high and 4 px above the bottom of the
+   screen. Left: the CaramOS menu, a circle. Middle: the dock (pinned and open apps). Right: the tray, the clock, the
+   Control Center and Feedback & Help.
+
+   The Cinnamon-Delight theme imports this file on the Xfce edition, and Cinnamon-Delight-Dark imports
+   panel-islands-dark.css, which is this file with the dark colours (tests/test_xfce_panel_islands.py checks that).
+   The panels themselves are clear (background style 1, alpha 0 in
+   /etc/xdg/caramos-xfce/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml): every island is drawn by the widgets in
+   it, with real margins and round corners, so the ends are half circles of the island's height, and its outline is
+   an inset shadow. The ids in the selectors (whiskermenu-1, systray-3, launcher-6) are the plugin ids
+   of that file.
+
+   Theme CSS loses to the CSS that the panel and some plugins set themselves, and the theme's own panel buttons turn
+   dark or blue when pointed at or pressed: the rules below set every state they need. */
+@define-color caramos_island rgba(247, 243, 233, 0.86);
+@define-color caramos_island_ring rgba(31, 79, 50, 0.16);
+@define-color caramos_island_hover rgba(31, 79, 50, 0.10);
+@define-color caramos_island_fg #3d3833;
+
+#XfcePanelWindow,
+#XfcePanelWindowWrapper,
+#systray-3,
+#systray-3 * {
+  color: @caramos_island_fg;
+}
+
+/* Left: the menu button, a 40 px circle in its 48 px square. */
+#whiskermenu-1 button {
+  margin: 4px;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  border-style: none;
+  border-radius: 999px;
+  background-color: @caramos_island;
+  background-image: none;
+  box-shadow: inset 0 0 0 1px @caramos_island_ring;
+}
+
+#whiskermenu-1 button:hover,
+#whiskermenu-1 button:active,
+#whiskermenu-1 button:checked {
+  background-image: linear-gradient(@caramos_island_hover, @caramos_island_hover);
+}
+
+/* Middle: the dock's box is the island. */
+#docklike-plugin {
+  margin: 4px 0;
+  padding: 0 4px;
+  border-style: none;
+  border-radius: 999px;
+  background-color: @caramos_island;
+  background-image: none;
+  box-shadow: inset 0 0 0 1px @caramos_island_ring;
+}
+
+#docklike-plugin button {
+  margin: 0;
+  padding: 0 6px;
+  min-height: 0;
+  border-style: none;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+}
+
+#docklike-plugin button:hover,
+#docklike-plugin button:active,
+#docklike-plugin button:checked,
+#docklike-plugin button.active_group {
+  background-color: @caramos_island_hover;
+}
+
+/* Right: each plugin draws its piece of one island. The tray comes first and draws the round left end. Its box keeps
+   the full panel height, because the tray places its icons from the panel's height and margins would move them, so
+   its piece is painted: a half circle, then a band from 4 px to 44 px, with the outline on top. */
+#systray-3 > box {
+  background-color: transparent;
+  background-image:
+    radial-gradient(circle 20px at 20px 24px, transparent 18.6px, @caramos_island_ring 19.1px,
+                    @caramos_island_ring 19.7px, transparent 20.2px),
+    radial-gradient(circle 20px at 20px 24px, @caramos_island 19.6px, transparent 20.2px),
+    linear-gradient(to bottom, transparent 4px, @caramos_island_ring 4px, @caramos_island_ring 5px,
+                    transparent 5px, transparent 43px, @caramos_island_ring 43px,
+                    @caramos_island_ring 44px, transparent 44px),
+    linear-gradient(to bottom, transparent 4px, @caramos_island 4px, @caramos_island 44px, transparent 44px);
+  background-size: 20px 48px, 20px 48px, 100% 48px, 100% 48px;
+  background-position: 0 0, 0 0, 20px 0, 20px 0;
+  background-repeat: no-repeat;
+}
+
+/* Room between the round end and the first icon (the box of the older XEmbed icons comes first). */
+#systray-3 > box > :first-child {
+  padding-left: 10px;
+}
+
+/* The tray gives each icon a 20 px cell (icon-size 20): the older XEmbed icons draw 16 px icons in it, and the newer
+   StatusNotifier icons are drawn 20 px, so they are scaled to 16 px. */
+#systray-3 button {
+  margin: 12px 1px;
+  border-style: none;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+}
+
+#systray-3 button image {
+  -gtk-icon-transform: scale(0.8);
+}
+
+#systray-3 button:hover,
+#systray-3 button:active,
+#systray-3 button:checked {
+  background-color: @caramos_island_hover;
+}
+
+/* The clock and the help button: their piece of the island, from 4 px to 44 px. */
+#clock-button,
+#launcher-6 button {
+  margin: 4px 0;
+  min-width: 0;
+  min-height: 0;
+  border-style: none;
+  border-radius: 0;
+  background-clip: border-box;
+  background-color: @caramos_island;
+  background-image: none;
+  box-shadow: inset 0 1px @caramos_island_ring, inset 0 -1px @caramos_island_ring;
+  color: @caramos_island_fg;
+}
+
+#clock-button {
+  padding: 0 4px 0 6px;
+}
+
+/* Feedback & Help ends the island. Its launcher is a square as wide as the panel is high: the icon sits at the left,
+   next to the Control Center, and the rest is the round right end, 4 px before the edge of the screen like the menu's circle
+   on the left. */
+#launcher-6 button {
+  margin: 4px 4px 4px 0;
+  padding: 0 0 0 1px;
+  border-radius: 0 20px 20px 0;
+  box-shadow: inset 0 1px @caramos_island_ring, inset 0 -1px @caramos_island_ring, inset -1px 0 @caramos_island_ring;
+}
+
+#launcher-6 button image {
+  margin-right: 21px;
+}
+
+/* Pointing at the clock or help lights a round patch behind it, as on Cinnamon. */
+#clock-button label,
+#launcher-6 button image {
+  border-radius: 999px;
+  padding: 4px;
+  color: @caramos_island_fg;
+}
+
+#clock-button label {
+  padding: 4px 8px;
+}
+
+#clock-button:hover label,
+#clock-button:checked label,
+#launcher-6 button:hover image,
+#launcher-6 button:active image {
+  background-color: @caramos_island_hover;
+}
+
+/* The Control Center button (caramos-ota's Control Center draws it inside the CaramOS panel plugin): its piece of
+   the island like the clock's, the icons 8 px apart as on Cinnamon, and a round patch when pointed at. */
+#caramos-cc-indicator {
+  margin: 4px 0;
+  padding: 0 2px;
+  min-height: 0;
+  min-width: 0;
+  border-style: none;
+  border-radius: 0;
+  background-clip: border-box;
+  background-color: @caramos_island;
+  background-image: none;
+  box-shadow: inset 0 1px @caramos_island_ring, inset 0 -1px @caramos_island_ring;
+  color: @caramos_island_fg;
+}
+
+#caramos-cc-indicator > box {
+  padding: 6px 8px;
+  border-radius: 999px;
+}
+
+#caramos-cc-indicator:hover > box,
+#caramos-cc-indicator:active > box {
+  background-color: @caramos_island_hover;
+}
+
+#caramos-cc-indicator image,
+#caramos-cc-indicator label {
+  color: @caramos_island_fg;
+}
+
+#caramos-cc-indicator .caramos-cc-panel-battery {
+  font-weight: bold;
+  font-size: 0.86em;
+}

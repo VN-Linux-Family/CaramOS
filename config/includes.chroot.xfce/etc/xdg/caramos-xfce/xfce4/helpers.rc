@@ -1,0 +1,6 @@
+# CaramOS Xfce: Files (Nemo) is the file manager, as on CaramOS Cinnamon, so the "Mới > Thư mục" menu, the folder
+# tree and the right-click actions are the same everywhere. Thunar stays installed for Xfce's own tools.
+WebBrowser=firefox
+MailReader=thunderbird
+TerminalEmulator=xfce4-terminal
+FileManager=nemo

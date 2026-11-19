@@ -1,0 +1,11 @@
+#!/usr/bin/python3
+"""The CaramOS Control Center on Xfce (see control-center/caramos_xfce_cc/app.py)."""
+
+import sys
+
+sys.path.insert(0, "/usr/share/caramos-ota/xfce/control-center")
+
+from caramos_xfce_cc.app import main  # noqa: E402
+
+if __name__ == "__main__":
+    raise SystemExit(main())

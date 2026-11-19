@@ -1,0 +1,12 @@
+# This file is sourced by Xsession(5), not executed.
+# CaramOS Xfce: /etc/xdg/caramos-xfce (panel, menu, theme, shortcuts, Nemo as the file manager) comes before
+# Linux Mint's Xfce defaults (/etc/xdg/xdg-xfce -> /usr/share/mint-artwork/xfce), which 60x11-common_xdg_path put
+# first. Only the files CaramOS changes are there; everything else still comes from Mint.
+case "$DESKTOP_SESSION" in
+  xfce|xubuntu|default)
+    if [ -d /etc/xdg/caramos-xfce ]; then
+      XDG_CONFIG_DIRS="/etc/xdg/caramos-xfce${XDG_CONFIG_DIRS:+:$XDG_CONFIG_DIRS}"
+      export XDG_CONFIG_DIRS
+    fi
+    ;;
+esac

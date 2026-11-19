@@ -1,0 +1,26 @@
+Source: xfce4-docklike-plugin
+Section: xfce
+Priority: optional
+Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+XSBC-Original-Maintainer: Kirill Rekhov <krekhov.dev@gmail.com>
+Rules-Requires-Root: no
+Build-Depends: debhelper-compat (= 13),
+               intltool,
+               libxi-dev,
+               libx11-dev,
+               libice-dev,
+               libwnck-3-dev,
+               xfce4-dev-tools,
+               libxfce4ui-2-dev,
+               libxfce4panel-2.0-dev
+Standards-Version: 4.6.2
+Homepage: https://docs.xfce.org/panel-plugins/xfce4-docklike-plugin/start
+
+Package: xfce4-docklike-plugin
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: Modern, minimalist taskbar for Xfce
+ Docklike Taskbar behaves similarly to many other desktop environments and
+ operating systems. Wherein all application windows are grouped together as an
+ icon and can be pinned to act as a launcher when the application is not
+ running. Commonly referred to as a dock.

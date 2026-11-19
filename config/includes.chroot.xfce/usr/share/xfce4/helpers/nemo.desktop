@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Icon=system-file-manager
+Type=X-XFCE-Helper
+Name=Nemo
+Name[vi]=Tệp (Nemo)
+StartupNotify=true
+X-XFCE-Binaries=nemo;
+X-XFCE-Category=FileManager
+X-XFCE-Commands=%B;
+X-XFCE-CommandsWithParameter=%B "%s";

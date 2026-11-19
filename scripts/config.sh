@@ -2,7 +2,9 @@
 # Cấu hình build — đổi version/mirror ở đây
 
 MINT_VERSION="22.3"
-MINT_EDITION="cinnamon"
+# Phiên bản Mint làm nền: cinnamon (mặc định) hoặc xfce (bản nhẹ cho máy 2 GB, phòng máy). Ví dụ:
+#   MINT_EDITION=xfce sudo ./build.sh --release
+MINT_EDITION="${MINT_EDITION:-cinnamon}"
 MINT_ARCH="64bit"
 MINT_ISO_NAME="linuxmint-${MINT_VERSION}-${MINT_EDITION}-${MINT_ARCH}.iso"
 if [ "$GITHUB_ACTIONS" = "true" ]; then
@@ -12,7 +14,7 @@ else
 fi
 
 # CaramOS product version. `make release VERSION=x` stamps this value.
-CARAMOS_VERSION="1.3.11"
+CARAMOS_VERSION="1.4.0"
 CARAMOS_CODENAME="Official Release"
 
 # Version metadata ban đầu ghi vào rootfs trước khi chạy OTA bootstrap.

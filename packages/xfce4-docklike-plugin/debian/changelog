@@ -1,0 +1,9 @@
+xfce4-docklike-plugin (0.4.2-0caramos1) noble; urgency=medium
+
+  * Docklike Taskbar 0.4.2 for CaramOS Xfce on Ubuntu 24.04: the middle
+    island of the CaramOS taskbar, pinned and running apps.
+  * Packaging from Debian's 0.4.3-1 by Kirill Rekhov, without
+    libxfce4windowing: 0.4.3 needs libxfce4windowing 4.19.4 and noble has
+    4.19.3, while 0.4.2 uses libwnck like the rest of Xfce 4.18.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 18 Nov 2026 15:50:54 +0700

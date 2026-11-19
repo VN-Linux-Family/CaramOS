@@ -1,0 +1,21 @@
+{
+  "schema": 2,
+  "desktops": ["xfce"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Hình nền CaramOS (dưới 1 MB)",
+  "size_en": "CaramOS wallpapers (under 1 MB)",
+  "title": "Hình nền CaramOS cho bản Xfce",
+  "summary": "Năm hình nền CaramOS trong một thư mục riêng, mặc định là Sage Mist như bản Cinnamon.",
+  "title_en": "CaramOS wallpapers on the Xfce edition",
+  "summary_en": "The five CaramOS wallpapers in a folder of their own, with Sage Mist as the default as on the Cinnamon edition.",
+  "release_notes_vi": [
+    "Năm hình nền CaramOS có trong Cài đặt > Màn hình nền, thư mục CaramOS, mặc định là Sage Mist như bản Cinnamon.",
+    "Ảnh Việt Nam mỗi ngày cũng có ở đó: chọn thư mục Việt Nam mỗi ngày rồi chọn một ảnh, hình nền sẽ đổi theo ảnh mới mỗi ngày."
+  ],
+  "release_notes_en": [
+    "The five CaramOS wallpapers are in Settings > Desktop, folder CaramOS, with Sage Mist as the default as on the Cinnamon edition.",
+    "The daily photos of Vietnam are there too: pick the folder Việt Nam mỗi ngày, then a photo, and the wallpaper follows the new photo every day."
+  ]
+}

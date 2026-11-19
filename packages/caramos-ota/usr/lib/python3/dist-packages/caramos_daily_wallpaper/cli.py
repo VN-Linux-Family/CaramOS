@@ -1,7 +1,7 @@
 """caramos-daily-wallpaper: save today's photo of Vietnam and, if the user chose the daily photos, show it.
 
 Run by caramos-daily-wallpaper.timer (a systemd user timer: daily and shortly after login). See core.py for how
-the feature is turned on and off from System Settings > Backgrounds.
+the feature is turned on and off from System Settings > Backgrounds, and on CaramOS Xfce from Desktop settings.
 """
 
 from __future__ import annotations
@@ -19,6 +19,43 @@ from . import core
 
 BACKGROUND = "org.cinnamon.desktop.background"
 SLIDESHOW = "org.cinnamon.desktop.background.slideshow"
+XFCE_DESKTOP = "xfce4-desktop"
+
+
+def edition() -> str:
+    """'xfce' on CaramOS Xfce; anything else keeps the Cinnamon behaviour, as before the Xfce edition."""
+
+    try:
+        from caramos_ota_update import desktop
+
+        return desktop.current_desktop()
+    except Exception:
+        return "other"
+
+
+def xfconf_images() -> dict[str, str]:
+    """The Xfce desktop's pictures: {property: path}, one per monitor and workspace; {} without xfconf."""
+
+    images: dict[str, str] = {}
+    try:
+        listed = subprocess.run(["xfconf-query", "-c", XFCE_DESKTOP, "-l"], check=False, text=True, timeout=30,
+                                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        for name in listed.stdout.split():
+            if core.XFCE_LAST_IMAGE_RE.match(name):
+                value = subprocess.run(["xfconf-query", "-c", XFCE_DESKTOP, "-p", name], check=False, text=True,
+                                       timeout=30, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+                images[name] = value.stdout.strip()
+    except (OSError, subprocess.TimeoutExpired):
+        return {}
+    return images
+
+
+def xfconf_set(name: str, value: str) -> bool:
+    try:
+        return subprocess.run(["xfconf-query", "-c", XFCE_DESKTOP, "-p", name, "-s", value], check=False, timeout=30,
+                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
+    except (OSError, subprocess.TimeoutExpired):
+        return False
 
 
 def gsettings_get(schema: str, key: str) -> str:
@@ -90,10 +127,28 @@ def photo_list(list_url: str, cache: Path, packaged: Path) -> list[core.Photo]:
 def run(home: Path, day: dt.date, manifest: Path, force: bool = False, list_url: str = core.LIST_URL) -> int:
     folder = core.folder_of(home)
     folders_list = home / ".config/cinnamon/backgrounds/user-folders.lst"
+    bookmarks = home / ".config/gtk-3.0/bookmarks"
     state_path = home / ".local/state/caramos/daily-wallpaper.json"
     state = load_state(state_path)
+    xfce = edition() == "xfce"
 
-    if not state.get("registered"):
+    if xfce:
+        if not state.get("bookmarked_wallpapers") and core.XFCE_WALLPAPERS.is_dir():
+            core.add_bookmark(core.XFCE_WALLPAPERS, bookmarks)
+            state["bookmarked_wallpapers"] = True
+            save_state(state_path, state)
+            print(f"added {core.XFCE_WALLPAPERS} to the bookmarks: Desktop settings > Folder")
+        # Its own key: a Mint Xfce that ran the Cinnamon steps before has "registered" but no bookmark yet.
+        if not state.get("bookmarked"):
+            folder.mkdir(parents=True, exist_ok=True)
+            core.add_bookmark(folder, bookmarks)
+            state["bookmarked"] = True
+            save_state(state_path, state)
+            print(f"added {folder} to the bookmarks: Desktop settings > Folder")
+        elif not core.bookmarked(folder, bookmarks):
+            print("the daily photos were removed from the bookmarks; nothing to do")
+            return 0
+    elif not state.get("registered"):
         folder.mkdir(parents=True, exist_ok=True)
         core.register_folder(folder, folders_list, pictures_dir(home))
         state["registered"] = True
@@ -132,16 +187,28 @@ def run(home: Path, day: dt.date, manifest: Path, force: bool = False, list_url:
             print("no photo could be fetched today; trying again later", file=sys.stderr)
             return 0
 
-    picture_uri = gsettings_get(BACKGROUND, "picture-uri")
-    slideshow = gsettings_get(SLIDESHOW, "slideshow-enabled") == "true"
-    image_source = gsettings_get(SLIDESHOW, "image-source")
-    current = core.uri_path(picture_uri)
-    if core.mode(folder, picture_uri, slideshow, image_source) == "follow" and current != target:
-        if gsettings_set_string(BACKGROUND, "picture-uri", core.file_uri(target)):
-            current = target
-            print("the wallpaper is today's photo")
+    current = None
+    shown: set[Path] = set()
+    if xfce:
+        # Each monitor and workspace showing a daily photo follows; Xfce's own "Change the background" of the folder
+        # picks up the new photos by itself.
+        images = xfconf_images()
+        for name in core.xfce_following(folder, images):
+            if Path(images[name]) != target and xfconf_set(name, str(target)):
+                images[name] = str(target)
+                print(f"the wallpaper ({name}) is today's photo")
+        shown = {Path(value) for value in images.values() if value and Path(value).parent == folder}
+    else:
+        picture_uri = gsettings_get(BACKGROUND, "picture-uri")
+        slideshow = gsettings_get(SLIDESHOW, "slideshow-enabled") == "true"
+        image_source = gsettings_get(SLIDESHOW, "image-source")
+        current = core.uri_path(picture_uri)
+        if core.mode(folder, picture_uri, slideshow, image_source) == "follow" and current != target:
+            if gsettings_set_string(BACKGROUND, "picture-uri", core.file_uri(target)):
+                current = target
+                print("the wallpaper is today's photo")
 
-    for removed in core.prune(folder, core.KEEP, current):
+    for removed in core.prune(folder, core.KEEP, current, also=shown):
         files.pop(removed.name, None)
     state["files"] = {name: meta for name, meta in files.items() if (folder / name).exists()}
     core.write_notes(folder, state["files"])

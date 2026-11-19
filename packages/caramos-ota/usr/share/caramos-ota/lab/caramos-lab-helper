@@ -1,0 +1,11 @@
+#!/usr/bin/python3 -I
+"""Root side of Phòng máy (CaramOS computer lab), run through pkexec; see caramos_lab/helper.py."""
+
+import sys
+
+sys.path.insert(0, "/usr/share/caramos-ota/lab")
+
+from caramos_lab.helper import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main())

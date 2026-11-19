@@ -8,6 +8,7 @@ from types import ModuleType
 from caramos_ota.logging_utils import log_error, log_info
 
 from .context import MigrationContext
+from .desktop import applies, current_desktop
 from .ledger import applied_ids, bootstrap_ledger, mark_applied
 from .registry import (
     MigrationDescriptor,
@@ -128,6 +129,12 @@ class MigrationRunner:
         mark_transaction_success(transaction_id=transaction_id, installed_version=plan.target_version)
 
     def _run_one(self, migration: MigrationDescriptor) -> None:
+        desktop = current_desktop()
+        if not applies(migration.desktops, desktop):
+            # Recorded as done: it has nothing to change on this edition, now or later.
+            log_info(f"Skipping migration {migration.migration_id}: only for {', '.join(migration.desktops)} "
+                     f"(this computer: {desktop})")
+            return
         log_info(f"Starting migration {migration.migration_id}: {migration.description}")
         try:
             module = self._load_module(migration)

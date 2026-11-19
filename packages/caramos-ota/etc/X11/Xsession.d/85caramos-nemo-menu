@@ -1,0 +1,16 @@
+# This file is sourced by Xsession(5), not executed.
+# CaramOS: Files (Nemo) right-click > "Mới" > "Thư mục", like Windows and the school textbooks. The menus come from
+# /var/lib/caramos-ota/nemo-menu (written by /usr/share/caramos-ota/nemo-menu/caramos-nemo-menu from the installed
+# Nemo) and the words from /usr/share/locale/vi_VN/LC_MESSAGES/nemo.mo (en: "New" > "Folder"). Other languages
+# keep Nemo's own menus, which would read oddly with the moved item.
+
+CARAMOS_NEMO_MENU=/var/lib/caramos-ota/nemo-menu
+if [ -r "$CARAMOS_NEMO_MENU/nemo-directory-view-ui.xml" ] && [ -r "$CARAMOS_NEMO_MENU/nemo-tree-sidebar-ui.xml" ]; then
+  case "${LANGUAGE:-${LC_ALL:-${LC_MESSAGES:-$LANG}}}" in
+    vi*|en_US*|en|en:*|en.*)
+      G_RESOURCE_OVERLAYS="/org/nemo/nemo-directory-view-ui.xml=$CARAMOS_NEMO_MENU/nemo-directory-view-ui.xml:/org/nemo/nemo-tree-sidebar-ui.xml=$CARAMOS_NEMO_MENU/nemo-tree-sidebar-ui.xml${G_RESOURCE_OVERLAYS:+:$G_RESOURCE_OVERLAYS}"
+      export G_RESOURCE_OVERLAYS
+      ;;
+  esac
+fi
+unset CARAMOS_NEMO_MENU

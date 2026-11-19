@@ -13,8 +13,11 @@ step_extract() {
     rm -rf "$WORK_DIR/squashfs" "$WORK_DIR/custom"
     mkdir -p "$WORK_DIR"/{mnt,custom}
 
-    # --- Cache: giữ bản extract gốc, chỉ extract 1 lần ---
-    CACHE_DIR="$WORK_DIR/cache"
+    # --- Cache: giữ bản extract gốc, chỉ extract 1 lần; mỗi phiên bản Mint một cache (Cinnamon giữ tên cũ) ---
+    local suffix=""
+    [ "${MINT_EDITION:-cinnamon}" = cinnamon ] || suffix="-${MINT_EDITION}"
+    CACHE_DIR="$WORK_DIR/cache${suffix}"
+    local CACHE_ISO_DIR="$WORK_DIR/cache_iso${suffix}"
     if [ -d "$CACHE_DIR" ]; then
         info "[2/7] Dùng cache (skip extract ISO)..."
         ok "Cache found."
@@ -29,15 +32,15 @@ step_extract() {
         umount "$WORK_DIR/mnt"
 
         # Lưu bản ISO content riêng cho cache
-        cp -a "$WORK_DIR/custom" "$WORK_DIR/cache_iso"
+        cp -a "$WORK_DIR/custom" "$CACHE_ISO_DIR"
         ok "Extract + cache xong."
     fi
 
     # Copy từ cache ra bản làm việc
     info "  → Copy từ cache..."
     cp -a "$CACHE_DIR" "$WORK_DIR/squashfs"
-    if [ -d "$WORK_DIR/cache_iso" ]; then
-        cp -a "$WORK_DIR/cache_iso/." "$WORK_DIR/custom/"
+    if [ -d "$CACHE_ISO_DIR" ]; then
+        cp -a "$CACHE_ISO_DIR/." "$WORK_DIR/custom/"
     fi
     ok "Sẵn sàng tuỳ biến."
 }

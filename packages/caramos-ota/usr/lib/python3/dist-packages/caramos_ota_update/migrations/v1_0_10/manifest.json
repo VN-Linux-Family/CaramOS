@@ -1,5 +1,6 @@
 {
   "schema": 1,
+  "desktops": ["cinnamon"],
   "version": "1.0.10",
   "from_version": "1.0.9",
   "codename": "noble",

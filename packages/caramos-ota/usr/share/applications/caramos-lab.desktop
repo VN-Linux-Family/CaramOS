@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Computer Lab
+Name[vi]=Phòng máy
+GenericName=Classroom management
+GenericName[vi]=Quản lý phòng máy
+Comment=The teacher's computer sees and controls the students' computers (Veyon, Epoptes)
+Comment[vi]=Máy giáo viên xem và điều khiển máy học sinh trong phòng máy (Veyon, Epoptes)
+Exec=caramos-lab
+Icon=applications-education
+Terminal=false
+Categories=Education;
+Keywords=Veyon;Epoptes;classroom;lab;teacher;student;phòng máy;lớp học;giáo viên;học sinh;
+StartupNotify=true

@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""Command entrypoint for Phòng máy (CaramOS computer lab), installed in /usr/share/caramos-ota/lab."""
+
+import sys
+
+sys.path.insert(0, "/usr/share/caramos-ota/lab")
+
+from caramos_lab.app import main  # noqa: E402
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

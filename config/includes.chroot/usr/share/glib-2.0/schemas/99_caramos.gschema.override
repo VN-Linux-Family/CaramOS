@@ -97,6 +97,11 @@ show-hidden-files=false
 default-folder-viewer='icon-view'
 thumbnail-limit=34359738368
 
+# The left pane of Files is a folder tree that opens out like Windows Explorer's (the Tin học lesson "cây thư mục").
+# New installs only: computers updated from an older CaramOS keep their pane (the tree button at the bottom left).
+[org.nemo.window-state]
+side-pane-view='tree'
+
 [org.cinnamon.desktop.peripherals.touchpad]
 tap-to-click=true
 natural-scroll=true

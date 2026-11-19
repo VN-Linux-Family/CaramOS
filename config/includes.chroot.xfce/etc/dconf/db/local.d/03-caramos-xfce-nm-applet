@@ -1,0 +1,4 @@
+# CaramOS Xfce: nm-applet keeps running, because it asks for Wi-Fi and VPN passwords, but shows no icon: the network is
+# in the Control Center's button, as on CaramOS Cinnamon.
+[org/gnome/nm-applet]
+show-applet=false

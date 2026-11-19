@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CaramOS Xfce: Mint's xfce4-power-manager.xml, with the power button asking what to do (log out, restart, shut
+     down...) as on CaramOS Cinnamon. Xfce's power manager takes the button from logind, and its own default is to do
+     nothing. -->
+
+<channel name="xfce4-power-manager" version="1.0">
+  <property name="xfce4-power-manager" type="empty">
+    <property name="power-button-action" type="uint" value="3"/>
+    <property name="lid-action-on-battery" type="uint" value="1"/>
+    <property name="show-panel-label" type="int" value="0"/>
+  </property>
+</channel>

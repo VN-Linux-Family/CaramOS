@@ -1,5 +1,6 @@
 {
   "schema": 2,
+  "desktops": ["cinnamon"],
   "codename": "noble",
   "channel": "stable",
   "severity": "important",

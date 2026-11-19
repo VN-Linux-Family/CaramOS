@@ -169,7 +169,15 @@ resolve_iso() {
         info "Tìm thấy ISO: $MINT_ISO"
     else
         info "Tải Linux Mint ${MINT_VERSION} ${MINT_EDITION} (~2.5GB)..."
-        wget --progress=bar:force -c "$MINT_MIRROR" -O "$MINT_ISO_NAME"
+        # Up to 5 tries, resuming (-c): one "Unable to establish SSL connection" from the mirror failed the 1.4.0
+        # release build of the Xfce edition, whose ISO was not in GitHub's cache yet.
+        local try
+        for try in 1 2 3 4 5; do
+            wget --progress=bar:force -c "$MINT_MIRROR" -O "$MINT_ISO_NAME" && break
+            [ "$try" = 5 ] && error "Không tải được $MINT_ISO_NAME sau 5 lần thử"
+            warn "Tải $MINT_ISO_NAME lỗi (lần $try), thử lại sau 20 giây..."
+            sleep 20
+        done
         MINT_ISO="$MINT_ISO_NAME"
         ok "Tải xong: $MINT_ISO"
     fi

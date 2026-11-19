@@ -135,8 +135,11 @@ class StyleTests(unittest.TestCase):
         check = textwrap.dedent('''\
             import sys
             import gi
-            gi.require_version("Gtk", "3.0")
-            from gi.repository import GLib, Gtk
+            try:
+                gi.require_version("Gtk", "3.0")
+                from gi.repository import GLib, Gtk
+            except (ImportError, ValueError):
+                sys.exit(77)  # PyGObject without GTK 3, like GitHub's runners that build the ISO
             header = "@define-color cc_accent #f59f22;\\n@define-color cc_accent_hover #f7ad43;\\n"
             for path in sys.argv[1:]:
                 errors = []
@@ -152,6 +155,8 @@ class StyleTests(unittest.TestCase):
         paths = [str(PACKAGE / "style.css"), str(PACKAGE / "reset.css"), str(XFCE_SHARE / "panel-islands.css"),
                  str(XFCE_SHARE / "panel-islands-dark.css")]
         result = subprocess.run([sys.executable, "-c", check, *paths], text=True, capture_output=True, timeout=60)
+        if result.returncode == 77:
+            self.skipTest("GTK 3 is unavailable")
         self.assertEqual(0, result.returncode, result.stderr)
         self.assertEqual("", result.stdout)
 
@@ -271,19 +276,26 @@ class AudioTests(unittest.TestCase):
                                   stdout=subprocess.PIPE, text=True)
         child = int(parent.stdout.readline())
         parent.stdout.close()
+
+        def proc(name: str) -> str:
+            # "" once it is gone: FileNotFoundError, or ProcessLookupError when it exits during the read.
+            try:
+                return Path(f"/proc/{child}/{name}").read_text(encoding="utf-8")
+            except OSError:
+                return ""
+
         # Once it runs sleep, setpriv has asked for the signal (killed earlier, the parent would beat it to it).
         deadline = time.monotonic() + 5
-        while Path(f"/proc/{child}/comm").read_text(encoding="utf-8") != "sleep\n" and time.monotonic() < deadline:
+        while proc("comm") != "sleep\n" and time.monotonic() < deadline:
             time.sleep(0.01)
+        reached_sleep = proc("comm") == "sleep\n"
         parent.kill()
         parent.wait()
+        self.assertTrue(reached_sleep, "setpriv did not start the command")
 
         def alive() -> bool:
-            try:
-                stat = Path(f"/proc/{child}/stat").read_text(encoding="utf-8")
-            except FileNotFoundError:
-                return False
-            return stat.rsplit(")", 1)[1].split()[0] != "Z"  # a zombie has ended
+            stat = proc("stat")
+            return bool(stat) and stat.rsplit(")", 1)[1].split()[0] != "Z"  # a zombie has ended
 
         deadline = time.monotonic() + 5
         while alive() and time.monotonic() < deadline:

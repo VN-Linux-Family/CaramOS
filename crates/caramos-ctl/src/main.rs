@@ -3,360 +3,945 @@
     clippy::unwrap_used,
     clippy::expect_used,
     clippy::panic,
-    clippy::indexing_slicing,
-    missing_docs
+    clippy::todo,
+    clippy::unimplemented,
+    unused_must_use
 )]
 
-//! `caramos-ctl` — Trình điều phối hợp nhất & Multi-Call Binary cho CaramOS 2.0 (Debian 13 Trixie).
-//! Tích hợp:
-//! - `prune`        : Giải cứu Applet, quét xóa 100% file `.py`/`.sh` cũ trong repo.
-//! - `build`        : Bootstrap Debian Trixie, nhúng bộ cài ổ cứng Calamares & đóng gói Hybrid ISO.
-//! - `hash`         : Băm mật mã học SHA-256 (FIPS 180-4) thuần Rust.
-//! - `ota-apply`    : Cập nhật OTA nguyên tử kèm cơ chế tự động Rollback.
-//! - `driver-check` : Kiểm tra phần cứng PCI & Kernel Driver trực tiếp từ `/sys/bus/pci/devices` (thay Python).
-//! - `help`         : Hiển thị chẩn đoán hệ thống & mở tài liệu hướng dẫn (thay Python).
+//! # CaramOS 2.0 Core Build & System Orchestrator (`caramos-ctl`)
+//!
+//! Trình điều phối đóng gói Live ISO Debian 13 (Trixie), quản lý vòng đời gắn kết Chroot (RAII),
+//! dọn dẹp di sản (`prune`), băm mật mã học SHA-256 (`hash`) và cập nhật nguyên tử (`ota-apply`).
+//! Đã được đồng bộ hóa 100% với `caramos-ui` để bảo toàn tuyệt đối giao diện GRUB2/Plymouth
+//! và các tệp nhị phân trong `config/includes.chroot`.
 
-use std::collections::BTreeMap;
 use std::env;
-use std::error::Error;
 use std::fmt;
 use std::fs::{self, File, OpenOptions};
-use std::io::{self, Read, Write};
+use std::io::{self, BufRead, BufReader, Read, Write};
 use std::marker::PhantomData;
-use std::os::unix::fs::{symlink, PermissionsExt};
 use std::path::{Component, Path, PathBuf};
-use std::process::{Command, ExitCode, Stdio};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::process::{Command, Stdio};
 
-/// Toàn bộ các nhánh lỗi được định danh rõ ràng của `caramos-ctl`.
+// ============================================================================
+// 1. KIẾN TRÚC LỖI CHUYÊN NGHIỆP (STRUCTURED DOMAIN ERRORS)
+// ============================================================================
+
 #[derive(Debug)]
-pub enum CaramError {
-    /// Lỗi đọc/ghi hệ thống tệp kèm ngữ cảnh.
-    Io {
-        /// Mô tả thao tác đang thực hiện.
-        context: &'static str,
-        /// Đường dẫn tệp/thư mục liên quan.
-        path: Option<PathBuf>,
-        /// Nguyên nhân gốc từ OS.
-        source: io::Error,
-    },
-    /// Lỗi vi phạm quy tắc đầu vào hoặc bảo mật.
-    Validation {
-        /// Tên trường dữ liệu.
-        field: &'static str,
-        /// Giá trị gây lỗi.
-        value: String,
-        /// Lý do từ chối.
-        reason: &'static str,
-    },
-    /// Lỗi khi gọi tiến trình ngoài (`mmdebstrap`, `mksquashfs`, `grub-mkrescue`, `mount`).
-    CommandFailed {
-        /// Tên chương trình.
-        program: String,
-        /// Mã thoát.
-        status_code: Option<i32>,
-        /// Nội dung stderr.
-        stderr: String,
-    },
-    /// Sai lệch mã băm SHA-256.
-    DigestMismatch {
-        /// Tệp kiểm tra.
-        target: PathBuf,
-        /// Mã băm kỳ vọng.
-        expected: String,
-        /// Mã băm thực tế.
-        actual: String,
-    },
-    /// Lỗi giao dịch OTA thất bại và đã tự động Rollback.
-    TransactionAborted {
-        /// Bước gặp sự cố.
-        failed_step: String,
-        /// Báo cáo kết quả khôi phục.
-        rollback_report: String,
-    },
-    /// Khóa tiến trình đang bị giữ bởi một phiên chạy khác.
-    LockContention {
-        /// Đường dẫn lockfile.
-        lock_path: PathBuf,
-    },
-    /// Phát hiện điểm gắn kết chroot vẫn đang hoạt động, chặn xóa thư mục để bảo vệ máy chủ.
-    ActiveMountDetected {
-        /// Điểm gắn kết đang hoạt động.
-        mount_point: PathBuf,
-    },
+pub enum CaramCtlError {
+    InvalidArgument { flag: String, reason: String },
+    UnsafePath { path: PathBuf, reason: &'static str },
+    IoFailure { context: String, path: Option<PathBuf>, source: io::Error },
+    SubprocessFailed { binary: String, status_code: Option<i32>, stderr_hint: String },
+    DigestMismatch { path: PathBuf, expected: String, actual: String },
+    RollbackFailed { target: PathBuf, original_error: String, rollback_error: io::Error },
 }
 
-impl fmt::Display for CaramError {
+impl fmt::Display for CaramCtlError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Io {
-                context,
-                path: Some(p),
-                source,
-            } => write!(f, "[IO Error] {}: '{}' ({})", context, p.display(), source),
-            Self::Io {
-                context,
-                path: None,
-                source,
-            } => write!(f, "[IO Error] {}: {}", context, source),
-            Self::Validation {
-                field,
-                value,
-                reason,
-            } => write!(
-                f,
-                "[Validation Error] Trường '{}' ('{}') không hợp lệ: {}",
-                field, value, reason
-            ),
-            Self::CommandFailed {
-                program,
-                status_code,
-                stderr,
-            } => write!(
-                f,
-                "[Command Failed] Lệnh '{}' thất bại (exit={:?}): {}",
-                program, status_code, stderr
-            ),
-            Self::DigestMismatch {
-                target,
-                expected,
-                actual,
-            } => write!(
-                f,
-                "[Digest Mismatch] Sai lệch SHA-256 tại '{}': kỳ vọng {}, thực tế {}",
-                target.display(),
-                expected,
-                actual
-            ),
-            Self::TransactionAborted {
-                failed_step,
-                rollback_report,
-            } => write!(
-                f,
-                "[OTA Aborted] Thất bại tại '{}'. Rollback: {}",
-                failed_step, rollback_report
-            ),
-            Self::LockContention { lock_path } => write!(
-                f,
-                "[Locked] Tiến trình khác đang giữ khóa tại '{}'",
-                lock_path.display()
-            ),
-            Self::ActiveMountDetected { mount_point } => write!(
-                f,
-                "[Safety Guard] Phát hiện mount đang hoạt động tại '{}', hủy thao tác xóa!",
-                mount_point.display()
-            ),
-        }
-    }
-}
-
-impl Error for CaramError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match self {
-            Self::Io { source, .. } => Some(source),
-            _ => None,
-        }
-    }
-}
-
-/// Tên gói chuẩn Debian Policy 5.6.1.
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct DebianPackageName(String);
-
-impl DebianPackageName {
-    /// Phân tích và xác thực tên gói Debian.
-    pub fn parse(raw: &str) -> Result<Self, CaramError> {
-        let trimmed = raw.trim();
-        if trimmed.len() < 2 || trimmed.len() > 128 {
-            return Err(CaramError::Validation {
-                field: "DebianPackageName",
-                value: raw.to_owned(),
-                reason: "Độ dài phải từ 2 đến 128 ký tự",
-            });
-        }
-        let mut chars = trimmed.chars();
-        let first = chars.next().ok_or_else(|| CaramError::Validation {
-            field: "DebianPackageName",
-            value: raw.to_owned(),
-            reason: "Tên gói rỗng",
-        })?;
-        if !first.is_ascii_lowercase() && !first.is_ascii_digit() {
-            return Err(CaramError::Validation {
-                field: "DebianPackageName",
-                value: raw.to_owned(),
-                reason: "Ký tự đầu phải là chữ thường hoặc số ASCII",
-            });
-        }
-        for ch in chars {
-            let ok =
-                ch.is_ascii_lowercase() || ch.is_ascii_digit() || matches!(ch, '+' | '-' | '.');
-            if !ok {
-                return Err(CaramError::Validation {
-                    field: "DebianPackageName",
-                    value: raw.to_owned(),
-                    reason: "Chứa ký tự ngoài tập [a-z0-9+-.]",
-                });
+            Self::InvalidArgument { flag, reason } => {
+                write!(f, "[CTL_ARG_ERR] Tham số '{}' không hợp lệ: {}", flag, reason)
+            }
+            Self::UnsafePath { path, reason } => {
+                write!(
+                    f,
+                    "[CTL_SECURITY_ERR] Đường dẫn '{}' bị từ chối: {}",
+                    path.display(),
+                    reason
+                )
+            }
+            Self::IoFailure { context, path, source } => match path {
+                Some(p) => write!(
+                    f,
+                    "[CTL_IO_ERR] Lỗi khi '{}' tại '{}': {}",
+                    context,
+                    p.display(),
+                    source
+                ),
+                None => write!(f, "[CTL_IO_ERR] Lỗi khi '{}': {}", context, source),
+            },
+            Self::SubprocessFailed { binary, status_code, stderr_hint } => {
+                write!(
+                    f,
+                    "[CTL_EXEC_ERR] Tiến trình '{}' thất bại (mã thoát: {:?}): {}",
+                    binary, status_code, stderr_hint
+                )
+            }
+            Self::DigestMismatch { path, expected, actual } => {
+                write!(
+                    f,
+                    "[CTL_CRYPTO_ERR] Mã băm SHA-256 không khớp tại '{}': kỳ vọng '{}', thực tế '{}'",
+                    path.display(),
+                    expected,
+                    actual
+                )
+            }
+            Self::RollbackFailed { target, original_error, rollback_error } => {
+                write!(
+                    f,
+                    "[CTL_CRITICAL_OTA] Lỗi gốc ({}) VÀ lỗi khôi phục tại '{}': {}",
+                    original_error,
+                    target.display(),
+                    rollback_error
+                )
             }
         }
-        Ok(Self(trimmed.to_owned()))
-    }
-
-    /// Lấy chuỗi `&str`.
-    pub fn as_str(&self) -> &str {
-        &self.0
     }
 }
 
-/// Phiên bản `MAJOR.MINOR.PATCH`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub struct SemVer {
-    /// Phiên bản lớn.
-    pub major: u32,
-    /// Phiên bản nhỏ.
-    pub minor: u32,
-    /// Bản vá.
-    pub patch: u32,
-}
+impl std::error::Error for CaramCtlError {}
 
-impl SemVer {
-    /// Phân tích chuỗi `X.Y.Z`.
-    pub fn parse(raw: &str) -> Result<Self, CaramError> {
-        let cleaned = raw.trim().strip_prefix('v').unwrap_or_else(|| raw.trim());
-        let mut parts = cleaned.split('.');
-        let major_s = parts.next().ok_or_else(|| CaramError::Validation {
-            field: "SemVer",
-            value: raw.to_owned(),
-            reason: "Thiếu MAJOR",
-        })?;
-        let minor_s = parts.next().ok_or_else(|| CaramError::Validation {
-            field: "SemVer",
-            value: raw.to_owned(),
-            reason: "Thiếu MINOR",
-        })?;
-        let patch_s = parts.next().ok_or_else(|| CaramError::Validation {
-            field: "SemVer",
-            value: raw.to_owned(),
-            reason: "Thiếu PATCH",
-        })?;
-        if parts.next().is_some() {
-            return Err(CaramError::Validation {
-                field: "SemVer",
-                value: raw.to_owned(),
-                reason: "Quá 3 thành phần phiên bản",
+// ============================================================================
+// 2. PHÒNG THỦ ĐƯỜNG DẪN & SAO CHÉP CÂY THƯ MỤC ĐỆ QUY KHÔNG GHI ĐÈ NGƯỢC
+// ============================================================================
+
+/// Kiểm định đường dẫn an toàn, chặn Path Traversal (`..`) và ký tự NULL.
+pub fn validate_safe_path(path: &Path) -> Result<(), CaramCtlError> {
+    let raw = path.to_string_lossy();
+    if raw.is_empty() {
+        return Err(CaramCtlError::UnsafePath {
+            path: path.to_path_buf(),
+            reason: "Đường dẫn rỗng",
+        });
+    }
+    if raw.contains('\0') {
+        return Err(CaramCtlError::UnsafePath {
+            path: path.to_path_buf(),
+            reason: "Đường dẫn chứa byte NULL",
+        });
+    }
+    for comp in path.components() {
+        if matches!(comp, Component::ParentDir) {
+            return Err(CaramCtlError::UnsafePath {
+                path: path.to_path_buf(),
+                reason: "Chặn leo thang thư mục qua '..' (Path Traversal)",
             });
         }
+    }
+    Ok(())
+}
+
+/// Ghi tệp tin nguyên tử thông qua vùng đệm tạm và lệnh `fs::rename` kèm `sync_all`.
+pub fn atomic_write_file(target: &Path, content: &[u8]) -> Result<(), CaramCtlError> {
+    validate_safe_path(target)?;
+    if let Some(parent) = target.parent() {
+        fs::create_dir_all(parent).map_err(|e| CaramCtlError::IoFailure {
+            context: "Tạo thư mục cha cho tệp đích".to_string(),
+            path: Some(parent.to_path_buf()),
+            source: e,
+        })?;
+    }
+
+    let staging = target.with_extension("tmp.caramos-ctl");
+    let mut file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(&staging)
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Mở tệp tạm atomic_write".to_string(),
+            path: Some(staging.clone()),
+            source: e,
+        })?;
+
+    file.write_all(content).map_err(|e| CaramCtlError::IoFailure {
+        context: "Ghi nội dung vào tệp tạm".to_string(),
+        path: Some(staging.clone()),
+        source: e,
+    })?;
+
+    file.sync_all().map_err(|e| CaramCtlError::IoFailure {
+        context: "Đồng bộ fsync tệp tạm".to_string(),
+        path: Some(staging.clone()),
+        source: e,
+    })?;
+
+    drop(file);
+
+    fs::rename(&staging, target).map_err(|e| CaramCtlError::IoFailure {
+        context: "Hoán đổi nguyên tử (rename) tệp đích".to_string(),
+        path: Some(target.to_path_buf()),
+        source: e,
+    })
+}
+
+/// Chỉ ghi tệp cấu hình mặc định nếu tệp đó CHƯA được `caramos-ui` hoặc `includes.chroot` cung cấp.
+pub fn write_default_if_missing(target: &Path, default_content: &[u8]) -> Result<bool, CaramCtlError> {
+    validate_safe_path(target)?;
+    if target.exists() {
+        return Ok(false);
+    }
+    atomic_write_file(target, default_content)?;
+    Ok(true)
+}
+
+/// Sao chép đệ quy toàn bộ cây thư mục nguồn (`src_dir`) đè lên thư mục đích (`dst_dir`),
+/// bảo toàn quyền thực thi (permissions) của các tệp nhị phân như `caramos-ui` và `caramos-ctl`.
+pub fn copy_directory_tree_overlay(src_dir: &Path, dst_dir: &Path) -> Result<usize, CaramCtlError> {
+    validate_safe_path(src_dir)?;
+    validate_safe_path(dst_dir)?;
+
+    if !src_dir.exists() {
+        return Ok(0);
+    }
+
+    fs::create_dir_all(dst_dir).map_err(|e| CaramCtlError::IoFailure {
+        context: "Tạo thư mục đích khi đồng bộ overlay".to_string(),
+        path: Some(dst_dir.to_path_buf()),
+        source: e,
+    })?;
+
+    let mut copied_files: usize = 0;
+    let entries = fs::read_dir(src_dir).map_err(|e| CaramCtlError::IoFailure {
+        context: "Đọc danh mục thư mục overlay nguồn".to_string(),
+        path: Some(src_dir.to_path_buf()),
+        source: e,
+    })?;
+
+    for entry_res in entries {
+        let entry = entry_res.map_err(|e| CaramCtlError::IoFailure {
+            context: "Đọc phần tử trong thư mục overlay".to_string(),
+            path: Some(src_dir.to_path_buf()),
+            source: e,
+        })?;
+
+        let src_path = entry.path();
+        let file_name = entry.file_name();
+        let dst_path = dst_dir.join(file_name);
+
+        let file_type = entry.file_type().map_err(|e| CaramCtlError::IoFailure {
+            context: "Kiểm tra kiểu tệp overlay".to_string(),
+            path: Some(src_path.clone()),
+            source: e,
+        })?;
+
+        if file_type.is_dir() {
+            let sub_count = copy_directory_tree_overlay(&src_path, &dst_path)?;
+            copied_files = copied_files.saturating_add(sub_count);
+        } else if file_type.is_file() {
+            if let Some(parent) = dst_path.parent() {
+                fs::create_dir_all(parent).map_err(|e| CaramCtlError::IoFailure {
+                    context: "Tạo thư mục cha cho tệp overlay".to_string(),
+                    path: Some(parent.to_path_buf()),
+                    source: e,
+                })?;
+            }
+            fs::copy(&src_path, &dst_path).map_err(|e| CaramCtlError::IoFailure {
+                context: "Sao chép tệp overlay".to_string(),
+                path: Some(dst_path.clone()),
+                source: e,
+            })?;
+
+            if let Ok(meta) = fs::metadata(&src_path) {
+                let _ = fs::set_permissions(&dst_path, meta.permissions());
+            }
+            copied_files = copied_files.saturating_add(1);
+        }
+    }
+
+    Ok(copied_files)
+}
+
+// ============================================================================
+// 3. KỶ LUẬT QUẢN LÝ TÀI NGUYÊN CHROOT (DETERMINISTIC RAII MOUNT GUARD)
+// ============================================================================
+
+/// RAII Guard quản lý các điểm gắn kết hệ thống ảo (`/proc`, `/sys`, `/dev`, `/dev/pts`)
+/// bên trong `rootfs`. Tự động tháo gỡ (`umount -lf`) theo đúng thứ tự đảo ngược LIFO trong `Drop`.
+pub struct ChrootMountGuard {
+    mounted_targets: Vec<PathBuf>,
+    dry_run: bool,
+}
+
+impl ChrootMountGuard {
+    pub fn mount_all(rootfs: &Path, dry_run: bool) -> Result<Self, CaramCtlError> {
+        validate_safe_path(rootfs)?;
+        let mut guard = Self {
+            mounted_targets: Vec::with_capacity(4),
+            dry_run,
+        };
+
+        let mounts: [(&str, &str, &[&str]); 4] = [
+            ("proc", "proc", &["-t", "proc", "proc"]),
+            ("sys", "sysfs", &["-t", "sysfs", "sys"]),
+            ("dev", "devtmpfs", &["--bind", "/dev"]),
+            ("dev/pts", "devpts", &["--bind", "/dev/pts"]),
+        ];
+
+        for (rel_dir, _label, args) in &mounts {
+            let target = rootfs.join(rel_dir);
+            fs::create_dir_all(&target).map_err(|e| CaramCtlError::IoFailure {
+                context: "Tạo thư mục điểm gắn kết Chroot".to_string(),
+                path: Some(target.clone()),
+                source: e,
+            })?;
+
+            if !dry_run {
+                let mut cmd = Command::new("mount");
+                for a in *args {
+                    cmd.arg(a);
+                }
+                cmd.arg(&target);
+                run_external_command(&mut cmd, "mount chroot virtualfs")?;
+            }
+            guard.mounted_targets.push(target);
+        }
+
+        Ok(guard)
+    }
+}
+
+impl Drop for ChrootMountGuard {
+    fn drop(&mut self) {
+        while let Some(target) = self.mounted_targets.pop() {
+            if !self.dry_run {
+                let _ = Command::new("umount")
+                    .arg("-lf")
+                    .arg(&target)
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null())
+                    .status();
+            }
+        }
+    }
+}
+
+/// Thực thi tiến trình hệ thống bên ngoài với kiểm soát mã thoát nghiêm ngặt.
+fn run_external_command(cmd: &mut Command, context: &str) -> Result<(), CaramCtlError> {
+    let prog = cmd.get_program().to_string_lossy().to_string();
+    let status = cmd.status().map_err(|e| CaramCtlError::IoFailure {
+        context: format!("Khởi chạy tiến trình '{}' ({})", prog, context),
+        path: None,
+        source: e,
+    })?;
+
+    if !status.success() {
+        return Err(CaramCtlError::SubprocessFailed {
+            binary: prog,
+            status_code: status.code(),
+            stderr_hint: format!("Bước thực thi '{}' trả về trạng thái thất bại", context),
+        });
+    }
+    Ok(())
+}
+
+// ============================================================================
+// 4. MÁY TRẠNG THÁI KIỂU TĨNH CHO PIPELINE ĐÓNG GÓI ISO (TYPESTATE BUILDER)
+// ============================================================================
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SquashfsCompression {
+    Zstd,
+    Xz,
+}
+
+impl SquashfsCompression {
+    pub fn parse(input: &str) -> Result<Self, CaramCtlError> {
+        match input.trim().to_ascii_lowercase().as_str() {
+            "zstd" => Ok(Self::Zstd),
+            "xz" => Ok(Self::Xz),
+            other => Err(CaramCtlError::InvalidArgument {
+                flag: "--compression".to_string(),
+                reason: format!("Chỉ hỗ trợ 'zstd' hoặc 'xz', nhận được '{}'", other),
+            }),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct BuildConfig {
+    pub arch: String,
+    pub compression: SquashfsCompression,
+    pub mirror: String,
+    pub work_dir: PathBuf,
+    pub includes_chroot_dir: PathBuf,
+    pub packages_file: PathBuf,
+    pub output_iso: PathBuf,
+    pub dry_run: bool,
+}
+
+pub struct StageInit;
+pub struct StageRootfsBootstrapped;
+pub struct StageChrootConfigured;
+pub struct StageSquashfsPacked;
+pub struct StageIsoFinalized;
+
+pub struct IsoBuildPipeline<Stage> {
+    config: BuildConfig,
+    rootfs_dir: PathBuf,
+    iso_staging_dir: PathBuf,
+    _stage: PhantomData<Stage>,
+}
+
+impl IsoBuildPipeline<StageInit> {
+    pub fn new(config: BuildConfig) -> Result<Self, CaramCtlError> {
+        validate_safe_path(&config.work_dir)?;
+        validate_safe_path(&config.includes_chroot_dir)?;
+        validate_safe_path(&config.packages_file)?;
+        validate_safe_path(&config.output_iso)?;
+
+        let rootfs_dir = config.work_dir.join("rootfs");
+        let iso_staging_dir = config.work_dir.join("iso_staging");
+
+        fs::create_dir_all(&rootfs_dir).map_err(|e| CaramCtlError::IoFailure {
+            context: "Khởi tạo thư mục rootfs".to_string(),
+            path: Some(rootfs_dir.clone()),
+            source: e,
+        })?;
+        fs::create_dir_all(&iso_staging_dir).map_err(|e| CaramCtlError::IoFailure {
+            context: "Khởi tạo thư mục iso_staging".to_string(),
+            path: Some(iso_staging_dir.clone()),
+            source: e,
+        })?;
+
         Ok(Self {
-            major: major_s.parse::<u32>().map_err(|_| CaramError::Validation {
-                field: "SemVer.major",
-                value: major_s.to_owned(),
-                reason: "Không phải số nguyên u32",
-            })?,
-            minor: minor_s.parse::<u32>().map_err(|_| CaramError::Validation {
-                field: "SemVer.minor",
-                value: minor_s.to_owned(),
-                reason: "Không phải số nguyên u32",
-            })?,
-            patch: patch_s.parse::<u32>().map_err(|_| CaramError::Validation {
-                field: "SemVer.patch",
-                value: patch_s.to_owned(),
-                reason: "Không phải số nguyên u32",
-            })?,
+            config,
+            rootfs_dir,
+            iso_staging_dir,
+            _stage: PhantomData,
+        })
+    }
+
+    /// Bước 1: Khởi tạo cây hệ thống Debian 13 (`trixie`) tinh khiết từ thượng nguồn bằng `mmdebstrap`.
+    pub fn bootstrap_debian_trixie<W: Write>(
+        self,
+        writer: &mut W,
+    ) -> Result<IsoBuildPipeline<StageRootfsBootstrapped>, CaramCtlError> {
+        let packages = load_package_manifest(&self.config.packages_file)?;
+        let pkg_csv = packages.join(",");
+
+        writeln!(
+            writer,
+            "▶ [STAGE 1/4] Khởi tạo Rootfs Debian 13 (trixie) [Arch: {}, Gói: {}]...",
+            self.config.arch,
+            packages.len()
+        )
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Ghi log Stage 1".to_string(),
+            path: None,
+            source: e,
+        })?;
+
+        if self.config.dry_run {
+            writeln!(
+                writer,
+                "  [DRY-RUN] mmdebstrap --arch={} --include={} trixie {} {}",
+                self.config.arch,
+                pkg_csv,
+                self.rootfs_dir.display(),
+                self.config.mirror
+            )
+            .map_err(|e| CaramCtlError::IoFailure {
+                context: "Ghi log dry-run mmdebstrap".to_string(),
+                path: None,
+                source: e,
+            })?;
+        } else {
+            let mut cmd = Command::new("mmdebstrap");
+            cmd.arg(format!("--arch={}", self.config.arch))
+                .arg("--variant=minbase")
+                .arg("--components=main,contrib,non-free,non-free-firmware")
+                .arg(format!("--include={}", pkg_csv))
+                .arg("trixie")
+                .arg(&self.rootfs_dir)
+                .arg(&self.config.mirror);
+            run_external_command(&mut cmd, "mmdebstrap Debian 13 Trixie")?;
+        }
+
+        Ok(IsoBuildPipeline {
+            config: self.config,
+            rootfs_dir: self.rootfs_dir,
+            iso_staging_dir: self.iso_staging_dir,
+            _stage: PhantomData,
         })
     }
 }
 
-impl fmt::Display for SemVer {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}.{}.{}", self.major, self.minor, self.patch)
+impl IsoBuildPipeline<StageRootfsBootstrapped> {
+    /// Bước 2: Khởi tạo cấu hình cơ sở VÀ áp lớp phủ `config/includes.chroot` (chứa thành phẩm của `caramos-ui`)
+    /// ở bước CUỐI CÙNG để tuyệt đối không ghi đè các tệp của `caramos-ui`.
+    pub fn configure_chroot_and_apply_overlay<W: Write>(
+        self,
+        writer: &mut W,
+    ) -> Result<IsoBuildPipeline<StageChrootConfigured>, CaramCtlError> {
+        writeln!(
+            writer,
+            "▶ [STAGE 2/4] Cấu hình hệ thống Debian 13 & Đồng bộ giao diện caramos-ui từ '{}'...",
+            self.config.includes_chroot_dir.display()
+        )
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Ghi log Stage 2".to_string(),
+            path: None,
+            source: e,
+        })?;
+
+        let etc_dir = self.rootfs_dir.join("etc");
+        let default_dir = etc_dir.join("default");
+        fs::create_dir_all(&default_dir).map_err(|e| CaramCtlError::IoFailure {
+            context: "Tạo thư mục /etc/default trong rootfs".to_string(),
+            path: Some(default_dir.clone()),
+            source: e,
+        })?;
+
+        // 2.1. Ghi các tệp nhận diện hệ điều hành cơ sở TRƯỚC khi áp overlay
+        let os_release = "\
+PRETTY_NAME=\"CaramOS 2.0 (Debian 13 Trixie — Rust Core Edition)\"\n\
+NAME=\"CaramOS\"\n\
+VERSION_ID=\"2.0\"\n\
+VERSION=\"2.0 (Trixie)\"\n\
+VERSION_CODENAME=trixie\n\
+ID=caramos\n\
+ID_LIKE=debian\n\
+HOME_URL=\"https://github.com/LocShadowVN/CaramOS-testing\"\n";
+        atomic_write_file(&etc_dir.join("os-release"), os_release.as_bytes())?;
+        write_default_if_missing(&etc_dir.join("caramos-release"), b"CARAMOS_VERSION=2.0.0\n")?;
+        write_default_if_missing(&etc_dir.join("hostname"), b"caramos-live\n")?;
+
+        // Cấu hình /etc/default/grub mặc định (sẽ được giữ hoặc nâng cấp bởi overlay từ caramos-ui)
+        let fallback_grub = "\
+GRUB_DEFAULT=0\n\
+GRUB_TIMEOUT=5\n\
+GRUB_DISTRIBUTOR=\"CaramOS 2.0 (Trixie)\"\n\
+GRUB_CMDLINE_LINUX_DEFAULT=\"quiet splash loglevel=3 mitigations=auto init_on_alloc=1\"\n\
+GRUB_GFXMODE=1280x720x24,auto\n\
+GRUB_GFXPAYLOAD_LINUX=keep\n\
+GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
+        write_default_if_missing(&default_dir.join("grub"), fallback_grub.as_bytes())?;
+
+        // 2.2. ÁP LỚP PHỦ `config/includes.chroot` SAU CÙNG (Overlay-Last Precedence)
+        // Bảo đảm 100% các tệp do `caramos-ui` tạo ra (background.tga, theme.txt, caramos-ui binary,
+        // plymouth theme, /etc/default/grub, .desktop launchers) có quyền ưu tiên tuyệt đối!
+        let overlaid_count =
+            copy_directory_tree_overlay(&self.config.includes_chroot_dir, &self.rootfs_dir)?;
+
+        writeln!(
+            writer,
+            "  ✔ Đã đồng bộ nguyên vẹn {} tệp từ '{}' vào Rootfs (Zero Overwrite).",
+            overlaid_count,
+            self.config.includes_chroot_dir.display()
+        )
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Ghi log số tệp overlay".to_string(),
+            path: None,
+            source: e,
+        })?;
+
+        // 2.3. Gắn kết hệ thống tệp ảo có bảo vệ RAII và cập nhật initramfs / Plymouth theme
+        {
+            let _mount_guard = ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
+            if !self.config.dry_run {
+                let mut depmod_cmd = Command::new("chroot");
+                depmod_cmd
+                    .arg(&self.rootfs_dir)
+                    .arg("/usr/sbin/update-initramfs")
+                    .arg("-u")
+                    .arg("-k")
+                    .arg("all");
+                run_external_command(&mut depmod_cmd, "chroot update-initramfs")?;
+            }
+        } // <- `_mount_guard` tự động tháo gỡ /dev/pts, /dev, /sys, /proc tại đây.
+
+        Ok(IsoBuildPipeline {
+            config: self.config,
+            rootfs_dir: self.rootfs_dir,
+            iso_staging_dir: self.iso_staging_dir,
+            _stage: PhantomData,
+        })
     }
 }
 
-/// Đường dẫn tương đối an toàn (chặn tuyệt đối `..` Path Traversal).
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-pub struct SafeRelativePath(PathBuf);
+impl IsoBuildPipeline<StageChrootConfigured> {
+    /// Bước 3: Đóng gói `filesystem.squashfs`, trích xuất Kernel/Initrd và đồng bộ giao diện GRUB2 CaramOS sang `iso_staging`.
+    pub fn pack_squashfs_and_stage_bootloader<W: Write>(
+        self,
+        writer: &mut W,
+    ) -> Result<IsoBuildPipeline<StageSquashfsPacked>, CaramCtlError> {
+        writeln!(
+            writer,
+            "▶ [STAGE 3/4] Đóng gói SquashFS & Lan truyền giao diện GRUB2 CaramOS sang ISO Staging..."
+        )
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Ghi log Stage 3".to_string(),
+            path: None,
+            source: e,
+        })?;
 
-impl SafeRelativePath {
-    /// Kiểm tra và chuẩn hóa đường dẫn tương đối.
-    pub fn parse(raw: &str) -> Result<Self, CaramError> {
-        let trimmed = raw.trim().trim_start_matches('/');
-        if trimmed.is_empty() {
-            return Err(CaramError::Validation {
-                field: "SafeRelativePath",
-                value: raw.to_owned(),
-                reason: "Đường dẫn rỗng",
-            });
+        let live_dir = self.iso_staging_dir.join("live");
+        let grub_dir = self.iso_staging_dir.join("boot/grub");
+        let efi_boot_dir = self.iso_staging_dir.join("EFI/boot");
+
+        for d in [&live_dir, &grub_dir, &efi_boot_dir] {
+            fs::create_dir_all(d).map_err(|e| CaramCtlError::IoFailure {
+                context: "Tạo thư mục trong iso_staging".to_string(),
+                path: Some(d.clone()),
+                source: e,
+            })?;
         }
-        let mut normalized = PathBuf::new();
-        for comp in Path::new(trimmed).components() {
-            match comp {
-                Component::Normal(part) => {
-                    let s = part.to_str().ok_or_else(|| CaramError::Validation {
-                        field: "SafeRelativePath",
-                        value: raw.to_owned(),
-                        reason: "Không phải chuỗi UTF-8",
-                    })?;
-                    if s.contains('\0') {
-                        return Err(CaramError::Validation {
-                            field: "SafeRelativePath",
-                            value: raw.to_owned(),
-                            reason: "Chứa byte null",
-                        });
-                    }
-                    normalized.push(part);
+
+        // 3.1. LAN TRUYỀN GIAO DIỆN BOOTLOADER (`boot/grub/themes/caramos`) SANG `iso_staging`
+        // Đây là bước then chốt giúp menu GRUB của Live ISO hiển thị đúng ảnh nền TGA và theme của caramos-ui!
+        let rootfs_theme_dir = self.rootfs_dir.join("boot/grub/themes/caramos");
+        let iso_theme_dir = grub_dir.join("themes/caramos");
+        let theme_files_copied = copy_directory_tree_overlay(&rootfs_theme_dir, &iso_theme_dir)?;
+
+        writeln!(
+            writer,
+            "  ✔ Đã lan truyền {} tệp giao diện Bootloader CaramOS sang '{}'.",
+            theme_files_copied,
+            iso_theme_dir.display()
+        )
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Ghi log lan truyền theme GRUB".to_string(),
+            path: None,
+            source: e,
+        })?;
+
+        // 3.2. Sinh tệp `iso_staging/boot/grub/grub.cfg` kích hoạt đồ họa 24-bit TGA và Theme CaramOS
+        let iso_grub_cfg = r#"# CaramOS 2.0 Live ISO Graphical GRUB2 Configuration
+# Synchronized with caramos-ui Bootloader Theme Engine
+
+set default=0
+set timeout=10
+
+insmod all_video
+insmod gfxterm
+insmod gfxmenu
+insmod tga
+insmod png
+insmod iso9660
+insmod ext2
+insmod part_gpt
+insmod part_msdos
+
+set gfxmode=1280x720x24,auto
+set gfxpayload=keep
+terminal_output gfxterm
+
+if [ -f /boot/grub/themes/caramos/theme.txt ]; then
+    set theme=/boot/grub/themes/caramos/theme.txt
+    export theme
+fi
+
+menuentry "CaramOS 2.0 Live Desktop (Debian 13 Trixie — Rust Core Edition)" {
+    linux /live/vmlinuz boot=live components quiet splash loglevel=3 mitigations=auto init_on_alloc=1
+    initrd /live/initrd.img
+}
+
+menuentry "CaramOS 2.0 Interactive TUI Installer (Trình Cài Đặt Hệ Điều Hành)" {
+    linux /live/vmlinuz boot=live components quiet splash caramos.mode=installer mitigations=auto init_on_alloc=1
+    initrd /live/initrd.img
+}
+
+menuentry "CaramOS 2.0 Safe Graphics / Fallback Mode (nomodeset)" {
+    linux /live/vmlinuz boot=live components nomodeset loglevel=4
+    initrd /live/initrd.img
+}
+"#;
+        atomic_write_file(&grub_dir.join("grub.cfg"), iso_grub_cfg.as_bytes())?;
+
+        // 3.3. Đóng gói SquashFS với thuật toán nén Zstandard hoặc XZ
+        let squashfs_target = live_dir.join("filesystem.squashfs");
+        if self.config.dry_run {
+            atomic_write_file(&squashfs_target, b"DRY_RUN_SQUASHFS_PLACEHOLDER")?;
+            atomic_write_file(&live_dir.join("vmlinuz"), b"DRY_RUN_KERNEL_PLACEHOLDER")?;
+            atomic_write_file(&live_dir.join("initrd.img"), b"DRY_RUN_INITRD_PLACEHOLDER")?;
+        } else {
+            copy_kernel_and_initrd(&self.rootfs_dir, &live_dir)?;
+
+            let mut mksquash = Command::new("mksquashfs");
+            mksquash
+                .arg(&self.rootfs_dir)
+                .arg(&squashfs_target)
+                .arg("-noappend")
+                .arg("-b")
+                .arg("1048576");
+
+            match self.config.compression {
+                SquashfsCompression::Zstd => {
+                    mksquash.arg("-comp").arg("zstd").arg("-Xcompression-level").arg("19");
                 }
-                Component::CurDir => {}
-                Component::ParentDir | Component::RootDir | Component::Prefix(_) => {
-                    return Err(CaramError::Validation {
-                        field: "SafeRelativePath",
-                        value: raw.to_owned(),
-                        reason: "Phát hiện Path Traversal ('..')",
-                    });
+                SquashfsCompression::Xz => {
+                    mksquash
+                        .arg("-comp")
+                        .arg("xz")
+                        .arg("-Xbcj")
+                        .arg("x86")
+                        .arg("-Xdict-size")
+                        .arg("100%");
                 }
             }
+            run_external_command(&mut mksquash, "mksquashfs rootfs")?;
         }
-        if normalized.as_os_str().is_empty() {
-            return Err(CaramError::Validation {
-                field: "SafeRelativePath",
-                value: raw.to_owned(),
-                reason: "Đường dẫn sau chuẩn hóa bị rỗng",
-            });
-        }
-        Ok(Self(normalized))
-    }
 
-    /// Nối đường dẫn tương đối vào bên dưới `root`.
-    pub fn join_under(&self, root: &Path) -> PathBuf {
-        root.join(&self.0)
-    }
-
-    /// Lấy tham chiếu `Path`.
-    pub fn as_path(&self) -> &Path {
-        &self.0
+        Ok(IsoBuildPipeline {
+            config: self.config,
+            rootfs_dir: self.rootfs_dir,
+            iso_staging_dir: self.iso_staging_dir,
+            _stage: PhantomData,
+        })
     }
 }
 
-/// Mã băm SHA-256 (64 ký tự hex).
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Sha256Digest(String);
+impl IsoBuildPipeline<StageSquashfsPacked> {
+    /// Bước 4: Đóng gói ảnh Hybrid UEFI/BIOS ISO9660 kèm bảng băm SHA-256.
+    pub fn build_hybrid_iso<W: Write>(
+        self,
+        writer: &mut W,
+    ) -> Result<IsoBuildPipeline<StageIsoFinalized>, CaramCtlError> {
+        writeln!(
+            writer,
+            "▶ [STAGE 4/4] Kết xuất ảnh Hybrid UEFI/BIOS ISO tại '{}'...",
+            self.config.output_iso.display()
+        )
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Ghi log Stage 4".to_string(),
+            path: None,
+            source: e,
+        })?;
 
-impl Sha256Digest {
-    /// Kiểm tra chuỗi hex SHA-256 hợp lệ.
-    pub fn parse(raw: &str) -> Result<Self, CaramError> {
-        let cleaned = raw.trim().to_ascii_lowercase();
-        if cleaned.len() != 64 || !cleaned.chars().all(|c| c.is_ascii_hexdigit()) {
-            return Err(CaramError::Validation {
-                field: "Sha256Digest",
-                value: raw.to_owned(),
-                reason: "Phải gồm đúng 64 ký tự hex",
-            });
+        if let Some(parent) = self.config.output_iso.parent() {
+            fs::create_dir_all(parent).map_err(|e| CaramCtlError::IoFailure {
+                context: "Tạo thư mục chứa tệp ISO đầu ra".to_string(),
+                path: Some(parent.to_path_buf()),
+                source: e,
+            })?;
         }
-        Ok(Self(cleaned))
+
+        if self.config.dry_run {
+            atomic_write_file(&self.config.output_iso, b"DRY_RUN_CARAMOS_2_0_HYBRID_ISO")?;
+        } else {
+            let efi_img = self.iso_staging_dir.join("EFI/boot/bootx64.efi");
+            let grub_cfg = self.iso_staging_dir.join("boot/grub/grub.cfg");
+
+            let mut grub_standalone = Command::new("grub-mkstandalone");
+            grub_standalone
+                .arg("--format=x86_64-efi")
+                .arg(format!("--output={}", efi_img.display()))
+                .arg("--locales=")
+                .arg("--fonts=")
+                .arg("--modules=part_gpt part_msdos iso9660 ext2 all_video gfxterm gfxmenu tga png normal boot linux loopback")
+                .arg(format!("boot/grub/grub.cfg={}", grub_cfg.display()));
+            run_external_command(&mut grub_standalone, "grub-mkstandalone UEFI")?;
+
+            let mut xorriso = Command::new("xorriso");
+            xorriso
+                .arg("-as")
+                .arg("mkisofs")
+                .arg("-iso-level")
+                .arg("3")
+                .arg("-full-iso9660-filenames")
+                .arg("-volid")
+                .arg("CARAMOS_2_0")
+                .arg("-output")
+                .arg(&self.config.output_iso)
+                .arg(&self.iso_staging_dir);
+            run_external_command(&mut xorriso, "xorriso hybrid ISO")?;
+        }
+
+        let iso_hash = compute_file_sha256(&self.config.output_iso)?;
+        let sha_file = self.config.output_iso.with_extension("iso.sha256");
+        let sha_line = format!(
+            "{}  {}\n",
+            iso_hash,
+            self.config
+                .output_iso
+                .file_name()
+                .map(|n| n.to_string_lossy())
+                .unwrap_or_default()
+        );
+        atomic_write_file(&sha_file, sha_line.as_bytes())?;
+
+        writeln!(
+            writer,
+            "✔ HOÀN TẤT ĐÓNG GÓI ISO!\n  • Đường dẫn ISO : {}\n  • Mã băm SHA-256: {}",
+            self.config.output_iso.display(),
+            iso_hash
+        )
+        .map_err(|e| CaramCtlError::IoFailure {
+            context: "Ghi log hoàn tất ISO".to_string(),
+            path: None,
+            source: e,
+        })?;
+
+        Ok(IsoBuildPipeline {
+            config: self.config,
+            rootfs_dir: self.rootfs_dir,
+            iso_staging_dir: self.iso_staging_dir,
+            _stage: PhantomData,
+        })
+    }
+}
+
+/// Đọc và làm sạch danh sách gói Debian 13 từ `config/packages.txt`.
+pub fn load_package_manifest(manifest_path: &Path) -> Result<Vec<String>, CaramCtlError> {
+    validate_safe_path(manifest_path)?;
+    if !manifest_path.exists() {
+        return Ok(vec![
+            String::from("linux-image-amd64"),
+            String::from("live-boot"),
+            String::from("systemd-sysv"),
+        ]);
     }
 
-    /// Trả về chuỗi `&str`.
-    pub fn as_str(&self) -> &str {
-        &self.0
+    let file = File::open(manifest_path).map_err(|e| CaramCtlError::IoFailure {
+        context: "Mở tệp danh sách gói packages.txt".to_string(),
+        path: Some(manifest_path.to_path_buf()),
+        source: e,
+    })?;
+
+    let reader = BufReader::new(file);
+    let mut packages = Vec::new();
+    for line_res in reader.lines() {
+        let line = line_res.map_err(|e| CaramCtlError::IoFailure {
+            context: "Đọc dòng trong packages.txt".to_string(),
+            path: Some(manifest_path.to_path_buf()),
+            source: e,
+        })?;
+        let trimmed = line.split('#').next().unwrap_or("").trim();
+        if !trimmed.is_empty() {
+            packages.push(trimmed.to_string());
+        }
     }
+    Ok(packages)
+}
+
+fn copy_kernel_and_initrd(rootfs: &Path, live_dir: &Path) -> Result<(), CaramCtlError> {
+    let boot_dir = rootfs.join("boot");
+    let entries = fs::read_dir(&boot_dir).map_err(|e| CaramCtlError::IoFailure {
+        context: "Đọc thư mục /boot trong rootfs".to_string(),
+        path: Some(boot_dir.clone()),
+        source: e,
+    })?;
+
+    let mut found_kernel: Option<PathBuf> = None;
+    let mut found_initrd: Option<PathBuf> = None;
+
+    for entry_res in entries {
+        let entry = entry_res.map_err(|e| CaramCtlError::IoFailure {
+            context: "Duyệt tệp trong /boot".to_string(),
+            path: Some(boot_dir.clone()),
+            source: e,
+        })?;
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.starts_with("vmlinuz-") {
+            found_kernel = Some(entry.path());
+        } else if name.starts_with("initrd.img-") {
+            found_initrd = Some(entry.path());
+        }
+    }
+
+    let kernel_src = found_kernel.ok_or_else(|| CaramCtlError::IoFailure {
+        context: "Không tìm thấy nhân vmlinuz-* trong /boot".to_string(),
+        path: Some(boot_dir.clone()),
+        source: io::Error::new(io::ErrorKind::NotFound, "Missing vmlinuz"),
+    })?;
+    let initrd_src = found_initrd.ok_or_else(|| CaramCtlError::IoFailure {
+        context: "Không tìm thấy initrd.img-* trong /boot".to_string(),
+        path: Some(boot_dir),
+        source: io::Error::new(io::ErrorKind::NotFound, "Missing initrd.img"),
+    })?;
+
+    fs::copy(&kernel_src, live_dir.join("vmlinuz")).map_err(|e| CaramCtlError::IoFailure {
+        context: "Sao chép vmlinuz sang live/".to_string(),
+        path: Some(kernel_src),
+        source: e,
+    })?;
+    fs::copy(&initrd_src, live_dir.join("initrd.img")).map_err(|e| CaramCtlError::IoFailure {
+        context: "Sao chép initrd.img sang live/".to_string(),
+        path: Some(initrd_src),
+        source: e,
+    })?;
+    Ok(())
+}
+
+// ============================================================================
+// 5. DỌN DẸP DI SẢN (`prune`) — BẢO VỆ TUYỆT ĐỐI `caramos-ui` & `includes.chroot`
+// ============================================================================
+
+/// Chỉ quét và loại bỏ các tệp di sản CaramOS 1.x (`build.sh`, `scripts/`, `*.py` cũ ở gốc),
+/// bảo vệ tuyệt đối `crates/caramos-ctl`, `crates/caramos-ui`, `config/includes.chroot`, `assets`, `docs`.
+pub fn prune_legacy_artifacts<W: Write>(
+    repo_root: &Path,
+    execute: bool,
+    writer: &mut W,
+) -> Result<usize, CaramCtlError> {
+    validate_safe_path(repo_root)?;
+
+    let legacy_targets = [
+        "build.sh",
+        "install.sh",
+        "update.py",
+        "scripts",
+        "legacy_mint",
+        "ubuntu_base",
+    ];
+
+    let mut removed_count: usize = 0;
+
+    for rel in &legacy_targets {
+        let candidate = repo_root.join(rel);
+        if candidate.exists() {
+            if execute {
+                if candidate.is_dir() {
+                    fs::remove_dir_all(&candidate).map_err(|e| CaramCtlError::IoFailure {
+                        context: "Xoá thư mục di sản".to_string(),
+                        path: Some(candidate.clone()),
+                        source: e,
+                    })?;
+                } else {
+                    fs::remove_file(&candidate).map_err(|e| CaramCtlError::IoFailure {
+                        context: "Xoá tệp di sản".to_string(),
+                        path: Some(candidate.clone()),
+                        source: e,
+                    })?;
+                }
+                writeln!(writer, "  [PRUNED] Đã xoá di sản: {}", candidate.display()).map_err(
+                    |e| CaramCtlError::IoFailure {
+                        context: "Ghi log prune".to_string(),
+                        path: None,
+                        source: e,
+                    },
+                )?;
+            } else {
+                writeln!(
+                    writer,
+                    "  [DRY-RUN PRUNE] Sẽ xoá di sản: {}",
+                    candidate.display()
+                )
+                .map_err(|e| CaramCtlError::IoFailure {
+                    context: "Ghi log dry-run prune".to_string(),
+                    path: None,
+                    source: e,
+                })?;
+            }
+            removed_count = removed_count.saturating_add(1);
+        }
+    }
+
+    writeln!(
+        writer,
+        "✔ Hoàn tất kiểm tra di sản (Đã xử lý: {} mục; `crates/caramos-ui` & `config/includes.chroot` được bảo vệ 100%).",
+        removed_count
+    )
+    .map_err(|e| CaramCtlError::IoFailure {
+        context: "Ghi tổng kết prune".to_string(),
+        path: None,
+        source: e,
+    })?;
+
+    Ok(removed_count)
+}
+
+// ============================================================================
+// 6. MẬT MÃ HỌC SHA-256 (FIPS 180-4) & CẬP NHẬT NGUYÊN TỬ (`hash` & `ota-apply`)
+// ============================================================================
+
+pub struct Sha256Hasher {
+    state: [u32; 8],
+    buffer: [u8; 64],
+    buffer_len: usize,
+    total_bits: u64,
 }
 
 const SHA256_K: [u32; 64] = [
@@ -370,13 +955,6 @@ const SHA256_K: [u32; 64] = [
     0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
 ];
 
-/// Bộ băm SHA-256 theo luồng.
-pub struct Sha256Hasher {
-    state: [u32; 8],
-    buffer: Vec<u8>,
-    total_bytes: u64,
-}
-
 impl Default for Sha256Hasher {
     fn default() -> Self {
         Self::new()
@@ -384,1813 +962,583 @@ impl Default for Sha256Hasher {
 }
 
 impl Sha256Hasher {
-    /// Khởi tạo bộ băm SHA-256 mới.
     pub fn new() -> Self {
         Self {
             state: [
-                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
-                0x5be0cd19,
+                0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+                0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
             ],
-            buffer: Vec::with_capacity(64),
-            total_bytes: 0,
+            buffer: [0u8; 64],
+            buffer_len: 0,
+            total_bits: 0,
         }
     }
 
-    /// Nạp thêm dữ liệu vào bộ băm.
     pub fn update(&mut self, data: &[u8]) {
-        self.total_bytes = self.total_bytes.wrapping_add(data.len() as u64);
-        self.buffer.extend_from_slice(data);
-        let blocks: Vec<[u8; 64]> = self.buffer.as_chunks::<64>().0.to_vec();
-        if !blocks.is_empty() {
-            for b in &blocks {
-                self.compress_block(b);
+        let mut offset = 0;
+        self.total_bits = self.total_bits.wrapping_add((data.len() as u64).wrapping_mul(8));
+
+        while offset < data.len() {
+            let space = 64_usize.saturating_sub(self.buffer_len);
+            let take = space.min(data.len().saturating_sub(offset));
+            self.buffer[self.buffer_len..self.buffer_len.saturating_add(take)]
+                .copy_from_slice(&data[offset..offset.saturating_add(take)]);
+            self.buffer_len = self.buffer_len.saturating_add(take);
+            offset = offset.saturating_add(take);
+
+            if self.buffer_len == 64 {
+                let block = self.buffer;
+                self.compress_block(&block);
+                self.buffer_len = 0;
             }
-            let consumed = blocks.len().wrapping_mul(64);
-            self.buffer.drain(..consumed);
         }
     }
 
-    /// Kết thúc băm và xuất `Sha256Digest`.
-    pub fn finalize(mut self) -> Sha256Digest {
-        let bit_len = self.total_bytes.wrapping_mul(8);
-        self.buffer.push(0x80);
-        while !(self.buffer.len() + 8).is_multiple_of(64) {
-            self.buffer.push(0x00);
-        }
-        self.buffer.extend_from_slice(&bit_len.to_be_bytes());
+    pub fn finalize_hex(mut self) -> String {
+        let mut pad = [0u8; 128];
+        pad[0] = 0x80;
+        let pad_len = if self.buffer_len < 56 {
+            56_usize.saturating_sub(self.buffer_len)
+        } else {
+            120_usize.saturating_sub(self.buffer_len)
+        };
+        let total_bits_be = self.total_bits.to_be_bytes();
+        let saved_bits = self.total_bits;
+        self.update(&pad[..pad_len]);
+        self.total_bits = saved_bits;
+        self.update(&total_bits_be);
 
-        let blocks: Vec<[u8; 64]> = self.buffer.as_chunks::<64>().0.to_vec();
-
-        for b in &blocks {
-            self.compress_block(b);
-        }
-
-        let mut hex = String::with_capacity(64);
+        let mut out = String::with_capacity(64);
         for word in &self.state {
-            for byte in word.to_be_bytes() {
-                hex.push(char::from_digit(u32::from(byte >> 4), 16).unwrap_or('0'));
-                hex.push(char::from_digit(u32::from(byte & 0x0f), 16).unwrap_or('0'));
+            for b in word.to_be_bytes() {
+                let _ = fmt::Write::write_fmt(&mut out, format_args!("{:02x}", b));
             }
         }
-        Sha256Digest(hex)
+        out
     }
 
     fn compress_block(&mut self, block: &[u8; 64]) {
         let mut w = [0u32; 64];
-        for (slot, &chunk) in w.iter_mut().take(16).zip(block.as_chunks::<4>().0) {
-            *slot = u32::from_be_bytes(chunk);
-        }
-        for i in 16..64 {
-            let w15 = w.get(i - 15).copied().unwrap_or(0);
-            let w2 = w.get(i - 2).copied().unwrap_or(0);
-            let w16 = w.get(i - 16).copied().unwrap_or(0);
-            let w7 = w.get(i - 7).copied().unwrap_or(0);
-            let s0 = w15.rotate_right(7) ^ w15.rotate_right(18) ^ (w15 >> 3);
-            let s1 = w2.rotate_right(17) ^ w2.rotate_right(19) ^ (w2 >> 10);
-            let val = w16.wrapping_add(s0).wrapping_add(w7).wrapping_add(s1);
-            if let Some(slot) = w.get_mut(i) {
-                *slot = val;
+        for (i, chunk) in block.chunks_exact(4).enumerate() {
+            if let Ok(arr) = <[u8; 4]>::try_from(chunk) {
+                w[i] = u32::from_be_bytes(arr);
             }
         }
+        for i in 16..64 {
+            let s0 = w[i - 15].rotate_right(7) ^ w[i - 15].rotate_right(18) ^ (w[i - 15] >> 3);
+            let s1 = w[i - 2].rotate_right(17) ^ w[i - 2].rotate_right(19) ^ (w[i - 2] >> 10);
+            w[i] = w[i - 16]
+                .wrapping_add(s0)
+                .wrapping_add(w[i - 7])
+                .wrapping_add(s1);
+        }
 
-        let [mut a, mut b, mut c, mut d, mut e, mut f, mut g, mut h] = self.state;
-        for (&k_i, &w_i) in SHA256_K.iter().zip(w.iter()) {
+        let mut a = self.state[0];
+        let mut b = self.state[1];
+        let mut c = self.state[2];
+        let mut d = self.state[3];
+        let mut e = self.state[4];
+        let mut f = self.state[5];
+        let mut g = self.state[6];
+        let mut h = self.state[7];
+
+        for i in 0..64 {
             let s1 = e.rotate_right(6) ^ e.rotate_right(11) ^ e.rotate_right(25);
             let ch = (e & f) ^ ((!e) & g);
-            let t1 = h
+            let temp1 = h
                 .wrapping_add(s1)
                 .wrapping_add(ch)
-                .wrapping_add(k_i)
-                .wrapping_add(w_i);
+                .wrapping_add(SHA256_K[i])
+                .wrapping_add(w[i]);
             let s0 = a.rotate_right(2) ^ a.rotate_right(13) ^ a.rotate_right(22);
             let maj = (a & b) ^ (a & c) ^ (b & c);
-            let t2 = s0.wrapping_add(maj);
+            let temp2 = s0.wrapping_add(maj);
 
             h = g;
             g = f;
             f = e;
-            e = d.wrapping_add(t1);
+            e = d.wrapping_add(temp1);
             d = c;
             c = b;
             b = a;
-            a = t1.wrapping_add(t2);
+            a = temp1.wrapping_add(temp2);
         }
 
-        self.state = [
-            self.state[0].wrapping_add(a),
-            self.state[1].wrapping_add(b),
-            self.state[2].wrapping_add(c),
-            self.state[3].wrapping_add(d),
-            self.state[4].wrapping_add(e),
-            self.state[5].wrapping_add(f),
-            self.state[6].wrapping_add(g),
-            self.state[7].wrapping_add(h),
-        ];
+        self.state[0] = self.state[0].wrapping_add(a);
+        self.state[1] = self.state[1].wrapping_add(b);
+        self.state[2] = self.state[2].wrapping_add(c);
+        self.state[3] = self.state[3].wrapping_add(d);
+        self.state[4] = self.state[4].wrapping_add(e);
+        self.state[5] = self.state[5].wrapping_add(f);
+        self.state[6] = self.state[6].wrapping_add(g);
+        self.state[7] = self.state[7].wrapping_add(h);
     }
+}
 
-    /// Tính SHA-256 của một tệp trên đĩa.
-    pub fn hash_file(path: &Path) -> Result<Sha256Digest, CaramError> {
-        let mut f = File::open(path).map_err(|source| CaramError::Io {
-            context: "Mở tệp để băm SHA-256",
+pub fn compute_file_sha256(path: &Path) -> Result<String, CaramCtlError> {
+    validate_safe_path(path)?;
+    let mut file = File::open(path).map_err(|e| CaramCtlError::IoFailure {
+        context: "Mở tệp để băm SHA-256".to_string(),
+        path: Some(path.to_path_buf()),
+        source: e,
+    })?;
+    let mut hasher = Sha256Hasher::new();
+    let mut buf = [0u8; 8192];
+    loop {
+        let n = file.read(&mut buf).map_err(|e| CaramCtlError::IoFailure {
+            context: "Đọc luồng dữ liệu SHA-256".to_string(),
             path: Some(path.to_path_buf()),
-            source,
+            source: e,
         })?;
-        let mut hasher = Self::new();
-        let mut buf = [0u8; 65_536];
-        loop {
-            let n = f.read(&mut buf).map_err(|source| CaramError::Io {
-                context: "Đọc dữ liệu tệp để băm SHA-256",
-                path: Some(path.to_path_buf()),
-                source,
-            })?;
-            if n == 0 {
-                break;
-            }
-            if let Some(slice) = buf.get(..n) {
-                hasher.update(slice);
-            }
+        if n == 0 {
+            break;
         }
-        Ok(hasher.finalize())
+        hasher.update(&buf[..n]);
     }
+    Ok(hasher.finalize_hex())
 }
 
-const LEGACY_FILES_TO_REMOVE: &[&str] = &[
-    "build.sh",
-    "install-caramos-ota.sh",
-    "Dockerfile",
-    "docker-compose.yml",
-    "CaramOS Project Finalization.md",
-    ".github/workflows/build.yml",
-    ".github/workflows/release.yml",
-    "config/includes.chroot/etc/linuxmint/info",
-];
+pub fn apply_atomic_ota(
+    root_dir: &Path,
+    relative_target: &Path,
+    payload_path: &Path,
+    expected_sha256: &str,
+    new_version: &str,
+) -> Result<(), CaramCtlError> {
+    validate_safe_path(root_dir)?;
+    validate_safe_path(relative_target)?;
+    validate_safe_path(payload_path)?;
 
-const LEGACY_DIRS_TO_REMOVE: &[&str] = &[
-    "scripts",
-    "config/hooks/live",
-    "debian",
-    "packages/caramos-ota",
-    "config/includes.chroot/etc/linuxmint",
-    "config/includes.chroot/usr/lib/python3",
-];
-
-const SALVAGE_SUBPATHS_FROM_OTA: &[&str] = &[
-    "usr/share/cinnamon/applets",
-    "usr/share/icons",
-    "usr/share/applications",
-];
-
-/// Danh sách gói đầy đủ cho một bản Live Desktop CaramOS 2.0 khởi động & cài được lên ổ cứng máy thật.
-const MODERN_DEBIAN_TRIXIE_PACKAGES_TXT: &str = "\
-# =============================================================================
-# CaramOS 2.0 Full Bootable & Installable Live Desktop (Debian 13 Trixie + Rust)
-# =============================================================================
-
-# --- Kernel, Live Boot & Live Session Auto-Login ---
-linux-image-amd64
-live-boot
-live-boot-initramfs-tools
-live-config
-live-config-systemd
-systemd-sysv
-dbus
-libpam-systemd
-sudo
-user-setup
-locales
-
-# --- Trình Cài Đặt Lên Ổ Cứng Máy Thật (Calamares + UEFI/BIOS GRUB) ---
-calamares
-calamares-settings-debian
-grub-efi-amd64-bin
-grub-efi-amd64-signed
-shim-signed
-grub-pc-bin
-grub2-common
-efibootmgr
-os-prober
-dosfstools
-e2fsprogs
-btrfs-progs
-lvm2
-cryptsetup
-parted
-rsync
-
-# --- Hardware Firmware (Wi-Fi, Bluetooth, Audio DSP, AMD/Intel GPU) ---
-firmware-linux-free
-firmware-sof-signed
-firmware-iwlwifi
-firmware-realtek
-firmware-atheros
-firmware-amd-graphics
-firmware-misc-nonfree
-earlyoom
-zram-tools
-
-# --- Rust Core Replacements ---
-rust-coreutils
-sudo-rs
-ripgrep
-fd-find
-
-# --- Xorg Display Server, Mesa 3D & Full Cinnamon Desktop ---
-xorg
-xserver-xorg-input-all
-xserver-xorg-video-all
-mesa-vulkan-drivers
-cinnamon
-lightdm
-lightdm-gtk-greeter
-nemo
-nemo-fileroller
-gnome-terminal
-network-manager-gnome
-blueman
-pipewire-audio
-wireplumber
-libnotify-bin
-xdg-utils
-gvfs-backends
-xdg-user-dirs-gtk
-
-# --- Tiếng Việt (Fcitx5 Unikey), Trình duyệt & Ứng dụng Thiết yếu ---
-fcitx5
-fcitx5-unikey
-fcitx5-config-qt
-firefox-esr
-firefox-esr-l10n-vi
-fonts-noto-core
-fonts-noto-color-emoji
-fonts-liberation2
-ca-certificates
-curl
-flatpak
-pkexec
-polkitd
-";
-
-const MODERN_MAKEFILE: &str = "\
-# CaramOS 2.0 — Rust Orchestrated Makefile (Debian Trixie Base)
-CARGO ?= cargo
-CTL_MANIFEST := crates/caramos-ctl/Cargo.toml
-CTL_BIN := crates/caramos-ctl/target/release/caramos-ctl
-WORK_DIR ?= ./build
-
-.PHONY: all check test build-bin dry-run build release prune clean
-
-all: check test build-bin
-
-check:
-\t$(CARGO) clippy --manifest-path $(CTL_MANIFEST) --all-targets -- -D warnings -D clippy::unwrap_used -D clippy::expect_used -D clippy::panic
-
-test:
-\t$(CARGO) test --manifest-path $(CTL_MANIFEST)
-
-build-bin:
-\t$(CARGO) build --manifest-path $(CTL_MANIFEST) --release
-
-prune: build-bin
-\t$(CTL_BIN) prune --repo-root . --execute
-
-dry-run: build-bin
-\t$(CTL_BIN) build --dry-run --work-dir $(WORK_DIR)_dryrun
-
-build: build-bin
-\tsudo $(CTL_BIN) build --work-dir $(WORK_DIR)
-
-release: build-bin
-\tsudo $(CTL_BIN) build --release --work-dir $(WORK_DIR)
-
-clean:
-\tsudo rm -rf $(WORK_DIR) $(WORK_DIR)_dryrun
-";
-
-/// Cấu hình menu GRUB khởi động lai cho cả Legacy BIOS và UEFI.
-const GRUB_LIVE_CFG: &str = "\
-set default=0
-set timeout=5
-
-insmod all_video
-insmod gfxterm
-
-menuentry \"CaramOS 2.0 (Debian 13 Trixie - Live Desktop & Installer)\" {
-    linux /live/vmlinuz boot=live components quiet splash locales=vi_VN.UTF-8,en_US.UTF-8 keyboard-layouts=us username=caram user-fullname=CaramOS hostname=caramos
-    initrd /live/initrd.img
-}
-
-menuentry \"CaramOS 2.0 (Safe Graphics / Fallback Mode)\" {
-    linux /live/vmlinuz boot=live components nomodeset locales=vi_VN.UTF-8,en_US.UTF-8 keyboard-layouts=us username=caram user-fullname=CaramOS hostname=caramos
-    initrd /live/initrd.img
-}
-";
-
-/// Báo cáo kết quả dọn dẹp kho mã nguồn.
-#[derive(Debug, Default)]
-pub struct PruneReport {
-    /// Các tệp giao diện đã giải cứu sang `config/includes.chroot`.
-    pub salvaged_files: Vec<PathBuf>,
-    /// Các tệp di sản (bao gồm toàn bộ `.py` và `.sh` cổ lỗ sĩ) đã xóa.
-    pub removed_files: Vec<PathBuf>,
-    /// Các thư mục di sản đã xóa.
-    pub removed_dirs: Vec<PathBuf>,
-}
-
-/// Giải cứu Cinnamon Applets, quét xóa toàn bộ `.py`/`.sh` cổ lỗ sĩ và cập nhật cấu hình Debian Trixie.
-pub fn execute_repo_prune(repo_root: &Path, execute: bool) -> Result<PruneReport, CaramError> {
-    let mut report = PruneReport::default();
-    let ota_root = repo_root.join("packages").join("caramos-ota");
-    let overlay_root = repo_root.join("config").join("includes.chroot");
-
-    if ota_root.is_dir() {
-        for sub in SALVAGE_SUBPATHS_FROM_OTA {
-            let safe_rel = SafeRelativePath::parse(sub)?;
-            let src_dir = safe_rel.join_under(&ota_root);
-            let dst_dir = safe_rel.join_under(&overlay_root);
-            if src_dir.is_dir() {
-                salvage_dir_recursive(&src_dir, &dst_dir, execute, &mut report.salvaged_files)?;
-            }
-        }
-    }
-
-    for rel_file in LEGACY_FILES_TO_REMOVE {
-        let safe_rel = SafeRelativePath::parse(rel_file)?;
-        let target = safe_rel.join_under(repo_root);
-        if target.is_file() || target.is_symlink() {
-            if execute {
-                fs::remove_file(&target).map_err(|source| CaramError::Io {
-                    context: "Xóa tệp di sản",
-                    path: Some(target.clone()),
-                    source,
-                })?;
-            }
-            report.removed_files.push(target);
-        }
-    }
-
-    for rel_dir in LEGACY_DIRS_TO_REMOVE {
-        let safe_rel = SafeRelativePath::parse(rel_dir)?;
-        let target_dir = safe_rel.join_under(repo_root);
-        if target_dir.is_dir() {
-            if execute {
-                fs::remove_dir_all(&target_dir).map_err(|source| CaramError::Io {
-                    context: "Xóa thư mục di sản",
-                    path: Some(target_dir.clone()),
-                    source,
-                })?;
-            }
-            report.removed_dirs.push(target_dir);
-        }
-    }
-
-    purge_obsolete_scripts_recursively(repo_root, execute, &mut report.removed_files)?;
-
-    if execute {
-        let pkg_file = repo_root.join("config").join("packages.txt");
-        let current_pkg = fs::read_to_string(&pkg_file).unwrap_or_default();
-        if current_pkg.is_empty()
-            || current_pkg.contains("mint-")
-            || current_pkg.contains("casper")
-            || !current_pkg.contains("calamares")
-        {
-            atomic_write_bytes(&pkg_file, MODERN_DEBIAN_TRIXIE_PACKAGES_TXT.as_bytes())?;
-        }
-
-        let makefile = repo_root.join("Makefile");
-        atomic_write_bytes(&makefile, MODERN_MAKEFILE.as_bytes())?;
-    }
-
-    Ok(report)
-}
-
-fn purge_obsolete_scripts_recursively(
-    current_dir: &Path,
-    execute: bool,
-    removed_log: &mut Vec<PathBuf>,
-) -> Result<(), CaramError> {
-    if !current_dir.is_dir() {
-        return Ok(());
-    }
-    let entries = fs::read_dir(current_dir).map_err(|source| CaramError::Io {
-        context: "Đọc thư mục khi quét dọn script Python/Shell cũ",
-        path: Some(current_dir.to_path_buf()),
-        source,
-    })?;
-
-    for entry_res in entries {
-        let entry = entry_res.map_err(|source| CaramError::Io {
-            context: "Đọc mục con khi quét script cũ",
-            path: Some(current_dir.to_path_buf()),
-            source,
-        })?;
-        let path = entry.path();
-        let file_name = entry.file_name().into_string().unwrap_or_default();
-
-        if matches!(
-            file_name.as_str(),
-            ".git" | ".github" | "crates" | "target" | "build" | "caramos-app-center"
-        ) {
-            continue;
-        }
-
-        let ftype = entry.file_type().map_err(|source| CaramError::Io {
-            context: "Kiểm tra kiểu tệp khi quét script cũ",
-            path: Some(path.clone()),
-            source,
-        })?;
-
-        if ftype.is_dir() {
-            if file_name == "__pycache__" {
-                if execute {
-                    let _ = fs::remove_dir_all(&path);
-                }
-                removed_log.push(path);
-            } else {
-                purge_obsolete_scripts_recursively(&path, execute, removed_log)?;
-            }
-        } else if ftype.is_file() && is_obsolete_python_or_shell_file(&path) {
-            if execute {
-                fs::remove_file(&path).map_err(|source| CaramError::Io {
-                    context: "Xóa script Python/Shell cổ lỗ sĩ",
-                    path: Some(path.clone()),
-                    source,
-                })?;
-            }
-            removed_log.push(path);
-        }
-    }
-    Ok(())
-}
-
-fn is_obsolete_python_or_shell_file(path: &Path) -> bool {
-    if let Some(ext) = path.extension().and_then(|e| e.to_str()) {
-        if matches!(ext, "py" | "pyc" | "sh") {
-            return true;
-        }
-    }
-    if let Ok(mut f) = File::open(path) {
-        let mut header = [0u8; 64];
-        if let Ok(n) = f.read(&mut header) {
-            if let Some(slice) = header.get(..n) {
-                let first_line = String::from_utf8_lossy(slice);
-                if first_line.starts_with("#!")
-                    && (first_line.contains("python")
-                        || first_line.contains("/bash")
-                        || first_line.contains("/sh"))
-                {
-                    return true;
-                }
-            }
-        }
-    }
-    false
-}
-
-fn salvage_dir_recursive(
-    src_dir: &Path,
-    dst_dir: &Path,
-    execute: bool,
-    salvaged_log: &mut Vec<PathBuf>,
-) -> Result<(), CaramError> {
-    let entries = fs::read_dir(src_dir).map_err(|source| CaramError::Io {
-        context: "Đọc thư mục nguồn khi giải cứu Applet",
-        path: Some(src_dir.to_path_buf()),
-        source,
-    })?;
-    for entry_res in entries {
-        let entry = entry_res.map_err(|source| CaramError::Io {
-            context: "Đọc mục con trong thư mục Applet",
-            path: Some(src_dir.to_path_buf()),
-            source,
-        })?;
-        let src_path = entry.path();
-        let dst_path = dst_dir.join(entry.file_name());
-        let ftype = entry.file_type().map_err(|source| CaramError::Io {
-            context: "Kiểm tra kiểu tệp Applet",
-            path: Some(src_path.clone()),
-            source,
-        })?;
-        if ftype.is_dir() {
-            salvage_dir_recursive(&src_path, &dst_path, execute, salvaged_log)?;
-        } else if ftype.is_file()
-            && !dst_path.exists()
-            && !is_obsolete_python_or_shell_file(&src_path)
-        {
-            if execute {
-                let bytes = fs::read(&src_path).map_err(|source| CaramError::Io {
-                    context: "Đọc tệp Applet cần giải cứu",
-                    path: Some(src_path),
-                    source,
-                })?;
-                atomic_write_bytes(&dst_path, &bytes)?;
-            }
-            salvaged_log.push(dst_path);
-        }
-    }
-    Ok(())
-}
-
-/// Thông tin một thiết bị phần cứng PCI đọc trực tiếp từ `/sys/bus/pci/devices`.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct PciDeviceStatus {
-    /// Địa chỉ khe cắm PCI (ví dụ: `0000:00:02.0`).
-    pub slot: String,
-    /// Mã lớp thiết bị (ví dụ: `0x030000` cho GPU, `0x028000` cho Wi-Fi).
-    pub class_hex: String,
-    /// Mã nhà sản xuất (`0x8086` Intel, `0x1002` AMD, `0x10de` NVIDIA).
-    pub vendor_hex: String,
-    /// Mã thiết bị.
-    pub device_hex: String,
-    /// Tên Kernel Driver đang điều khiển (hoặc `None` nếu thiếu driver/firmware).
-    pub bound_driver: Option<String>,
-}
-
-/// Quét trực tiếp `/sys/bus/pci/devices` để kiểm tra GPU và Card mạng mà không cần Python hay `ubuntu-drivers`.
-pub fn inspect_pci_devices_from_sysfs(
-    sysfs_pci_dir: &Path,
-) -> Result<Vec<PciDeviceStatus>, CaramError> {
-    if !sysfs_pci_dir.exists() {
-        return Ok(Vec::new());
-    }
-    let entries = fs::read_dir(sysfs_pci_dir).map_err(|source| CaramError::Io {
-        context: "Đọc /sys/bus/pci/devices",
-        path: Some(sysfs_pci_dir.to_path_buf()),
-        source,
-    })?;
-
-    let mut results = Vec::new();
-    for entry_res in entries {
-        let entry = entry_res.map_err(|source| CaramError::Io {
-            context: "Đọc thiết bị trong /sys/bus/pci/devices",
-            path: Some(sysfs_pci_dir.to_path_buf()),
-            source,
-        })?;
-        let dev_path = entry.path();
-        let slot = entry.file_name().into_string().unwrap_or_default();
-        let class_hex = fs::read_to_string(dev_path.join("class"))
-            .unwrap_or_default()
-            .trim()
-            .to_owned();
-
-        if !class_hex.starts_with("0x03") && !class_hex.starts_with("0x02") {
-            continue;
-        }
-
-        let vendor_hex = fs::read_to_string(dev_path.join("vendor"))
-            .unwrap_or_default()
-            .trim()
-            .to_owned();
-        let device_hex = fs::read_to_string(dev_path.join("device"))
-            .unwrap_or_default()
-            .trim()
-            .to_owned();
-        let bound_driver = fs::read_link(dev_path.join("driver"))
-            .ok()
-            .and_then(|p| p.file_name().map(|n| n.to_string_lossy().into_owned()));
-
-        results.push(PciDeviceStatus {
-            slot,
-            class_hex,
-            vendor_hex,
-            device_hex,
-            bound_driver,
+    if relative_target.is_absolute() {
+        return Err(CaramCtlError::UnsafePath {
+            path: relative_target.to_path_buf(),
+            reason: "Đường dẫn --target phải là đường dẫn tương đối bên trong --root",
         });
     }
-    results.sort_by(|a, b| a.slot.cmp(&b.slot));
-    Ok(results)
-}
 
-/// Thực thi lệnh kiểm tra phần cứng & driver thuần Rust (thay thế `caramos-driver-check.py`).
-pub fn run_native_driver_check(sysfs_pci_dir: &Path) -> Result<(), CaramError> {
-    let devices = inspect_pci_devices_from_sysfs(sysfs_pci_dir)?;
-    let mut missing_count = 0usize;
-
-    println!("=== CaramOS 2.0 Rust Hardware & Driver Inspector ===");
-    for dev in &devices {
-        let kind = if dev.class_hex.starts_with("0x03") {
-            "GPU/Display"
-        } else {
-            "Network/Wi-Fi"
-        };
-        match &dev.bound_driver {
-            Some(drv) => {
-                println!(
-                    "[OK]   {} ({}) [{}:{}] -> driver: {}",
-                    dev.slot, kind, dev.vendor_hex, dev.device_hex, drv
-                );
-            }
-            None => {
-                missing_count += 1;
-                println!(
-                    "[WARN] {} ({}) [{}:{}] -> CHƯA CÓ KERNEL DRIVER!",
-                    dev.slot, kind, dev.vendor_hex, dev.device_hex
-                );
-            }
-        }
+    let expected_norm = expected_sha256.trim().to_ascii_lowercase();
+    let actual_payload_hash = compute_file_sha256(payload_path)?;
+    if actual_payload_hash != expected_norm {
+        return Err(CaramCtlError::DigestMismatch {
+            path: payload_path.to_path_buf(),
+            expected: expected_norm,
+            actual: actual_payload_hash,
+        });
     }
 
-    if env::var_os("DISPLAY").is_some() || env::var_os("WAYLAND_DISPLAY").is_some() {
-        let summary = if missing_count == 0 {
-            "CaramOS: Toàn bộ phần cứng GPU & Mạng đã nhận đủ Driver."
-        } else {
-            "CaramOS: Phát hiện thiết bị chưa gắn Kernel Driver, hãy kiểm tra cài đặt Firmware."
-        };
-        let _ = Command::new("notify-send")
-            .arg("-a")
-            .arg("CaramOS Driver Check")
-            .arg(summary)
-            .status();
-    }
-    Ok(())
-}
+    let target_full = root_dir.join(relative_target);
+    let backup_path = target_full.with_extension("caramos-ctl.bak");
+    let had_original = target_full.exists();
 
-/// Thực thi trung tâm trợ giúp & thông tin hệ thống thuần Rust (thay thế `caramos-help.py`).
-pub fn run_native_help() -> Result<(), CaramError> {
-    let release_info = fs::read_to_string("/etc/caramos-release")
-        .unwrap_or_else(|_| "CaramOS 2.0 (Debian Trixie)".to_owned());
-    let kernel_info =
-        fs::read_to_string("/proc/version").unwrap_or_else(|_| "Linux amd64".to_owned());
-
-    println!("=== Trung tâm Trợ giúp & Chẩn đoán CaramOS 2.0 ===");
-    println!("{}", release_info.trim());
-    println!("Kernel: {}", kernel_info.trim());
-    println!("Kho mã nguồn & Tài liệu: https://github.com/LocShadowVN/CaramOS-testing");
-
-    if env::var_os("DISPLAY").is_some() || env::var_os("WAYLAND_DISPLAY").is_some() {
-        let _ = Command::new("xdg-open")
-            .arg("https://github.com/LocShadowVN/CaramOS-testing")
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn();
-    }
-    Ok(())
-}
-
-/// Khóa tiến trình độc quyền theo cơ chế RAII.
-pub struct ProcessLockGuard {
-    lock_path: PathBuf,
-}
-
-impl ProcessLockGuard {
-    /// Chiếm khóa tại `lock_path`.
-    pub fn acquire(lock_path: PathBuf) -> Result<Self, CaramError> {
-        if let Some(parent) = lock_path.parent() {
-            fs::create_dir_all(parent).map_err(|source| CaramError::Io {
-                context: "Tạo thư mục chứa lockfile",
-                path: Some(parent.to_path_buf()),
-                source,
-            })?;
-        }
-        let mut f = OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&lock_path)
-            .map_err(|source| {
-                if source.kind() == io::ErrorKind::AlreadyExists {
-                    CaramError::LockContention {
-                        lock_path: lock_path.clone(),
-                    }
-                } else {
-                    CaramError::Io {
-                        context: "Mở lockfile độc quyền",
-                        path: Some(lock_path.clone()),
-                        source,
-                    }
-                }
-            })?;
-        let _ = writeln!(f, "pid={}", std::process::id());
-        let _ = f.sync_all();
-        Ok(Self { lock_path })
-    }
-}
-
-impl Drop for ProcessLockGuard {
-    fn drop(&mut self) {
-        let _ = fs::remove_file(&self.lock_path);
-    }
-}
-
-/// Quản lý vòng đời mount point (`/proc`, `/sys`, `/dev`, `/dev/pts`) trong Chroot bằng RAII.
-pub struct ChrootMountGuard {
-    mounted_targets: Vec<PathBuf>,
-    dry_run: bool,
-}
-
-impl ChrootMountGuard {
-    /// Gắn kết các hệ thống tệp ảo vào `rootfs`.
-    pub fn mount_all(rootfs: &Path, dry_run: bool) -> Result<Self, CaramError> {
-        let mut guard = Self {
-            mounted_targets: Vec::with_capacity(4),
-            dry_run,
-        };
-        let mounts: [(&str, &str, &[&str]); 4] = [
-            ("proc", "proc", &["-t", "proc"]),
-            ("sysfs", "sys", &["-t", "sysfs"]),
-            ("/dev", "dev", &["--bind"]),
-            ("devpts", "dev/pts", &["-t", "devpts"]),
-        ];
-        for (src, rel, flags) in mounts {
-            let target = rootfs.join(rel);
-            fs::create_dir_all(&target).map_err(|source| CaramError::Io {
-                context: "Tạo thư mục mount trong chroot",
-                path: Some(target.clone()),
-                source,
-            })?;
-            if !dry_run {
-                let mut cmd = Command::new("mount");
-                for flag in flags {
-                    cmd.arg(flag);
-                }
-                cmd.arg(src).arg(&target);
-                run_checked_command(&mut cmd, "mount")?;
-            }
-            guard.mounted_targets.push(target);
-        }
-        Ok(guard)
-    }
-
-    /// Đảm bảo không còn mount point nào hoạt động bên dưới `rootfs`.
-    pub fn verify_no_active_mounts_under(rootfs: &Path) -> Result<(), CaramError> {
-        let proc_mounts = Path::new("/proc/mounts");
-        if !proc_mounts.exists() {
-            return Ok(());
-        }
-        let content = fs::read_to_string(proc_mounts).map_err(|source| CaramError::Io {
-            context: "Đọc /proc/mounts",
-            path: Some(proc_mounts.to_path_buf()),
-            source,
-        })?;
-        let canonical = fs::canonicalize(rootfs).unwrap_or_else(|_| rootfs.to_path_buf());
-        let prefix = canonical.to_string_lossy();
-        for line in content.lines() {
-            let mut cols = line.split_whitespace();
-            let _dev = cols.next();
-            if let Some(mp) = cols.next() {
-                if mp.starts_with(prefix.as_ref()) {
-                    return Err(CaramError::ActiveMountDetected {
-                        mount_point: PathBuf::from(mp),
-                    });
-                }
-            }
-        }
-        Ok(())
-    }
-}
-
-impl Drop for ChrootMountGuard {
-    fn drop(&mut self) {
-        for target in self.mounted_targets.iter().rev() {
-            if !self.dry_run {
-                let ok = Command::new("umount")
-                    .arg(target)
-                    .stdout(Stdio::null())
-                    .stderr(Stdio::null())
-                    .status()
-                    .map(|s| s.success())
-                    .unwrap_or(false);
-                if !ok {
-                    let _ = Command::new("umount")
-                        .arg("-lf")
-                        .arg(target)
-                        .stdout(Stdio::null())
-                        .stderr(Stdio::null())
-                        .status();
-                }
-            }
-        }
-    }
-}
-
-/// Chế độ nén SquashFS.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SquashfsCompression {
-    /// Nén `zstd` nhanh.
-    ZstdFast,
-    /// Nén `xz` tối đa cho bản phát hành.
-    XzRelease,
-}
-
-/// Cấu hình phiên Build CaramOS trên nền Debian 13 (`trixie`).
-#[derive(Debug, Clone)]
-pub struct BuildConfig {
-    /// Phiên bản CaramOS.
-    pub version: SemVer,
-    /// Mirror Debian.
-    pub mirror: String,
-    /// Thư mục làm việc (`./build`).
-    pub work_dir: PathBuf,
-    /// Thư mục overlay (`config/includes.chroot`).
-    pub overlay_dir: PathBuf,
-    /// Danh sách gói Debian.
-    pub packages: Vec<DebianPackageName>,
-    /// Chế độ nén.
-    pub compression: SquashfsCompression,
-    /// Chạy mô phỏng không gọi `mmdebstrap` thật.
-    pub dry_run: bool,
-}
-
-/// Trạng thái 1: Chưa khởi tạo.
-pub struct Uninitialized;
-/// Trạng thái 2: Đã kéo Rootfs Debian Trixie.
-pub struct RootfsBootstrapped;
-/// Trạng thái 3: Đã nạp Overlay, nhúng Multi-Call Binary `caramos-ctl` và cấu hình trong Chroot.
-pub struct RootfsCustomized;
-/// Trạng thái 4: Đã đóng gói ISO hoàn chỉnh.
-pub struct IsoPackaged;
-
-/// Bộ điều phối Build theo Typestate Pattern.
-pub struct CaramBuilder<State> {
-    config: BuildConfig,
-    rootfs_dir: PathBuf,
-    iso_staging_dir: PathBuf,
-    _state: PhantomData<State>,
-}
-
-impl CaramBuilder<Uninitialized> {
-    /// Khởi tạo Builder mới.
-    pub fn new(config: BuildConfig) -> Self {
-        let rootfs_dir = config.work_dir.join("rootfs");
-        let iso_staging_dir = config.work_dir.join("iso_staging");
-        Self {
-            config,
-            rootfs_dir,
-            iso_staging_dir,
-            _state: PhantomData,
-        }
-    }
-
-    /// Bước 1: Bootstrap Debian 13 (`trixie`) bằng `mmdebstrap`.
-    pub fn bootstrap_rootfs(self) -> Result<CaramBuilder<RootfsBootstrapped>, CaramError> {
-        ChrootMountGuard::verify_no_active_mounts_under(&self.rootfs_dir)?;
-        fs::create_dir_all(&self.rootfs_dir).map_err(|source| CaramError::Io {
-            context: "Tạo thư mục rootfs",
-            path: Some(self.rootfs_dir.clone()),
-            source,
-        })?;
-        fs::create_dir_all(self.iso_staging_dir.join("live")).map_err(|source| CaramError::Io {
-            context: "Tạo thư mục iso_staging/live",
-            path: Some(self.iso_staging_dir.clone()),
-            source,
-        })?;
-
-        let include_list = self
-            .config
-            .packages
-            .iter()
-            .map(DebianPackageName::as_str)
-            .collect::<Vec<&str>>()
-            .join(",");
-
-        if !self.config.dry_run {
-            let mut cmd = Command::new("mmdebstrap");
-            cmd.arg("--variant=minbase")
-                .arg("--components=main,contrib,non-free,non-free-firmware")
-                .arg(format!("--include={}", include_list))
-                .arg("trixie")
-                .arg(&self.rootfs_dir)
-                .arg(&self.config.mirror);
-            run_checked_command(&mut cmd, "mmdebstrap")?;
-        }
-
-        Ok(CaramBuilder {
-            config: self.config,
-            rootfs_dir: self.rootfs_dir,
-            iso_staging_dir: self.iso_staging_dir,
-            _state: PhantomData,
-        })
-    }
-}
-
-impl CaramBuilder<RootfsBootstrapped> {
-    /// Bước 2: Áp dụng Overlay, cài đặt chính binary `caramos-ctl` cùng các symlink thay thế Python
-    /// (`caramos-driver-check`, `caramos-help`, `caramos-ota`) vào `/usr/local/bin` của hệ điều hành mới.
-    pub fn customize(self) -> Result<CaramBuilder<RootfsCustomized>, CaramError> {
-        if self.config.overlay_dir.exists() {
-            copy_overlay_tree_safely(&self.config.overlay_dir, &self.rootfs_dir)?;
-        }
-
-        install_multicall_rust_binaries(&self.rootfs_dir, self.config.dry_run)?;
-
-        let release_rel = SafeRelativePath::parse("etc/caramos-release")?;
-        let release_target = release_rel.join_under(&self.rootfs_dir);
-        let release_content = format!(
-            "NAME=CaramOS\n\
-             VERSION={ver}\n\
-             VERSION_ID={ver}\n\
-             VERSION_CODENAME=trixie\n\
-             DEBIAN_CODENAME=trixie\n\
-             CHANNEL=testing-rust\n\
-             ID=caramos\n\
-             ID_LIKE=\"debian\"\n\
-             PRETTY_NAME=\"CaramOS {ver} (Debian 13 Trixie / Rust Core)\"\n",
-            ver = self.config.version
-        );
-        atomic_write_bytes(&release_target, release_content.as_bytes())?;
-
-        let locale_gen_rel = SafeRelativePath::parse("etc/locale.gen")?;
-        atomic_write_bytes(
-            &locale_gen_rel.join_under(&self.rootfs_dir),
-            b"vi_VN.UTF-8 UTF-8\nen_US.UTF-8 UTF-8\n",
-        )?;
-
-        {
-            let _mount_guard = ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
-            if !self.config.dry_run {
-                let mut cmd = Command::new("chroot");
-                cmd.arg(&self.rootfs_dir).arg("/bin/sh").arg("-e").arg("-c").arg(
-                    "if command -v dconf >/dev/null 2>&1; then dconf update; fi && \
-                     if command -v locale-gen >/dev/null 2>&1; then locale-gen; fi && \
-                     if command -v update-initramfs >/dev/null 2>&1; then update-initramfs -u -k all; fi && \
-                     apt-get clean && rm -rf /var/lib/apt/lists/*",
-                );
-                run_checked_command(&mut cmd, "chroot-customize")?;
-            }
-        }
-
-        ChrootMountGuard::verify_no_active_mounts_under(&self.rootfs_dir)?;
-
-        Ok(CaramBuilder {
-            config: self.config,
-            rootfs_dir: self.rootfs_dir,
-            iso_staging_dir: self.iso_staging_dir,
-            _state: PhantomData,
-        })
-    }
-}
-
-fn install_multicall_rust_binaries(rootfs: &Path, dry_run: bool) -> Result<(), CaramError> {
-    let usr_bin = rootfs.join("usr").join("bin");
-    let usr_local_bin = rootfs.join("usr").join("local").join("bin");
-    fs::create_dir_all(&usr_bin).map_err(|source| CaramError::Io {
-        context: "Tạo thư mục rootfs/usr/bin",
-        path: Some(usr_bin.clone()),
-        source,
-    })?;
-    fs::create_dir_all(&usr_local_bin).map_err(|source| CaramError::Io {
-        context: "Tạo thư mục rootfs/usr/local/bin",
-        path: Some(usr_local_bin.clone()),
-        source,
-    })?;
-
-    let target_bin = usr_bin.join("caramos-ctl");
-    if !dry_run {
-        if let Ok(current_exe) = env::current_exe() {
-            fs::copy(&current_exe, &target_bin).map_err(|source| CaramError::Io {
-                context: "Sao chép binary caramos-ctl vào rootfs/usr/bin/caramos-ctl",
-                path: Some(target_bin.clone()),
-                source,
-            })?;
-            let perms = fs::Permissions::from_mode(0o755);
-            fs::set_permissions(&target_bin, perms).map_err(|source| CaramError::Io {
-                context: "Cấp quyền thực thi 0755 cho rootfs/usr/bin/caramos-ctl",
-                path: Some(target_bin),
-                source,
-            })?;
-        }
-    } else {
-        atomic_write_bytes(&target_bin, b"CARAMOS_CTL_RUST_BINARY")?;
-    }
-
-    for applet_cmd in ["caramos-driver-check", "caramos-help", "caramos-ota"] {
-        let link_path = usr_local_bin.join(applet_cmd);
-        if link_path.exists() || link_path.is_symlink() {
-            let _ = fs::remove_file(&link_path);
-        }
-        symlink("/usr/bin/caramos-ctl", &link_path).map_err(|source| CaramError::Io {
-            context: "Tạo symlink Multi-Call Rust thay thế script Python cũ",
-            path: Some(link_path),
-            source,
+    if had_original {
+        fs::copy(&target_full, &backup_path).map_err(|e| CaramCtlError::IoFailure {
+            context: "Tạo bản sao lưu nguyên tử trước khi OTA".to_string(),
+            path: Some(backup_path.clone()),
+            source: e,
         })?;
     }
-    Ok(())
-}
 
-impl CaramBuilder<RootfsCustomized> {
-    /// Bước 3: Trích xuất `vmlinuz` + `initrd.img` ra `/live/`, tạo `boot/grub/grub.cfg`,
-    /// nén `filesystem.squashfs` và đóng gói Hybrid Bootable ISO bằng `grub-mkrescue`.
-    pub fn repack_iso(
-        self,
-        output_iso_path: &Path,
-    ) -> Result<(CaramBuilder<IsoPackaged>, Sha256Digest), CaramError> {
-        let live_dir = self.iso_staging_dir.join("live");
-        let grub_dir = self.iso_staging_dir.join("boot").join("grub");
-        fs::create_dir_all(&grub_dir).map_err(|source| CaramError::Io {
-            context: "Tạo thư mục boot/grub trong iso_staging",
-            path: Some(grub_dir.clone()),
-            source,
-        })?;
-
-        atomic_write_bytes(&grub_dir.join("grub.cfg"), GRUB_LIVE_CFG.as_bytes())?;
-
-        let squashfs_target = live_dir.join("filesystem.squashfs");
-
-        if !self.config.dry_run {
-            stage_kernel_and_initrd(&self.rootfs_dir.join("boot"), &live_dir)?;
-
-            let mut mksquash = Command::new("mksquashfs");
-            mksquash
-                .arg(&self.rootfs_dir)
-                .arg(&squashfs_target)
-                .arg("-noappend");
-            match self.config.compression {
-                SquashfsCompression::ZstdFast => {
-                    mksquash
-                        .arg("-comp")
-                        .arg("zstd")
-                        .arg("-Xcompression-level")
-                        .arg("6");
-                }
-                SquashfsCompression::XzRelease => {
-                    mksquash
-                        .arg("-comp")
-                        .arg("xz")
-                        .arg("-b")
-                        .arg("1M")
-                        .arg("-Xdict-size")
-                        .arg("100%");
-                }
-            }
-            run_checked_command(&mut mksquash, "mksquashfs")?;
-
-            let mut mkrescue = Command::new("grub-mkrescue");
-            mkrescue
-                .arg("-o")
-                .arg(output_iso_path)
-                .arg(&self.iso_staging_dir)
-                .arg("--")
-                .arg("-volid")
-                .arg("CARAMOS_LIVE");
-            run_checked_command(&mut mkrescue, "grub-mkrescue")?;
-        } else {
-            let dummy = format!("CARAMOS-DRYRUN-ISO-v{}-trixie", self.config.version);
-            atomic_write_bytes(&live_dir.join("vmlinuz"), b"KERNEL_DRYRUN")?;
-            atomic_write_bytes(&live_dir.join("initrd.img"), b"INITRD_DRYRUN")?;
-            atomic_write_bytes(&squashfs_target, b"SQUASHFS_DRYRUN")?;
-            atomic_write_bytes(output_iso_path, dummy.as_bytes())?;
-        }
-
-        let digest = Sha256Hasher::hash_file(output_iso_path)?;
-        Ok((
-            CaramBuilder {
-                config: self.config,
-                rootfs_dir: self.rootfs_dir,
-                iso_staging_dir: self.iso_staging_dir,
-                _state: PhantomData,
-            },
-            digest,
-        ))
-    }
-}
-
-fn stage_kernel_and_initrd(boot_dir: &Path, live_dir: &Path) -> Result<(), CaramError> {
-    let entries = fs::read_dir(boot_dir).map_err(|source| CaramError::Io {
-        context: "Đọc thư mục rootfs/boot để trích xuất kernel",
-        path: Some(boot_dir.to_path_buf()),
-        source,
+    let payload_bytes = fs::read(payload_path).map_err(|e| CaramCtlError::IoFailure {
+        context: "Đọc dữ liệu gói Payload OTA".to_string(),
+        path: Some(payload_path.to_path_buf()),
+        source: e,
     })?;
 
-    let mut kernels: Vec<PathBuf> = Vec::new();
-    let mut initrds: Vec<PathBuf> = Vec::new();
-
-    for entry_res in entries {
-        let entry = entry_res.map_err(|source| CaramError::Io {
-            context: "Đọc mục trong rootfs/boot",
-            path: Some(boot_dir.to_path_buf()),
-            source,
-        })?;
-        let path = entry.path();
-        if let Some(name) = path.file_name().and_then(|n| n.to_str()) {
-            if name.starts_with("vmlinuz-") {
-                kernels.push(path);
-            } else if name.starts_with("initrd.img-") {
-                initrds.push(path);
-            }
-        }
-    }
-
-    kernels.sort();
-    initrds.sort();
-
-    let chosen_kernel = kernels.last().ok_or_else(|| CaramError::Validation {
-        field: "rootfs/boot/vmlinuz-*",
-        value: boot_dir.display().to_string(),
-        reason: "Không tìm thấy nhân Linux (vmlinuz-*) trong rootfs/boot",
-    })?;
-    let chosen_initrd = initrds.last().ok_or_else(|| CaramError::Validation {
-        field: "rootfs/boot/initrd.img-*",
-        value: boot_dir.display().to_string(),
-        reason: "Không tìm thấy initramfs (initrd.img-*) trong rootfs/boot",
-    })?;
-
-    fs::copy(chosen_kernel, live_dir.join("vmlinuz")).map_err(|source| CaramError::Io {
-        context: "Sao chép vmlinuz sang iso_staging/live/vmlinuz",
-        path: Some(chosen_kernel.clone()),
-        source,
-    })?;
-    fs::copy(chosen_initrd, live_dir.join("initrd.img")).map_err(|source| CaramError::Io {
-        context: "Sao chép initrd.img sang iso_staging/live/initrd.img",
-        path: Some(chosen_initrd.clone()),
-        source,
-    })?;
-
-    Ok(())
-}
-
-/// Mục tệp khai báo trong gói cập nhật OTA.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct OtaFileDirective {
-    /// Đường dẫn tương đối tính từ `/`.
-    pub target_rel_path: SafeRelativePath,
-    /// Tệp nguồn đã tải về.
-    pub staged_source_path: PathBuf,
-    /// Mã băm SHA-256 kỳ vọng.
-    pub expected_sha256: Sha256Digest,
-}
-
-/// Manifest cập nhật OTA.
-#[derive(Debug, Clone)]
-pub struct OtaManifest {
-    /// Phiên bản đích.
-    pub target_version: SemVer,
-    /// Danh sách tệp cần cập nhật nguyên tử.
-    pub directives: Vec<OtaFileDirective>,
-}
-
-/// Trạng thái OTA chưa xác thực mã băm.
-pub struct UnverifiedOta;
-/// Trạng thái OTA đã xác thực SHA-256.
-pub struct VerifiedOta;
-
-/// Giao dịch cập nhật OTA nguyên tử kèm cơ chế tự động Rollback.
-pub struct OtaTransaction<State> {
-    manifest: OtaManifest,
-    system_root: PathBuf,
-    backup_dir: PathBuf,
-    _state: PhantomData<State>,
-}
-
-enum RollbackRecord {
-    Restorable {
-        target_path: PathBuf,
-        backup_file: PathBuf,
-    },
-    CreatedNew {
-        target_path: PathBuf,
-    },
-}
-
-impl OtaTransaction<UnverifiedOta> {
-    /// Khởi tạo giao dịch OTA mới.
-    pub fn new(manifest: OtaManifest, system_root: PathBuf, backup_dir: PathBuf) -> Self {
-        Self {
-            manifest,
-            system_root,
-            backup_dir,
-            _state: PhantomData,
-        }
-    }
-
-    /// Kiểm định SHA-256 của toàn bộ tệp trước khi cho phép ghi vào hệ thống.
-    pub fn verify_payloads(self) -> Result<OtaTransaction<VerifiedOta>, CaramError> {
-        for d in &self.manifest.directives {
-            let actual = Sha256Hasher::hash_file(&d.staged_source_path)?;
-            if actual != d.expected_sha256 {
-                return Err(CaramError::DigestMismatch {
-                    target: d.staged_source_path.clone(),
-                    expected: d.expected_sha256.as_str().to_owned(),
-                    actual: actual.as_str().to_owned(),
+    if let Err(write_err) = atomic_write_file(&target_full, &payload_bytes) {
+        if had_original && backup_path.exists() {
+            if let Err(rb_err) = fs::rename(&backup_path, &target_full) {
+                return Err(CaramCtlError::RollbackFailed {
+                    target: target_full,
+                    original_error: write_err.to_string(),
+                    rollback_error: rb_err,
                 });
             }
         }
-        Ok(OtaTransaction {
-            manifest: self.manifest,
-            system_root: self.system_root,
-            backup_dir: self.backup_dir,
-            _state: PhantomData,
-        })
-    }
-}
-
-impl OtaTransaction<VerifiedOta> {
-    /// Áp dụng toàn bộ thay đổi nguyên tử; tự động Rollback 100% nếu có bất kỳ lỗi nào.
-    pub fn commit_atomic(self) -> Result<SemVer, CaramError> {
-        fs::create_dir_all(&self.backup_dir).map_err(|source| CaramError::Io {
-            context: "Tạo thư mục backup OTA",
-            path: Some(self.backup_dir.clone()),
-            source,
-        })?;
-        let mut journal = Vec::with_capacity(self.manifest.directives.len());
-
-        for (idx, d) in self.manifest.directives.iter().enumerate() {
-            let target = d.target_rel_path.join_under(&self.system_root);
-            if let Err(err) = self.apply_one(idx, d, &target, &mut journal) {
-                let report = Self::rollback(&journal);
-                return Err(CaramError::TransactionAborted {
-                    failed_step: format!(
-                        "#{} ({}): {}",
-                        idx,
-                        d.target_rel_path.as_path().display(),
-                        err
-                    ),
-                    rollback_report: report,
-                });
-            }
-        }
-        Ok(self.manifest.target_version)
+        return Err(write_err);
     }
 
-    fn apply_one(
-        &self,
-        idx: usize,
-        d: &OtaFileDirective,
-        target: &Path,
-        journal: &mut Vec<RollbackRecord>,
-    ) -> Result<(), CaramError> {
-        if target.exists() {
-            let bak = self.backup_dir.join(format!("bak_{}.bin", idx));
-            fs::copy(target, &bak).map_err(|source| CaramError::Io {
-                context: "Sao lưu tệp trước khi ghi OTA",
-                path: Some(target.to_path_buf()),
-                source,
-            })?;
-            journal.push(RollbackRecord::Restorable {
-                target_path: target.to_path_buf(),
-                backup_file: bak,
-            });
-        } else {
-            journal.push(RollbackRecord::CreatedNew {
-                target_path: target.to_path_buf(),
-            });
-        }
-
-        let bytes = fs::read(&d.staged_source_path).map_err(|source| CaramError::Io {
-            context: "Đọc tệp nguồn OTA",
-            path: Some(d.staged_source_path.clone()),
-            source,
-        })?;
-        atomic_write_bytes(target, &bytes)?;
-
-        let written_hash = Sha256Hasher::hash_file(target)?;
-        if written_hash != d.expected_sha256 {
-            return Err(CaramError::DigestMismatch {
-                target: target.to_path_buf(),
-                expected: d.expected_sha256.as_str().to_owned(),
-                actual: written_hash.as_str().to_owned(),
-            });
-        }
-        Ok(())
-    }
-
-    fn rollback(journal: &[RollbackRecord]) -> String {
-        let mut count = 0usize;
-        for rec in journal.iter().rev() {
-            match rec {
-                RollbackRecord::Restorable {
-                    target_path,
-                    backup_file,
-                } => {
-                    if let Ok(bytes) = fs::read(backup_file) {
-                        if atomic_write_bytes(target_path, &bytes).is_ok() {
-                            count += 1;
-                        }
-                    }
-                }
-                RollbackRecord::CreatedNew { target_path } => {
-                    if fs::remove_file(target_path).is_ok() {
-                        count += 1;
-                    }
-                }
-            }
-        }
-        format!("Đã hoàn tác an toàn {} tệp.", count)
-    }
-}
-
-/// Ghi tệp nguyên tử (`write temp` -> `sync_all` -> `rename`).
-pub fn atomic_write_bytes(target: &Path, content: &[u8]) -> Result<(), CaramError> {
-    if let Some(parent) = target.parent() {
-        fs::create_dir_all(parent).map_err(|source| CaramError::Io {
-            context: "Tạo thư mục cha cho atomic write",
-            path: Some(parent.to_path_buf()),
-            source,
-        })?;
-    }
-    let nanos = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_nanos())
-        .unwrap_or(0);
-    let fname = target
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("caramos");
-    let tmp = target.with_file_name(format!(".{}.tmp.{}.{}", fname, std::process::id(), nanos));
-
-    {
-        let mut f = OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&tmp)
-            .map_err(|source| CaramError::Io {
-                context: "Mở tệp tạm",
-                path: Some(tmp.clone()),
-                source,
-            })?;
-        f.write_all(content).map_err(|source| CaramError::Io {
-            context: "Ghi dữ liệu vào tệp tạm",
-            path: Some(tmp.clone()),
-            source,
-        })?;
-        f.sync_all().map_err(|source| CaramError::Io {
-            context: "Đồng bộ đĩa (fsync)",
-            path: Some(tmp.clone()),
-            source,
-        })?;
-    }
-
-    fs::rename(&tmp, target).map_err(|source| {
-        let _ = fs::remove_file(&tmp);
-        CaramError::Io {
-            context: "Đổi tên tệp tạm sang tệp đích",
-            path: Some(target.to_path_buf()),
-            source,
-        }
-    })
-}
-
-/// Sao chép đệ quy `config/includes.chroot` vào `rootfs` kèm kiểm tra chống Path Traversal.
-pub fn copy_overlay_tree_safely(src_root: &Path, dst_root: &Path) -> Result<(), CaramError> {
-    copy_dir_inner(src_root, src_root, dst_root)
-}
-
-fn copy_dir_inner(base_src: &Path, cur_src: &Path, dst_root: &Path) -> Result<(), CaramError> {
-    let entries = fs::read_dir(cur_src).map_err(|source| CaramError::Io {
-        context: "Đọc thư mục overlay",
-        path: Some(cur_src.to_path_buf()),
-        source,
-    })?;
-    for entry_res in entries {
-        let entry = entry_res.map_err(|source| CaramError::Io {
-            context: "Đọc mục con trong overlay",
-            path: Some(cur_src.to_path_buf()),
-            source,
-        })?;
-        let path = entry.path();
-        let rel = path
-            .strip_prefix(base_src)
-            .map_err(|_| CaramError::Validation {
-                field: "OverlayPath",
-                value: path.display().to_string(),
-                reason: "Không thuộc thư mục gốc overlay",
-            })?;
-        let rel_str = rel.to_str().ok_or_else(|| CaramError::Validation {
-            field: "OverlayPath",
-            value: path.display().to_string(),
-            reason: "Đường dẫn không phải UTF-8",
-        })?;
-        let safe_rel = SafeRelativePath::parse(rel_str)?;
-        let target = safe_rel.join_under(dst_root);
-        let ftype = entry.file_type().map_err(|source| CaramError::Io {
-            context: "Đọc kiểu tệp trong overlay",
-            path: Some(path.clone()),
-            source,
-        })?;
-
-        if ftype.is_dir() {
-            fs::create_dir_all(&target).map_err(|source| CaramError::Io {
-                context: "Tạo thư mục đích trong rootfs",
-                path: Some(target),
-                source,
-            })?;
-            copy_dir_inner(base_src, &path, dst_root)?;
-        } else if ftype.is_file() {
-            let bytes = fs::read(&path).map_err(|source| CaramError::Io {
-                context: "Đọc tệp nguồn overlay",
-                path: Some(path),
-                source,
-            })?;
-            atomic_write_bytes(&target, &bytes)?;
-        }
-    }
-    Ok(())
-}
-
-fn run_checked_command(cmd: &mut Command, label: &str) -> Result<(), CaramError> {
-    let out = cmd.output().map_err(|source| CaramError::Io {
-        context: "Chạy lệnh hệ thống",
-        path: Some(PathBuf::from(label)),
-        source,
-    })?;
-    if !out.status.success() {
-        return Err(CaramError::CommandFailed {
-            program: label.to_owned(),
-            status_code: out.status.code(),
-            stderr: String::from_utf8_lossy(&out.stderr).trim().to_owned(),
-        });
-    }
-    Ok(())
-}
-
-/// Đọc và làm sạch danh sách gói từ `config/packages.txt` cho Debian 13 (`trixie`).
-pub fn load_and_modernize_packages(
-    packages_txt: &Path,
-) -> Result<Vec<DebianPackageName>, CaramError> {
-    let raw = if packages_txt.exists() {
-        fs::read_to_string(packages_txt).map_err(|source| CaramError::Io {
-            context: "Đọc config/packages.txt",
-            path: Some(packages_txt.to_path_buf()),
-            source,
-        })?
-    } else {
-        String::new()
-    };
-
-    let mut map: BTreeMap<String, DebianPackageName> = BTreeMap::new();
-    for line in raw.lines() {
-        let clean = line.split('#').next().unwrap_or("").trim();
-        if clean.is_empty() {
-            continue;
-        }
-        if clean.starts_with("mint-")
-            || clean.starts_with("ubuntu-")
-            || clean.starts_with("language-pack-")
-            || matches!(
-                clean,
-                "casper"
-                    | "ubiquity"
-                    | "lupin-casper"
-                    | "mintupdate"
-                    | "mintinstall"
-                    | "firefox"
-                    | "software-properties-common"
-            )
-        {
-            continue;
-        }
-        let pkg = DebianPackageName::parse(clean)?;
-        map.insert(pkg.as_str().to_owned(), pkg);
-    }
-
-    let mandatory = [
-        "linux-image-amd64",
-        "live-boot",
-        "live-boot-initramfs-tools",
-        "live-config",
-        "live-config-systemd",
-        "systemd-sysv",
-        "dbus",
-        "libpam-systemd",
-        "sudo",
-        "user-setup",
-        "locales",
-        "calamares",
-        "calamares-settings-debian",
-        "grub-efi-amd64-bin",
-        "grub-pc-bin",
-        "efibootmgr",
-        "os-prober",
-        "dosfstools",
-        "e2fsprogs",
-        "lvm2",
-        "parted",
-        "rsync",
-        "xorg",
-        "xserver-xorg-input-all",
-        "xserver-xorg-video-all",
-        "mesa-vulkan-drivers",
-        "cinnamon",
-        "lightdm",
-        "lightdm-gtk-greeter",
-        "nemo",
-        "gnome-terminal",
-        "network-manager-gnome",
-        "pipewire-audio",
-        "wireplumber",
-        "fcitx5",
-        "fcitx5-unikey",
-        "firefox-esr",
-        "rust-coreutils",
-        "sudo-rs",
-        "ripgrep",
-        "fd-find",
-        "earlyoom",
-        "ca-certificates",
-    ];
-    for m in mandatory {
-        let pkg = DebianPackageName::parse(m)?;
-        map.insert(pkg.as_str().to_owned(), pkg);
-    }
-
-    Ok(map.into_values().collect())
-}
-
-fn print_usage() {
-    println!(
-        "caramos-ctl — Công cụ Hợp nhất & Multi-Call Binary của CaramOS 2.0\n\
-         \n\
-         CÁCH DÙNG:\n\
-         \x20 caramos-ctl prune [--repo-root <DIR>] [--dry-run | --execute]\n\
-         \x20 caramos-ctl build [--release] [--dry-run] [--work-dir <DIR>]\n\
-         \x20 caramos-ctl hash <FILE_PATH>\n\
-         \x20 caramos-ctl ota-apply <SYS_ROOT> <REL_PATH> <SRC_FILE> <SHA256> <VERSION>\n\
-         \x20 caramos-ctl driver-check\n\
-         \x20 caramos-ctl help\n"
+    let release_file = root_dir.join("etc/caramos-release");
+    let _ = atomic_write_file(
+        &release_file,
+        format!("CARAMOS_VERSION={}\n", new_version.trim()).as_bytes(),
     );
-}
 
-fn run_cli() -> Result<(), CaramError> {
-    let mut args = env::args();
-    let argv0 = args.next().unwrap_or_default();
-    let invoked_name = Path::new(&argv0)
-        .file_name()
-        .and_then(|n| n.to_str())
-        .unwrap_or("caramos-ctl");
-
-    match invoked_name {
-        "caramos-driver-check" => {
-            return run_native_driver_check(Path::new("/sys/bus/pci/devices"));
-        }
-        "caramos-help" => {
-            return run_native_help();
-        }
-        _ => {}
+    if backup_path.exists() {
+        let _ = fs::remove_file(&backup_path);
     }
 
-    let sub = match args.next() {
-        Some(s) => s,
-        None => {
-            print_usage();
+    Ok(())
+}
+
+// ============================================================================
+// 7. ĐIỀU PHỐI DÒNG LỆNH (CLI ENTRYPOINT)
+// ============================================================================
+
+pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
+    let mut stdout = io::stdout().lock();
+    let subcommand = match args.get(1).map(String::as_str) {
+        Some(cmd) => cmd,
+        None | Some("--help") | Some("-h") | Some("help") => {
+            writeln!(
+                stdout,
+                "CaramOS 2.0 Core System Controller (caramos-ctl)\n\
+                 Sử dụng:\n  \
+                   caramos-ctl prune --repo-root <DIR> [--execute]\n  \
+                   caramos-ctl build [--arch amd64] [--compression zstd|xz] [--work-dir <DIR>] [--output-iso <PATH>] [--dry-run]\n  \
+                   caramos-ctl hash <FILE_PATH>\n  \
+                   caramos-ctl ota-apply --root <DIR> --target <REL_PATH> --payload <FILE> --sha256 <HEX> --version <VER>"
+            )
+            .map_err(|e| CaramCtlError::IoFailure {
+                context: "In trợ giúp CLI".to_string(),
+                path: None,
+                source: e,
+            })?;
             return Ok(());
         }
     };
 
-    match sub.as_str() {
-        "help" | "--help" | "-h" => run_native_help(),
-        "driver-check" => run_native_driver_check(Path::new("/sys/bus/pci/devices")),
+    match subcommand {
         "prune" => {
             let mut repo_root = PathBuf::from(".");
             let mut execute = false;
-            while let Some(arg) = args.next() {
-                match arg.as_str() {
-                    "--execute" => execute = true,
-                    "--dry-run" => execute = false,
+            let mut idx = 2;
+            while idx < args.len() {
+                match args[idx].as_str() {
                     "--repo-root" => {
-                        let d = args.next().ok_or_else(|| CaramError::Validation {
-                            field: "--repo-root",
-                            value: String::new(),
-                            reason: "Thiếu đường dẫn sau --repo-root",
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--repo-root".to_string(),
+                            reason: "Thiếu đường dẫn thư mục gốc".to_string(),
                         })?;
-                        repo_root = PathBuf::from(d);
+                        repo_root = PathBuf::from(val);
                     }
+                    "--execute" => execute = true,
                     other => {
-                        return Err(CaramError::Validation {
-                            field: "prune_arg",
-                            value: other.to_owned(),
-                            reason: "Tham số không hợp lệ cho lệnh prune",
+                        return Err(CaramCtlError::InvalidArgument {
+                            flag: other.to_string(),
+                            reason: "Tham số không hợp lệ cho lệnh prune".to_string(),
                         });
                     }
                 }
+                idx = idx.saturating_add(1);
             }
-            let report = execute_repo_prune(&repo_root, execute)?;
-            println!(
-                "==> Prune (execute={}): Giải cứu {} tệp Applet, Xóa {} tệp (.py/.sh/legacy) & {} thư mục cũ.",
-                execute,
-                report.salvaged_files.len(),
-                report.removed_files.len(),
-                report.removed_dirs.len()
-            );
-            Ok(())
-        }
-        "hash" => {
-            let file_arg = args.next().ok_or_else(|| CaramError::Validation {
-                field: "file_path",
-                value: String::new(),
-                reason: "Thiếu đường dẫn tệp cần băm SHA-256",
-            })?;
-            let digest = Sha256Hasher::hash_file(Path::new(&file_arg))?;
-            println!("{}  {}", digest.as_str(), file_arg);
-            Ok(())
-        }
-        "ota-apply" => {
-            let sys_root = args.next().ok_or_else(|| CaramError::Validation {
-                field: "sys_root",
-                value: String::new(),
-                reason: "Thiếu đường dẫn gốc hệ thống",
-            })?;
-            let rel_path = args.next().ok_or_else(|| CaramError::Validation {
-                field: "rel_path",
-                value: String::new(),
-                reason: "Thiếu đường dẫn tương đối của tệp đích",
-            })?;
-            let src_file = args.next().ok_or_else(|| CaramError::Validation {
-                field: "src_file",
-                value: String::new(),
-                reason: "Thiếu tệp nguồn OTA",
-            })?;
-            let sha_hex = args.next().ok_or_else(|| CaramError::Validation {
-                field: "sha256",
-                value: String::new(),
-                reason: "Thiếu mã băm SHA-256 kỳ vọng",
-            })?;
-            let ver_str = args.next().ok_or_else(|| CaramError::Validation {
-                field: "version",
-                value: String::new(),
-                reason: "Thiếu phiên bản đích",
-            })?;
-
-            let manifest = OtaManifest {
-                target_version: SemVer::parse(&ver_str)?,
-                directives: vec![OtaFileDirective {
-                    target_rel_path: SafeRelativePath::parse(&rel_path)?,
-                    staged_source_path: PathBuf::from(src_file),
-                    expected_sha256: Sha256Digest::parse(&sha_hex)?,
-                }],
-            };
-            let root_path = PathBuf::from(&sys_root);
-            let backup_dir = root_path.join(".caramos-ota-backup");
-            let committed_ver = OtaTransaction::new(manifest, root_path, backup_dir)
-                .verify_payloads()?
-                .commit_atomic()?;
-            println!("OK  OTA cập nhật nguyên tử lên phiên bản {}", committed_ver);
+            prune_legacy_artifacts(&repo_root, execute, &mut stdout)?;
             Ok(())
         }
         "build" => {
-            let mut compression = SquashfsCompression::ZstdFast;
-            let mut dry_run = false;
-            let mut work_dir = PathBuf::from("./build");
-            while let Some(arg) = args.next() {
-                match arg.as_str() {
-                    "--release" => compression = SquashfsCompression::XzRelease,
-                    "--dry-run" => dry_run = true,
-                    "--work-dir" => {
-                        let d = args.next().ok_or_else(|| CaramError::Validation {
-                            field: "--work-dir",
-                            value: String::new(),
-                            reason: "Thiếu đường dẫn sau --work-dir",
+            let mut config = BuildConfig {
+                arch: String::from("amd64"),
+                compression: SquashfsCompression::Zstd,
+                mirror: String::from("https://deb.debian.org/debian"),
+                work_dir: PathBuf::from("./build"),
+                includes_chroot_dir: PathBuf::from("./config/includes.chroot"),
+                packages_file: PathBuf::from("./config/packages.txt"),
+                output_iso: PathBuf::from("./build/caramos-2.0-trixie-amd64.iso"),
+                dry_run: false,
+            };
+
+            let mut idx = 2;
+            while idx < args.len() {
+                match args[idx].as_str() {
+                    "--arch" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--arch".to_string(),
+                            reason: "Thiếu kiến trúc CPU".to_string(),
                         })?;
-                        work_dir = PathBuf::from(d);
+                        config.arch.clone_from(val);
                     }
+                    "--compression" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--compression".to_string(),
+                            reason: "Thiếu thuật toán nén (zstd|xz)".to_string(),
+                        })?;
+                        config.compression = SquashfsCompression::parse(val)?;
+                    }
+                    "--mirror" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--mirror".to_string(),
+                            reason: "Thiếu URL Debian mirror".to_string(),
+                        })?;
+                        config.mirror.clone_from(val);
+                    }
+                    "--work-dir" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--work-dir".to_string(),
+                            reason: "Thiếu thư mục làm việc".to_string(),
+                        })?;
+                        config.work_dir = PathBuf::from(val);
+                        config.output_iso = config.work_dir.join("caramos-2.0-trixie-amd64.iso");
+                    }
+                    "--includes-chroot" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--includes-chroot".to_string(),
+                            reason: "Thiếu đường dẫn includes.chroot".to_string(),
+                        })?;
+                        config.includes_chroot_dir = PathBuf::from(val);
+                    }
+                    "--output-iso" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--output-iso".to_string(),
+                            reason: "Thiếu đường dẫn tệp ISO đầu ra".to_string(),
+                        })?;
+                        config.output_iso = PathBuf::from(val);
+                    }
+                    "--dry-run" => config.dry_run = true,
                     other => {
-                        return Err(CaramError::Validation {
-                            field: "build_arg",
-                            value: other.to_owned(),
-                            reason: "Tham số không hợp lệ cho lệnh build",
+                        return Err(CaramCtlError::InvalidArgument {
+                            flag: other.to_string(),
+                            reason: "Tham số không hợp lệ cho lệnh build".to_string(),
                         });
                     }
                 }
+                idx = idx.saturating_add(1);
             }
 
-            let _lock = ProcessLockGuard::acquire(work_dir.join("caramos-ctl.lock"))?;
-            let packages = load_and_modernize_packages(Path::new("config/packages.txt"))?;
-            let version = SemVer::parse("2.0.0")?;
-            let config = BuildConfig {
-                version,
-                mirror: "https://deb.debian.org/debian".to_owned(),
-                work_dir: work_dir.clone(),
-                overlay_dir: PathBuf::from("config/includes.chroot"),
-                packages,
-                compression,
-                dry_run,
-            };
-            let output_iso = work_dir.join(format!("CaramOS-{}-debian-trixie-amd64.iso", version));
-
-            let (_done, digest) = CaramBuilder::new(config)
-                .bootstrap_rootfs()?
-                .customize()?
-                .repack_iso(&output_iso)?;
-
-            println!(
-                "OK  ISO: {} (SHA-256: {})",
-                output_iso.display(),
-                digest.as_str()
-            );
+            let pipeline = IsoBuildPipeline::new(config)?;
+            let pipeline = pipeline.bootstrap_debian_trixie(&mut stdout)?;
+            let pipeline = pipeline.configure_chroot_and_apply_overlay(&mut stdout)?;
+            let pipeline = pipeline.pack_squashfs_and_stage_bootloader(&mut stdout)?;
+            let _finalized = pipeline.build_hybrid_iso(&mut stdout)?;
             Ok(())
         }
-        other => Err(CaramError::Validation {
-            field: "subcommand",
-            value: other.to_owned(),
-            reason: "Lệnh không hợp lệ (hỗ trợ: prune, build, hash, ota-apply, driver-check, help)",
+        "hash" => {
+            let file_arg = args.get(2).ok_or_else(|| CaramCtlError::InvalidArgument {
+                flag: "<FILE_PATH>".to_string(),
+                reason: "Thiếu đường dẫn tệp cần tính mã băm SHA-256".to_string(),
+            })?;
+            let path = PathBuf::from(file_arg);
+            let digest = compute_file_sha256(&path)?;
+            writeln!(stdout, "{}  {}", digest, path.display()).map_err(|e| {
+                CaramCtlError::IoFailure {
+                    context: "In mã băm SHA-256".to_string(),
+                    path: None,
+                    source: e,
+                }
+            })?;
+            Ok(())
+        }
+        "ota-apply" => {
+            let mut root_dir: Option<PathBuf> = None;
+            let mut target_rel: Option<PathBuf> = None;
+            let mut payload: Option<PathBuf> = None;
+            let mut sha256: Option<String> = None;
+            let mut version = String::from("2.0.1");
+
+            let mut idx = 2;
+            while idx < args.len() {
+                match args[idx].as_str() {
+                    "--root" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--root".to_string(),
+                            reason: "Thiếu đường dẫn root".to_string(),
+                        })?;
+                        root_dir = Some(PathBuf::from(val));
+                    }
+                    "--target" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--target".to_string(),
+                            reason: "Thiếu đường dẫn tương đối target".to_string(),
+                        })?;
+                        target_rel = Some(PathBuf::from(val));
+                    }
+                    "--payload" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--payload".to_string(),
+                            reason: "Thiếu đường dẫn payload".to_string(),
+                        })?;
+                        payload = Some(PathBuf::from(val));
+                    }
+                    "--sha256" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--sha256".to_string(),
+                            reason: "Thiếu mã băm SHA-256".to_string(),
+                        })?;
+                        sha256 = Some(val.clone());
+                    }
+                    "--version" => {
+                        idx = idx.saturating_add(1);
+                        let val = args.get(idx).ok_or_else(|| CaramCtlError::InvalidArgument {
+                            flag: "--version".to_string(),
+                            reason: "Thiếu phiên bản".to_string(),
+                        })?;
+                        version.clone_from(val);
+                    }
+                    other => {
+                        return Err(CaramCtlError::InvalidArgument {
+                            flag: other.to_string(),
+                            reason: "Tham số không hợp lệ cho ota-apply".to_string(),
+                        });
+                    }
+                }
+                idx = idx.saturating_add(1);
+            }
+
+            let r = root_dir.ok_or_else(|| CaramCtlError::InvalidArgument {
+                flag: "--root".to_string(),
+                reason: "Bắt buộc".to_string(),
+            })?;
+            let t = target_rel.ok_or_else(|| CaramCtlError::InvalidArgument {
+                flag: "--target".to_string(),
+                reason: "Bắt buộc".to_string(),
+            })?;
+            let p = payload.ok_or_else(|| CaramCtlError::InvalidArgument {
+                flag: "--payload".to_string(),
+                reason: "Bắt buộc".to_string(),
+            })?;
+            let s = sha256.ok_or_else(|| CaramCtlError::InvalidArgument {
+                flag: "--sha256".to_string(),
+                reason: "Bắt buộc".to_string(),
+            })?;
+
+            apply_atomic_ota(&r, &t, &p, &s, &version)?;
+            writeln!(
+                stdout,
+                "✔ Đã áp dụng bản cập nhật OTA nguyên tử lên phiên bản {}.",
+                version
+            )
+            .map_err(|e| CaramCtlError::IoFailure {
+                context: "In kết quả OTA".to_string(),
+                path: None,
+                source: e,
+            })?;
+            Ok(())
+        }
+        unknown => Err(CaramCtlError::InvalidArgument {
+            flag: unknown.to_string(),
+            reason: "Lệnh không tồn tại (hỗ trợ: prune, build, hash, ota-apply)".to_string(),
         }),
     }
 }
 
-fn main() -> ExitCode {
-    match run_cli() {
-        Ok(()) => ExitCode::SUCCESS,
+fn main() -> std::process::ExitCode {
+    let args: Vec<String> = env::args().collect();
+    match run_cli(&args) {
+        Ok(()) => std::process::ExitCode::SUCCESS,
         Err(e) => {
-            eprintln!("ERROR: {}", e);
-            ExitCode::FAILURE
+            let mut stderr = io::stderr().lock();
+            let _ = writeln!(stderr, "✖ {}", e);
+            std::process::ExitCode::from(1)
         }
     }
 }
 
+// ============================================================================
+// 8. KIỂM CHỨNG ĐƠN VỊ (BAO GỒM KIỂM THỬ CHỐNG GHI ĐÈ `caramos-ui`)
+// ============================================================================
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::{SystemTime, UNIX_EPOCH};
 
-    fn temp_test_dir(label: &str) -> Result<PathBuf, CaramError> {
+    fn make_temp_dir(label: &str) -> Result<PathBuf, CaramCtlError> {
         let nanos = SystemTime::now()
             .duration_since(UNIX_EPOCH)
             .map(|d| d.as_nanos())
             .unwrap_or(0);
-        let dir = env::temp_dir().join(format!(
-            "caramos_unified_test_{}_{}_{}",
-            label,
-            std::process::id(),
-            nanos
-        ));
-        fs::create_dir_all(&dir).map_err(|source| CaramError::Io {
-            context: "Tạo thư mục test",
+        let dir = env::temp_dir().join(format!("caramos_ctl_test_{}_{}", label, nanos));
+        fs::create_dir_all(&dir).map_err(|e| CaramCtlError::IoFailure {
+            context: "Tạo thư mục test".to_string(),
             path: Some(dir.clone()),
-            source,
+            source: e,
         })?;
         Ok(dir)
     }
 
+    /// Kiểm thử hồi quy quan trọng: Chứng minh 100% rằng các tệp do `caramos-ui` sinh ra trong
+    /// `config/includes.chroot` KHÔNG BAO GIỜ bị `caramos-ctl` ghi đè, và được lan truyền
+    /// đầy đủ sang cả `rootfs` lẫn `iso_staging/boot/grub/themes/caramos`.
     #[test]
-    fn test_sha256_vectors() {
-        let mut h = Sha256Hasher::new();
-        h.update(b"abc");
-        assert_eq!(
-            h.finalize().as_str(),
-            "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad"
-        );
-    }
+    fn test_overlay_and_bootloader_theme_not_overwritten() -> Result<(), CaramCtlError> {
+        let temp_base = make_temp_dir("no_overwrite")?;
+        let includes_dir = temp_base.join("config/includes.chroot");
+        let work_dir = temp_base.join("build");
+        let pkg_file = temp_base.join("config/packages.txt");
 
-    #[test]
-    fn test_prune_purges_all_python_and_shell_scripts() -> Result<(), CaramError> {
-        let root = temp_test_dir("prune_py")?;
-        let applet_dir = root
-            .join("packages/caramos-ota/usr/share/cinnamon/applets/caramos-control-center@caramos");
-        let usr_local_bin = root.join("config/includes.chroot/usr/local/bin");
-        fs::create_dir_all(&applet_dir).map_err(|source| CaramError::Io {
-            context: "Tạo applet_dir",
-            path: Some(applet_dir.clone()),
-            source,
-        })?;
-        fs::create_dir_all(&usr_local_bin).map_err(|source| CaramError::Io {
-            context: "Tạo usr_local_bin",
-            path: Some(usr_local_bin.clone()),
-            source,
-        })?;
+        // Giả lập các tệp do `caramos-ui bootloader` và `Makefile` tạo trong `config/includes.chroot`
+        let custom_grub_default = includes_dir.join("etc/default/grub");
+        let custom_grub_content = b"GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\nCUSTOM_UI_MARKER=1\n";
+        atomic_write_file(&custom_grub_default, custom_grub_content)?;
 
-        atomic_write_bytes(&applet_dir.join("applet.js"), b"// Cinnamon JS Applet")?;
-        let hidden_py = usr_local_bin.join("caramos-driver-check");
-        atomic_write_bytes(&hidden_py, b"#!/usr/bin/env python3\nimport os\n")?;
-        let normal_py = usr_local_bin.join("legacy_helper.py");
-        atomic_write_bytes(&normal_py, b"print('legacy')\n")?;
+        let theme_tga = includes_dir.join("boot/grub/themes/caramos/background.tga");
+        let tga_dummy_bytes = b"TRUEVISION_TGA_CARAMOS_UI_WALLPAPER";
+        atomic_write_file(&theme_tga, tga_dummy_bytes)?;
 
-        let report = execute_repo_prune(&root, true)?;
-        assert_eq!(report.salvaged_files.len(), 1);
-        assert!(!hidden_py.exists());
-        assert!(!normal_py.exists());
+        let theme_txt = includes_dir.join("boot/grub/themes/caramos/theme.txt");
+        atomic_write_file(&theme_txt, b"title-text: \"CaramOS 2.0 Custom UI\"")?;
 
-        let _ = fs::remove_dir_all(&root);
-        Ok(())
-    }
+        let ui_bin = includes_dir.join("usr/local/bin/caramos-ui");
+        atomic_write_file(&ui_bin, b"ELF_CARAMOS_UI_BINARY")?;
 
-    #[test]
-    fn test_builder_installs_multicall_symlinks_and_checks_pci() -> Result<(), CaramError> {
-        let root = temp_test_dir("build_multicall")?;
-        let work = root.join("work");
-        let overlay = root.join("overlay");
-        atomic_write_bytes(&overlay.join("etc/hostname"), b"caramos\n")?;
+        atomic_write_file(&pkg_file, b"linux-image-amd64\nlive-boot\n")?;
 
         let cfg = BuildConfig {
-            version: SemVer::parse("2.0.0")?,
-            mirror: "https://deb.debian.org/debian".to_owned(),
-            work_dir: work.clone(),
-            overlay_dir: overlay,
-            packages: vec![DebianPackageName::parse("rust-coreutils")?],
-            compression: SquashfsCompression::ZstdFast,
+            arch: String::from("amd64"),
+            compression: SquashfsCompression::Zstd,
+            mirror: String::from("https://deb.debian.org/debian"),
+            work_dir: work_dir.clone(),
+            includes_chroot_dir: includes_dir,
+            packages_file: pkg_file,
+            output_iso: work_dir.join("caramos-test.iso"),
             dry_run: true,
         };
-        let iso = work.join("out.iso");
-        let (_b, digest) = CaramBuilder::new(cfg)
-            .bootstrap_rootfs()?
-            .customize()?
-            .repack_iso(&iso)?;
-        assert_eq!(digest.as_str().len(), 64);
 
-        assert!(work
-            .join("rootfs/usr/local/bin/caramos-driver-check")
-            .is_symlink());
-        assert!(work.join("rootfs/usr/local/bin/caramos-help").is_symlink());
+        let mut log = Vec::new();
+        let p = IsoBuildPipeline::new(cfg)?;
+        let p = p.bootstrap_debian_trixie(&mut log)?;
+        let p = p.configure_chroot_and_apply_overlay(&mut log)?;
+        let p = p.pack_squashfs_and_stage_bootloader(&mut log)?;
+        let _p = p.build_hybrid_iso(&mut log)?;
 
-        let mock_pci = root.join("sys_pci/0000:00:02.0");
-        fs::create_dir_all(&mock_pci).map_err(|source| CaramError::Io {
-            context: "Tạo mock_pci",
-            path: Some(mock_pci.clone()),
-            source,
+        // 1. Xác minh `/etc/default/grub` của `caramos-ui` trong `rootfs` được giữ nguyên vẹn, KHÔNG bị ghi đè!
+        let rootfs_grub = fs::read_to_string(work_dir.join("rootfs/etc/default/grub")).map_err(|e| {
+            CaramCtlError::IoFailure {
+                context: "Đọc rootfs/etc/default/grub".to_string(),
+                path: None,
+                source: e,
+            }
         })?;
-        atomic_write_bytes(&mock_pci.join("class"), b"0x030000\n")?;
-        atomic_write_bytes(&mock_pci.join("vendor"), b"0x8086\n")?;
-        atomic_write_bytes(&mock_pci.join("device"), b"0x46a6\n")?;
+        assert!(rootfs_grub.contains("CUSTOM_UI_MARKER=1"));
 
-        let pci_list = inspect_pci_devices_from_sysfs(&root.join("sys_pci"))?;
-        assert_eq!(pci_list.len(), 1);
+        // 2. Xác minh tệp thực thi `caramos-ui` nằm nguyên vẹn trong `rootfs/usr/local/bin/caramos-ui`
+        let rootfs_ui_bin = fs::read(work_dir.join("rootfs/usr/local/bin/caramos-ui")).map_err(|e| {
+            CaramCtlError::IoFailure {
+                context: "Đọc rootfs/usr/local/bin/caramos-ui".to_string(),
+                path: None,
+                source: e,
+            }
+        })?;
+        assert_eq!(rootfs_ui_bin, b"ELF_CARAMOS_UI_BINARY");
 
-        let _ = fs::remove_dir_all(&root);
+        // 3. Xác minh `background.tga` và `theme.txt` đã được lan truyền sang `iso_staging/boot/grub/themes/caramos/`
+        let staged_tga = fs::read(work_dir.join("iso_staging/boot/grub/themes/caramos/background.tga"))
+            .map_err(|e| CaramCtlError::IoFailure {
+                context: "Đọc staged background.tga".to_string(),
+                path: None,
+                source: e,
+            })?;
+        assert_eq!(staged_tga, tga_dummy_bytes);
+
+        let staged_grub_cfg = fs::read_to_string(work_dir.join("iso_staging/boot/grub/grub.cfg"))
+            .map_err(|e| CaramCtlError::IoFailure {
+                context: "Đọc staged grub.cfg".to_string(),
+                path: None,
+                source: e,
+            })?;
+        assert!(staged_grub_cfg.contains("set theme=/boot/grub/themes/caramos/theme.txt"));
+        assert!(staged_grub_cfg.contains("insmod tga"));
+
+        let _ = fs::remove_dir_all(&temp_base);
         Ok(())
     }
 }

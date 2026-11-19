@@ -1,4 +1,4 @@
-name: CaramOS Auto-Prune & Debian Trixie CI
+name: CaramOS Auto-Prune, UI Suite & Debian Trixie CI
 
 on:
   push:
@@ -36,7 +36,7 @@ env:
 
 jobs:
   # ==========================================================================
-  # JOB 1: TỰ ĐỘNG GIẢI CỨU APPLET, XÓA FILE CŨ & COMMIT LẠI LÊN GITHUB
+  # JOB 1: TỰ ĐỘNG GIẢI CỨU APPLET, XÓA FILE DI SẢN & COMMIT LÊN GITHUB
   # ==========================================================================
   auto-prune-legacy:
     name: "1. Auto-Delete Legacy Files & Salvage Applets"
@@ -57,21 +57,20 @@ jobs:
       - name: Cache Cargo build
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "crates/caramos-ctl -> target"
+          workspaces: |
+            crates/caramos-ctl -> target
+            crates/caramos-ui -> target
 
-      - name: Run Rust caramos-ctl prune & format code
+      - name: Format & Run Rust caramos-ctl prune
         shell: bash
         run: |
           set -euo pipefail
           if [ -f "crates/caramos-ctl/Cargo.toml" ]; then
             cargo fmt --manifest-path crates/caramos-ctl/Cargo.toml --all
             cargo run --manifest-path crates/caramos-ctl/Cargo.toml --release -- prune --repo-root . --execute
-          else
-            if [ -d "packages/caramos-ota/usr/share/cinnamon/applets" ]; then
-              mkdir -p config/includes.chroot/usr/share/cinnamon/applets
-              cp -rn packages/caramos-ota/usr/share/cinnamon/applets/* config/includes.chroot/usr/share/cinnamon/applets/ || true
-            fi
-            rm -rf build.sh install-caramos-ota.sh scripts packages/caramos-ota config/hooks/live debian Dockerfile docker-compose.yml "CaramOS Project Finalization.md" .github/workflows/build.yml .github/workflows/release.yml
+          fi
+          if [ -f "crates/caramos-ui/Cargo.toml" ]; then
+            cargo fmt --manifest-path crates/caramos-ui/Cargo.toml --all
           fi
 
       - name: Auto-Commit & Push cleaned repository back to GitHub
@@ -84,25 +83,32 @@ jobs:
 
           git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "chore(auto-prune): salvage Cinnamon applets and remove legacy Mint/Bash/Python OTA files [skip ci]"
+            git commit -m "chore(auto-prune): salvage Cinnamon applets and clean legacy files [skip ci]"
             git push origin "HEAD:${GITHUB_REF_NAME}"
           else
-            echo "OK  Repo đã sạch, không còn file di sản nào cần xóa."
+            echo "OK: Repo đã sạch, không còn file di sản nào cần xóa."
           fi
 
   # ==========================================================================
-  # JOB 2: KIỂM ĐỊNH MÃ NGUỒN RUST & CHẠY UNIT TESTS
+  # JOB 2: KIỂM ĐỊNH THIẾT QUÂN LUẬT & TEST TÍCH HỢP (caramos-ctl + caramos-ui)
   # ==========================================================================
   rust-verification:
-    name: "2. Verify Rust Engine (caramos-ctl)"
+    name: "2. Verify Rust Engines (caramos-ctl & caramos-ui)"
     needs: auto-prune-legacy
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
-      - name: Checkout cleaned repository
+      - name: Checkout latest repository state
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref }}
+
+      - name: Pull latest commit if auto-prune pushed
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --ff-only origin "${GITHUB_REF_NAME}" || true
 
       - name: Install Rust stable toolchain (clippy)
         uses: dtolnay/rust-toolchain@stable
@@ -112,59 +118,119 @@ jobs:
       - name: Cache Cargo build
         uses: Swatinem/rust-cache@v2
         with:
-          workspaces: "crates/caramos-ctl -> target"
+          workspaces: |
+            crates/caramos-ctl -> target
+            crates/caramos-ui -> target
 
-      - name: Strict Clippy Audit (Zero-Panic & Zero-Unsafe)
-        working-directory: crates/caramos-ctl
+      - name: Strict Clippy Audit (caramos-ctl & caramos-ui)
         shell: bash
         run: |
           set -euo pipefail
-          cargo clippy --all-targets -- \
-            -D warnings \
-            -D clippy::unwrap_used \
-            -D clippy::expect_used \
-            -D clippy::panic \
-            -D clippy::indexing_slicing \
-            -D unsafe_code
+          for manifest in crates/caramos-ctl/Cargo.toml crates/caramos-ui/Cargo.toml; do
+            if [ -f "${manifest}" ]; then
+              echo "=== Auditing ${manifest} ==="
+              cargo clippy --manifest-path "${manifest}" --all-targets -- \
+                -D warnings \
+                -D clippy::unwrap_used \
+                -D clippy::expect_used \
+                -D clippy::panic \
+                -D clippy::indexing_slicing \
+                -D unsafe_code
+            fi
+          done
 
-      - name: Run Unit Tests
-        working-directory: crates/caramos-ctl
+      - name: Run Unit Tests (caramos-ctl & caramos-ui)
         shell: bash
         run: |
           set -euo pipefail
-          cargo test --verbose
+          cargo test --manifest-path crates/caramos-ctl/Cargo.toml --verbose
+          if [ -f "crates/caramos-ui/Cargo.toml" ]; then
+            cargo test --manifest-path crates/caramos-ui/Cargo.toml --verbose
+          fi
 
-      - name: Build release binary & test dry-run
+      - name: Build Release Binaries & Run Full E2E Integration Suite
         shell: bash
         run: |
           set -euo pipefail
           cargo build --manifest-path crates/caramos-ctl/Cargo.toml --release
-          BIN="./crates/caramos-ctl/target/release/caramos-ctl"
+          CTL_BIN="./crates/caramos-ctl/target/release/caramos-ctl"
 
-          "${BIN}" build --dry-run --work-dir ./ci_dryrun
-          ISO_PATH="./ci_dryrun/CaramOS-2.0.0-debian-trixie-amd64.iso"
+          mkdir -p ./dist_bins ./ci_dryrun/includes.chroot
 
-          RUST_SHA="$("${BIN}" hash "${ISO_PATH}" | awk '{print $1}')"
+          if [ -f "crates/caramos-ui/Cargo.toml" ]; then
+            cargo build --manifest-path crates/caramos-ui/Cargo.toml --release
+            UI_BIN="./crates/caramos-ui/target/release/caramos-ui"
+            cp "${UI_BIN}" ./dist_bins/caramos-ui
+
+            echo "=== [E2E 1/4] Testing caramos-ui bootloader theme & TGA generation ==="
+            "${UI_BIN}" bootloader --output-root ./ci_dryrun/includes.chroot --width 1280 --height 720
+            test -f ./ci_dryrun/includes.chroot/boot/grub/themes/caramos/background.tga
+            test -f ./ci_dryrun/includes.chroot/boot/grub/themes/caramos/theme.txt
+            test -f ./ci_dryrun/includes.chroot/etc/default/grub
+            test -f ./ci_dryrun/includes.chroot/usr/share/applications/caramos-installer.desktop
+
+            echo "=== [E2E 2/4] Testing caramos-ui Typestate installer (4 slides + manifest) ==="
+            "${UI_BIN}" installer \
+              --target-root ./ci_dryrun/install_target \
+              --disk /dev/nvme0n1 \
+              --user caram \
+              --hostname caramos-trixie \
+              --dry-run
+            grep -q 'EFI_PARTITION="/dev/nvme0n1p1"' ./ci_dryrun/install_target/etc/caramos-install-manifest.conf
+
+            echo "=== [E2E 3/4] Testing caramos-ui transactional OTA updater ==="
+            mkdir -p ./ci_dryrun/ota_root/etc
+            echo "CARAMOS_VERSION=2.0.0" > ./ci_dryrun/ota_root/etc/caramos-release
+            echo "CARAMOS_VERSION=2.0.1" > ./ci_dryrun/payload.new
+            PAYLOAD_SHA="$("${CTL_BIN}" hash ./ci_dryrun/payload.new | awk '{print $1}')"
+
+            "${UI_BIN}" updater \
+              --root ./ci_dryrun/ota_root \
+              --target etc/caramos-release \
+              --payload ./ci_dryrun/payload.new \
+              --sha256 "${PAYLOAD_SHA}" \
+              --version 2.0.1 \
+              --channel testing
+            grep -q "CARAMOS_VERSION=2.0.1" ./ci_dryrun/ota_root/etc/caramos-release
+          fi
+
+          cp "${CTL_BIN}" ./dist_bins/caramos-ctl
+
+          echo "=== [E2E 4/4] Testing caramos-ctl build dry-run & Zero-Overwrite guarantee ==="
+          "${CTL_BIN}" build \
+            --dry-run \
+            --work-dir ./ci_dryrun/iso_work \
+            --includes-chroot ./ci_dryrun/includes.chroot
+
+          ISO_PATH="./ci_dryrun/iso_work/CaramOS-2.0.0-debian-trixie-amd64.iso"
+          test -f "${ISO_PATH}"
+
+          if [ -f "crates/caramos-ui/Cargo.toml" ]; then
+            test -f ./ci_dryrun/iso_work/iso_staging/boot/grub/themes/caramos/background.tga
+            grep -q "set theme=/boot/grub/themes/caramos/theme.txt" ./ci_dryrun/iso_work/iso_staging/boot/grub/grub.cfg
+          fi
+
+          RUST_SHA="$("${CTL_BIN}" hash "${ISO_PATH}" | awk '{print $1}')"
           GNU_SHA="$(sha256sum "${ISO_PATH}" | awk '{print $1}')"
           if [ "${RUST_SHA}" != "${GNU_SHA}" ]; then
-            echo "::error::Sai lệch SHA-256!"
+            echo "::error::Sai lệch SHA-256 giữa caramos-ctl và sha256sum!"
             exit 1
           fi
           rm -rf ./ci_dryrun
 
-      - name: Upload caramos-ctl binary
+      - name: Upload CaramOS Rust Binaries (caramos-ctl & caramos-ui)
         uses: actions/upload-artifact@v4
         with:
-          name: caramos-ctl-binary
-          path: crates/caramos-ctl/target/release/caramos-ctl
+          name: caramos-rust-binaries
+          path: ./dist_bins/*
           if-no-files-found: error
           retention-days: 7
 
   # ==========================================================================
-  # JOB 3: ĐÓNG GÓI ISO DEBIAN 13 TRIXIE THỰC TẾ TRÊN GITHUB RUNNER
+  # JOB 3: ĐÓNG GÓI ISO DEBIAN 13 TRIXIE THỰC TẾ KÈM GIAO DIỆN CARAMOS-UI
   # ==========================================================================
   build-debian-trixie-iso:
-    name: "3. Build Debian 13 Trixie ISO"
+    name: "3. Build Debian 13 Trixie ISO (with CaramOS UI & Bootloader)"
     needs: rust-verification
     runs-on: ubuntu-24.04
     timeout-minutes: 45
@@ -174,10 +240,17 @@ jobs:
         with:
           ref: ${{ github.ref }}
 
-      - name: Download caramos-ctl binary
+      - name: Pull latest commit if auto-prune pushed
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --ff-only origin "${GITHUB_REF_NAME}" || true
+
+      - name: Download CaramOS Rust binaries
         uses: actions/download-artifact@v4
         with:
-          name: caramos-ctl-binary
+          name: caramos-rust-binaries
           path: ./bin
 
       - name: Free up runner disk space
@@ -209,11 +282,24 @@ jobs:
             fi
           done
 
-      - name: Build CaramOS 2.0.0 ISO (Debian Trixie + Rust Core)
+      - name: Inject CaramOS Bootloader Theme & UI Binaries into Chroot
         shell: bash
         run: |
           set -euo pipefail
           chmod +x ./bin/caramos-ctl
+          install -d ./config/includes.chroot/usr/local/bin
+          install -m 0755 ./bin/caramos-ctl ./config/includes.chroot/usr/local/bin/caramos-ctl
+
+          if [ -f "./bin/caramos-ui" ]; then
+            chmod +x ./bin/caramos-ui
+            ./bin/caramos-ui bootloader --output-root ./config/includes.chroot --width 1280 --height 720
+            install -m 0755 ./bin/caramos-ui ./config/includes.chroot/usr/local/bin/caramos-ui
+          fi
+
+      - name: Build CaramOS 2.0.0 ISO (Debian Trixie + Rust Core + CaramOS UI)
+        shell: bash
+        run: |
+          set -euo pipefail
           FLAGS=("--work-dir" "./build")
           if [ "${{ inputs.build_mode }}" = "release-xz" ]; then
             FLAGS+=("--release")

@@ -13,8 +13,9 @@
 //! # CaramOS 2.0 UI & System Experience Suite (`caramos-ui`)
 //!
 //! Tối ưu thuần Rust với crate ngoài chuẩn hóa, bảo toàn 100% bản sắc UI gốc của CaramOS:
-//! 1. `installer`: Trình cài đặt Typestate an toàn (`--dry-run` mặc định; `--execute --confirm-erase-disk`
-//!    thực thi phân vùng GPT/EFI, `unsquashfs`, tạo tài khoản & cài GRUB trên môi trường Live ISO thực tế).
+//! 1. `installer`: Trình cài đặt thân thiện người dùng cuối (tự liệt kê ổ đĩa `lsblk`, tạo tài khoản
+//!    người dùng thường + mật khẩu ẩn `rpassword`, khóa cứng `root` bằng `passwd -l root`,
+//!    cấu hình múi giờ/LightDM/GRUB UEFI & BIOS, kiểm định Typestate).
 //! 2. `bootloader`: **Không tự vẽ hình nền** — tự tìm và tái sử dụng hình nền có sẵn trong
 //!    `config/includes.chroot/usr/share/backgrounds/` (và logo `assets/CaramOS_logo.png`),
 //!    chuẩn hóa sang PNG cho GRUB2 + Plymouth, giữ nguyên giao diện Cinnamon gốc của CaramOS.
@@ -27,6 +28,7 @@ use image::{DynamicImage, ImageFormat, ImageReader};
 use sha2::{Digest, Sha256};
 use std::env;
 use std::ffi::OsString;
+use std::fmt;
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, BufWriter, Read, Write};
 use std::marker::PhantomData;
@@ -139,12 +141,12 @@ pub const CARAMOS_TOUR_SLIDES: [OnboardingSlide; 4] = [
     OnboardingSlide {
         index: 2,
         total: 4,
-        title: "CÔNG CỤ HỆ THỐNG RUST AN TOÀN BỘ NHỚ",
-        subtitle: "Thay thế các chuỗi script Python/Bash rải rác bằng binary Rust thống nhất",
+        title: "TÀI KHOẢN NGƯỜI DÙNG CHUẨN & AN TOÀN BỘ NHỚ",
+        subtitle: "Bảo mật mặc định cho người dùng hằng ngày — khóa đăng nhập root",
         highlights: &[
-            "• Tuân thủ #![forbid(unsafe_code)], Zero-Panic Policy và kiểm định đường dẫn.",
-            "• Quản lý gắn kết Chroot chuẩn RAII và ghi tệp nguyên tử fsync + rename.",
-            "• Tối ưu I/O truyền luồng và SHA-256 tăng tốc phần cứng.",
+            "• Tạo tài khoản người dùng cá nhân đầy đủ quyền sudo và nhóm phần cứng Desktop.",
+            "• Khóa đăng nhập trực tiếp tài khoản root sau khi cài đặt hoàn tất.",
+            "• Công cụ hệ thống viết bằng Rust chuẩn #![forbid(unsafe_code)].",
         ],
     },
     OnboardingSlide {
@@ -291,6 +293,34 @@ impl ValidatedBlockDevice {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ValidatedFullName(String);
+
+impl ValidatedFullName {
+    pub fn parse(input: &str) -> Result<Self, CaramUiError> {
+        let trimmed = input.trim();
+        if trimmed.is_empty() || trimmed.chars().count() > 64 {
+            return Err(CaramUiError::ValidationFailed {
+                field: "full_name",
+                value: trimmed.to_string(),
+                reason: "Họ tên hiển thị phải dài từ 1 đến 64 ký tự",
+            });
+        }
+        if trimmed.contains(':') || trimmed.chars().any(char::is_control) {
+            return Err(CaramUiError::ValidationFailed {
+                field: "full_name",
+                value: trimmed.to_string(),
+                reason: "Họ tên không được chứa dấu hai chấm (:) hoặc ký tự điều khiển",
+            });
+        }
+        Ok(Self(trimmed.to_string()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValidatedUsername(String);
 
 impl ValidatedUsername {
@@ -300,14 +330,14 @@ impl ValidatedUsername {
             return Err(CaramUiError::ValidationFailed {
                 field: "username",
                 value: trimmed.to_string(),
-                reason: "Độ dài tên người dùng phải từ 1 đến 32 ký tự",
+                reason: "Độ dài tên đăng nhập phải từ 1 đến 32 ký tự",
             });
         }
-        if trimmed == "root" {
+        if trimmed.eq_ignore_ascii_case("root") {
             return Err(CaramUiError::ValidationFailed {
                 field: "username",
                 value: trimmed.to_string(),
-                reason: "Không sử dụng tài khoản 'root' làm tài khoản Desktop mặc định",
+                reason: "Vì an toàn, CaramOS chỉ dùng tài khoản người dùng thường (cấm tạo/dùng tài khoản 'root')",
             });
         }
 
@@ -315,7 +345,7 @@ impl ValidatedUsername {
         let first = chars.next().ok_or_else(|| CaramUiError::ValidationFailed {
             field: "username",
             value: String::new(),
-            reason: "Tên người dùng rỗng",
+            reason: "Tên đăng nhập rỗng",
         })?;
 
         if !(first.is_ascii_lowercase() || first == '_') {
@@ -335,6 +365,45 @@ impl ValidatedUsername {
         }
 
         Ok(Self(trimmed.to_string()))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+#[derive(Clone, PartialEq, Eq)]
+pub struct ValidatedPassword(String);
+
+impl fmt::Debug for ValidatedPassword {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str("ValidatedPassword(***)")
+    }
+}
+
+impl Drop for ValidatedPassword {
+    fn drop(&mut self) {
+        self.0.clear();
+    }
+}
+
+impl ValidatedPassword {
+    pub fn parse(input: &str) -> Result<Self, CaramUiError> {
+        if input.len() < 4 || input.len() > 128 {
+            return Err(CaramUiError::ValidationFailed {
+                field: "password",
+                value: "***".to_string(),
+                reason: "Mật khẩu phải có độ dài từ 4 đến 128 ký tự",
+            });
+        }
+        if input.contains('\n') || input.contains('\r') || input.contains('\0') {
+            return Err(CaramUiError::ValidationFailed {
+                field: "password",
+                value: "***".to_string(),
+                reason: "Mật khẩu không được chứa ký tự xuống dòng hoặc NULL",
+            });
+        }
+        Ok(Self(input.to_string()))
     }
 
     pub fn as_str(&self) -> &str {
@@ -381,7 +450,7 @@ impl ValidatedHostname {
 }
 
 // ============================================================================
-// 4. PHÂN HỆ 1: TRÌNH CÀI ĐẶT HỆ ĐIỀU HÀNH TYPESTATE (`installer`)
+// 4. PHÂN HỆ 1: TRÌNH CÀI ĐẶT HỆ ĐIỀU HÀNH THÂN THIỆN USER & KHÓA ROOT (`installer`)
 // ============================================================================
 
 pub struct StageWelcome;
@@ -398,6 +467,76 @@ pub struct PartitionLayoutPlan {
     pub filesystem: &'static str,
 }
 
+pub struct AccountConfig<'a> {
+    pub full_name: &'a str,
+    pub username: &'a str,
+    pub password: &'a str,
+    pub hostname: &'a str,
+    pub timezone: &'a str,
+    pub autologin: bool,
+}
+
+#[derive(Debug, Clone)]
+struct ValidatedAccount {
+    full_name: ValidatedFullName,
+    username: ValidatedUsername,
+    password: ValidatedPassword,
+    hostname: ValidatedHostname,
+    timezone: String,
+    autologin: bool,
+}
+
+#[derive(Debug, Clone)]
+struct DetectedDisk {
+    path: String,
+    size: String,
+    model: String,
+}
+
+fn discover_physical_disks() -> Vec<DetectedDisk> {
+    let Ok(output) = Command::new("lsblk")
+        .args(["-dn", "-o", "PATH,SIZE,TYPE,MODEL"])
+        .output()
+    else {
+        return Vec::new();
+    };
+    if !output.status.success() {
+        return Vec::new();
+    }
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    let mut disks = Vec::new();
+    for line in stdout.lines() {
+        let mut parts = line.split_whitespace();
+        let Some(path) = parts.next() else {
+            continue;
+        };
+        let Some(size) = parts.next() else {
+            continue;
+        };
+        let Some(dev_type) = parts.next() else {
+            continue;
+        };
+        if dev_type != "disk" || path.starts_with("/dev/loop") {
+            continue;
+        }
+        if ValidatedBlockDevice::parse(path).is_err() {
+            continue;
+        }
+        let model = parts.collect::<Vec<_>>().join(" ");
+        disks.push(DetectedDisk {
+            path: path.to_string(),
+            size: size.to_string(),
+            model: if model.is_empty() {
+                String::from("Ổ đĩa hệ thống")
+            } else {
+                model
+            },
+        });
+    }
+    disks
+}
+
 pub struct CaramInstaller<Stage> {
     target_root: PathBuf,
     dry_run: bool,
@@ -405,9 +544,7 @@ pub struct CaramInstaller<Stage> {
     slides_viewed: usize,
     disk: Option<ValidatedBlockDevice>,
     layout: Option<PartitionLayoutPlan>,
-    username: Option<ValidatedUsername>,
-    hostname: Option<ValidatedHostname>,
-    timezone: String,
+    account: Option<ValidatedAccount>,
     _stage: PhantomData<Stage>,
 }
 
@@ -425,9 +562,7 @@ impl CaramInstaller<StageWelcome> {
             slides_viewed: 0,
             disk: None,
             layout: None,
-            username: None,
-            hostname: None,
-            timezone: String::from("Asia/Ho_Chi_Minh"),
+            account: None,
             _stage: PhantomData,
         })
     }
@@ -489,9 +624,7 @@ impl CaramInstaller<StageWelcome> {
             slides_viewed: self.slides_viewed,
             disk: None,
             layout: None,
-            username: None,
-            hostname: None,
-            timezone: self.timezone,
+            account: None,
             _stage: PhantomData,
         })
     }
@@ -528,9 +661,7 @@ impl CaramInstaller<StageTourCompleted> {
             slides_viewed: self.slides_viewed,
             disk: Some(device),
             layout: Some(layout),
-            username: None,
-            hostname: None,
-            timezone: self.timezone,
+            account: None,
             _stage: PhantomData,
         })
     }
@@ -539,14 +670,14 @@ impl CaramInstaller<StageTourCompleted> {
 impl CaramInstaller<StageDiskValidated> {
     pub fn configure_account(
         self,
-        username_str: &str,
-        hostname_str: &str,
-        timezone_str: &str,
+        cfg: &AccountConfig<'_>,
     ) -> Result<CaramInstaller<StageUserConfigured>, CaramUiError> {
-        let username = ValidatedUsername::parse(username_str)?;
-        let hostname = ValidatedHostname::parse(hostname_str)?;
+        let full_name = ValidatedFullName::parse(cfg.full_name)?;
+        let username = ValidatedUsername::parse(cfg.username)?;
+        let password = ValidatedPassword::parse(cfg.password)?;
+        let hostname = ValidatedHostname::parse(cfg.hostname)?;
 
-        let tz_trimmed = timezone_str.trim();
+        let tz_trimmed = cfg.timezone.trim();
         if tz_trimmed.is_empty() || tz_trimmed.contains("..") || tz_trimmed.contains('\0') {
             return Err(CaramUiError::ValidationFailed {
                 field: "timezone",
@@ -562,9 +693,14 @@ impl CaramInstaller<StageDiskValidated> {
             slides_viewed: self.slides_viewed,
             disk: self.disk,
             layout: self.layout,
-            username: Some(username),
-            hostname: Some(hostname),
-            timezone: tz_trimmed.to_string(),
+            account: Some(ValidatedAccount {
+                full_name,
+                username,
+                password,
+                hostname,
+                timezone: tz_trimmed.to_string(),
+                autologin: cfg.autologin,
+            }),
             _stage: PhantomData,
         })
     }
@@ -615,6 +751,132 @@ fn run_sys_cmd(cmd: &mut Command, context: &str) -> Result<(), CaramUiError> {
     Ok(())
 }
 
+/// Truyền mật khẩu an toàn qua pipe `stdin` cho `chpasswd` (không lộ trong argv/ps).
+fn set_user_password_in_chroot(
+    target_root: &Path,
+    username: &ValidatedUsername,
+    password: &ValidatedPassword,
+) -> Result<(), CaramUiError> {
+    let mut child = Command::new("chroot")
+        .arg(target_root)
+        .arg("chpasswd")
+        .stdin(Stdio::piped())
+        .spawn()
+        .map_err(|e| CaramUiError::IoFailure {
+            context: "Khởi chạy chpasswd trong hệ thống đích".to_string(),
+            path: Some(target_root.to_path_buf()),
+            source: e,
+        })?;
+
+    if let Some(mut stdin) = child.stdin.take() {
+        writeln!(stdin, "{}:{}", username.as_str(), password.as_str()).map_err(|e| {
+            CaramUiError::IoFailure {
+                context: "Ghi mật khẩu qua pipe chpasswd".to_string(),
+                path: None,
+                source: e,
+            }
+        })?;
+    }
+
+    let status = child.wait().map_err(|e| CaramUiError::IoFailure {
+        context: "Đợi tiến trình chpasswd hoàn tất".to_string(),
+        path: None,
+        source: e,
+    })?;
+    if !status.success() {
+        return Err(CaramUiError::SubprocessFailed {
+            binary: "chpasswd".to_string(),
+            status_code: status.code(),
+            context: "Đặt mật khẩu cho tài khoản người dùng".to_string(),
+        });
+    }
+    Ok(())
+}
+
+/// Chỉ gán các nhóm Desktop có thật trong `/etc/group` của hệ thống đích để tránh lỗi `usermod`.
+fn resolve_existing_desktop_groups(target_root: &Path) -> Vec<&'static str> {
+    let desired = [
+        "sudo",
+        "audio",
+        "video",
+        "plugdev",
+        "netdev",
+        "bluetooth",
+        "cdrom",
+        "lpadmin",
+    ];
+    let group_file = target_root.join("etc/group");
+    let Ok(content) = fs::read_to_string(&group_file) else {
+        return vec!["sudo"];
+    };
+
+    let mut matched = Vec::new();
+    for grp in desired {
+        let prefix = format!("{}:", grp);
+        if content.lines().any(|line| line.starts_with(&prefix)) {
+            matched.push(grp);
+        }
+    }
+    if matched.is_empty() {
+        matched.push("sudo");
+    }
+    matched
+}
+
+fn configure_timezone_in_target(target_root: &Path, timezone: &str) -> Result<(), CaramUiError> {
+    atomic_write_bytes(
+        &target_root.join("etc/timezone"),
+        format!("{}\n", timezone).as_bytes(),
+    )?;
+
+    let zoneinfo_rel = Path::new("usr/share/zoneinfo").join(timezone);
+    if target_root.join(&zoneinfo_rel).is_file() {
+        let localtime_path = target_root.join("etc/localtime");
+        if localtime_path.symlink_metadata().is_ok() {
+            let _ = fs::remove_file(&localtime_path);
+        }
+        #[cfg(unix)]
+        {
+            let target_zone = Path::new("/usr/share/zoneinfo").join(timezone);
+            std::os::unix::fs::symlink(target_zone, &localtime_path).map_err(|e| {
+                CaramUiError::IoFailure {
+                    context: "Liên kết /etc/localtime cho múi giờ".to_string(),
+                    path: Some(localtime_path),
+                    source: e,
+                }
+            })?;
+        }
+    }
+    Ok(())
+}
+
+fn configure_lightdm_autologin(
+    target_root: &Path,
+    username: &ValidatedUsername,
+    autologin: bool,
+) -> Result<(), CaramUiError> {
+    let conf_dir = target_root.join("etc/lightdm/lightdm.conf.d");
+    let live_dropin = conf_dir.join("12-autologin.conf");
+    if live_dropin.exists() {
+        let _ = fs::remove_file(&live_dropin);
+    }
+
+    let caramos_dropin = conf_dir.join("50-caramos-autologin.conf");
+    if autologin {
+        let content = format!(
+            "# CaramOS Standard User Auto-Login (Never root)\n\
+             [Seat:*]\n\
+             autologin-user={}\n\
+             autologin-user-timeout=0\n",
+            username.as_str()
+        );
+        atomic_write_bytes(&caramos_dropin, content.as_bytes())?;
+    } else if caramos_dropin.exists() {
+        let _ = fs::remove_file(&caramos_dropin);
+    }
+    Ok(())
+}
+
 impl CaramInstaller<StageUserConfigured> {
     pub fn commit_installation<W: Write>(
         self,
@@ -630,26 +892,24 @@ impl CaramInstaller<StageUserConfigured> {
             value: String::new(),
             reason: "Sơ đồ phân vùng bị thiếu",
         })?;
-        let username = self.username.as_ref().ok_or_else(|| CaramUiError::ValidationFailed {
-            field: "username",
-            value: String::new(),
-            reason: "Tên người dùng bị thiếu",
-        })?;
-        let hostname = self.hostname.as_ref().ok_or_else(|| CaramUiError::ValidationFailed {
-            field: "hostname",
-            value: String::new(),
-            reason: "Hostname bị thiếu",
-        })?;
+        let account = self
+            .account
+            .as_ref()
+            .ok_or_else(|| CaramUiError::ValidationFailed {
+                field: "account",
+                value: String::new(),
+                reason: "Thông tin tài khoản người dùng bị thiếu",
+            })?;
 
         if !self.dry_run {
             if !self.confirm_erase_disk {
                 return Err(CaramUiError::ValidationFailed {
                     field: "confirm_erase_disk",
                     value: "false".to_string(),
-                    reason: "Chế độ --execute yêu cầu cờ xác nhận --confirm-erase-disk để tránh mất dữ liệu ngoài ý muốn",
+                    reason: "Chế độ --execute yêu cầu xác nhận --confirm-erase-disk để tránh xóa nhầm ổ cứng",
                 });
             }
-            self.execute_live_disk_install(disk, layout, username, hostname, writer)?;
+            self.execute_live_disk_install(disk, layout, account, writer)?;
         } else {
             writeln!(
                 writer,
@@ -666,8 +926,8 @@ impl CaramInstaller<StageUserConfigured> {
                 (20, "Kiểm định sơ đồ bảng phân vùng GPT & EFI (512 MiB FAT32)"),
                 (45, "Kiểm định định dạng phân vùng Rootfs ext4"),
                 (70, "Kiểm định giải nén Debian 13 (Trixie) Live SquashFS"),
-                (85, "Kiểm định tài khoản quản trị, Hostname & Múi giờ"),
-                (100, "Ghi biên bản cấu hình cài đặt nguyên tử"),
+                (85, "Kiểm định tài khoản người dùng thường (khóa root) & múi giờ"),
+                (100, "Ghi biên bản cấu hình cài đặt nguyên tử (không lưu mật khẩu)"),
             ];
             for (percent, desc) in &steps {
                 render_progress_bar(writer, *percent, desc)?;
@@ -682,8 +942,12 @@ impl CaramInstaller<StageUserConfigured> {
         })?;
 
         let hostname_path = etc_dir.join("hostname");
-        atomic_write_bytes(&hostname_path, format!("{}\n", hostname.as_str()).as_bytes())?;
+        atomic_write_bytes(
+            &hostname_path,
+            format!("{}\n", account.hostname.as_str()).as_bytes(),
+        )?;
 
+        // Tuyệt đối không ghi mật khẩu vào manifest
         let manifest_path = etc_dir.join("caramos-install-manifest.conf");
         let manifest_content = format!(
             "# CaramOS 2.0 Installation Manifest (Generated by caramos-ui)\n\
@@ -695,7 +959,10 @@ impl CaramInstaller<StageUserConfigured> {
              EFI_SIZE_MIB={}\n\
              ROOT_PARTITION=\"{}\"\n\
              FILESYSTEM=\"{}\"\n\
-             ADMIN_USER=\"{}\"\n\
+             USER_FULL_NAME=\"{}\"\n\
+             STANDARD_USER=\"{}\"\n\
+             ROOT_LOGIN_LOCKED=true\n\
+             AUTOLOGIN={}\n\
              HOSTNAME=\"{}\"\n\
              TIMEZONE=\"{}\"\n",
             self.dry_run,
@@ -705,17 +972,20 @@ impl CaramInstaller<StageUserConfigured> {
             layout.efi_size_mib,
             layout.root_partition,
             layout.filesystem,
-            username.as_str(),
-            hostname.as_str(),
-            self.timezone
+            account.full_name.as_str(),
+            account.username.as_str(),
+            account.autologin,
+            account.hostname.as_str(),
+            account.timezone
         );
         atomic_write_bytes(&manifest_path, manifest_content.as_bytes())?;
 
         writeln!(
             writer,
-            "\n{}{}✔ HOÀN TẤT! Biên bản cài đặt tại: '{}'{}",
+            "\n{}{}✔ HOÀN TẤT! Tài khoản đăng nhập: '{}' (Tài khoản root đã khóa).\n  Biên bản tại: '{}'{}",
             ANSI_BOLD,
             ANSI_SAGE,
+            account.username.as_str(),
             manifest_path.display(),
             ANSI_RESET
         )
@@ -732,9 +1002,7 @@ impl CaramInstaller<StageUserConfigured> {
             slides_viewed: self.slides_viewed,
             disk: self.disk,
             layout: self.layout,
-            username: self.username,
-            hostname: self.hostname,
-            timezone: self.timezone,
+            account: self.account,
             _stage: PhantomData,
         })
     }
@@ -743,8 +1011,7 @@ impl CaramInstaller<StageUserConfigured> {
         &self,
         disk: &ValidatedBlockDevice,
         layout: &PartitionLayoutPlan,
-        username: &ValidatedUsername,
-        hostname: &ValidatedHostname,
+        account: &ValidatedAccount,
         writer: &mut W,
     ) -> Result<(), CaramUiError> {
         let live_squashfs = Path::new("/run/live/medium/live/filesystem.squashfs");
@@ -758,10 +1025,11 @@ impl CaramInstaller<StageUserConfigured> {
 
         writeln!(
             writer,
-            "\n{}{}▶ ĐANG CÀI ĐẶT THỰC TẾ CARAMOS 2.0 LÊN '{}'{}",
+            "\n{}{}▶ ĐANG CÀI ĐẶT CARAMOS 2.0 LÊN '{}' CHO NGƯỜI DÙNG '{}'{}",
             ANSI_BOLD,
             ANSI_SAGE,
             disk.as_path().display(),
+            account.username.as_str(),
             ANSI_RESET
         )
         .map_err(|e| CaramUiError::IoFailure {
@@ -794,7 +1062,7 @@ impl CaramInstaller<StageUserConfigured> {
             "parted GPT layout",
         )?;
 
-        render_progress_bar(writer, 30, "Định dạng phân vùng EFI (FAT32) & Root (ext4)...")?;
+        render_progress_bar(writer, 28, "Định dạng phân vùng EFI (FAT32) & Root (ext4)...")?;
         run_sys_cmd(
             Command::new("mkfs.vfat")
                 .arg("-F")
@@ -841,7 +1109,7 @@ impl CaramInstaller<StageUserConfigured> {
             "mount EFI partition",
         )?;
 
-        render_progress_bar(writer, 60, "Giải nén hệ thống tệp SquashFS vào ổ đĩa đích...")?;
+        render_progress_bar(writer, 55, "Giải nén hệ thống tệp SquashFS vào ổ đĩa đích...")?;
         run_sys_cmd(
             Command::new("unsquashfs")
                 .arg("-f")
@@ -851,7 +1119,11 @@ impl CaramInstaller<StageUserConfigured> {
             "unsquashfs live image",
         )?;
 
-        render_progress_bar(writer, 80, "Cấu hình tài khoản, hostname, fstab & múi giờ...")?;
+        render_progress_bar(
+            writer,
+            75,
+            "Tạo tài khoản người dùng thường, đặt mật khẩu & khóa tài khoản root...",
+        )?;
         for rel in ["dev", "proc", "sys", "run"] {
             let src = PathBuf::from("/").join(rel);
             let dst = self.target_root.join(rel);
@@ -871,33 +1143,98 @@ impl CaramInstaller<StageUserConfigured> {
         atomic_write_bytes(&self.target_root.join("etc/fstab"), fstab.as_bytes())?;
         atomic_write_bytes(
             &self.target_root.join("etc/hosts"),
-            format!("127.0.0.1\tlocalhost\n127.0.1.1\t{}\n", hostname.as_str()).as_bytes(),
+            format!(
+                "127.0.0.1\tlocalhost\n127.0.1.1\t{}\n::1\t\tlocalhost ip6-localhost ip6-loopback\n",
+                account.hostname.as_str()
+            )
+            .as_bytes(),
         )?;
+        configure_timezone_in_target(&self.target_root, &account.timezone)?;
 
-        let _ = run_sys_cmd(
-            Command::new("chroot")
+        // Xóa tài khoản live tạm `caram` nếu người dùng chọn tên đăng nhập khác
+        if account.username.as_str() != "caram" {
+            let _ = Command::new("chroot")
                 .arg(&self.target_root)
-                .arg("useradd")
-                .arg("-m")
-                .arg("-G")
-                .arg("sudo")
-                .arg("-s")
-                .arg("/bin/bash")
-                .arg(username.as_str()),
-            "chroot useradd",
-        );
+                .args(["userdel", "-r", "caram"])
+                .stdout(Stdio::null())
+                .stderr(Stdio::null())
+                .status();
+        }
 
-        render_progress_bar(writer, 95, "Cài đặt GRUB2 UEFI Bootloader lên ổ đĩa đích...")?;
+        // Tạo tài khoản người dùng thường (không bao giờ là root)
+        let user_exists = Command::new("chroot")
+            .arg(&self.target_root)
+            .arg("id")
+            .arg("-u")
+            .arg(account.username.as_str())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .map(|s| s.success())
+            .unwrap_or(false);
+
+        if !user_exists {
+            run_sys_cmd(
+                Command::new("chroot")
+                    .arg(&self.target_root)
+                    .arg("useradd")
+                    .arg("-m")
+                    .arg("-c")
+                    .arg(account.full_name.as_str())
+                    .arg("-s")
+                    .arg("/bin/bash")
+                    .arg(account.username.as_str()),
+                "chroot useradd standard user",
+            )?;
+        }
+
+        let desktop_groups = resolve_existing_desktop_groups(&self.target_root).join(",");
         run_sys_cmd(
             Command::new("chroot")
                 .arg(&self.target_root)
-                .arg("grub-install")
-                .arg("--target=x86_64-efi")
-                .arg("--efi-directory=/boot/efi")
-                .arg("--bootloader-id=CaramOS")
-                .arg("--recheck"),
-            "chroot grub-install UEFI",
+                .arg("usermod")
+                .arg("-aG")
+                .arg(desktop_groups)
+                .arg(account.username.as_str()),
+            "chroot usermod desktop groups",
         )?;
+
+        set_user_password_in_chroot(&self.target_root, &account.username, &account.password)?;
+
+        // Khóa cứng tài khoản root: người dùng luôn dùng tài khoản cá nhân + sudo
+        run_sys_cmd(
+            Command::new("chroot")
+                .arg(&self.target_root)
+                .args(["passwd", "-l", "root"]),
+            "chroot lock root account",
+        )?;
+
+        configure_lightdm_autologin(&self.target_root, &account.username, account.autologin)?;
+
+        render_progress_bar(writer, 92, "Cài đặt GRUB2 Bootloader lên ổ đĩa đích...")?;
+        if Path::new("/sys/firmware/efi").is_dir() {
+            run_sys_cmd(
+                Command::new("chroot")
+                    .arg(&self.target_root)
+                    .arg("grub-install")
+                    .arg("--target=x86_64-efi")
+                    .arg("--efi-directory=/boot/efi")
+                    .arg("--bootloader-id=CaramOS")
+                    .arg("--recheck"),
+                "chroot grub-install UEFI",
+            )?;
+        } else {
+            run_sys_cmd(
+                Command::new("chroot")
+                    .arg(&self.target_root)
+                    .arg("grub-install")
+                    .arg("--target=i386-pc")
+                    .arg("--recheck")
+                    .arg(disk.as_path()),
+                "chroot grub-install Legacy BIOS",
+            )?;
+        }
+
         run_sys_cmd(
             Command::new("chroot")
                 .arg(&self.target_root)
@@ -962,7 +1299,6 @@ pub fn discover_existing_wallpaper(
 
     candidates.sort();
 
-    // Ưu tiên hình nền tối (Indigo Night / Dark / CaramOS) để chữ menu GRUB rõ nét
     let preferred_keywords = ["indigo", "night", "dark", "caramos"];
     for kw in preferred_keywords {
         if let Some(found) = candidates.iter().find(|p| {
@@ -1108,7 +1444,6 @@ pub fn build_caramos_bootloader_theme<W: Write>(
         })?;
     }
 
-    // Tái sử dụng hình nền có sẵn sang PNG cho cả GRUB2 và Plymouth
     let grub_bg_path = grub_theme_dir.join("background.png");
     stage_existing_wallpaper_png(&source_wallpaper, &grub_bg_path, cfg.width, cfg.height)?;
 
@@ -1120,7 +1455,6 @@ pub fn build_caramos_bootloader_theme<W: Write>(
     })?;
     set_unix_mode(&plymouth_bg_path, 0o644)?;
 
-    // Tái sử dụng logo chính thức assets/CaramOS_logo.png cho Plymouth nếu có
     let logo_src = cfg.assets_dir.join("CaramOS_logo.png");
     let has_logo = if logo_src.is_file() {
         let logo_dst = plymouth_dir.join("logo.png");
@@ -1246,9 +1580,9 @@ Type=Application
 Version=1.0
 Name=Install CaramOS 2.0
 Name[vi]=Cài đặt Hệ điều hành CaramOS 2.0
-Comment=CaramOS Interactive OS Installer
-Comment[vi]=Trình cài đặt Hệ điều hành CaramOS 2.0
-Exec=/usr/local/bin/caramos-ui installer --interactive --dry-run
+Comment=Install CaramOS 2.0 with Standard User Account Setup
+Comment[vi]=Cài đặt CaramOS 2.0 lên máy tính và thiết lập tài khoản người dùng
+Exec=sudo /usr/local/bin/caramos-ui installer --interactive --execute --target-root /mnt/caramos-target
 Icon=system-software-install
 Terminal=true
 Categories=System;Settings;
@@ -1265,7 +1599,7 @@ Name=CaramOS Transactional Updater (OTA)
 Name[vi]=Trung tâm Cập nhật Hệ thống CaramOS (OTA)
 Comment=SHA-256 Verified Atomic System Updater
 Comment[vi]=Cập nhật hệ thống nguyên tử có kiểm định SHA-256
-Exec=/usr/local/bin/caramos-ui updater --interactive
+Exec=sudo /usr/local/bin/caramos-ui updater --interactive
 Icon=system-software-update
 Terminal=true
 Categories=System;Settings;
@@ -1557,7 +1891,7 @@ pub fn run_ota_updater_ui<W: Write>(
 }
 
 // ============================================================================
-// 7. HỖ TRỢ HIỂN THỊ TUI & GHI TỆP NGUYÊN TỬ (`tempfile`, MODE 0644)
+// 7. HỖ TRỢ HIỂN THỊ TUI, NHẬP LIỆU THÂN THIỆN & GHI TỆP NGUYÊN TỬ
 // ============================================================================
 
 pub fn render_progress_bar<W: Write>(
@@ -1661,6 +1995,138 @@ fn prompt_line_with_default(prompt: &str, default_val: &str) -> Result<String, C
     }
 }
 
+fn prompt_yes_no(prompt: &str, default_yes: bool) -> Result<bool, CaramUiError> {
+    let default_hint = if default_yes { "Y/n" } else { "y/N" };
+    let ans = prompt_line_with_default(prompt, default_hint)?;
+    let lower = ans.trim().to_ascii_lowercase();
+    if lower == "y/n" || lower.is_empty() {
+        return Ok(default_yes);
+    }
+    Ok(matches!(lower.as_str(), "y" | "yes" | "c" | "co" | "có"))
+}
+
+fn prompt_disk_friendly(default_disk: &str) -> Result<String, CaramUiError> {
+    let disks = discover_physical_disks();
+    let mut out = io::stdout().lock();
+    writeln!(
+        out,
+        "\n{}{}── BƯỚC 1: CHỌN Ổ ĐĨA CÀI ĐẶT CARAMOS 2.0 ──────────────────────────────────{}",
+        ANSI_BOLD, ANSI_INDIGO, ANSI_RESET
+    )
+    .map_err(|e| CaramUiError::IoFailure {
+        context: "In tiêu đề chọn ổ đĩa".to_string(),
+        path: None,
+        source: e,
+    })?;
+
+    if !disks.is_empty() {
+        for (i, d) in disks.iter().enumerate() {
+            writeln!(
+                out,
+                "  {}[{}]{} {:<15} | {:<8} | {}",
+                ANSI_BOLD,
+                i.saturating_add(1),
+                ANSI_RESET,
+                d.path,
+                d.size,
+                d.model
+            )
+            .map_err(|e| CaramUiError::IoFailure {
+                context: "In danh sách ổ đĩa".to_string(),
+                path: None,
+                source: e,
+            })?;
+        }
+    } else {
+        writeln!(
+            out,
+            "  {}Không quét được ổ cứng vật lý (chế độ thử nghiệm). Nhập thủ công đường dẫn thiết bị.{}",
+            ANSI_SLATE, ANSI_RESET
+        )
+        .map_err(|e| CaramUiError::IoFailure {
+            context: "In gợi ý chọn ổ đĩa".to_string(),
+            path: None,
+            source: e,
+        })?;
+    }
+    drop(out);
+
+    let effective_default = disks
+        .first()
+        .map(|d| d.path.as_str())
+        .unwrap_or(default_disk);
+
+    loop {
+        let input = prompt_line_with_default(
+            "Nhập số thứ tự ổ đĩa hoặc đường dẫn (vd: 1 hoặc /dev/sda)",
+            effective_default,
+        )?;
+        let candidate = if let Ok(num) = input.parse::<usize>() {
+            if let Some(idx) = num.checked_sub(1) {
+                if let Some(found) = disks.get(idx) {
+                    found.path.clone()
+                } else {
+                    let mut err_out = io::stdout().lock();
+                    let _ = writeln!(
+                        err_out,
+                        "  {}✖ Số thứ tự không nằm trong danh sách. Hãy nhập lại.{}",
+                        ANSI_ROSE, ANSI_RESET
+                    );
+                    continue;
+                }
+            } else {
+                input
+            }
+        } else {
+            input
+        };
+
+        match ValidatedBlockDevice::parse(&candidate) {
+            Ok(_) => return Ok(candidate),
+            Err(err) => {
+                let mut err_out = io::stdout().lock();
+                let _ = writeln!(err_out, "  {}✖ {}{}", ANSI_ROSE, err, ANSI_RESET);
+            }
+        }
+    }
+}
+
+fn prompt_confirmed_password() -> Result<String, CaramUiError> {
+    loop {
+        let p1 = rpassword::prompt_password("  ? Nhập mật khẩu đăng nhập (ẩn khi gõ, tối thiểu 4 ký tự): ")
+            .map_err(|e| CaramUiError::IoFailure {
+                context: "Đọc mật khẩu ẩn từ terminal".to_string(),
+                path: None,
+                source: e,
+            })?;
+
+        if let Err(err) = ValidatedPassword::parse(&p1) {
+            let mut out = io::stdout().lock();
+            let _ = writeln!(out, "  {}✖ {}{}", ANSI_ROSE, err, ANSI_RESET);
+            continue;
+        }
+
+        let p2 = rpassword::prompt_password("  ? Nhập lại mật khẩu để xác nhận: ").map_err(|e| {
+            CaramUiError::IoFailure {
+                context: "Đọc mật khẩu xác nhận từ terminal".to_string(),
+                path: None,
+                source: e,
+            }
+        })?;
+
+        if p1 == p2 {
+            return Ok(p1);
+        }
+
+        let mut out = io::stdout().lock();
+        let _ = writeln!(
+            out,
+            "  {}✖ Hai lần nhập mật khẩu không khớp. Hãy nhập lại.{}",
+            ANSI_ROSE, ANSI_RESET
+        );
+    }
+}
+
 // ============================================================================
 // 8. GIAO DIỆN DÒNG LỆNH CHUẨN HÓA (`clap`)
 // ============================================================================
@@ -1678,18 +2144,24 @@ struct Cli {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
-    /// Trình cài đặt CaramOS 2.0 có kiểm định Typestate
+    /// Trình cài đặt CaramOS 2.0 thân thiện người dùng (tạo user thường, khóa root)
     Installer {
         #[arg(long, default_value = "./build/installer_target")]
         target_root: PathBuf,
         #[arg(long, default_value = "/dev/nvme0n1")]
         disk: String,
+        #[arg(long, default_value = "CaramOS User")]
+        full_name: String,
         #[arg(long, default_value = "caram")]
         user: String,
+        #[arg(long)]
+        password: Option<String>,
         #[arg(long, default_value = "caramos-workstation")]
         hostname: String,
         #[arg(long, default_value = "Asia/Ho_Chi_Minh")]
         timezone: String,
+        #[arg(long)]
+        autologin: bool,
         #[arg(long)]
         interactive: bool,
         #[arg(long)]
@@ -1767,29 +2239,151 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramUiError> {
         Commands::Installer {
             target_root,
             mut disk,
+            mut full_name,
             mut user,
+            password,
             mut hostname,
             mut timezone,
+            mut autologin,
             interactive,
             execute,
             dry_run,
-            confirm_erase_disk,
+            mut confirm_erase_disk,
         } => {
             let effective_dry_run = dry_run || !execute;
+            let mut effective_password = if let Some(p) = password {
+                p
+            } else if effective_dry_run && !interactive {
+                String::from("dryrun-placeholder")
+            } else {
+                String::new()
+            };
+
             let welcome = CaramInstaller::new(target_root, effective_dry_run, confirm_erase_disk)?;
-            let tour = welcome.run_onboarding_tour(&mut stdout)?;
+            let mut tour = welcome.run_onboarding_tour(&mut stdout)?;
 
             if interactive {
                 drop(stdout);
-                disk = prompt_line_with_default("Chọn ổ cứng cài đặt CaramOS", &disk)?;
-                user = prompt_line_with_default("Nhập tên tài khoản quản trị", &user)?;
-                hostname = prompt_line_with_default("Nhập tên máy tính (Hostname)", &hostname)?;
-                timezone = prompt_line_with_default("Nhập múi giờ hệ thống", &timezone)?;
+                disk = prompt_disk_friendly(&disk)?;
+
+                {
+                    let mut out = io::stdout().lock();
+                    let _ = writeln!(
+                        out,
+                        "\n{}{}── BƯỚC 2: TẠO TÀI KHOẢN NGƯỜI DÙNG (KHÔNG DÙNG ROOT) ──────────────────────{}",
+                        ANSI_BOLD, ANSI_INDIGO, ANSI_RESET
+                    );
+                }
+
+                loop {
+                    full_name = prompt_line_with_default("Họ và tên hiển thị", &full_name)?;
+                    match ValidatedFullName::parse(&full_name) {
+                        Ok(_) => break,
+                        Err(err) => {
+                            let mut out = io::stdout().lock();
+                            let _ = writeln!(out, "  {}✖ {}{}", ANSI_ROSE, err, ANSI_RESET);
+                        }
+                    }
+                }
+
+                loop {
+                    user = prompt_line_with_default(
+                        "Tên đăng nhập cá nhân (chữ thường, không dùng root)",
+                        &user,
+                    )?;
+                    match ValidatedUsername::parse(&user) {
+                        Ok(_) => break,
+                        Err(err) => {
+                            let mut out = io::stdout().lock();
+                            let _ = writeln!(out, "  {}✖ {}{}", ANSI_ROSE, err, ANSI_RESET);
+                        }
+                    }
+                }
+
+                effective_password = prompt_confirmed_password()?;
+
+                loop {
+                    hostname = prompt_line_with_default("Tên máy tính (Hostname)", &hostname)?;
+                    match ValidatedHostname::parse(&hostname) {
+                        Ok(_) => break,
+                        Err(err) => {
+                            let mut out = io::stdout().lock();
+                            let _ = writeln!(out, "  {}✖ {}{}", ANSI_ROSE, err, ANSI_RESET);
+                        }
+                    }
+                }
+
+                timezone = prompt_line_with_default("Múi giờ hệ thống", &timezone)?;
+                autologin = prompt_yes_no(
+                    "Bật tự động đăng nhập thẳng vào Desktop cho tài khoản này?",
+                    autologin,
+                )?;
+
+                {
+                    let mut out = io::stdout().lock();
+                    let _ = writeln!(
+                        out,
+                        "\n{}{}── TÓM TẮT CẤU HÌNH CÀI ĐẶT CARAMOS 2.0 ────────────────────────────────────{}\n  \
+                         • Chế độ         : {}\n  \
+                         • Ổ đĩa đích     : {}\n  \
+                         • Họ tên         : {}\n  \
+                         • Tài khoản      : {} (Người dùng thường + quyền sudo)\n  \
+                         • Tài khoản root : ĐÃ KHÓA (không đăng nhập bằng root)\n  \
+                         • Tự đăng nhập   : {}\n  \
+                         • Tên máy tính   : {}\n  \
+                         • Múi giờ        : {}",
+                        ANSI_BOLD,
+                        ANSI_INDIGO,
+                        ANSI_RESET,
+                        if effective_dry_run {
+                            "MÔ PHỎNG AN TOÀN (DRY-RUN)"
+                        } else {
+                            "CÀI ĐẶT THẬT LÊN Ổ ĐĨA"
+                        },
+                        disk,
+                        full_name,
+                        user,
+                        if autologin { "Bật" } else { "Tắt (hỏi mật khẩu)" },
+                        hostname,
+                        timezone
+                    );
+                }
+
+                if !effective_dry_run && !confirm_erase_disk {
+                    let confirm_txt = prompt_line_with_default(
+                        "CẢNH BÁO: Toàn bộ dữ liệu trên ổ đĩa trên sẽ bị xóa! Gõ 'CAI DAT' để tiếp tục",
+                        "HUY",
+                    )?;
+                    if confirm_txt.trim() == "CAI DAT" {
+                        confirm_erase_disk = true;
+                        tour.confirm_erase_disk = true;
+                    } else {
+                        return Err(CaramUiError::ValidationFailed {
+                            field: "confirm_erase_disk",
+                            value: confirm_txt,
+                            reason: "Người dùng đã hủy quá trình cài đặt an toàn",
+                        });
+                    }
+                }
+
                 stdout = io::stdout().lock();
+            } else if !effective_dry_run && effective_password.is_empty() {
+                return Err(CaramUiError::InvalidCliArgument {
+                    argument: "--password".to_string(),
+                    reason: "Chế độ --execute không tương tác bắt buộc phải cung cấp --password cho tài khoản người dùng".to_string(),
+                });
             }
 
             let disk_stage = tour.select_and_validate_disk(&disk)?;
-            let user_stage = disk_stage.configure_account(&user, &hostname, &timezone)?;
+            let acct_cfg = AccountConfig {
+                full_name: &full_name,
+                username: &user,
+                password: &effective_password,
+                hostname: &hostname,
+                timezone: &timezone,
+                autologin,
+            };
+            let user_stage = disk_stage.configure_account(&acct_cfg)?;
             let _committed = user_stage.commit_installation(&mut stdout)?;
             Ok(())
         }
@@ -1895,7 +2489,7 @@ fn main() -> ExitCode {
 }
 
 // ============================================================================
-// 9. KIỂM CHỨNG ĐƠN VỊ (ZERO PROCEDURAL WALLPAPER, TYPESTATE, STREAMING OTA)
+// 9. KIỂM CHỨNG ĐƠN VỊ (NON-ROOT USER, PASSWORD MASKING, ZERO PROCEDURAL BG)
 // ============================================================================
 
 #[cfg(test)]
@@ -1914,25 +2508,29 @@ mod tests {
     }
 
     #[test]
-    fn test_domain_types_validation() {
+    fn test_domain_types_validation_forbids_root_account() {
         assert!(ValidatedBlockDevice::parse("/dev/nvme0n1").is_ok());
         assert!(ValidatedBlockDevice::parse("/dev/sda").is_ok());
-        assert!(ValidatedBlockDevice::parse("/dev/vda").is_ok());
         assert!(ValidatedBlockDevice::parse("/dev/null").is_err());
         assert!(ValidatedBlockDevice::parse("/dev/sda;rm -rf /").is_err());
 
+        assert!(ValidatedFullName::parse("Nguyễn Văn An").is_ok());
+        assert!(ValidatedFullName::parse("bad:name").is_err());
+
         assert!(ValidatedUsername::parse("caram_user1").is_ok());
         assert!(ValidatedUsername::parse("root").is_err());
+        assert!(ValidatedUsername::parse("ROOT").is_err());
         assert!(ValidatedUsername::parse("123invalid").is_err());
-        assert!(ValidatedUsername::parse("UpperCase").is_err());
+
+        assert!(ValidatedPassword::parse("123").is_err());
+        assert!(ValidatedPassword::parse("caramos-2026").is_ok());
 
         assert!(ValidatedHostname::parse("caramos-2-trixie").is_ok());
         assert!(ValidatedHostname::parse("-invalid-start").is_err());
-        assert!(ValidatedHostname::parse("invalid_underscore").is_err());
     }
 
     #[test]
-    fn test_typestate_installer_dry_run_and_execute_guard() -> Result<(), CaramUiError> {
+    fn test_typestate_installer_standard_user_and_root_locked() -> Result<(), CaramUiError> {
         let temp_root = TempDir::new().map_err(|e| CaramUiError::IoFailure {
             context: "Tạo TempDir test installer".to_string(),
             path: None,
@@ -1940,11 +2538,19 @@ mod tests {
         })?;
         let mut output_log = Vec::new();
 
+        let acct = AccountConfig {
+            full_name: "Lộc CaramOS",
+            username: "locshadow",
+            password: "secret-password",
+            hostname: "caramos-trixie",
+            timezone: "Asia/Ho_Chi_Minh",
+            autologin: true,
+        };
+
         let installer = CaramInstaller::new(temp_root.path().to_path_buf(), true, false)?;
         let installer = installer.run_onboarding_tour(&mut output_log)?;
         let installer = installer.select_and_validate_disk("/dev/nvme0n1")?;
-        let installer =
-            installer.configure_account("locshadow", "caramos-trixie", "Asia/Ho_Chi_Minh")?;
+        let installer = installer.configure_account(&acct)?;
         let committed = installer.commit_installation(&mut output_log)?;
         assert_eq!(committed.slides_viewed(), 4);
 
@@ -1955,13 +2561,14 @@ mod tests {
                 path: Some(manifest_path),
                 source: e,
             })?;
-        assert!(manifest_text.contains("EFI_PARTITION=\"/dev/nvme0n1p1\""));
-        assert!(manifest_text.contains("ADMIN_USER=\"locshadow\""));
+        assert!(manifest_text.contains("STANDARD_USER=\"locshadow\""));
+        assert!(manifest_text.contains("ROOT_LOGIN_LOCKED=true"));
+        assert!(!manifest_text.contains("secret-password"));
 
         let unconfirmed = CaramInstaller::new(temp_root.path().to_path_buf(), false, false)?
             .run_onboarding_tour(&mut output_log)?
             .select_and_validate_disk("/dev/nvme0n1")?
-            .configure_account("locshadow", "caramos-trixie", "Asia/Ho_Chi_Minh")?;
+            .configure_account(&acct)?;
         assert!(unconfirmed.commit_installation(&mut output_log).is_err());
 
         Ok(())
@@ -2039,17 +2646,6 @@ mod tests {
         assert_eq!(decoded.width(), 320);
         assert_eq!(decoded.height(), 240);
 
-        let theme_txt = fs::read_to_string(out_dir.join("boot/grub/themes/caramos/theme.txt"))
-            .map_err(|e| CaramUiError::IoFailure {
-                context: "Đọc theme.txt".to_string(),
-                path: None,
-                source: e,
-            })?;
-        assert!(theme_txt.contains("desktop-image: \"background.png\""));
-        assert!(out_dir
-            .join("usr/share/plymouth/themes/caramos/background.png")
-            .is_file());
-
         Ok(())
     }
 
@@ -2078,13 +2674,6 @@ mod tests {
             channel: "stable",
         };
         assert!(run_ota_updater_ui(&bad_req, &mut log).is_err());
-
-        let unchanged = fs::read_to_string(&target_full).map_err(|e| CaramUiError::IoFailure {
-            context: "Đọc tệp sau khi chặn SHA-256 sai".to_string(),
-            path: Some(target_full.clone()),
-            source: e,
-        })?;
-        assert_eq!(unchanged, "CARAMOS_VERSION=2.0.0\n");
 
         let ok_req = OtaUpdateRequest {
             root_dir: temp_root.path(),

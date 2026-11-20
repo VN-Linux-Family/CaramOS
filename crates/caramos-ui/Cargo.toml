@@ -10,6 +10,7 @@ description = "CaramOS 2.0 Rust Installer, Bootloader Asset Stager (Reuses Exist
 clap.workspace = true
 hex.workspace = true
 image.workspace = true
+rpassword.workspace = true
 sha2.workspace = true
 tempfile.workspace = true
 thiserror.workspace = true

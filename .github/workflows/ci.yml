@@ -1,339 +1,165 @@
-name: CaramOS Auto-Prune, UI Suite & Debian Trixie CI
+name: CaramOS 2.0 — Rust Workspace CI & Hybrid ISO Pipeline (Debian 13 Trixie)
 
 on:
   push:
-    branches:
-      - main
-      - master
-      - testing
+    branches: ["main"]
   pull_request:
-    branches:
-      - main
-      - master
-      - testing
+    branches: ["main"]
   workflow_dispatch:
-    inputs:
-      build_mode:
-        description: "Chế độ nén ISO (fast-zstd hoặc release-xz)"
-        required: true
-        default: "fast-zstd"
-        type: choice
-        options:
-          - "fast-zstd"
-          - "release-xz"
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: "1"
-  RUSTFLAGS: "-D warnings"
-
 jobs:
-  # ==========================================================================
-  # JOB 1: TỰ ĐỘNG GIẢI CỨU APPLET, XÓA FILE DI SẢN & COMMIT LÊN GITHUB
-  # ==========================================================================
-  auto-prune-legacy:
-    name: "1. Auto-Delete Legacy Files & Salvage Applets"
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+  build-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
     steps:
-      - name: Checkout repository with write access
+      - name: Checkout Repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Install Rust stable toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
-
-      - name: Cache Cargo build
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            crates/caramos-ctl -> target
-            crates/caramos-ui -> target
-
-      - name: Format & Run Rust caramos-ctl prune
-        shell: bash
+      - name: Guard — Reject Tracked Binaries & Build Artifacts in Git
         run: |
           set -euo pipefail
-          if [ -f "crates/caramos-ctl/Cargo.toml" ]; then
-            cargo fmt --manifest-path crates/caramos-ctl/Cargo.toml --all
-            cargo run --manifest-path crates/caramos-ctl/Cargo.toml --release -- prune --repo-root . --execute
-          fi
-          if [ -f "crates/caramos-ui/Cargo.toml" ]; then
-            cargo fmt --manifest-path crates/caramos-ui/Cargo.toml --all
-          fi
-
-      - name: Auto-Commit & Push cleaned repository back to GitHub
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add -A
-          if ! git diff --cached --quiet; then
-            git commit -m "chore(auto-prune): salvage Cinnamon applets and clean legacy files [skip ci]"
-            git push origin "HEAD:${GITHUB_REF_NAME}"
-          else
-            echo "OK: Repo đã sạch, không còn file di sản nào cần xóa."
-          fi
-
-  # ==========================================================================
-  # JOB 2: KIỂM ĐỊNH THIẾT QUÂN LUẬT & TEST TÍCH HỢP (caramos-ctl + caramos-ui)
-  # ==========================================================================
-  rust-verification:
-    name: "2. Verify Rust Engines (caramos-ctl & caramos-ui)"
-    needs: auto-prune-legacy
-    runs-on: ubuntu-24.04
-    timeout-minutes: 15
-    steps:
-      - name: Checkout latest repository state
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Pull latest commit if auto-prune pushed
-        if: github.event_name != 'pull_request'
-        shell: bash
-        run: |
-          set -euo pipefail
-          git pull --ff-only origin "${GITHUB_REF_NAME}" || true
-
-      - name: Install Rust stable toolchain (clippy)
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-
-      - name: Cache Cargo build
-        uses: Swatinem/rust-cache@v2
-        with:
-          workspaces: |
-            crates/caramos-ctl -> target
-            crates/caramos-ui -> target
-
-      - name: Strict Clippy Audit (caramos-ctl & caramos-ui)
-        shell: bash
-        run: |
-          set -euo pipefail
-          for manifest in crates/caramos-ctl/Cargo.toml crates/caramos-ui/Cargo.toml; do
-            if [ -f "${manifest}" ]; then
-              echo "=== Auditing ${manifest} ==="
-              cargo clippy --manifest-path "${manifest}" --all-targets -- \
-                -D warnings \
-                -D clippy::unwrap_used \
-                -D clippy::expect_used \
-                -D clippy::panic \
-                -D clippy::indexing_slicing \
-                -D unsafe_code
-            fi
-          done
-
-      - name: Run Unit Tests (caramos-ctl & caramos-ui)
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo test --manifest-path crates/caramos-ctl/Cargo.toml --verbose
-          if [ -f "crates/caramos-ui/Cargo.toml" ]; then
-            cargo test --manifest-path crates/caramos-ui/Cargo.toml --verbose
-          fi
-
-      - name: Build Release Binaries & Run Full E2E Integration Suite
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo build --manifest-path crates/caramos-ctl/Cargo.toml --release
-          CTL_BIN="./crates/caramos-ctl/target/release/caramos-ctl"
-
-          mkdir -p ./dist_bins ./ci_dryrun/includes.chroot
-
-          if [ -f "crates/caramos-ui/Cargo.toml" ]; then
-            cargo build --manifest-path crates/caramos-ui/Cargo.toml --release
-            UI_BIN="./crates/caramos-ui/target/release/caramos-ui"
-            cp "${UI_BIN}" ./dist_bins/caramos-ui
-
-            echo "=== [E2E 1/4] Testing caramos-ui bootloader theme & TGA generation ==="
-            "${UI_BIN}" bootloader --output-root ./ci_dryrun/includes.chroot --width 1280 --height 720
-            test -f ./ci_dryrun/includes.chroot/boot/grub/themes/caramos/background.tga
-            test -f ./ci_dryrun/includes.chroot/boot/grub/themes/caramos/theme.txt
-            test -f ./ci_dryrun/includes.chroot/etc/default/grub
-            test -f ./ci_dryrun/includes.chroot/usr/share/applications/caramos-installer.desktop
-
-            echo "=== [E2E 2/4] Testing caramos-ui Typestate installer (4 slides + manifest) ==="
-            "${UI_BIN}" installer \
-              --target-root ./ci_dryrun/install_target \
-              --disk /dev/nvme0n1 \
-              --user caram \
-              --hostname caramos-trixie \
-              --dry-run
-            grep -q 'EFI_PARTITION="/dev/nvme0n1p1"' ./ci_dryrun/install_target/etc/caramos-install-manifest.conf
-
-            echo "=== [E2E 3/4] Testing caramos-ui transactional OTA updater ==="
-            mkdir -p ./ci_dryrun/ota_root/etc
-            echo "CARAMOS_VERSION=2.0.0" > ./ci_dryrun/ota_root/etc/caramos-release
-            echo "CARAMOS_VERSION=2.0.1" > ./ci_dryrun/payload.new
-            PAYLOAD_SHA="$("${CTL_BIN}" hash ./ci_dryrun/payload.new | awk '{print $1}')"
-
-            "${UI_BIN}" updater \
-              --root ./ci_dryrun/ota_root \
-              --target etc/caramos-release \
-              --payload ./ci_dryrun/payload.new \
-              --sha256 "${PAYLOAD_SHA}" \
-              --version 2.0.1 \
-              --channel testing
-            grep -q "CARAMOS_VERSION=2.0.1" ./ci_dryrun/ota_root/etc/caramos-release
-          fi
-
-          cp "${CTL_BIN}" ./dist_bins/caramos-ctl
-
-          echo "=== [E2E 4/4] Testing caramos-ctl build dry-run & Zero-Overwrite guarantee ==="
-          "${CTL_BIN}" build \
-            --dry-run \
-            --work-dir ./ci_dryrun/iso_work \
-            --includes-chroot ./ci_dryrun/includes.chroot
-
-          ISO_PATH="./ci_dryrun/iso_work/CaramOS-2.0.0-debian-trixie-amd64.iso"
-          test -f "${ISO_PATH}"
-
-          if [ -f "crates/caramos-ui/Cargo.toml" ]; then
-            test -f ./ci_dryrun/iso_work/iso_staging/boot/grub/themes/caramos/background.tga
-            grep -q "set theme=/boot/grub/themes/caramos/theme.txt" ./ci_dryrun/iso_work/iso_staging/boot/grub/grub.cfg
-          fi
-
-          RUST_SHA="$("${CTL_BIN}" hash "${ISO_PATH}" | awk '{print $1}')"
-          GNU_SHA="$(sha256sum "${ISO_PATH}" | awk '{print $1}')"
-          if [ "${RUST_SHA}" != "${GNU_SHA}" ]; then
-            echo "::error::Sai lệch SHA-256 giữa caramos-ctl và sha256sum!"
+          BAD_FILES="$(git ls-files | grep -E '(^|/)target/|^(build|build_dryrun)/|\.iso$|\.iso\.sha256$|\.squashfs$|^config/includes\.chroot/usr/local/bin/caramos-(ctl|ui)$' || true)"
+          if [ -n "$BAD_FILES" ]; then
+            echo "✖ Phát hiện tệp nhị phân/build artifact đang bị theo dõi trong Git:"
+            echo "$BAD_FILES"
+            echo "Chạy: git rm -r --cached crates/caramos-ctl/target crates/caramos-ui/target"
             exit 1
           fi
-          rm -rf ./ci_dryrun
+          echo "✔ Cây Git sạch, không chứa target/ hay binary biên dịch."
 
-      - name: Upload CaramOS Rust Binaries (caramos-ctl & caramos-ui)
-        uses: actions/upload-artifact@v4
-        with:
-          name: caramos-rust-binaries
-          path: ./dist_bins/*
-          if-no-files-found: error
-          retention-days: 7
-
-  # ==========================================================================
-  # JOB 3: ĐÓNG GÓI ISO DEBIAN 13 TRIXIE THỰC TẾ KÈM GIAO DIỆN CARAMOS-UI
-  # ==========================================================================
-  build-debian-trixie-iso:
-    name: "3. Build Debian 13 Trixie ISO (with CaramOS UI & Bootloader)"
-    needs: rust-verification
-    runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    steps:
-      - name: Checkout cleaned repository
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
-
-      - name: Pull latest commit if auto-prune pushed
-        if: github.event_name != 'pull_request'
-        shell: bash
+      - name: Install Host ISO Build Dependencies (Debian/Ubuntu)
         run: |
-          set -euo pipefail
-          git pull --ff-only origin "${GITHUB_REF_NAME}" || true
-
-      - name: Download CaramOS Rust binaries
-        uses: actions/download-artifact@v4
-        with:
-          name: caramos-rust-binaries
-          path: ./bin
-
-      - name: Free up runner disk space
-        shell: bash
-        run: |
-          set -euo pipefail
-          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL || true
-          df -h /
-
-      - name: Install mmdebstrap, squashfs-tools & xorriso
-        shell: bash
-        run: |
-          set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             mmdebstrap \
-            debian-archive-keyring \
             squashfs-tools \
             xorriso \
-            grub-common \
-            grub-pc-bin \
             grub-efi-amd64-bin \
+            grub-pc-bin \
+            grub-common \
             mtools \
+            dosfstools \
             ca-certificates
 
-          for keyring in /usr/share/keyrings/debian-archive-*.gpg; do
-            if [ -f "${keyring}" ]; then
-              sudo ln -sf "${keyring}" "/etc/apt/trusted.gpg.d/$(basename "${keyring}")"
-            fi
-          done
+      - name: Setup Rust Stable Toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
 
-      - name: Inject CaramOS Bootloader Theme & UI Binaries into Chroot
-        shell: bash
+      - name: Cache Cargo Dependencies & Workspace Target
+        uses: Swatinem/rust-cache@v2
+
+      - name: Enforce Zero-Panic & Zero-Warning Policy (Workspace Clippy)
+        run: |
+          cargo clippy --workspace --all-targets -- \
+            -D warnings \
+            -D clippy::unwrap_used \
+            -D clippy::expect_used \
+            -D clippy::panic
+
+      - name: Run Workspace Unit & Integration Tests
+        run: cargo test --workspace --verbose
+
+      - name: Build Release Binaries (caramos-ctl & caramos-ui)
+        run: cargo build --workspace --release
+
+      - name: Stage Bootloader Overlay from Existing CaramOS Wallpapers (Isolated in ./build/ui_overlay)
         run: |
           set -euo pipefail
-          chmod +x ./bin/caramos-ctl
-          install -d ./config/includes.chroot/usr/local/bin
-          install -m 0755 ./bin/caramos-ctl ./config/includes.chroot/usr/local/bin/caramos-ctl
+          ./target/release/caramos-ui bootloader \
+            --output-root ./build/ui_overlay \
+            --wallpaper-search-dir ./config/includes.chroot/usr/share/backgrounds \
+            --assets-dir ./assets \
+            --width 1280 \
+            --height 720
+          test -f ./build/ui_overlay/boot/grub/themes/caramos/background.png
+          test ! -f ./build/ui_overlay/boot/grub/themes/caramos/background.tga
+          test -f ./build/ui_overlay/boot/grub/themes/caramos/theme.txt
+          test -f ./build/ui_overlay/usr/share/plymouth/themes/caramos/background.png
 
-          if [ -f "./bin/caramos-ui" ]; then
-            chmod +x ./bin/caramos-ui
-            ./bin/caramos-ui bootloader --output-root ./config/includes.chroot --width 1280 --height 720
-            install -m 0755 ./bin/caramos-ui ./config/includes.chroot/usr/local/bin/caramos-ui
-          fi
-
-      - name: Build CaramOS 2.0.0 ISO (Debian Trixie + Rust Core + CaramOS UI)
-        shell: bash
+      - name: Guard — Ensure Repository Working Tree Remains Clean (Zero Binary Injection into config/)
         run: |
           set -euo pipefail
-          FLAGS=("--work-dir" "./build")
-          if [ "${{ inputs.build_mode }}" = "release-xz" ]; then
-            FLAGS+=("--release")
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "✖ Quá trình stage đã làm bẩn cây mã nguồn Git:"
+            git status --short
+            exit 1
           fi
-          sudo ./bin/caramos-ctl build "${FLAGS[@]}"
+          echo "✔ config/includes.chroot/ và toàn bộ cây Git hoàn toàn nguyên vẹn."
 
-          ISO_FILE="./build/CaramOS-2.0.0-debian-trixie-amd64.iso"
-          SUM_FILE="./build/SHA256SUMS"
-
-          ./bin/caramos-ctl hash "${ISO_FILE}" | sudo tee "${SUM_FILE}"
-          sudo chown "$(id -u):$(id -g)" "${ISO_FILE}" "${SUM_FILE}"
-          sudo chmod 0644 "${ISO_FILE}" "${SUM_FILE}"
-          ls -lh "${ISO_FILE}" "${SUM_FILE}"
-
-      - name: Cleanup Chroot Mounts Safely
-        if: always()
-        shell: bash
+      - name: Verify End-to-End Dry-Run Pipeline & Binary/Wallpaper Staging
         run: |
           set -euo pipefail
-          if [ -d "./build/rootfs" ]; then
-            ROOTFS_REAL="$(realpath -m ./build/rootfs)"
-            tac /proc/mounts | awk '{print $2}' | while read -r mp; do
-              if [[ "${mp}" == "${ROOTFS_REAL}"* ]]; then
-                sudo umount -lf "${mp}" || true
-              fi
-            done
-          fi
+          ./target/release/caramos-ctl build \
+            --dry-run \
+            --work-dir ./build_dryrun \
+            --extra-overlay ./build/ui_overlay \
+            --stage-bin ./target/release/caramos-ctl \
+            --stage-bin ./target/release/caramos-ui
 
-      - name: Upload ISO Artifact
+          test -x ./build_dryrun/rootfs/usr/local/bin/caramos-ctl
+          test -x ./build_dryrun/rootfs/usr/local/bin/caramos-ui
+          test -f ./build_dryrun/iso_staging/.disk/caramos-iso
+          test -f ./build_dryrun/iso_staging/boot/grub/grub.cfg
+          test -f ./build_dryrun/iso_staging/boot/grub/themes/caramos/background.png
+          test -f ./build_dryrun/CaramOS-2.0.0-debian-trixie-amd64.iso
+          test -f ./build_dryrun/CaramOS-2.0.0-debian-trixie-amd64.iso.sha256
+
+      - name: Verify caramos-ui Interactive Installer Dry-Run
+        run: |
+          set -euo pipefail
+          ./target/release/caramos-ui installer \
+            --target-root ./build_dryrun/installer_target \
+            --disk /dev/nvme0n1 \
+            --user caram \
+            --hostname caramos-ci \
+            --dry-run
+          test -f ./build_dryrun/installer_target/etc/caramos-install-manifest.conf
+
+      - name: Free Disk Space on Runner Before Live ISO Build
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /usr/share/swift || true
+          df -h
+
+      - name: Build Full Bootable Debian 13 (Trixie) Hybrid UEFI/BIOS Live ISO
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: |
+          set -euo pipefail
+          sudo ./target/release/caramos-ctl build \
+            --work-dir ./build \
+            --extra-overlay ./build/ui_overlay \
+            --stage-bin ./target/release/caramos-ctl \
+            --stage-bin ./target/release/caramos-ui
+
+      - name: Verify Hybrid BIOS + UEFI Boot Catalog Inside Generated ISO
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+        run: |
+          set -euo pipefail
+          ISO_PATH="build/CaramOS-2.0.0-debian-trixie-amd64.iso"
+          test -s "$ISO_PATH"
+          test -s "${ISO_PATH}.sha256"
+          (cd build && sha256sum -c "CaramOS-2.0.0-debian-trixie-amd64.iso.sha256")
+          xorriso -indev "$ISO_PATH" -report_el_torito plain -report_system_area plain | tee build/iso_boot_report.txt
+          grep -qi "El Torito" build/iso_boot_report.txt
+          grep -qi "efi" build/iso_boot_report.txt
+          echo "✔ Xác thực thành công ảnh Hybrid BIOS + UEFI ISO."
+
+      - name: Upload Official Hybrid ISO & SHA-256 Artifact
+        if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
         uses: actions/upload-artifact@v4
         with:
-          name: CaramOS-2.0.0-debian-trixie-amd64-iso
-          path: |
-            ./build/CaramOS-2.0.0-debian-trixie-amd64.iso
-            ./build/SHA256SUMS
+          name: CaramOS-2.0-debian-trixie-amd64-ISO
           if-no-files-found: error
-          retention-days: 5
+          path: |
+            build/CaramOS-*.iso
+            build/CaramOS-*.iso.sha256
+          retention-days: 14

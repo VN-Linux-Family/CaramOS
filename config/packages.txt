@@ -1,86 +1,59 @@
-# =============================================================================
-# CaramOS 2.0 Full Bootable & Installable Live Desktop (Debian 13 Trixie + Rust)
-# =============================================================================
+# CaramOS 2.0 — Pure Debian 13 (Trixie) Core Package Manifest
 
-# --- Kernel, Live Boot & Live Session Auto-Login ---
+# Nhân Linux, Live Boot & Khởi tạo hệ thống
 linux-image-amd64
+initramfs-tools
+zstd
 live-boot
-live-boot-initramfs-tools
 live-config
 live-config-systemd
 systemd-sysv
 dbus
-libpam-systemd
-sudo
-user-setup
+dbus-x11
+polkitd
+ca-certificates
+curl
 locales
-
-# --- Trình Cài Đặt Lên Ổ Cứng Máy Thật (Calamares + UEFI/BIOS GRUB) ---
-calamares
-calamares-settings-debian
-grub-efi-amd64-bin
-grub-efi-amd64-signed
-shim-signed
-grub-pc-bin
-grub2-common
-efibootmgr
-os-prober
-dosfstools
-e2fsprogs
-btrfs-progs
-lvm2
-cryptsetup
-parted
-rsync
-
-# --- Hardware Firmware (Wi-Fi, Bluetooth, Audio DSP, AMD/Intel GPU) ---
+network-manager
+network-manager-gnome
+wpasupplicant
 firmware-linux-free
-firmware-sof-signed
-firmware-iwlwifi
-firmware-realtek
-firmware-atheros
-firmware-amd-graphics
-firmware-misc-nonfree
-earlyoom
-zram-tools
 
-# --- Rust Core Replacements ---
-rust-coreutils
+# Công cụ hệ thống (giữ sudo cho tương thích live-config + bổ sung Rust Core Stack)
+sudo
 sudo-rs
+uutils-coreutils
 ripgrep
 fd-find
 
-# --- Xorg Display Server, Mesa 3D & Full Cinnamon Desktop ---
-xorg
-xserver-xorg-input-all
-xserver-xorg-video-all
-mesa-vulkan-drivers
-cinnamon
+# Môi trường Desktop Cinnamon & Công cụ biên dịch GSettings/dconf giữ bản sắc CaramOS
+cinnamon-core
 lightdm
 lightdm-gtk-greeter
-nemo
-nemo-fileroller
 gnome-terminal
-network-manager-gnome
-blueman
-pipewire-audio
-wireplumber
-libnotify-bin
-xdg-utils
-gvfs-backends
-xdg-user-dirs-gtk
+libglib2.0-bin
+dconf-cli
+xorg
+xserver-xorg-video-all
+xserver-xorg-input-all
 
-# --- Tiếng Việt (Fcitx5 Unikey), Trình duyệt & Ứng dụng Thiết yếu ---
-fcitx5
-fcitx5-unikey
-fcitx5-config-qt
-firefox-esr
-firefox-esr-l10n-vi
-fonts-noto-core
-fonts-noto-color-emoji
-fonts-liberation2
-ca-certificates
-curl
-flatpak
-pkexec
-polkitd
+# Âm thanh hiện đại (PipeWire đầy đủ ALSA + PulseAudio + WirePlumber)
+pipewire
+pipewire-audio
+pipewire-alsa
+pipewire-pulse
+wireplumber
+
+# Công cụ phân vùng, Cài đặt SquashFS, Bootloader GRUB2 UEFI/BIOS & Plymouth
+squashfs-tools
+grub-common
+grub2-common
+grub-efi-amd64-bin
+grub-pc-bin
+efibootmgr
+dosfstools
+e2fsprogs
+parted
+plymouth
+plymouth-themes
+fonts-dejavu-core

@@ -1,10 +1,42 @@
-# Build artifacts
+# Rust workspace & crate build artifacts (CHẶN MỌI NHỊ PHÂN BIÊN DỊCH)
+**/target/
+*.rs.bk
+*.pdb
+
+# ISO & build outputs
 build/
+build_*/
+dist/
+out/
 CaramOS-*.iso
+*.iso
+*.iso.sha256
+*.img
+*.efi
+*.squashfs
 *.log
+
+# Staged binaries & generated bootloader/OTA temp artifacts
+config/includes.chroot/usr/local/bin/caramos-ctl
+config/includes.chroot/usr/local/bin/caramos-ui
+config/includes.chroot/boot/grub/themes/caramos/background.*
+*.tmp.caramos*
+*.caramos-*.bak
+*.caramos-*.staging
+
+# Compiled binaries & archives
+*.o
+*.a
+*.so
+*.so.*
+*.dylib
+*.dll
+*.exe
+*.AppImage
 
 # Debian/package build artifacts
 packages/*.deb
+packages/*.ddeb
 packages/*.dsc
 packages/*.tar.*
 packages/*.buildinfo
@@ -34,7 +66,7 @@ Thumbs.db
 # Mint ISO (large file, don't commit)
 linuxmint-*.iso
 
-# Local VM test notes
+# Local VM test notes & AI tooling dirs
 openspec
 .claude
 .antigravity*

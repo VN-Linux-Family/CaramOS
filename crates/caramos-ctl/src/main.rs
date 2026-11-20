@@ -13,7 +13,7 @@
 //! # CaramOS 2.0 Core Build & System Orchestrator (`caramos-ctl`)
 //!
 //! Trình điều phối đóng gói Live ISO Hybrid UEFI + Legacy BIOS nền Debian 13 (Trixie):
-//! - Kiểm định công cụ host preflight (`mmdebstrap`, `mksquashfs`, `grub-mkrescue`, `xorriso`, `mformat`).
+//! - Kiểm định công cụ host & khóa OpenPGP Debian (`debian-archive-keyring`) trước khi chạy `mmdebstrap`.
 //! - Gắn kết Chroot an toàn chuẩn RAII (`ChrootMountGuard` + `ChrootPolicyRcGuard`).
 //! - Đồng bộ lớp phủ bảo toàn 100% symlink & phân quyền (`walkdir`), không làm bẩn cây Git bằng binary.
 //! - Biên dịch GSettings/dconf/Plymouth/initramfs trong chroot để bảo toàn bản sắc UI CaramOS.
@@ -479,7 +479,24 @@ fn find_in_path(binary: &str) -> Option<PathBuf> {
     None
 }
 
-fn check_host_prerequisites(arch: &str) -> Result<(), CaramCtlError> {
+fn resolve_debian_keyring() -> Option<PathBuf> {
+    let candidates = [
+        "/usr/share/keyrings/debian-archive-keyring.gpg",
+        "/usr/share/keyrings/debian-archive-keyring.pgp",
+    ];
+    for path_str in candidates {
+        let p = PathBuf::from(path_str);
+        if p.is_file() {
+            return Some(p);
+        }
+    }
+    None
+}
+
+fn check_host_prerequisites(
+    arch: &str,
+    custom_keyring: Option<&Path>,
+) -> Result<PathBuf, CaramCtlError> {
     let uid_out = Command::new("id")
         .arg("-u")
         .output()
@@ -517,11 +534,28 @@ fn check_host_prerequisites(arch: &str) -> Result<(), CaramCtlError> {
     if !missing.is_empty() {
         return Err(CaramCtlError::MissingPrerequisite {
             detail: format!(
-                "Thiếu công cụ host: [{}]. Cài đặt nhanh trên Debian/Ubuntu:\n  sudo apt update && sudo apt install -y mmdebstrap squashfs-tools grub-common grub-pc-bin grub-efi-amd64-bin mtools xorriso",
+                "Thiếu công cụ host: [{}]. Cài đặt nhanh trên Debian/Ubuntu:\n  sudo apt update && sudo apt install -y mmdebstrap debian-archive-keyring squashfs-tools grub-common grub-pc-bin grub-efi-amd64-bin mtools xorriso",
                 missing.join(", ")
             ),
         });
     }
+
+    let keyring = match custom_keyring {
+        Some(path) => {
+            if !path.is_file() {
+                return Err(CaramCtlError::MissingPrerequisite {
+                    detail: format!(
+                        "Tệp keyring chỉ định '{}' không tồn tại.",
+                        path.display()
+                    ),
+                });
+            }
+            path.to_path_buf()
+        }
+        None => resolve_debian_keyring().ok_or_else(|| CaramCtlError::MissingPrerequisite {
+            detail: "Thiếu khóa ký kho gói Debian (/usr/share/keyrings/debian-archive-keyring.gpg hoặc .pgp). Cài đặt:\n  sudo apt-get update && sudo apt-get install -y debian-archive-keyring".to_string(),
+        })?,
+    };
 
     if arch == "amd64" {
         let has_efi = Path::new("/usr/lib/grub/x86_64-efi").is_dir();
@@ -536,7 +570,7 @@ fn check_host_prerequisites(arch: &str) -> Result<(), CaramCtlError> {
         }
     }
 
-    Ok(())
+    Ok(keyring)
 }
 
 fn run_external_command(cmd: &mut Command, context: &str) -> Result<(), CaramCtlError> {
@@ -598,6 +632,7 @@ pub struct BuildConfig {
     pub arch: String,
     pub compression: SquashfsCompression,
     pub mirror: String,
+    pub keyring: Option<PathBuf>,
     pub work_dir: PathBuf,
     pub includes_chroot_dir: PathBuf,
     pub extra_overlays: Vec<PathBuf>,
@@ -626,6 +661,9 @@ impl IsoBuildPipeline<StageInit> {
         validate_safe_path(&config.includes_chroot_dir)?;
         validate_safe_path(&config.packages_file)?;
         validate_safe_path(&config.output_iso)?;
+        if let Some(ref kr) = config.keyring {
+            validate_safe_path(kr)?;
+        }
         for overlay in &config.extra_overlays {
             validate_safe_path(overlay)?;
         }
@@ -659,10 +697,6 @@ impl IsoBuildPipeline<StageInit> {
         self,
         writer: &mut W,
     ) -> Result<IsoBuildPipeline<StageRootfsBootstrapped>, CaramCtlError> {
-        if !self.config.dry_run {
-            check_host_prerequisites(&self.config.arch)?;
-        }
-
         let packages = load_package_manifest(&self.config.packages_file, self.config.dry_run)?;
         let pkg_csv = packages.join(",");
 
@@ -681,7 +715,7 @@ impl IsoBuildPipeline<StageInit> {
         if self.config.dry_run {
             writeln!(
                 writer,
-                "  [DRY-RUN] mmdebstrap --arch={} --include={} trixie {} {}",
+                "  [DRY-RUN] mmdebstrap --arch={} --keyring=<debian-archive-keyring> --include={} trixie {} {}",
                 self.config.arch,
                 pkg_csv,
                 self.rootfs_dir.display(),
@@ -693,10 +727,14 @@ impl IsoBuildPipeline<StageInit> {
                 source: e,
             })?;
         } else {
+            let keyring =
+                check_host_prerequisites(&self.config.arch, self.config.keyring.as_deref())?;
+
             let mut cmd = Command::new("mmdebstrap");
             cmd.arg(format!("--arch={}", self.config.arch))
                 .arg("--variant=minbase")
                 .arg("--components=main,contrib,non-free,non-free-firmware")
+                .arg(format!("--keyring={}", keyring.display()))
                 .arg("--aptopt=Acquire::Retries \"3\"")
                 .arg(format!("--include={}", pkg_csv))
                 .arg("trixie")
@@ -769,7 +807,6 @@ GRUB_GFXPAYLOAD_LINUX=keep\n\
 GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
         write_default_if_missing(&default_dir.join("grub"), fallback_grub.as_bytes())?;
 
-        // 1. Áp lớp phủ bản sắc CaramOS gốc (`config/includes.chroot`) trước
         let primary_count =
             copy_directory_tree_overlay(&self.config.includes_chroot_dir, &self.rootfs_dir)?;
         writeln!(
@@ -784,7 +821,6 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
             source: e,
         })?;
 
-        // 2. Áp các lớp phủ bổ sung (vd: build/ui_overlay chứa GRUB/Plymouth từ hình nền có sẵn)
         for extra in &self.config.extra_overlays {
             if extra.exists() {
                 let extra_count = copy_directory_tree_overlay(extra, &self.rootfs_dir)?;
@@ -802,7 +838,6 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
             }
         }
 
-        // 3. Nhúng trực tiếp binary Rust vào rootfs/usr/local/bin/ (không làm bẩn cây Git)
         for bin in &self.config.stage_bins {
             let installed = stage_binary_into_rootfs(bin, &self.rootfs_dir)?;
             writeln!(
@@ -1581,6 +1616,8 @@ enum Commands {
         release: bool,
         #[arg(long, default_value = "https://deb.debian.org/debian")]
         mirror: String,
+        #[arg(long)]
+        keyring: Option<PathBuf>,
         #[arg(long, default_value = "./build")]
         work_dir: PathBuf,
         #[arg(long, default_value = "./config/includes.chroot")]
@@ -1647,6 +1684,7 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
             compression,
             release,
             mirror,
+            keyring,
             work_dir,
             includes_chroot,
             extra_overlays,
@@ -1666,6 +1704,7 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramCtlError> {
                 arch,
                 compression: final_compression,
                 mirror,
+                keyring,
                 work_dir,
                 includes_chroot_dir: includes_chroot,
                 extra_overlays,
@@ -1815,6 +1854,7 @@ mod tests {
             arch: String::from("amd64"),
             compression: SquashfsCompression::Zstd,
             mirror: String::from("https://deb.debian.org/debian"),
+            keyring: None,
             output_iso: work_dir.join(DEFAULT_ISO_FILENAME),
             work_dir: work_dir.clone(),
             includes_chroot_dir: includes_dir,

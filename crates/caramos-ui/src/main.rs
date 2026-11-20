@@ -590,7 +590,7 @@ impl Drop for InstallMountGuard {
         while let Some(target) = self.mounts.pop() {
             let _ = Command::new("umount")
                 .arg("-R")
-                .arg(&target)
+                .arg(target)
                 .stdout(Stdio::null())
                 .stderr(Stdio::null())
                 .status();
@@ -837,7 +837,7 @@ impl CaramInstaller<StageUserConfigured> {
         run_sys_cmd(
             Command::new("mount")
                 .arg(&layout.efi_partition)
-                .arg(&efi_mount),
+                .arg(efi_mount),
             "mount EFI partition",
         )?;
 
@@ -861,15 +861,13 @@ impl CaramInstaller<StageUserConfigured> {
                 source: e,
             })?;
             run_sys_cmd(
-                Command::new("mount").arg("--bind").arg(&src).arg(&dst),
+                Command::new("mount").arg("--bind").arg(src).arg(dst),
                 "bind mount chroot install",
             )?;
         }
 
-        let fstab = format!(
-            "LABEL=CARAMOS_ROOT / ext4 errors=remount-ro,noatime 0 1\n\
-             LABEL=CARAMOS_EFI /boot/efi vfat umask=0077 0 1\n"
-        );
+        let fstab = "LABEL=CARAMOS_ROOT / ext4 errors=remount-ro,noatime 0 1\n\
+                     LABEL=CARAMOS_EFI /boot/efi vfat umask=0077 0 1\n";
         atomic_write_bytes(&self.target_root.join("etc/fstab"), fstab.as_bytes())?;
         atomic_write_bytes(
             &self.target_root.join("etc/hosts"),
@@ -1043,6 +1041,7 @@ fn stage_existing_wallpaper_png(
         path: Some(parent.to_path_buf()),
         source: e,
     })?;
+    let tmp_path = tmp.path().to_path_buf();
 
     {
         let mut buf_writer = BufWriter::new(tmp.as_file_mut());
@@ -1054,7 +1053,7 @@ fn stage_existing_wallpaper_png(
             })?;
         buf_writer.flush().map_err(|e| CaramUiError::IoFailure {
             context: "Xả bộ đệm PNG Bootloader".to_string(),
-            path: Some(tmp.path().to_path_buf()),
+            path: Some(tmp_path.clone()),
             source: e,
         })?;
     }
@@ -1063,7 +1062,7 @@ fn stage_existing_wallpaper_png(
         .sync_all()
         .map_err(|e| CaramUiError::IoFailure {
             context: "Đồng bộ fsync PNG Bootloader".to_string(),
-            path: Some(tmp.path().to_path_buf()),
+            path: Some(tmp_path),
             source: e,
         })?;
     set_unix_mode(tmp.path(), 0o644)?;
@@ -1136,7 +1135,7 @@ pub fn build_caramos_bootloader_theme<W: Write>(
         false
     };
 
-    let grub_theme_txt = r#"# CaramOS Official GRUB2 Bootloader Theme
+    let grub_theme_txt = r##"# CaramOS Official GRUB2 Bootloader Theme
 # Reuses existing CaramOS wallpaper & neutral Indigo Night / Sage Mist palette
 
 title-text: ""
@@ -1190,7 +1189,7 @@ desktop-color: "#0F172A"
     color = "#94A3B8"
     align = "center"
 }
-"#;
+"##;
     let theme_txt_path = grub_theme_dir.join("theme.txt");
     atomic_write_bytes(&theme_txt_path, grub_theme_txt.as_bytes())?;
 
@@ -1438,6 +1437,7 @@ pub fn run_ota_updater_ui<W: Write>(
         path: Some(target_parent.to_path_buf()),
         source: e,
     })?;
+    let staging_path = staging.path().to_path_buf();
 
     let mut hasher = Sha256::new();
     let mut buf = [0u8; 65_536];
@@ -1454,7 +1454,7 @@ pub fn run_ota_updater_ui<W: Write>(
             hasher.update(chunk);
             staging.write_all(chunk).map_err(|e| CaramUiError::IoFailure {
                 context: "Ghi luồng dữ liệu vào tệp đệm OTA".to_string(),
-                path: Some(staging.path().to_path_buf()),
+                path: Some(staging_path.clone()),
                 source: e,
             })?;
         }
@@ -1484,7 +1484,7 @@ pub fn run_ota_updater_ui<W: Write>(
         .sync_all()
         .map_err(|e| CaramUiError::IoFailure {
             context: "Đồng bộ fsync vùng đệm OTA".to_string(),
-            path: Some(staging.path().to_path_buf()),
+            path: Some(staging_path),
             source: e,
         })?;
 
@@ -1602,16 +1602,18 @@ fn atomic_write_bytes(target_path: &Path, content: &[u8]) -> Result<(), CaramUiE
         path: Some(parent.to_path_buf()),
         source: e,
     })?;
+    let tmp_path = tmp.path().to_path_buf();
+
     tmp.write_all(content).map_err(|e| CaramUiError::IoFailure {
         context: "Ghi dữ liệu vào vùng đệm".to_string(),
-        path: Some(tmp.path().to_path_buf()),
+        path: Some(tmp_path.clone()),
         source: e,
     })?;
     tmp.as_file()
         .sync_all()
         .map_err(|e| CaramUiError::IoFailure {
             context: "Đồng bộ fsync vùng đệm".to_string(),
-            path: Some(tmp.path().to_path_buf()),
+            path: Some(tmp_path),
             source: e,
         })?;
     set_unix_mode(tmp.path(), 0o644)?;
@@ -1938,7 +1940,6 @@ mod tests {
         })?;
         let mut output_log = Vec::new();
 
-        // Dry-run thành công và ghi manifest
         let installer = CaramInstaller::new(temp_root.path().to_path_buf(), true, false)?;
         let installer = installer.run_onboarding_tour(&mut output_log)?;
         let installer = installer.select_and_validate_disk("/dev/nvme0n1")?;
@@ -1957,7 +1958,6 @@ mod tests {
         assert!(manifest_text.contains("EFI_PARTITION=\"/dev/nvme0n1p1\""));
         assert!(manifest_text.contains("ADMIN_USER=\"locshadow\""));
 
-        // Execute thiếu --confirm-erase-disk phải bị chặn
         let unconfirmed = CaramInstaller::new(temp_root.path().to_path_buf(), false, false)?
             .run_onboarding_tour(&mut output_log)?
             .select_and_validate_disk("/dev/nvme0n1")?
@@ -1991,7 +1991,6 @@ mod tests {
 
         let mut log = Vec::new();
 
-        // Khi không có hình nền sẵn -> bắt buộc trả lỗi, không tự vẽ ảnh giả
         let empty_cfg = BootloaderStageConfig {
             output_root: &out_dir,
             explicit_wallpaper: None,
@@ -2002,7 +2001,6 @@ mod tests {
         };
         assert!(build_caramos_bootloader_theme(&empty_cfg, &mut log).is_err());
 
-        // Tạo ảnh fixture giả lập hình nền Indigo Night sẵn có trong repo
         let existing_bg = bg_dir.join("caramos-indigo-night.png");
         let fixture_img = RgbImage::from_pixel(64, 64, image::Rgb([15, 23, 42]));
         fixture_img
@@ -2048,7 +2046,9 @@ mod tests {
                 source: e,
             })?;
         assert!(theme_txt.contains("desktop-image: \"background.png\""));
-        assert!(out_dir.join("usr/share/plymouth/themes/caramos/background.png").is_file());
+        assert!(out_dir
+            .join("usr/share/plymouth/themes/caramos/background.png")
+            .is_file());
 
         Ok(())
     }

@@ -40,6 +40,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends \
             mmdebstrap \
+            debian-archive-keyring \
             squashfs-tools \
             xorriso \
             grub-efi-amd64-bin \
@@ -135,7 +136,8 @@ jobs:
         run: |
           set -euo pipefail
           sudo ./target/release/caramos-ctl build \
-            --work-dir ./build \
+            --work-dir /tmp/caramos-build \
+            --output-iso ./build/CaramOS-2.0.0-debian-trixie-amd64.iso \
             --extra-overlay ./build/ui_overlay \
             --stage-bin ./target/release/caramos-ctl \
             --stage-bin ./target/release/caramos-ui

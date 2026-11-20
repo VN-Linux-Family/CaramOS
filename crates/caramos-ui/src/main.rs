@@ -2247,7 +2247,7 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramUiError> {
             interactive,
             execute,
             dry_run,
-            mut confirm_erase_disk,
+            confirm_erase_disk,
         } => {
             let effective_dry_run = dry_run || !execute;
             let mut effective_password = if let Some(p) = password {

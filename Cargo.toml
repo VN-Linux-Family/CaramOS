@@ -1,0 +1,27 @@
+[workspace]
+resolver = "2"
+members = [
+    "crates/caramos-ctl",
+    "crates/caramos-ui",
+]
+
+[workspace.package]
+version = "2.0.0"
+edition = "2021"
+authors = ["LocShadowVN <LocShadowVN@users.noreply.github.com>"]
+license = "GPL-3.0-or-later"
+
+[workspace.dependencies]
+clap = { version = "4.5", features = ["derive"] }
+hex = "0.4"
+image = { version = ">=0.25.6, <0.25.10", default-features = false, features = ["png", "jpeg", "webp"] }
+sha2 = "0.10"
+tempfile = "3.14"
+thiserror = "2.0"
+walkdir = "2.5"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+codegen-units = 1
+strip = "symbols"

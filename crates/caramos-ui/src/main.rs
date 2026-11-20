@@ -2354,7 +2354,6 @@ pub fn run_cli(args: &[String]) -> Result<(), CaramUiError> {
                         "HUY",
                     )?;
                     if confirm_txt.trim() == "CAI DAT" {
-                        confirm_erase_disk = true;
                         tour.confirm_erase_disk = true;
                     } else {
                         return Err(CaramUiError::ValidationFailed {

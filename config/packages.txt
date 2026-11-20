@@ -19,10 +19,9 @@ network-manager-gnome
 wpasupplicant
 firmware-linux-free
 
-# Công cụ hệ thống (giữ sudo cho tương thích live-config + bổ sung Rust Core Stack)
+# Công cụ hệ thống & Rust Userland sẵn có trên Debian 13 (Trixie)
 sudo
-sudo-rs
-uutils-coreutils
+rust-coreutils
 ripgrep
 fd-find
 

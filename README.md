@@ -1,170 +1,194 @@
 <p align="center">
-  <img src="assets/CaramOS_logo.png" alt="CaramOS Logo" width="220" />
+  <img src="assets/CaramOS_logo.png" alt="CaramOS Logo" width="200" />
 </p>
 
-<h1 align="center">CaramOS 2.0 — Debian 13 (Trixie) & Rust Core Edition</h1>
-
-<p align="center">
-  <strong>Hệ điều hành Desktop Linux an toàn bộ nhớ, khởi tạo trực tiếp từ thượng nguồn Debian 13 và vận hành 100% bằng công cụ hệ thống Rust thuần khiết.</strong>
-</p>
+<h1 align="center">CaramOS Testing — Debian 13 (Trixie) &amp; Rust Core</h1>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Base_OS-Debian_13_(Trixie)-A81D33?style=for-the-badge&logo=debian&logoColor=white" alt="Debian 13 Trixie" />
-  <img src="https://img.shields.io/badge/Core_Engine-Pure_Rust_100%25-F59E0B?style=for-the-badge&logo=rust&logoColor=black" alt="Pure Rust" />
-  <img src="https://img.shields.io/badge/Memory_Safety-%23!%5Bforbid(unsafe__code)%5D-10B981?style=for-the-badge" alt="Memory Safe" />
-  <img src="https://img.shields.io/badge/Legacy_Scripts-0%25_Python_%7C_0%25_Bash-292524?style=for-the-badge" alt="Zero Python/Bash" />
+  Nhánh phát triển và thử nghiệm tái cấu trúc hạ tầng cho <strong>CaramOS (VNLF)</strong>: dựng hệ thống trực tiếp từ Debian 13 (Trixie), thay thế các script Python/Bash rời rạc bằng công cụ Rust an toàn bộ nhớ, đồng thời giữ nguyên bản sắc giao diện của CaramOS.
 </p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Status-Testing_%2F_WIP-D97706?style=for-the-badge" alt="Status: Testing / WIP" />
+  <img src="https://img.shields.io/badge/Base-Debian_13_(Trixie)-A81D33?style=for-the-badge&logo=debian&logoColor=white" alt="Debian 13 Trixie" />
+  <img src="https://img.shields.io/badge/Toolchain-Rust_Workspace-0F172A?style=for-the-badge&logo=rust&logoColor=white" alt="Rust Workspace" />
+  <img src="https://img.shields.io/badge/Safety-forbid(unsafe__code)-059669?style=for-the-badge" alt="No Unsafe Code" />
+</p>
+
+> [!WARNING]
+> **Trạng thái dự án — Đang trong giai đoạn hoàn thiện (Work in Progress)**
+> Kho mã nguồn này là nhánh thử nghiệm (`CaramOS-testing`) nhằm kiểm chứng kiến trúc mới trước khi đóng góp ngược lại cho dự án gốc **CaramOS của VNLF (VN-Linux-Family)**. Một số tính năng vẫn đang tiếp tục hoàn thiện và kiểm thử thực tế trên nhiều cấu hình phần cứng. Khuyến nghị chạy thử trên máy ảo (**QEMU / VirtualBox**) trước khi cài đặt lên máy sử dụng hằng ngày.
 
 ---
 
-## I. Triết lý Kỹ thuật & Tầm nhìn Kiến trúc
+## 1. Mục tiêu của nhánh cải tiến này
 
-**CaramOS 2.0 (`CaramOS-testing`)** là bản tái thiết kế toàn diện từ gốc nhằm giải quyết triệt để ba điểm nghẽn kiến trúc của thế hệ CaramOS 1.x cũ:
+Nhánh phát triển này tập trung giải quyết các hạn chế ở tầng hạ tầng xây dựng và công cụ hệ thống của CaramOS, mà không làm thay đổi trải nghiệm quen thuộc của người dùng cuối:
 
-1. **Chấm dứt Phái sinh Chồng chéo 3 Tầng (`Debian -> Ubuntu -> Linux Mint -> CaramOS`)**: Thay vì tải tệp ISO Linux Mint nặng ~2.8 GB rồi giải nén SquashFS để xóa bớt gói, CaramOS 2.0 khởi tạo cây hệ thống tệp (`rootfs`) sạch 100% trực tiếp từ kho thượng nguồn **Debian 13 (`trixie`)** thông qua `mmdebstrap`.
-2. **Loại bỏ Hoàn toàn Python & Bash trong Chuỗi Công cụ Cốt lõi**: Mọi tác vụ từ đóng gói ISO, quản lý điểm gắn kết ảo (`chroot`), kết xuất đồ họa Bootloader GRUB2/Plymouth, trình cài đặt tương tác cho đến cập nhật OTA đều được biên dịch thành hai thực thi Rust tĩnh duy nhất: `caramos-ctl` và `caramos-ui`.
-3. **Thiết Quân Luật Bộ Nhớ (`#![forbid(unsafe_code)]` & Zero-Panic Policy)**: Không tồn tại `.unwrap()`, `.expect()`, hay `panic!` trong luồng vận hành thực tế. Mọi trạng thái hệ thống đều được kiểm chứng ở thời điểm biên dịch qua **Typestate Pattern** và giải phóng tài nguyên tự động bằng **RAII Guards**.
+- **Gỡ bỏ mô hình phái sinh chồng chéo 3 tầng (`Debian → Ubuntu → Linux Mint → CaramOS`)**: Thay vì giải nén lại ảnh ISO trung gian rồi cắt gọt gói, hệ thống được khởi tạo trực tiếp từ kho thượng nguồn **Debian 13 (`trixie`)** bằng `mmdebstrap` theo danh sách gói kiểm soát trong `config/packages.txt`.
+- **Thay thế chuỗi script `.py` và `.sh` rời rạc bằng Rust Workspace**: Toàn bộ quy trình build ISO, gắn kết chroot, đóng gói bootloader, trình cài đặt và cập nhật OTA được tập trung về 2 binary trong cùng một Cargo Workspace (`caramos-ctl` và `caramos-ui`), áp dụng `#![forbid(unsafe_code)]`, kiểm tra Clippy nghiêm ngặt (không `.unwrap()`/`.expect()`/`panic!`) và tự động dọn tài nguyên theo chuẩn RAII.
+- **Giữ nguyên bản sắc UI của CaramOS**: Không tự sinh hình nền giả hay ghi đè nhận diện thẩm mỹ. Công cụ bootloader tự động tìm và tái sử dụng trực tiếp hình nền có sẵn trong `config/includes.chroot/usr/share/backgrounds/` cùng logo `assets/CaramOS_logo.png`; giai đoạn chroot biên dịch lại GSettings/dconf để giữ trọn vẹn cấu hình Cinnamon đặc trưng của CaramOS.
+- **Thân thiện và an toàn cho người dùng phổ thông**: Cả chế độ Live lẫn hệ thống sau cài đặt đều vận hành bằng tài khoản người dùng thường (`sudo`); trình cài đặt chặn việc tạo tài khoản `root` và tự động khóa đăng nhập trực tiếp bằng `root` (`passwd -l root`).
 
 ---
 
-## II. Sơ đồ Kiến trúc Tổng thể Hệ sinh thái CaramOS 2.0
+## 2. Tổng quan kiến trúc
 
 ```mermaid
 flowchart TD
-    subgraph Upstream["1. Thượng nguồn Debian 13 (Trixie)"]
-        DEB["Kho gói Debian 13 Chính thức"]
-        RUST_PKG["Rust Core Stack: uutils, sudo-rs, rg, fd"]
+    subgraph Sources["Nguồn đầu vào"]
+        DEB["Kho Debian 13 (Trixie)\n+ config/packages.txt"]
+        UI_SRC["Bản sắc UI CaramOS\nconfig/includes.chroot/ & assets/"]
     end
 
-    subgraph RustEngine["2. Trái tim Điều phối Rust Thuần (Zero External Crate Deps)"]
-        CTL["caramos-ctl\n(Build Engine, Chroot RAII, SHA-256, OTA Core)"]
-        UI["caramos-ui\n(Typestate Installer, TGA/GRUB2 Theme Engine, OTA TUI)"]
+    subgraph Workspace["Rust Workspace (target/release/)"]
+        UI["caramos-ui\n(Installer, Bootloader Asset Stager, OTA TUI)"]
+        CTL["caramos-ctl\n(mmdebstrap, Chroot RAII, SquashFS, grub-mkrescue)"]
     end
 
-    subgraph Artifacts["3. Thành phẩm Hệ thống Đích"]
-        BOOT["Giao diện GRUB2 & Plymouth\n(Ảnh nền TGA 24-bit tự kết xuất)"]
-        ISO["Ảnh Live ISO Hybrid UEFI/BIOS\n(~1.2 GB - 1.5 GB, Zstd / XZ)"]
-        TARGET["Hệ thống CaramOS Đã Cài đặt\n(Cinnamon Desktop + PipeWire + Atomic OTA)"]
+    subgraph Output["Đầu ra tách biệt (./build/)"]
+        OVL["./build/ui_overlay/\nGRUB2 & Plymouth PNG từ hình nền có sẵn"]
+        ISO["Hybrid UEFI + BIOS Live ISO\nCaramOS-2.0.0-debian-trixie-amd64.iso + .sha256"]
     end
 
+    UI_SRC -->|"Tái sử dụng hình nền & logo"| UI
+    UI -->|"Xuất độc lập, không làm bẩn Git"| OVL
     DEB -->|"mmdebstrap"| CTL
-    RUST_PKG --> CTL
-    UI -->|"Kết xuất background.tga & theme.txt"| BOOT
-    BOOT -->|"Nhúng vào config/includes.chroot"| CTL
-    CTL -->|"mksquashfs + xorriso"| ISO
-    ISO -->|"Khởi chạy caramos-ui installer"| TARGET
-    UI -->|"caramos-ui updater (SHA-256 + Atomic Rollback)"| TARGET
+    UI_SRC -->|"Overlay bảo toàn symlink"| CTL
+    OVL -->|"--extra-overlay"| CTL
+    Workspace -->|"--stage-bin vào /usr/local/bin"| CTL
+    CTL -->|"mksquashfs + grub-mkrescue (xorriso/mtools)"| ISO
 ```
 
----
+### So sánh nhanh giữa quy trình cũ và hướng tiếp cận mới
 
-## III. Bảng Đối chiếu Kiến trúc: CaramOS 1.x vs. CaramOS 2.0
-
-| Hạng mục Kỹ thuật | CaramOS 1.x (Di sản) | CaramOS 2.0 (Debian 13 & Pure Rust) |
+| Thành phần | Quy trình cũ | Hướng tiếp cận trong `CaramOS-testing` |
 | :--- | :--- | :--- |
-| **Hệ điều hành Nền** | Linux Mint 22.3 (qua Ubuntu 24.04) | **Debian 13 (`trixie`)** trực tiếp từ thượng nguồn |
-| **Khởi tạo Rootfs** | `unsquashfs` từ ISO Mint dựng sẵn | Bootstrap sạch bằng **`mmdebstrap`** |
-| **Trình điều phối Build** | 10+ tệp Bash (`build.sh`, `scripts/*.sh`) | **`caramos-ctl`** (Rust thuần, RAII `ChrootMountGuard`) |
-| **Trình Cài đặt & Giới thiệu** | Phụ thuộc hoàn toàn trình ngoài | **`caramos-ui installer`** (4 Slide giới thiệu + Typestate) + Calamares |
-| **Giao diện Bootloader** | Cấu hình tĩnh rời rạc | **`caramos-ui bootloader`** (Tự kết xuất ảnh TGA 24-bit + GRUB2 Theme) |
-| **Trình Cập nhật OTA** | Chuỗi script Python tuần tự dễ gãy | **`caramos-ui updater`** (Giao diện TUI + SHA-256 + Atomic Rollback) |
-| **Bộ công cụ Userland** | GNU Coreutils & `sudo` truyền thống | **`uutils-coreutils`**, **`sudo-rs`**, **`ripgrep`**, **`fd-find`** |
-| **Dung lượng Ảnh ISO** | ~2.8 GB – 3.1 GB | **~1.2 GB – 1.5 GB** (Giảm 50% dung lượng) |
+| **Hệ điều hành nền** | Phái sinh qua Ubuntu / Linux Mint | **Debian 13 (`trixie`)** trực tiếp từ thượng nguồn |
+| **Đóng gói Rootfs & ISO** | Nhiều script Bash rời rạc | **`caramos-ctl`** (`mmdebstrap`, `ChrootMountGuard`, `mksquashfs`, `grub-mkrescue`) |
+| **Khởi động ISO** | Phụ thuộc cấu hình ngoài | **Hybrid UEFI + Legacy BIOS** (tự kiểm định El Torito & EFI trên CI) |
+| **Bootloader & Splash** | Cấu hình tĩnh / tự tạo ảnh nền | **`caramos-ui bootloader`** tái sử dụng trực tiếp hình nền có sẵn của CaramOS |
+| **Trình cài đặt** | Phụ thuộc script ngoài | **`caramos-ui installer`** (chọn ổ đĩa `lsblk`, tạo user thường, ẩn mật khẩu, khóa `root`) |
+| **Cập nhật OTA** | Script Python tuần tự | **`caramos-ui updater`** (truyền luồng `O(1)` RAM, SHA-256 `sha2`, `fsync` + rollback nguyên tử) |
+| **Quản lý nhị phân & Git** | Dễ lọt `target/` hoặc binary vào repo | Tách hoàn toàn sang `target/` và `./build/`, có CI Guard chặn commit nhị phân |
 
 ---
 
-## IV. Ba Phân hệ Giao diện & Trải nghiệm Mới (`caramos-ui`)
+## 3. Hai thành phần Rust cốt lõi
 
-### 1. Trình Cài đặt Hệ điều hành có Giới thiệu Trực quan (`caramos-ui installer`)
-* Hiển thị biểu trưng nghệ thuật ASCII **CaramOS 2.0** với bảng màu Caramel/Espresso.
-* Trình chiếu **4 Trang Giới thiệu (Onboarding Carousel)** về kiến trúc Debian 13, Rust Core Stack, Cinnamon + PipeWire và cơ chế Atomic OTA.
-* Sử dụng **Compile-Time Typestate Pattern** (`StageWelcome` $\rightarrow$ `StageTourCompleted` $\rightarrow$ `StageDiskValidated` $\rightarrow$ `StageUserConfigured` $\rightarrow$ `StageCommitted`) nhằm ngăn chặn tuyệt đối mọi thao tác ghi đĩa khi chưa qua bước kiểm định thiết bị khối (`/dev/nvmeXnY`, `/dev/sdX`).
+### `caramos-ctl` — Điều phối build ISO & tác vụ hệ thống
+- Kiểm tra công cụ máy chủ trước khi chạy (`mmdebstrap`, `mksquashfs`, `grub-mkrescue`, `xorriso`, `mformat`, mô-đun GRUB BIOS/UEFI).
+- Bảo vệ môi trường chroot bằng RAII (`ChrootMountGuard` tự tháo `proc`, `sys`, `dev`, `dev/pts`, `run`; `ChrootPolicyRcGuard` chặn daemon khởi chạy trong lúc build và tự gỡ khi kết thúc).
+- Đồng bộ `config/includes.chroot/` bảo toàn đầy đủ symlink và phân quyền; biên dịch `glib-compile-schemas`, `dconf update`, `plymouth-set-default-theme` và `update-initramfs` trước khi nén SquashFS.
+- Hỗ trợ `--extra-overlay` và `--stage-bin` để nhúng binary Rust trực tiếp vào `rootfs/usr/local/bin/` mà không làm bẩn thư mục nguồn trên Git.
+- Đóng gói Hybrid UEFI + BIOS ISO bằng `grub-mkrescue` kèm kiểm chứng SHA-256 phần cứng (`sha2`).
 
-```bash
-# Chạy trình diễn trình cài đặt CaramOS 2.0 (chế độ Dry-Run an toàn):
-make demo-installer
-
-# Hoặc chạy chế độ tương tác hỏi đáp trực tiếp trên Terminal:
-./crates/caramos-ui/target/release/caramos-ui installer --interactive --dry-run
-```
-
-### 2. Bộ Kết xuất Đồ họa Bootloader GRUB2 & Plymouth (`caramos-ui bootloader`)
-* Tự động kết xuất tệp ảnh nền nhị phân **Truevision TGA 24-bit (`background.tga`)** ở độ phân giải HD/FullHD với hiệu ứng chuyển sắc Espresso và biểu tượng lục giác CaramOS ở trung tâm mà không cần bất kỳ thư viện xử lý ảnh bên ngoài nào.
-* Tự động sinh tệp chủ đề GRUB2 (`/boot/grub/themes/caramos/theme.txt`), Plymouth Boot Splash (`/usr/share/plymouth/themes/caramos/`) và cấu hình nhân bảo mật `/etc/default/grub`.
-
-```bash
-# Kết xuất toàn bộ giao diện Bootloader vào cây thư mục Chroot:
-./crates/caramos-ui/target/release/caramos-ui bootloader \
-    --output-root ./config/includes.chroot \
-    --width 1280 \
-    --height 720
-```
-
-### 3. Trung tâm Cập nhật Hệ thống OTA Giao diện TUI (`caramos-ui updater`)
-* Cung cấp bảng điều khiển TUI hiển thị kênh phân phối (`stable` / `testing`), phiên bản đích, thanh tiến trình đồ họa và trạng thái xác thực mật mã học **SHA-256 (FIPS 180-4)**.
-* Đảm bảo tính nguyên tử 100%: Tạo bản sao lưu `.caramos-ota.bak`, nạp tệp mới vào `.caramos-ota.staging`, đồng bộ đĩa bằng `fsync` rồi mới hoán đổi nguyên tử. Nếu mất điện hoặc sai lệch mã băm, hệ thống tự động khôi phục tức thì.
-
-```bash
-# Thực thi giao dịch cập nhật OTA với giao diện TUI:
-sudo ./crates/caramos-ui/target/release/caramos-ui updater \
-    --root / \
-    --target etc/caramos-release \
-    --payload ./payload.new \
-    --sha256 <SHA256_HEX_64_CHARS> \
-    --version 2.0.1 \
-    --channel stable
-```
+### `caramos-ui` — Trải nghiệm cài đặt, Bootloader & OTA TUI
+1. **`installer`**:
+   - Quét và đánh số ổ đĩa vật lý bằng `lsblk` để chọn nhanh, cho phép nhập lại khi sai.
+   - Thiết lập tài khoản người dùng chuẩn: Họ tên hiển thị (hỗ trợ tiếng Việt UTF-8), tên đăng nhập (cấm `root`), mật khẩu nhập ẩn 2 lần (`rpassword`), tùy chọn tự đăng nhập LightDM, tên máy tính và múi giờ.
+   - Áp dụng **Typestate Pattern** ở thời điểm biên dịch; ở chế độ `--execute`, yêu cầu xác nhận rõ (`CAI DAT` hoặc `--confirm-erase-disk`), gán đầy đủ nhóm Desktop, đặt mật khẩu qua pipe `chpasswd`, khóa tài khoản `root` (`passwd -l root`) và cài GRUB tự nhận UEFI/BIOS.
+2. **`bootloader`**:
+   - Quét và tái sử dụng hình nền có sẵn trong `config/includes.chroot/usr/share/backgrounds/` (ưu tiên nền tối để menu rõ nét) và logo `assets/CaramOS_logo.png`.
+   - Chuẩn hóa ảnh sang PNG RGB8 tương thích GRUB2 và Plymouth vào thư mục overlay tạm (`./build/ui_overlay`), không tự vẽ ảnh nền thay thế.
+3. **`updater`**:
+   - Giao diện dòng lệnh hỗ trợ cả chế độ tham số tự động lẫn `--interactive`.
+   - Băm SHA-256 theo luồng (`64 KiB` bộ đệm, không nạp toàn bộ gói vào RAM), ghi tệp tạm cùng phân vùng bằng `tempfile`, đồng bộ `fsync`, đổi tên nguyên tử và tự khôi phục từ bản sao lưu nếu phát sinh lỗi.
 
 ---
 
-## V. Cấu trúc Kho Mã Nguồn Chuẩn Hóa
+## 4. Cấu trúc kho mã nguồn
 
 ```text
 CaramOS-testing/
-├── .github/
-│   └── workflows/
-│       └── ci.yml                 # Pipeline CI/CD tự động: Kiểm định Clippy/Test -> Kết xuất UI -> Xuất ISO
-├── assets/                        # Biểu trưng và tài nguyên thương hiệu CaramOS
+├── .github/workflows/ci.yml   # CI kiểm tra chống commit binary, Clippy, Test, Dry-Run & Build Hybrid ISO
+├── Cargo.toml                 # Cargo Workspace gốc (quản lý chung dependencies & profile release)
+├── Makefile                   # Tập lệnh thống nhất (check, test, stage-ui, demo-installer, dry-run, build)
+├── assets/                    # Logo và tài nguyên thương hiệu CaramOS
 ├── config/
-│   ├── includes.chroot/           # Cây thư mục nhúng thẳng vào Live ISO (Cinnamon, GRUB2 Theme, Binaries)
-│   └── packages.txt               # Danh sách gói chuẩn hóa cho Debian 13 (Trixie) & Rust Core
+│   ├── includes.chroot/       # Lớp phủ giao diện, hình nền, theme và cấu hình gốc của CaramOS
+│   └── packages.txt           # Danh sách gói Debian 13 (Trixie) cho Live ISO & Cinnamon Desktop
 ├── crates/
-│   ├── caramos-ctl/               # Trình điều phối đóng gói ISO, Chroot RAII & OTA Core (Zero Deps)
-│   └── caramos-ui/                # Trình cài đặt TUI, Bộ kết xuất TGA/GRUB2 Bootloader & OTA Updater UI
-├── docs/
-│   └── ARCHITECTURE.md            # Hồ sơ thiết kế kỹ thuật chuyên sâu (Typestate, RAII, Threat Model)
-├── packages/
-│   └── caramos-app-center/        # Kho ứng dụng cho người dùng cuối
-├── Makefile                       # Giao diện lệnh điều phối thống nhất
-└── README.md                      # Tài liệu tổng quan dự án
+│   ├── caramos-ctl/           # Bộ điều phối build ISO, Chroot RAII, SHA-256 & OTA core
+│   └── caramos-ui/            # Trình cài đặt thân thiện user, Bootloader stager & OTA TUI
+├── docs/                      # Tài liệu thiết kế và ghi chú kỹ thuật
+└── packages/                  # Các gói ứng dụng đi kèm của CaramOS
 ```
 
 ---
 
-## VI. Quy trình Đóng gói & Kiểm chứng Nhanh
+## 5. Hướng dẫn build & chạy thử cục bộ
+
+### Bước 1: Cài đặt gói cần thiết trên máy build (Debian / Ubuntu)
 
 ```bash
-# 1. Cài đặt công cụ nền tảng trên máy chủ build (Debian / Ubuntu):
 sudo apt-get update && sudo apt-get install -y \
-    cargo rustc clippy rustfmt \
-    mmdebstrap debian-archive-keyring \
-    squashfs-tools xorriso \
-    grub-common grub-pc-bin grub-efi-amd64-bin mtools
+    mmdebstrap squashfs-tools xorriso \
+    grub-common grub-pc-bin grub-efi-amd64-bin \
+    mtools dosfstools ca-certificates
+```
 
-# 2. Chạy kiểm định tĩnh (Clippy Martial Law) và toàn bộ Unit Tests:
-make check
-make test
+*(Yêu cầu Rust toolchain ổn định >= 1.85 với `cargo`, `clippy`, `rustfmt`.)*
 
-# 3. Chạy mô phỏng toàn bộ quy trình (Kết xuất Bootloader + Installer + Build Dry-Run):
+### Bước 2: Kiểm tra mã nguồn, chạy test và thử trình cài đặt (an toàn)
+
+```bash
+# Chạy Clippy nghiêm ngặt, Unit Tests và biên dịch release cho toàn bộ Workspace
+make all
+
+# Trải nghiệm luồng tương tác của trình cài đặt ở chế độ Dry-Run (không chạm ổ cứng)
+make demo-installer
+
+# Kiểm tra bước chuẩn bị Bootloader từ hình nền sẵn có và chạy mô phỏng pipeline ISO
+make stage-ui
 make dry-run
+```
 
-# 4. Đóng gói ảnh ISO CaramOS 2.0 chính thức:
-make build      # Nén nhanh bằng Zstandard (zstd)
-make release    # Nén tối đa bằng XZ Dictionary 100%
+### Bước 3: Xuất ảnh Live ISO Hybrid UEFI/BIOS
+
+```bash
+make build      # Nén SquashFS nhanh bằng Zstandard (phù hợp phát triển & test)
+make release    # Nén SquashFS tối đa bằng XZ (phù hợp phát hành)
+```
+
+Ảnh ISO đầu ra nằm tại `./build/CaramOS-2.0.0-debian-trixie-amd64.iso` kèm tệp kiểm tra `./build/CaramOS-2.0.0-debian-trixie-amd64.iso.sha256`.
+
+### Bước 4: Chạy thử ISO trên máy ảo QEMU
+
+```bash
+# Kiểm thử Legacy BIOS
+qemu-system-x86_64 -enable-kvm -m 4096 -smp 2 \
+    -cdrom build/CaramOS-2.0.0-debian-trixie-amd64.iso
+
+# Kiểm thử UEFI (cần cài gói ovmf)
+qemu-system-x86_64 -enable-kvm -m 4096 -smp 2 \
+    -bios /usr/share/ovmf/OVMF.fd \
+    -cdrom build/CaramOS-2.0.0-debian-trixie-amd64.iso
 ```
 
 ---
 
-## VII. Giấy phép (License)
+## 6. Tiến độ hiện tại & Hạng mục đang hoàn thiện
 
-Dự án được phân phối dưới giấy phép **GNU General Public License v3.0 (GPL-3.0-only)**. Xem tệp [LICENSE](LICENSE) để biết thêm chi tiết.
+- [x] Chuyển toàn bộ công cụ build và hệ thống sang Cargo Workspace (`caramos-ctl`, `caramos-ui`) không `unsafe`.
+- [x] Khởi tạo Rootfs trực tiếp từ Debian 13 (Trixie) bằng `mmdebstrap`, bảo toàn symlink overlay và biên dịch GSettings/dconf trong chroot.
+- [x] Đóng gói Hybrid UEFI + Legacy BIOS ISO bằng `grub-mkrescue` và tự động kiểm định El Torito/EFI trên GitHub Actions.
+- [x] Tái sử dụng hình nền và logo có sẵn của CaramOS cho GRUB2/Plymouth; tách sạch binary và artifact khỏi Git.
+- [x] Trình cài đặt TUI tạo tài khoản người dùng thường, ẩn mật khẩu và khóa tài khoản `root`.
+- [ ] Kiểm thử toàn diện cài đặt thực tế trên nhiều dòng phần cứng (UEFI Secure Boot, laptop Wi-Fi/Bluetooth, GPU rời).
+- [ ] Tối ưu tinh gọn thêm `config/packages.txt` và hoàn thiện trải nghiệm cài đặt đồ họa (nếu cần song song với TUI).
+- [ ] Hoàn thiện luồng phát hành và kiểm thử OTA end-to-end từ máy chủ cập nhật thực tế.
+- [ ] Rà soát và đề xuất đóng góp các cải tiến ổn định về kho chính thức của **CaramOS (VNLF)**.
+
+---
+
+## 7. Đóng góp & Ghi nhận
+
+- Dự án gốc: **CaramOS — VN Linux Family (VNLF)**. Nhánh này kế thừa và tôn trọng bản sắc giao diện, bộ tài nguyên và định hướng vì người dùng Việt của cộng đồng CaramOS.
+- Mọi báo lỗi khi build ISO, phản hồi trải nghiệm boot/cài đặt trên máy ảo hoặc phần cứng thật và Pull Request cải tiến Rust đều rất được hoan nghênh qua mục **Issues** và **Pull Requests** (xem thêm [CONTRIBUTING.md](CONTRIBUTING.md)).
+
+---
+
+## 8. Giấy phép
+
+Dự án được phát hành theo giấy phép **GNU General Public License v3.0**. Xem chi tiết tại tệp [LICENSE](LICENSE).

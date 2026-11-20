@@ -15,6 +15,7 @@ CaramOS-*.iso
 *.efi
 *.squashfs
 *.log
+Cargo.lock
 
 # Staged binaries & generated bootloader/OTA temp artifacts
 config/includes.chroot/usr/local/bin/caramos-ctl

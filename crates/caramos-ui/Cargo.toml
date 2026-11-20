@@ -1,17 +1,16 @@
 [package]
 name = "caramos-ui"
-version = "2.0.0"
-edition = "2021"
-authors = ["CaramOS Core Engineering <engineering@caramos.org>"]
-description = "Pure-Rust Interactive TUI Installer, Bootloader Theme Engine, and Transactional OTA Updater for CaramOS 2.0 (Debian 13 Trixie)"
-license = "GPL-3.0-only"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "CaramOS 2.0 Rust Installer, Bootloader Asset Stager (Reuses Existing Wallpapers), and Streaming Atomic OTA TUI"
 
 [dependencies]
-# Zero external dependencies by design: deterministic, offline-first build inside chroot/CI.
-
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = true
+clap.workspace = true
+hex.workspace = true
+image.workspace = true
+sha2.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+walkdir.workspace = true

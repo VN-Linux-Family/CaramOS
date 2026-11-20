@@ -15,6 +15,7 @@ license = "GPL-3.0-or-later"
 clap = { version = "4.5", features = ["derive"] }
 hex = "0.4"
 image = { version = ">=0.25.6, <0.25.10", default-features = false, features = ["png", "jpeg", "webp"] }
+rpassword = "7.5"
 sha2 = "0.10"
 tempfile = "3.14"
 thiserror = "2.0"

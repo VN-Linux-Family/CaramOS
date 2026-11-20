@@ -9,7 +9,6 @@
     unreachable_patterns,
     unused_must_use
 )]
-#[allow(unused_assignments)]
 //! # CaramOS 2.0 UI & System Experience Suite (`caramos-ui`)
 //!
 //! Tối ưu thuần Rust với crate ngoài chuẩn hóa, bảo toàn 100% bản sắc UI gốc của CaramOS:

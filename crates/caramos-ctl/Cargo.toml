@@ -1,17 +1,15 @@
 [package]
 name = "caramos-ctl"
-version = "2.0.0"
-edition = "2021"
-description = "Unified Rust Engine for CaramOS: Legacy Pruner, Debian Trixie Builder & Atomic OTA"
-license = "GPL-3.0-only"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+description = "CaramOS 2.0 Memory-Safe System Controller, Hybrid ISO Build Orchestrator, and Atomic OTA Engine"
 
-[[bin]]
-name = "caramos-ctl"
-path = "src/main.rs"
-
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-panic = "abort"
-strip = true
+[dependencies]
+clap.workspace = true
+hex.workspace = true
+sha2.workspace = true
+tempfile.workspace = true
+thiserror.workspace = true
+walkdir.workspace = true

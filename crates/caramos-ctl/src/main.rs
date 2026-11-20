@@ -161,10 +161,11 @@ pub fn atomic_write_file_with_mode(
         path: Some(parent.to_path_buf()),
         source: e,
     })?;
+    let tmp_path = tmp.path().to_path_buf();
 
     tmp.write_all(content).map_err(|e| CaramCtlError::IoFailure {
         context: "Ghi nội dung vào tệp tạm".to_string(),
-        path: Some(tmp.path().to_path_buf()),
+        path: Some(tmp_path.clone()),
         source: e,
     })?;
 
@@ -172,7 +173,7 @@ pub fn atomic_write_file_with_mode(
         .sync_all()
         .map_err(|e| CaramCtlError::IoFailure {
             context: "Đồng bộ fsync tệp tạm".to_string(),
-            path: Some(tmp.path().to_path_buf()),
+            path: Some(tmp_path),
             source: e,
         })?;
 
@@ -303,15 +304,16 @@ pub fn copy_directory_tree_overlay(src_dir: &Path, dst_dir: &Path) -> Result<usi
                 })?;
             }
 
-            // Tránh lỗi ghi xuyên qua symlink rỗng/cũ trong rootfs (vd /etc/resolv.conf)
-            if let Ok(existing_meta) = dst_path.symlink_metadata() {
-                if existing_meta.file_type().is_symlink() {
-                    fs::remove_file(&dst_path).map_err(|e| CaramCtlError::IoFailure {
-                        context: "Gỡ symlink cũ trước khi sao chép tệp".to_string(),
-                        path: Some(dst_path.clone()),
-                        source: e,
-                    })?;
-                }
+            if dst_path
+                .symlink_metadata()
+                .map(|m| m.file_type().is_symlink())
+                .unwrap_or(false)
+            {
+                fs::remove_file(&dst_path).map_err(|e| CaramCtlError::IoFailure {
+                    context: "Gỡ symlink cũ trước khi sao chép tệp".to_string(),
+                    path: Some(dst_path.clone()),
+                    source: e,
+                })?;
             }
 
             fs::copy(src_path, &dst_path).map_err(|e| CaramCtlError::IoFailure {
@@ -427,7 +429,7 @@ impl Drop for ChrootMountGuard {
                 if !normal_ok {
                     let _ = Command::new("umount")
                         .arg("-lf")
-                        .arg(&target)
+                        .arg(target)
                         .stdout(Stdio::null())
                         .stderr(Stdio::null())
                         .status();
@@ -555,7 +557,12 @@ fn run_external_command(cmd: &mut Command, context: &str) -> Result<(), CaramCtl
     Ok(())
 }
 
-fn run_chroot_if_present(rootfs: &Path, chroot_bin: &str, args: &[&str], context: &str) -> Result<bool, CaramCtlError> {
+fn run_chroot_if_present(
+    rootfs: &Path,
+    chroot_bin: &str,
+    args: &[&str],
+    context: &str,
+) -> Result<bool, CaramCtlError> {
     let rel_bin = chroot_bin.trim_start_matches('/');
     if !rootfs.join(rel_bin).exists() {
         return Ok(false);
@@ -813,10 +820,10 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
 
         {
             let _mount_guard = ChrootMountGuard::mount_all(&self.rootfs_dir, self.config.dry_run)?;
-            let _policy_guard = ChrootPolicyRcGuard::install(&self.rootfs_dir, self.config.dry_run)?;
+            let _policy_guard =
+                ChrootPolicyRcGuard::install(&self.rootfs_dir, self.config.dry_run)?;
 
             if !self.config.dry_run {
-                // Biên dịch GSettings schemas để giữ nguyên bản sắc Cinnamon CaramOS
                 if self.rootfs_dir.join("usr/share/glib-2.0/schemas").is_dir() {
                     let _ = run_chroot_if_present(
                         &self.rootfs_dir,
@@ -826,7 +833,6 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
                     )?;
                 }
 
-                // Cập nhật dconf nếu có cấu hình tùy biến
                 if self.rootfs_dir.join("etc/dconf/db").is_dir() {
                     let _ = run_chroot_if_present(
                         &self.rootfs_dir,
@@ -836,7 +842,6 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
                     )?;
                 }
 
-                // Đặt Plymouth theme CaramOS trước khi dựng lại initramfs
                 if self
                     .rootfs_dir
                     .join("usr/share/plymouth/themes/caramos/caramos.plymouth")
@@ -850,7 +855,6 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
                     )?;
                 }
 
-                // Tạo lại initramfs (nhúng live-boot + Plymouth theme)
                 let ran_initramfs = run_chroot_if_present(
                     &self.rootfs_dir,
                     "/usr/sbin/update-initramfs",
@@ -885,20 +889,16 @@ GRUB_THEME=\"/boot/grub/themes/caramos/theme.txt\"\n";
 }
 
 fn cleanup_rootfs_before_squashfs(rootfs: &Path) -> Result<(), CaramCtlError> {
-    // Dọn bộ đệm .deb để thu gọn kích thước SquashFS
     let apt_archives = rootfs.join("var/cache/apt/archives");
-    if apt_archives.is_dir() {
-        if let Ok(entries) = fs::read_dir(&apt_archives) {
-            for entry in entries.flatten() {
-                let p = entry.path();
-                if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("deb") {
-                    let _ = fs::remove_file(p);
-                }
+    if let Ok(entries) = fs::read_dir(&apt_archives) {
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_file() && p.extension().and_then(|e| e.to_str()) == Some("deb") {
+                let _ = fs::remove_file(p);
             }
         }
     }
 
-    // Xóa machine-id cố định để mỗi máy boot Live/Installed tự sinh ID duy nhất
     let machine_id = rootfs.join("etc/machine-id");
     if machine_id.exists() {
         atomic_write_file(&machine_id, b"")?;
@@ -939,19 +939,16 @@ impl IsoBuildPipeline<StageChrootConfigured> {
             })?;
         }
 
-        // Dấu định danh đĩa ISO để GRUB tìm đúng phân vùng boot trên mọi máy UEFI/BIOS/USB
         atomic_write_file(
             &disk_dir.join("info"),
             format!("CaramOS 2.0 (Debian 13 Trixie — {})\n", self.config.arch).as_bytes(),
         )?;
         atomic_write_file(&disk_dir.join("caramos-iso"), b"CARAMOS_2_0\n")?;
 
-        // Lan truyền theme GRUB (dùng hình nền có sẵn) từ rootfs sang iso_staging
         let rootfs_theme_dir = self.rootfs_dir.join("boot/grub/themes/caramos");
         let iso_theme_dir = grub_dir.join("themes/caramos");
         let theme_files_copied = copy_directory_tree_overlay(&rootfs_theme_dir, &iso_theme_dir)?;
 
-        // Sao chép font unicode.pf2 (nếu có) để hiển thị UTF-8 tiếng Việt trong GRUB gfxterm
         let font_candidates = [
             self.rootfs_dir.join("usr/share/grub/unicode.pf2"),
             PathBuf::from("/usr/share/grub/unicode.pf2"),
@@ -1037,7 +1034,7 @@ menuentry "CaramOS 2.0 Safe Graphics / Fallback Mode (nomodeset)" {
             let mut mksquash = Command::new("mksquashfs");
             mksquash
                 .arg(&self.rootfs_dir)
-                .arg(&squashfs_target)
+                .arg(squashfs_target)
                 .arg("-noappend")
                 .arg("-b")
                 .arg("1048576");
@@ -1099,14 +1096,17 @@ impl IsoBuildPipeline<StageSquashfsPacked> {
             source: e,
         })?;
 
-        if let Some(parent) = self.config.output_iso.parent() {
-            if !parent.as_os_str().is_empty() {
-                fs::create_dir_all(parent).map_err(|e| CaramCtlError::IoFailure {
-                    context: "Tạo thư mục chứa tệp ISO đầu ra".to_string(),
-                    path: Some(parent.to_path_buf()),
-                    source: e,
-                })?;
-            }
+        if let Some(parent) = self
+            .config
+            .output_iso
+            .parent()
+            .filter(|p| !p.as_os_str().is_empty())
+        {
+            fs::create_dir_all(parent).map_err(|e| CaramCtlError::IoFailure {
+                context: "Tạo thư mục chứa tệp ISO đầu ra".to_string(),
+                path: Some(parent.to_path_buf()),
+                source: e,
+            })?;
         }
 
         if self.config.dry_run {
@@ -1120,7 +1120,6 @@ impl IsoBuildPipeline<StageSquashfsPacked> {
                 })?;
             }
 
-            // grub-mkrescue tự dựng trọn vẹn El Torito BIOS + MBR Hybrid + FAT EFI System Partition (BOOTX64.EFI)
             let mut mkrescue = Command::new("grub-mkrescue");
             mkrescue
                 .arg("-o")
@@ -1450,7 +1449,6 @@ pub fn apply_atomic_ota(req: &OtaApplyRequest<'_>) -> Result<(), CaramCtlError> 
         source: e,
     })?;
 
-    // Stream payload -> NamedTempFile + đồng thời tính SHA-256 (O(1) RAM)
     let mut src_file = File::open(req.payload_path).map_err(|e| CaramCtlError::IoFailure {
         context: "Mở tệp payload OTA".to_string(),
         path: Some(req.payload_path.to_path_buf()),
@@ -1461,6 +1459,7 @@ pub fn apply_atomic_ota(req: &OtaApplyRequest<'_>) -> Result<(), CaramCtlError> 
         path: Some(target_parent.to_path_buf()),
         source: e,
     })?;
+    let staging_path = staging.path().to_path_buf();
 
     let mut hasher = Sha256::new();
     let mut buf = [0u8; 65_536];
@@ -1477,7 +1476,7 @@ pub fn apply_atomic_ota(req: &OtaApplyRequest<'_>) -> Result<(), CaramCtlError> 
             hasher.update(chunk);
             staging.write_all(chunk).map_err(|e| CaramCtlError::IoFailure {
                 context: "Ghi luồng vào tệp đệm OTA".to_string(),
-                path: Some(staging.path().to_path_buf()),
+                path: Some(staging_path.clone()),
                 source: e,
             })?;
         }
@@ -1497,11 +1496,10 @@ pub fn apply_atomic_ota(req: &OtaApplyRequest<'_>) -> Result<(), CaramCtlError> 
         .sync_all()
         .map_err(|e| CaramCtlError::IoFailure {
             context: "Đồng bộ fsync vùng đệm OTA".to_string(),
-            path: Some(staging.path().to_path_buf()),
+            path: Some(staging_path),
             source: e,
         })?;
 
-    // Bảo toàn quyền tệp gốc (hoặc 0o644 nếu tạo mới)
     if let Ok(orig_meta) = fs::metadata(&target_full) {
         let _ = fs::set_permissions(staging.path(), orig_meta.permissions());
     } else {
@@ -1782,7 +1780,6 @@ mod tests {
         let pkg_file = temp_base.path().join("config/packages.txt");
         let fake_ui_bin = temp_base.path().join("caramos-ui");
 
-        // Giả lập tài sản bản sắc CaramOS + symlink icon
         let bg_real = includes_dir.join("usr/share/backgrounds/caramos/indigo-night.png");
         atomic_write_file(&bg_real, b"CARAMOS_EXISTING_WALLPAPER_PNG")?;
 
@@ -1804,7 +1801,6 @@ mod tests {
             })?;
         }
 
-        // Extra overlay từ caramos-ui bootloader (dùng ảnh PNG có sẵn)
         let theme_png = ui_overlay.join("boot/grub/themes/caramos/background.png");
         atomic_write_file(&theme_png, b"EXISTING_PNG_REUSED_FOR_GRUB")?;
         atomic_write_file(

@@ -49,7 +49,7 @@ khác chỉ cần vài cú bấm. Từ 1.4.0 có thêm **bản Xfce**, nhẹ hơ
 > sau chuỗi bản Open Beta 1.0.x.
 >
 > - **Cài mới:** [tải ISO 1.5.0](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-cinnamon-amd64.iso/download)
->   (2,8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS) ·
+>   (2,9 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS) ·
 >   [ghi chú phát hành](https://caramos.vietnamlinuxfamily.net/#release-notes)
 > - **Máy 2 GB, phòng máy ở trường:** [tải bản Xfce 1.5.0](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-xfce-amd64.iso/download)
 >   (2,7 GB) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS-xfce)
@@ -219,7 +219,7 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
 - **earlyoom:** khi RAM và swap gần hết, CaramOS đóng ứng dụng tốn RAM nhất thay vì để cả máy treo. Trên
   máy thử với ổ cứng chậm, Linux Mint gốc đơ hơn 30 phút trong tình huống này, CaramOS không lần nào đứng
   hình.
-- ISO 2,8 GB, nhỏ hơn ISO Linux Mint 22.3 (3,1 GB) dù có thêm App Center, Kiểm tra driver và Góp ý & hỗ
+- ISO 2,9 GB, nhỏ hơn ISO Linux Mint 22.3 (3,1 GB) dù có thêm App Center, Kiểm tra driver và Góp ý & hỗ
   trợ.
 
 ### Cho trường học: bản Xfce, phòng máy, ứng dụng học tập
@@ -259,7 +259,7 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
 ### 1. Tải ISO
 
 - [CaramOS-1.5.0-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-cinnamon-amd64.iso/download)
-  (2,8 GB, trên SourceForge vì GitHub giới hạn dung lượng mỗi tệp đính kèm).
+  (2,9 GB, trên SourceForge vì GitHub giới hạn dung lượng mỗi tệp đính kèm).
 - Bản Xfce cho máy 2 GB và phòng máy: [CaramOS-1.5.0-xfce-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-xfce-amd64.iso/download)
   (2,7 GB), kiểm tra bằng [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS-xfce).
 - [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS) để kiểm tra

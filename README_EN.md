@@ -45,7 +45,7 @@ away. Since 1.4.0 there is also a lighter **Xfce edition** for 2 GB computers an
 > Open Beta releases.
 >
 > - **New install:** [download the 1.5.0 ISO](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-cinnamon-amd64.iso/download)
->   (2.8 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS) ·
+>   (2.9 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS) ·
 >   [release notes](https://caramos.vietnamlinuxfamily.net/?lang=en#release-notes)
 > - **2 GB computers, school labs:** [download the 1.5.0 Xfce edition](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-xfce-amd64.iso/download)
 >   (2.7 GB) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS-xfce)
@@ -219,7 +219,7 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
 - **earlyoom:** when RAM and swap are nearly full, CaramOS closes the app using the most memory instead
   of letting the whole machine freeze. On a test machine with a slow disk, stock Linux Mint froze for
   over 30 minutes in this situation; CaramOS never stalled.
-- A 2.8 GB ISO, smaller than the Linux Mint 22.3 ISO (3.1 GB), even with the App Center, Driver Check and
+- A 2.9 GB ISO, smaller than the Linux Mint 22.3 ISO (3.1 GB), even with the App Center, Driver Check and
   Feedback & Help added.
 
 ### For schools: the Xfce edition, the computer lab, learning apps
@@ -261,7 +261,7 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
 ### 1. Download the ISO
 
 - [CaramOS-1.5.0-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-cinnamon-amd64.iso/download)
-  (2.8 GB, on SourceForge because GitHub limits the size of each release file).
+  (2.9 GB, on SourceForge because GitHub limits the size of each release file).
 - The Xfce edition for 2 GB computers and school labs: [CaramOS-1.5.0-xfce-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-xfce-amd64.iso/download)
   (2.7 GB), checked with [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS-xfce).
 - [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS) to check

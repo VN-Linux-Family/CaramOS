@@ -11,6 +11,9 @@ cleanup_chroot_package_state() {
         fi
         rm -f /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/cache/apt/archives/lock 2>/dev/null || true
         timeout 60 dpkg --configure -a --force-confdef --force-confold >/dev/null 2>&1 || true
+        # Build only: a mirror that drops a connection (as archive.ubuntu.com did on GitHub runners on 2026-11-23)
+        # gets retried instead of failing the whole ISO. Removed again in the clean-up step.
+        printf "Acquire::Retries \"5\";\n" > /etc/apt/apt.conf.d/99caramos-build-retries
     '
 }
 
@@ -107,6 +110,7 @@ step_customize() {
         # Backups debconf and dpkg keep of their databases from before the last package change.
         rm -f /var/cache/debconf/*-old /var/lib/dpkg/*-old
         rm -rf /tmp/* /var/tmp/*
+        rm -f /etc/apt/apt.conf.d/99caramos-build-retries
         rm -f /etc/resolv.conf
     '
     umount_chroot

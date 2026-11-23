@@ -5,6 +5,10 @@ on:
     branches: [main, develop]
     tags:
       - 'v*'
+    # A commit that only changes documentation builds no ISO (tags always build: GitHub does not apply path
+    # filters to tag pushes).
+    paths-ignore:
+      - '**.md'
   pull_request:
     branches: [main]
   workflow_dispatch:

@@ -493,6 +493,9 @@ def build_window(app):
 
 
 def open_window() -> int:
+    from caramos_ota import gtk_renderer
+
+    gtk_renderer.apply()  # cairo where OpenGL would run on the CPU
     import gi
 
     gi.require_version("Gtk", "4.0")

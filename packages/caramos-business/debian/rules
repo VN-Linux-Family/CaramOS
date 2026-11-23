@@ -1,0 +1,46 @@
+#!/usr/bin/make -f
+
+include /usr/share/dpkg/default.mk
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# The agent is Rust, built offline from the crates in agent/vendor (Launchpad builds have no network) with Ubuntu's
+# versioned toolchain.
+export CARGO = cargo-1.85
+export RUSTC = rustc-1.85
+export CARGO_HOME = $(CURDIR)/debian/cargo-home
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	cd agent && $(CARGO) build --release --offline --locked
+	for po in po/*.po; do \
+	  lang=$$(basename $$po .po); \
+	  mkdir -p build/locale/$$lang/LC_MESSAGES; \
+	  msgfmt --check -o build/locale/$$lang/LC_MESSAGES/caramos-business.mo $$po; \
+	done
+
+override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	cd agent && $(CARGO) test --release --offline --locked
+	PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=usr/lib/python3/dist-packages python3 -m unittest discover -s tests
+endif
+
+override_dh_auto_install:
+	install -D -m 755 agent/target/release/caramos-business-agent \
+	  debian/caramos-business/usr/lib/caramos-business/caramos-business-agent
+	mkdir -p debian/caramos-business/usr/share/locale
+	cp -r build/locale/. debian/caramos-business/usr/share/locale/
+
+# The services run only once the window gives the machine a role: the helper enables them then. Not --no-start:
+# deb-systemd-invoke starts no disabled unit anyway, and with it an upgrade would stop the running services in
+# preinst and never start them again.
+override_dh_installsystemd:
+	dh_installsystemd --no-enable
+
+# The window links to the admin guide: it stays a plain Markdown file.
+override_dh_compress:
+	dh_compress -X.md
+
+override_dh_auto_clean:
+	rm -rf agent/target build debian/cargo-home

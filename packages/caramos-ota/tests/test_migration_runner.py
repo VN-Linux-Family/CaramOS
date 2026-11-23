@@ -73,9 +73,21 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261118090100_xfce_wallpapers",
                 "20261119100000_open_office_documents",
                 "20261119100200_lighten_xfce_session",
+                "20261120100000_clipboard_history",
+                "20261120100100_taskbar_alignment",
+                "20261120100200_lunar_calendar",
+                "20261120100300_external_monitor_brightness",
+                "20261120100400_xfce_lunar_clock",
+                "20261120100500_xfce_round_menus",
+                "20261120100600_round_menus",
+                "20261120100700_windows_shortcuts",
+                "20261122100000_carlito_font",
+                "20261122100100_administrative_templates",
+                "20261122100200_windows_migration_tools",
+                "20261123100000_automatic_updates",
             ],
         )
-        self.assertEqual(30, run_one.call_count)
+        self.assertEqual(42, run_one.call_count)
         self.assertEqual(
             [
                 "20260805111120_update_taskbar_pins_cleanup_desktop",
@@ -108,6 +120,18 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261118090100_xfce_wallpapers",
                 "20261119100000_open_office_documents",
                 "20261119100200_lighten_xfce_session",
+                "20261120100000_clipboard_history",
+                "20261120100100_taskbar_alignment",
+                "20261120100200_lunar_calendar",
+                "20261120100300_external_monitor_brightness",
+                "20261120100400_xfce_lunar_clock",
+                "20261120100500_xfce_round_menus",
+                "20261120100600_round_menus",
+                "20261120100700_windows_shortcuts",
+                "20261122100000_carlito_font",
+                "20261122100100_administrative_templates",
+                "20261122100200_windows_migration_tools",
+                "20261123100000_automatic_updates",
             ],
             [entry.args[0].migration_id for entry in run_one.call_args_list],
         )

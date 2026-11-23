@@ -52,6 +52,10 @@ class DriverProposal:
     model: str = ""
     free: bool = False
     offline: bool = False  # can be installed from the CaramOS USB stick without internet
+    # False: Ubuntu lists this driver for the device, but it cannot work with the running kernel (NVIDIA 470 and
+    # older on Linux 6.12 and later: no signed modules, and the DKMS build fails). Never offered; it tells the
+    # analysis that the card has no NVIDIA driver to install, so nouveau is the right driver (ticket H-1177).
+    usable: bool = True
 
     @property
     def nvidia(self) -> bool:
@@ -121,10 +125,21 @@ def proposals_from(devices: dict[str, dict], installed, usable=lambda package: T
         drivers = info.get("drivers") or {}
         if any(installed(name) for name, details in drivers.items() if not details.get("builtin")):
             continue   # one of its drivers is already installed
-        drivers = {name: details for name, details in drivers.items() if usable(name)}
-        package = choose(drivers)
+        working = {name: details for name, details in drivers.items() if usable(name)}
+        package = choose(working)
         if not package:
+            blocked = choose(drivers)
+            if blocked and NVIDIA_DRIVER.match(blocked):
+                proposals.append(DriverProposal(
+                    package=blocked,
+                    target=install_target(blocked),
+                    address=address_of(syspath),
+                    vendor=str(info.get("vendor") or ""),
+                    model=str(info.get("model") or ""),
+                    usable=False,
+                ))
             continue
+        drivers = working
         proposals.append(DriverProposal(
             package=package,
             target=install_target(package),

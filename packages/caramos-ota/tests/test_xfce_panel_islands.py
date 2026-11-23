@@ -3,8 +3,9 @@
 The look lives in CSS that the themes import (usr/share/caramos-ota/xfce), and it depends on the panel layout in the
 ISO (config/includes.chroot.xfce): the three panels are clear and 48 px high, every island is drawn by the plugins in
 it, and the CSS names those plugins by their ids. In the right island, the CaramOS Control Center (the
-xfce4-caramos-plugin package, a socket for caramos-ota's Control Center) shows the network, the sound and the battery,
-as on Cinnamon: no sound or battery plugin, and nm-applet keeps running without its icon."""
+xfce4-caramos-plugin package, a socket for caramos-ota's Control Center) shows the clock, the network, the sound and
+the battery, as on Cinnamon: no clock, sound or battery plugin, and nm-applet keeps running without its icon. The
+clock is the Control Center's because its calendar shows lunar dates, which GTK's calendar in Xfce's clock cannot."""
 
 from __future__ import annotations
 
@@ -21,6 +22,7 @@ LIGHT = XFCE_SHARE / "panel-islands.css"
 DARK = XFCE_SHARE / "panel-islands-dark.css"
 HELP = XFCE_SHARE / "caramos-help-panel.desktop"
 CONTROL_CENTER = XFCE_SHARE / "caramos-control-center"
+CLOCK = XFCE_SHARE / "control-center/caramos_xfce_cc/clock.py"
 DARK_THEME = ROOT / "usr/share/themes/Cinnamon-Delight-Dark/gtk-3.0/gtk.css"
 XFCE = REPO / "config/includes.chroot.xfce/etc/xdg/caramos-xfce/xfce4"
 PANEL_XML = XFCE / "xfconf/xfce-perchannel-xml/xfce4-panel.xml"
@@ -129,16 +131,18 @@ class PanelLayoutTests(unittest.TestCase):
 
     def test_right_island_in_the_order_of_cinnamon(self) -> None:
         right = self.panel(3)
-        tray, _clock, _control_center, help_id = right["ids"]
+        tray, _control_center, help_id = right["ids"]
         names = [self.plugin(i) for i in right["ids"]]
-        self.assertEqual(["systray", "clock", "caramos-control-center", "launcher"], names)
+        self.assertEqual(["systray", "caramos-control-center", "launcher"], names)
         used = [self.plugin(i) for number in (1, 2, 3) for i in self.panel(number)["ids"]]
-        for gone in ("pulseaudio", "power-manager-plugin"):
-            self.assertNotIn(gone, used, "the Control Center shows the sound and the battery")
-        # The CSS draws the island's pieces on these plugins by id, and on the Control Center's button by its name.
+        for gone in ("clock", "pulseaudio", "power-manager-plugin"):
+            self.assertNotIn(gone, used, "the Control Center shows the clock, the sound and the battery")
+        # The CSS draws the island's pieces on these plugins by id, and on the Control Center's clock and button by
+        # their names: the clock has the name of Xfce's clock, so either is drawn the same.
         self.assertIn(f"#systray-{tray} > box", self.css)
         self.assertIn(f"#launcher-{help_id} button", self.css)
-        self.assertIn("#clock-button", self.css)
+        self.assertIn("#clock-button {", self.css)
+        self.assertIn('self.set_name("clock-button")', CLOCK.read_text(encoding="utf-8"))
         self.assertIn("#caramos-cc-indicator {", self.css)
         self.assertNotIn("#pulseaudio", self.css)
         items = [value.get("value") for value in self.setting(help_id, "items")]
@@ -178,7 +182,7 @@ class PanelLayoutTests(unittest.TestCase):
 
     def test_the_plugin_starts_caramos_ota_control_center(self) -> None:
         entry = desktop_entry(PLUGIN / "src/caramos-control-center.desktop")
-        control_center_id = self.panel(3)["ids"][2]
+        control_center_id = self.panel(3)["ids"][1]
         self.assertEqual(self.plugin(control_center_id), entry["X-XFCE-Module"])
         self.assertEqual("true", entry["X-XFCE-Unique"])
         self.assertEqual("false", entry["X-XFCE-Internal"], "an external plugin: the panel survives its crashes")

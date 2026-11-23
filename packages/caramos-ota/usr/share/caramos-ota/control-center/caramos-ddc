@@ -1,0 +1,142 @@
+#!/usr/bin/python3
+"""Brightness of external monitors through DDC/CI, for the Control Center of both editions (ticket H-1183).
+
+    caramos-ddc list                    the monitors that answer, as JSON: [{"bus", "name", "brightness", "max"}]
+    caramos-ddc set BUS PERCENT [MAX]   a brightness in percent of the monitor's maximum, MAX from the list (else
+                                        asked first, which takes as long again)
+
+ddcutil talks to the monitor over the I2C bus of its cable. Linux makes those buses files only with the i2c-dev
+module (/usr/lib/modules-load.d/caramos-ddc.conf loads it at boot), and ddcutil's udev rule gives them to the user at
+the screen. Finding the monitors (ddcutil detect) takes a second or more, so the buses are kept in
+$XDG_RUNTIME_DIR/caramos-ddc.json until a monitor is plugged in or out, which the EDIDs of the connectors tell. A
+laptop's own screen has no DDC; its brightness is the backlight's, the slider above this one.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+DDCUTIL = "ddcutil"
+BRIGHTNESS = "10"  # the VCP feature code of luminance
+DRM = Path("/sys/class/drm")
+
+
+def cache_path() -> Path:
+    return Path(os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}") / "caramos-ddc.json"
+
+
+def fingerprint(drm: Path = DRM) -> str:
+    """The monitors plugged in now: the connectors that have an EDID, and their EDIDs."""
+
+    digest = hashlib.sha256()
+    for edid in sorted(drm.glob("card*-*/edid")):
+        try:
+            data = edid.read_bytes()
+        except OSError:
+            continue
+        if data:
+            digest.update(edid.parent.name.encode() + b"\0" + data)
+    return digest.hexdigest()
+
+
+def parse_detect(output: str) -> list[dict[str, object]]:
+    """`ddcutil detect --brief`: the displays that answer DDC, as [{"bus", "name"}]; "Invalid display" blocks do
+    not."""
+
+    displays: list[dict[str, object]] = []
+    current: dict[str, object] | None = None
+    for line in output.splitlines():
+        if re.match(r"^Display \d+", line):
+            current = {}
+            displays.append(current)
+        elif not line.startswith((" ", "\t")):
+            current = None
+        elif current is not None:
+            bus = re.search(r"I2C bus:\s*/dev/i2c-(\d+)", line)
+            if bus:
+                current["bus"] = int(bus.group(1))
+            monitor = re.search(r"Monitor:\s*([^:]*):([^:]*)", line)
+            if monitor:
+                current["name"] = monitor.group(2).strip() or monitor.group(1).strip()
+    return [{"bus": display["bus"], "name": display.get("name") or ""} for display in displays if "bus" in display]
+
+
+def parse_brightness(output: str) -> tuple[int, int] | None:
+    """`ddcutil getvcp 10 --brief` ("VCP 10 C 60 100"): (current, maximum)."""
+
+    match = re.search(r"^VCP\s+10\s+C\s+(\d+)\s+(\d+)\s*$", output.strip(), re.M | re.I)
+    if not match or int(match.group(2)) <= 0:
+        return None
+    return int(match.group(1)), int(match.group(2))
+
+
+def ddcutil(*args: str, timeout: float = 10) -> str | None:
+    try:
+        result = subprocess.run([DDCUTIL, *args], capture_output=True, text=True, timeout=timeout, check=False,
+                                stdin=subprocess.DEVNULL)
+    except (OSError, subprocess.TimeoutExpired):
+        return None
+    return result.stdout if result.returncode == 0 else None
+
+
+def buses() -> list[dict[str, object]]:
+    """The DDC monitors, from the cache while the same monitors are plugged in."""
+
+    seen = fingerprint()
+    path = cache_path()
+    try:
+        cached = json.loads(path.read_text(encoding="utf-8"))
+        if cached.get("fingerprint") == seen and isinstance(cached.get("displays"), list):
+            return cached["displays"]
+    except (OSError, ValueError, AttributeError):
+        pass
+    output = ddcutil("detect", "--brief", timeout=30)
+    displays = parse_detect(output) if output is not None else []
+    if output is not None:
+        try:
+            path.write_text(json.dumps({"fingerprint": seen, "displays": displays}), encoding="utf-8")
+        except OSError:
+            pass
+    return displays
+
+
+def list_displays() -> list[dict[str, object]]:
+    found = []
+    for display in buses():
+        output = ddcutil("--bus", str(display["bus"]), "getvcp", BRIGHTNESS, "--brief")
+        values = parse_brightness(output) if output is not None else None
+        if values is not None:
+            found.append({**display, "brightness": values[0], "max": values[1]})
+    return found
+
+
+def set_brightness(bus: int, percent: int, maximum: int | None = None) -> bool:
+    if not maximum:
+        output = ddcutil("--bus", str(bus), "getvcp", BRIGHTNESS, "--brief")
+        values = parse_brightness(output) if output is not None else None
+        if values is None:
+            return False
+        maximum = values[1]
+    value = round(max(0, min(100, percent)) * maximum / 100)
+    return ddcutil("--bus", str(bus), "setvcp", BRIGHTNESS, str(value), "--noverify") is not None
+
+
+def main(argv: list[str]) -> int:
+    if argv[1:2] == ["list"]:
+        print(json.dumps(list_displays()))
+        return 0
+    if argv[1:2] == ["set"] and len(argv) in (4, 5) and all(arg.isdigit() for arg in argv[2:]):
+        maximum = int(argv[4]) if len(argv) == 5 else None
+        return 0 if set_brightness(int(argv[2]), int(argv[3]), maximum) else 1
+    print("usage: caramos-ddc list | set BUS PERCENT [MAX]", file=sys.stderr)
+    return 2
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

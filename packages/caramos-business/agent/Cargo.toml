@@ -1,0 +1,47 @@
+[package]
+name = "caramos-business-agent"
+version = "0.3.0"
+edition = "2021"
+# Ubuntu 24.04's rustc-1.85/cargo-1.85, which the Launchpad PPA build uses. Resolver 3 picks dependency versions
+# that build with it.
+rust-version = "1.85"
+resolver = "3"
+description = "CaramOS Doanh nghiệp: the employee machine's agent (policy service and session part)"
+license = "GPL-3.0-or-later"
+publish = false
+
+[lib]
+name = "caramos_business_agent"
+path = "src/lib.rs"
+# No examples in the docs; and Ubuntu's versioned toolchain has rustdoc-1.85, not the rustdoc cargo would call.
+doctest = false
+
+[[bin]]
+name = "caramos-business-agent"
+path = "src/main.rs"
+
+# Few and small: everything else (UDP, files, processes, time) comes from std. All of it is vendored in vendor/
+# for the offline Launchpad build (see .cargo/config.toml and README.md).
+[dependencies]
+base64 = "0.22"
+# Opening the secrets the admin seals for this machine (PROTOCOL.md part 2): decryption only, so no RNG.
+chacha20poly1305 = { version = "0.10", default-features = false, features = ["alloc"] }
+# Verification only. No features: even "std" would put pkcs8 and rand_core into Cargo.lock (and vendor/) through
+# weak dependency features, though nothing builds them.
+ed25519-dalek = { version = "2", default-features = false }
+# The mac and seal keys: HKDF-SHA256 over the X25519 secret, HMAC-SHA256 request MACs. These majors share digest 0.10
+# with sha2 and ed25519-dalek.
+hkdf = "0.12"
+hmac = "0.12"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sha2 = "0.10"
+# Plain HTTP on the company LAN: no TLS, no gzip, no cookies.
+ureq = { version = "2", default-features = false }
+# The machine box key (X25519): a static secret, shared with the admin's box key. Shares curve25519-dalek 4 with
+# ed25519-dalek.
+x25519-dalek = { version = "2", default-features = false, features = ["static_secrets"] }
+
+[profile.release]
+lto = true
+codegen-units = 1

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import os
-import time
 from collections.abc import Callable
 
 import gi
@@ -19,52 +18,31 @@ from .backends.appearance import ACCENTS, Appearance  # noqa: E402
 from .backends.audio import AudioBackend, volume_icon  # noqa: E402
 from .backends.bluetooth import BluetoothBackend  # noqa: E402
 from .backends.brightness import Brightness  # noqa: E402
+from .backends.ddc import Ddc  # noqa: E402
 from .backends.network import (NetworkBackend, VpnBackend, connectivity_text, device_state_text,  # noqa: E402
                                wifi_signal_icon)
 from .backends.nightlight import NightLight  # noqa: E402
+from .backends.notifications import Notifications  # noqa: E402
+from .backends.panelclock import PanelClock  # noqa: E402
 from .backends.power import PROFILE_ICONS, BatteryBackend, ProfilesBackend, battery_text, profile_label  # noqa: E402
+from .backends.taskbar import CENTER, LEFT, Taskbar  # noqa: E402
 from .i18n import _, ngettext  # noqa: E402
-from .util import SOUND_KEYS, spawn, spawn_named  # noqa: E402
+from .popupbase import CardPopup  # noqa: E402
+from .util import spawn_named  # noqa: E402
 
 LOG = logging.getLogger("caramos-control-center")
 
 WIFI_LIST_LIMIT = 7
 VPN_LIST_LIMIT = 7
-EDGE = 4  # the right island also stops 4 px before the screen edge
-GAP = 0   # as on Cinnamon, the popup sits on the panel: the island's own margin is the gap
 CARD_WIDTH = 362  # the Cinnamon applet's card, border included
-SOUND_KEY_ARGS = {Gdk.KEY_AudioRaiseVolume: "up", Gdk.KEY_AudioLowerVolume: "down", Gdk.KEY_AudioMute: "mute",
-                  Gdk.KEY_AudioMicMute: "mic-mute"}
 
 
-class Popup(Gtk.Window):
+class Popup(CardPopup):
     def __init__(self, backends: "Backends") -> None:
-        # A popup window, as GTK's menus are: the window manager does not move it or draw a square shadow around
-        # it, and it takes the pointer and keyboard while open (a click outside or Esc closes it).
-        super().__init__(type=Gtk.WindowType.POPUP)
+        # The window and its card: popupbase.CardPopup, as the clock's calendar.
+        super().__init__(_("CaramOS Control Center"))
         self.b = backends
-        self.hidden_at = 0.0
-        self._anchor: tuple[int, int] | None = None
-        self._grabbed = False
-        self.set_title(_("CaramOS Control Center"))
-        visual = self.get_screen().get_rgba_visual()
-        if visual is not None:
-            self.set_visual(visual)
-        self.set_app_paintable(True)
-        self.set_type_hint(Gdk.WindowTypeHint.POPUP_MENU)
-        self.set_resizable(False)
-        w.styled(self, "caramos-cc")
-        self.add_events(Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.KEY_PRESS_MASK)
-        self.connect("button-press-event", self._on_button)
-        self.connect("key-press-event", self._on_key)
-        self.connect("map-event", lambda *_: self._grab())
-        self.connect("grab-broken-event", lambda *_: self.hide_popup() or False)
-        self.connect("size-allocate", lambda *_: self._place())
-
-        # The card fills the window, which is transparent outside the card's round corners.
-        self.card = w.styled(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8), "caramos-cc-card")
         self.card.set_size_request(CARD_WIDTH, -1)
-        self.add(self.card)
         self.inline = w.InlineCard(self.close_inline)
         self.inline_fill: Callable[[], None] | None = None
         self.confirming = ""
@@ -100,6 +78,10 @@ class Popup(Gtk.Window):
         self.brightness = w.SliderRow("display-brightness-symbolic", _("Brightness"), self.b.brightness.set)
         for row in (self.volume, self.mic, self.brightness):
             self.card.pack_start(row, False, False, 0)
+        # External monitors' brightness (ticket H-1183): a slider for each monitor that answers DDC/CI.
+        self.ddc_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.ddc_rows: dict[int, w.SliderRow] = {}
+        self.card.pack_start(self.ddc_box, False, False, 0)
 
         # Tiles, two per row.
         self.wired = w.Tile("network-wired-symbolic", _("Wired network"), _("Checking…"),
@@ -125,16 +107,22 @@ class Popup(Gtk.Window):
                              _("Accent colour"), "",
                              lambda: self.toggle_inline("accent", "applications-graphics-symbolic",
                                                         _("Accent colour"), self.fill_accent, self.power_row))
+        # Do not disturb (ticket H-1179): xfce4-notifyd keeps notifications without showing them.
+        self.dnd = w.Tile(["notifications-disabled-symbolic", "preferences-system-notifications-symbolic"],
+                          _("Do not disturb"), _("Disabled"), self.toggle_dnd)
+        # The taskbar's middle island in the middle or next to the menu (ticket H-1181).
+        self.taskbar = w.Tile("format-justify-center-symbolic", _("Taskbar"), "", self.open_taskbar)
         self.network_row = self._row(self.wired, self.wifi)
         self.connections_row = self._row(self.vpn, self.bluetooth)
         self.display_row = self._row(self.dark, self.night)
         self.power_row = self._row(self.power_mode, self.accent)
+        self.notifications_row = self._row(self.dnd, self.taskbar)
 
         self.card.show_all()
         self.brightness.hide()
         self.pill.hide()
         for signal_source in (self.b.audio, self.b.network, self.b.vpn, self.b.bluetooth, self.b.battery,
-                              self.b.profiles, self.b.appearance):
+                              self.b.profiles, self.b.appearance, self.b.notifications, self.b.taskbar):
             signal_source.connect("changed", lambda *_: self.refresh())
         self.refresh()
 
@@ -147,14 +135,6 @@ class Popup(Gtk.Window):
 
     # -- showing ---------------------------------------------------------------------------------------------------
 
-    def toggle(self, anchor: tuple[int, int] | None, event_time: int = Gdk.CURRENT_TIME) -> None:
-        if self.get_visible():
-            self.hide_popup()
-            return
-        if time.monotonic() - self.hidden_at < 0.3:  # the click that took the focus away is this one
-            return
-        self.show_popup(anchor, event_time)
-
     def show_popup(self, anchor: tuple[int, int] | None, event_time: int = Gdk.CURRENT_TIME) -> None:
         """anchor: (right edge, top) of the panel button in screen coordinates."""
 
@@ -162,76 +142,22 @@ class Popup(Gtk.Window):
         self.close_inline()
         self.b.vpn.refresh()
         self._read_brightness()
+        self.b.ddc.read(self._show_ddc)
         self.refresh()
         self.show_all()
         self._apply_visibility()
         self._place()
 
-    def _place(self) -> bool:
-        """The card's bottom right corner just above the right island, 4 px from the screen edge like the island."""
-
-        display = Gdk.Display.get_default()
-        monitor = display.get_monitor_at_point(*self._anchor) if self._anchor else display.get_primary_monitor()
-        if monitor is None:
-            monitor = display.get_monitor(0)
-        area = monitor.get_geometry()
-        top = self._anchor[1] if self._anchor else area.y + area.height - 48 + EDGE
-        width, height = self.get_size()
-        self.move(area.x + area.width - EDGE - width, top - GAP - height)
-        return False
-
-    def _grab(self) -> None:
-        window = self.get_window()
-        seat = Gdk.Display.get_default().get_default_seat()
-        if window is None or seat is None:
-            return
-        status = seat.grab(window, Gdk.SeatCapabilities.ALL, True, None, None, None)
-        self._grabbed = status == Gdk.GrabStatus.SUCCESS
-        if not self._grabbed:  # someone else holds the pointer (a menu): try once more in a moment
-            GLib.timeout_add(100, self._retry_grab)
-
-    def _retry_grab(self) -> bool:
-        if self.get_visible() and not self._grabbed:
-            self._grab()
-        return False
-
     def hide_popup(self) -> None:
-        if self._grabbed:
-            Gdk.Display.get_default().get_default_seat().ungrab()
-            self._grabbed = False
-        if self.get_visible():
-            self.hide()
-            self.hidden_at = time.monotonic()
+        super().hide_popup()
         if self.b.bluetooth.state.discovering:
             self.b.bluetooth.set_discovering(False)
 
-    def _on_button(self, _widget: Gtk.Widget, event: Gdk.EventButton) -> bool:
-        """With the grab, a click anywhere reaches this window: outside the card it closes the popup."""
-
-        window = self.get_window()
-        if window is None:
-            return False
-        _ok, origin_x, origin_y = window.get_origin()
-        card = self.card.get_allocation()
-        x, y = event.x_root - origin_x, event.y_root - origin_y
-        if card.x <= x < card.x + card.width and card.y <= y < card.y + card.height:
-            return False
-        self.hide_popup()
-        return True
-
-    def _on_key(self, _widget: Gtk.Widget, event: Gdk.EventKey) -> bool:
-        if event.keyval == Gdk.KEY_Escape:
-            if self.inline.get_parent() is not None:
-                self.close_inline()
-            else:
-                self.hide_popup()
+    def _on_key(self, widget: Gtk.Widget, event: Gdk.EventKey) -> bool:
+        if event.keyval == Gdk.KEY_Escape and self.inline.get_parent() is not None:
+            self.close_inline()
             return True
-        # The popup holds the keyboard, so the session's shortcut for the sound keys does not see them: run it here.
-        sound_key = SOUND_KEY_ARGS.get(event.keyval)
-        if sound_key:
-            spawn((SOUND_KEYS, sound_key))
-            return True
-        return False
+        return super()._on_key(widget, event)
 
     def _run(self, command: str) -> None:
         self.hide_popup()
@@ -399,6 +325,16 @@ class Popup(Gtk.Window):
         self.night.set_subtitle(_("Enabled") if night else _("Disabled"))
         self.night.set_active(night)
         self.accent.set_subtitle(self._accent_name())
+        notifications = self.b.notifications
+        self.dnd.set_enabled(notifications.available)
+        quiet = notifications.quiet
+        self.dnd.set_subtitle(_("Notifications hidden") if quiet else _("Disabled") if notifications.available
+                              else _("Unavailable"))
+        self.dnd.set_active(quiet)
+        place = self.b.taskbar.alignment
+        self.taskbar.set_enabled(place is not None)
+        self.taskbar.set_subtitle(_("Left") if place == LEFT else _("Centre") if place == CENTER else _("Unavailable"))
+        self.taskbar.set_icon_name("format-justify-left-symbolic" if place == LEFT else "format-justify-center-symbolic")
 
     def _read_brightness(self) -> None:
         def got(fraction: float | None) -> None:
@@ -407,6 +343,23 @@ class Popup(Gtk.Window):
                 self.brightness.set_value(fraction)
 
         self.b.brightness.read(got)
+
+    def _show_ddc(self, displays: list[dict[str, object]]) -> None:
+        if [display["bus"] for display in displays] != list(self.ddc_rows):
+            for row in self.ddc_rows.values():
+                row.destroy()
+            self.ddc_rows = {}
+            for display in displays:
+                # Translators: accessible name of the brightness slider of an external monitor; %s is its model.
+                name = _("Brightness of %s") % display["name"] if display["name"] else _("Monitor brightness")
+                row = w.SliderRow("video-display-symbolic", name, lambda value, d=display: self.b.ddc.set(d, value))
+                self.ddc_rows[int(display["bus"])] = row
+                self.ddc_box.pack_start(row, False, False, 0)
+            self.ddc_box.show_all()
+        for display in displays:
+            row = self.ddc_rows.get(int(display["bus"]))
+            if row is not None and not row.dragging and not self.b.ddc.busy(int(display["bus"])):
+                row.set_value(float(display["fraction"]))
 
     # -- tiles -------------------------------------------------------------------------------------------------------
 
@@ -459,6 +412,21 @@ class Popup(Gtk.Window):
         self.b.night_light.set_enabled(not self.b.night_light.enabled)
         self.refresh()
 
+    def toggle_dnd(self) -> None:
+        self.b.notifications.set_quiet(not self.b.notifications.quiet)
+        self.refresh()
+
+    def open_taskbar(self) -> None:
+        self.toggle_inline("taskbar", "format-justify-center-symbolic", _("Taskbar"), self.fill_taskbar,
+                           self.notifications_row)
+
+    def set_taskbar(self, place: str) -> None:
+        if place == self.b.taskbar.alignment:
+            return
+        # xfce4-panel restarts to move the dock, and takes this popup with it.
+        self.hide_popup()
+        self.b.taskbar.set_alignment(place)
+
     def open_power_mode(self) -> None:
         self.toggle_inline("power-mode", "preferences-system-power-symbolic", _("Power mode"), self.fill_power_mode,
                            self.power_row)
@@ -475,6 +443,14 @@ class Popup(Gtk.Window):
                                           else "audio-input-microphone-symbolic", device.description,
                                           "object-select-symbolic" if device.default else None,
                                           lambda d=device: self.b.audio.set_default(kind, d.name)))
+        appearance = self.b.appearance
+        if kind == "output" and appearance.has_volume_step:
+            def pick(step: int) -> None:
+                appearance.set_volume_step(step)
+                self._refill("output")
+
+            self.inline.append(w.separator())
+            self.inline.append(w.step_chooser(_("Volume step"), appearance.VOLUME_STEPS, appearance.volume_step(), pick))
         self.inline.append(w.separator())
         self.inline.append(w.list_row("preferences-system-symbolic", _("Open sound settings"), None,
                                       lambda: self._run("soundSettings")))
@@ -605,6 +581,18 @@ class Popup(Gtk.Window):
         self.inline.append(w.list_row("preferences-system-symbolic", _("Power settings"), None,
                                       lambda: self._run("powerSettings")))
 
+    def fill_taskbar(self) -> None:
+        place = self.b.taskbar.alignment
+        if place is None:
+            # Translators: the taskbar's panels were changed, so the Taskbar choices cannot move the apps' island.
+            self.inline.append(w.empty_text(_("The taskbar was changed in the panel settings")))
+            return
+        for choice, icon_name, text in ((CENTER, "format-justify-center-symbolic", _("Centre")),
+                                         (LEFT, "format-justify-left-symbolic", _("Left"))):
+            self.inline.append(w.list_row(icon_name, text, "object-select-symbolic" if choice == place else None,
+                                          lambda c=choice: self.set_taskbar(c)))
+        self.inline.append(w.empty_text(_("The taskbar reloads for a second or two.")))
+
     def fill_power(self) -> None:
         if self.confirming:
             self._fill_confirm(self.confirming)
@@ -732,5 +720,9 @@ class Backends:
         self.profiles = ProfilesBackend()
         self.appearance = Appearance()
         self.night_light = NightLight()
+        self.notifications = Notifications()
+        self.taskbar = Taskbar()
+        self.panel_clock = PanelClock()
         self.brightness = Brightness()
+        self.ddc = Ddc()
         self.session_state = session.read_state()

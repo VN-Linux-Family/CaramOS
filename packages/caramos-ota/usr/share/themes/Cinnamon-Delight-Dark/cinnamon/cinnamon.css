@@ -2227,25 +2227,29 @@ StScrollBar {
 }
 
 .panelCenter {
+  background-color: transparent;
+  box-shadow: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* The middle island is the window list's own box: it goes with the window list next to the menu (Control
+   Center, Taskbar: Left; ticket H-1181), and the empty middle zone then paints nothing. */
+.grouped-window-list-box {
   background-color: rgba(43, 34, 39, 0.86);
   border-radius: 999px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.10);
   margin-top: 4px;
   margin-bottom: 4px;
-  padding-left: 0;
-  padding-right: 0;
-}
-
-.panelCenter .grouped-window-list-box {
   spacing: 0;
 }
 
-.panelCenter .grouped-window-list-item-box {
+.grouped-window-list-item-box {
   margin-left: 0;
 }
 
-.panelCenter .grouped-window-list-item-box:hover,
-.panelCenter .grouped-window-list-item-box:focus {
+.grouped-window-list-item-box:hover,
+.grouped-window-list-item-box:focus {
   border-radius: 999px;
 }
 
@@ -2280,3 +2284,50 @@ StScrollBar {
   background-color: #1f9ede;
 }
 /* CARAMOS_20260803120000_PANEL_DOCKS_END */
+
+/* CARAMOS_20261120100600_ROUND_MENUS_START */
+/* CaramOS: menus with round corners, like the islands and the Control Center (users asked for it after 1.4.0). The
+   same block ends the light and the dark theme (migration 20261120100600). */
+.menu,
+.menu.top,
+.menu.bottom,
+.menu.left,
+.menu.right {
+  border-radius: 12px;
+}
+
+.popup-menu-boxpointer {
+  -arrow-border-radius: 12px;
+}
+
+/* The Start menu (Cinnamenu), as round as the CaramOS menu of the Xfce edition, with round buttons and search box. */
+.menu.menu-background,
+.menu.menu-background.top,
+.menu.menu-background.bottom,
+.menu.menu-background.left,
+.menu.menu-background.right {
+  border-radius: 20px;
+}
+
+.menu-background .menu-category-button,
+.menu-background .menu-category-button-selected,
+.menu-background .menu-category-button-hover,
+.menu-background .menu-category-button-greyed,
+.menu-background .menu-application-button,
+.menu-background .menu-application-button-selected,
+.menu-background .menu-favorites-button {
+  border-radius: 10px;
+}
+
+.menu-background #menu-search-entry {
+  border-radius: 999px;
+}
+
+/* The item under the pointer is round too, a little in from the menu's sides. */
+.popup-menu-item,
+.popup-menu .popup-menu-item {
+  border-radius: 8px;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+/* CARAMOS_20261120100600_ROUND_MENUS_END */

@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Phông Carlito (khoảng 0,8 MB)",
+  "size_en": "Carlito font (about 0.8 MB)",
+  "title": "Tài liệu soạn bằng Calibri giữ đúng dòng, đúng trang",
+  "summary": "Phông Carlito có cùng độ rộng từng chữ với Calibri, phông mặc định của Word và Excel, và đủ chữ tiếng Việt. Tài liệu từ Windows không còn xô dòng hay tràn sang trang sau.",
+  "title_en": "Documents written in Calibri keep their lines and pages",
+  "summary_en": "The Carlito font has the same width for every letter as Calibri, the default font of Word and Excel, and has every Vietnamese letter. Documents from Windows no longer reflow onto another page.",
+  "release_notes_vi": [
+    "Calibri là phông mặc định của Word, Excel và PowerPoint từ Office 2007. Máy không có Calibri thì dùng phông khác thay vào, chữ rộng hẹp khác đi nên dòng xuống chỗ khác và mẫu một trang tràn sang trang hai.",
+    "Carlito có cùng độ rộng từng chữ với Calibri và đủ chữ tiếng Việt. Khi tài liệu ghi Calibri, LibreOffice và các ứng dụng của máy dùng Carlito thay vào.",
+    "Cần Times New Roman hay Arial cho văn bản hành chính: mở App Center và cài Microsoft Core Fonts.",
+    "Cambria chưa có phông thay thế miễn phí đủ chữ tiếng Việt, nên tài liệu dùng Cambria hãy đổi sang Times New Roman."
+  ],
+  "release_notes_en": [
+    "Calibri has been the default font of Word, Excel and PowerPoint since Office 2007. A computer without it uses another font, whose letters have other widths, so lines break elsewhere and a one-page form runs onto a second page.",
+    "Carlito has the same width for every letter as Calibri and every Vietnamese letter. Where a document asks for Calibri, LibreOffice and the apps of this computer use Carlito.",
+    "For Times New Roman or Arial in official documents, open the App Center and install Microsoft Core Fonts.",
+    "Cambria has no free replacement with Vietnamese letters yet, so change documents in Cambria to Times New Roman."
+  ]
+}

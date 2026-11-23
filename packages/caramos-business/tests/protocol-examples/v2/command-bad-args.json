@@ -1,0 +1,4 @@
+{
+ "command": "{\n \"seq\": 47,\n \"id\": \"00000000-0000-4000-8000-000000000047\",\n \"targets\": {\n  \"all\": true\n },\n \"action\": \"usb_unlock\",\n \"args\": {\n  \"minutes\": 9999\n },\n \"issued\": \"2026-11-21T14:00:00+07:00\",\n \"expires\": \"2099-01-01T00:00:00+07:00\"\n}",
+ "signature": "7aMSshU2kZqier/uKCl7Os6LUV1E3dPieug5E9+MKmoUMAtAIxwDB7SFfyD1EfCACOhEl9G95Vj0BZKQMPKODg=="
+}

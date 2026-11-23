@@ -1,0 +1,31 @@
+{
+ "apps": [
+  {
+   "id": "vlc.desktop",
+   "name": "VLC",
+   "version": "3.0.20-3build6",
+   "source": "deb",
+   "package": "vlc",
+   "licence": "GPL-2+",
+   "origin": "ubuntu-universe"
+  },
+  {
+   "id": "google-chrome.desktop",
+   "name": "Google Chrome",
+   "version": "158.0.8127.36-1",
+   "source": "deb",
+   "package": "google-chrome-stable",
+   "licence": "unknown",
+   "origin": "third-party:dl.google.com"
+  },
+  {
+   "id": "org.libreoffice.LibreOffice",
+   "name": "LibreOffice",
+   "version": "25.8.3.2",
+   "source": "flatpak",
+   "package": "org.libreoffice.LibreOffice",
+   "licence": "MPL-2.0",
+   "origin": "flathub"
+  }
+ ]
+}

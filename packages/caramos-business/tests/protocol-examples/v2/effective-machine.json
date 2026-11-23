@@ -1,0 +1,106 @@
+{
+ "wallpaper": {
+  "default": "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7",
+  "periods": [],
+  "lock": false
+ },
+ "browser": {
+  "homepage": "https://amis.misa.vn",
+  "bookmarks": [
+   {
+    "name": "Thuế điện tử",
+    "url": "https://thuedientu.gdt.gov.vn"
+   }
+  ],
+  "block": [
+   "facebook.com",
+   "tiktok.com",
+   "youtube.com"
+  ],
+  "block_hours": {
+   "days": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "ranges": [
+    [
+     "08:00",
+     "12:00"
+    ],
+    [
+     "13:30",
+     "17:30"
+    ]
+   ]
+  },
+  "safe_search": true
+ },
+ "printers": [
+  {
+   "name": "Máy in tầng 2",
+   "uri": "ipp://192.168.1.50/ipp/print",
+   "location": "Tầng 2",
+   "default": true
+  }
+ ],
+ "power": {
+  "shutdown": {
+   "days": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "time": "18:30",
+   "warn_minutes": 10,
+   "postpone_minutes": 30,
+   "max_postpones": 2,
+   "laptops": "skip"
+  },
+  "wake": {
+   "days": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "time": "07:45"
+  }
+ },
+ "usb": {
+  "storage": "block"
+ },
+ "screen_lock": {
+  "idle_minutes": 5,
+  "on_suspend": true
+ },
+ "wifi": [
+  {
+   "ssid": "CongTy",
+   "security": "wpa-psk",
+   "hidden": false
+  }
+ ],
+ "shares": [
+  {
+   "name": "Kế toán",
+   "url": "smb://nas/ketoan"
+  }
+ ],
+ "apps": {
+  "required": [
+   "libreoffice"
+  ],
+  "forbidden": [
+   "discord"
+  ]
+ }
+}

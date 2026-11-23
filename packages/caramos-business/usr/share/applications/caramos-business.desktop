@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Business
+Name[vi]=CaramOS Doanh nghiệp
+Comment=Manage the company's machines: settings, assets, actions and remote help
+Comment[vi]=Quản lý máy của công ty: thiết lập, tài sản, thao tác và hỗ trợ từ xa
+Keywords=company;business;wallpaper;server;NAS;inventory;asset;remote;doanh nghiệp;công ty;hình nền;máy chủ;tài sản;kiểm kê;hỗ trợ từ xa;
+Exec=caramos-business
+Icon=network-server
+Terminal=false
+Categories=System;Settings;
+StartupNotify=true

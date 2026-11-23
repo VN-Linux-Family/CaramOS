@@ -1,0 +1,18 @@
+# CaramOS Doanh nghiệp: a copy of a prepared disk takes its own host name at its first boot, before the login screen
+# starts (PROTOCOL.md part 3, "Enrolment at first boot, and prepare-image"). caramos-business-enroll.service waits for
+# the network, which comes about when LightDM starts: a host name changed after the X server started locks every
+# program of the session out of the display ("Authorization required", the X cookie is filed under the old name), and
+# the copy showed a black screen until its next boot. Shipped disabled: prepare-image enables it together with the
+# enrolment unit, and enroll-on-boot disables both.
+[Unit]
+Description=CaramOS Business: give this copy of a prepared disk its own host name before the login screen
+ConditionPathExists=/etc/caramos-business/enroll-on-boot.json
+After=systemd-remount-fs.service
+Before=display-manager.service systemd-user-sessions.service caramos-business-enroll.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/caramos-business/caramos-business-helper enroll-hostname
+
+[Install]
+WantedBy=multi-user.target

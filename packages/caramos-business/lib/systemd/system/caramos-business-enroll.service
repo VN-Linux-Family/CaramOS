@@ -1,0 +1,21 @@
+# CaramOS Doanh nghiệp: a copy of a prepared disk enrols itself with the company's admin machine at its first boot
+# (PROTOCOL.md part 3, "Enrolment at first boot, and prepare-image"). Shipped disabled: the helper's prepare-image
+# enables it together with /etc/caramos-business/enroll-on-boot.json, and enroll-on-boot disables it once the machine
+# is enrolled, or for good when the enrolment file is expired, used up or withdrawn. With no answer from the admin it
+# fails, and systemd tries again a minute later for as long as it takes.
+[Unit]
+Description=CaramOS Business: enrol this machine with the company's admin machine
+ConditionPathExists=/etc/caramos-business/enroll-on-boot.json
+Wants=network-online.target
+After=network-online.target
+Before=caramos-business-agent.service
+StartLimitIntervalSec=0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/lib/caramos-business/caramos-business-helper enroll-on-boot
+Restart=on-failure
+RestartSec=60
+
+[Install]
+WantedBy=multi-user.target

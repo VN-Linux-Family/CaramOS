@@ -145,7 +145,7 @@ class UpdateCenterTests(unittest.TestCase):
     def test_the_failed_page_offers_it(self) -> None:
         ui = (ROOT / "usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py").read_text(encoding="utf-8")
         app = (ROOT / "usr/lib/python3/dist-packages/caramos_ota_notifier/app.py").read_text(encoding="utf-8")
-        self.assertIn('_button(Gtk, _("Ask for help"), "secondary"', ui)
+        self.assertIn('_button(Gtk, _("Ask for help"), on_help', ui)
         self.assertIn("problem.ask_for_help(detail, self.update_info)", app)
 
 

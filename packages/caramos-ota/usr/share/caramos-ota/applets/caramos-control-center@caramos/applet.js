@@ -63,6 +63,27 @@ const WALLPAPER_MODE_SETTLE_MS = 800;
 // ACCENT_SCHEMA (shipped with this package). stylesheet.css has a .caramos-cc-accent-<key> block for each colour
 // but orange, which is the base style.
 const ACCENT_SCHEMA = 'net.vietnamlinuxfamily.caramos.control-center';
+// How much scrolling over the panel icon and the volume keys change the volume, in percent (ticket H-1180). Cinnamon's
+// media keys change it by 5; with another value the applet takes the two volume keys over (_syncVolumeKeys).
+const VOLUME_STEP_KEY = 'volume-step';
+const VOLUME_STEPS = [2, 5, 10];
+const CINNAMON_VOLUME_STEP = 5;
+const MEDIA_KEYS_SCHEMA = 'org.cinnamon.desktop.keybindings.media-keys';
+const VOLUME_KEYS = [['volume-up', 'XF86AudioRaiseVolume', 1], ['volume-down', 'XF86AudioLowerVolume', -1]];
+// Do not disturb (ticket H-1179): Cinnamon keeps notifications without showing them while this is false.
+const NOTIFICATIONS_SCHEMA = 'org.cinnamon.desktop.notifications';
+const NOTIFICATIONS_KEY = 'display-notifications';
+// Ticket H-1181: the middle island, Cinnamon's window list, in the middle zone of the panel or in the left one next to
+// the menu, as Windows 11's taskbar alignment. The theme paints the island on the window list itself (migration
+// 20261120100100), so it goes along; the first move of a session loads the theme again from the disk, in case an
+// update changed it since the login.
+const TASKBAR_APPLET = 'grouped-window-list@cinnamon.org';
+const TASKBAR_ALIGNMENTS = ['center', 'left'];
+const TASKBAR_THEME_RELOAD_MS = 300;
+// Ticket H-1183: the brightness of external monitors through DDC/CI (caramos-ddc, with ddcutil): a slider for each
+// monitor that answers, under the laptop's; none when no monitor does. Finding them can take seconds the first time.
+const DDC_HELPER = '/usr/share/caramos-ota/control-center/caramos-ddc';
+const DDC_LIST_TIMEOUT_S = 40;
 const ACCENT_KEY = 'accent-color';
 // 'custom' in ACCENT_KEY: the #rrggbb in ACCENT_CUSTOM_KEY, picked with GTK's colour chooser (ACCENT_PICKER). Its
 // stylesheet is written to ~/.cache/caramos-control-center and loaded into the running theme.
@@ -1695,21 +1716,26 @@ function parseAppearanceStyles(documents, isInstalled) {
     return styles;
 }
 
+// The style variant in use. Icons and cursor may be the user's own choice (square Mint-Y icons with the CaramOS
+// theme): then the variant whose GTK and Cinnamon themes match is the active one, and the switch keeps them.
 function findActiveAppearance(styles, current) {
-    let active = null;
+    let exact = null;
+    let loose = null;
     (styles || []).forEach(style => {
         APPEARANCE_MODES.forEach(modeName => {
             const mode = style.modes[modeName];
             if (!mode) return;
             mode.variants.forEach(variant => {
-                if (variant.gtk === current.gtk && variant.icons === current.icons
-                    && variant.cinnamon === current.cinnamon && variant.cursor === current.cursor) {
-                    active = { style, mode: modeName, variant };
+                if (variant.gtk !== current.gtk || variant.cinnamon !== current.cinnamon) return;
+                if (variant.icons === current.icons && variant.cursor === current.cursor) {
+                    exact = { style, mode: modeName, variant };
+                } else if (!loose) {
+                    loose = { style, mode: modeName, variant };
                 }
             });
         });
     });
-    return active;
+    return exact || loose;
 }
 
 function appearanceIsDark(styles, current) {
@@ -1852,7 +1878,12 @@ function planAppearanceSwitch(styles, current, wantDark) {
     if (!modeName) return fallback;
     const mode = active.style.modes[modeName];
     const variant = mode.variants.find(candidate => candidate.name === active.variant.name) || mode.defaultVariant;
-    return { mode: modeName, colorScheme: APPEARANCE_COLOR_SCHEMES[modeName], variant };
+    // Icons or a cursor the user picked (not the ones of the style variant in use) stay as they are.
+    const keep = {
+        icons: !!current.icons && current.icons !== active.variant.icons,
+        cursor: !!current.cursor && current.cursor !== active.variant.cursor,
+    };
+    return { mode: modeName, colorScheme: APPEARANCE_COLOR_SCHEMES[modeName], variant, keep };
 }
 
 // What to do with the wallpaper when the mode flips. `savedUri` is the light wallpaper remembered when
@@ -1929,6 +1960,54 @@ function loadAppearanceStyles() {
 }
 
 // Gio.Settings.new() aborts the whole shell on a missing schema, so optional schemas are looked up first.
+// 'center' or 'left' for the window list of the first panel in Cinnamon's enabled-applets, else null.
+function taskbarAlignment(enabledApplets) {
+    for (const entry of enabledApplets) {
+        const parts = entry.split(':');
+        if (parts.length < 5 || parts[0] !== 'panel1' || parts[3] !== TASKBAR_APPLET) continue;
+        return TASKBAR_ALIGNMENTS.indexOf(parts[1]) !== -1 ? parts[1] : null;
+    }
+    return null;
+}
+
+// enabled-applets with the window list in the middle zone, or in the left one after the applets there; null when
+// the window list is not where CaramOS puts it.
+function withTaskbarAlignment(enabledApplets, alignment) {
+    if (!taskbarAlignment(enabledApplets) || TASKBAR_ALIGNMENTS.indexOf(alignment) === -1) return null;
+    const leftOrders = enabledApplets.map(entry => entry.split(':'))
+        .filter(parts => parts.length >= 5 && parts[0] === 'panel1' && parts[1] === 'left' && parts[3] !== TASKBAR_APPLET)
+        .map(parts => parseInt(parts[2], 10))
+        .filter(order => !isNaN(order));
+    const order = alignment === 'left' && leftOrders.length ? Math.max(...leftOrders) + 1 : 0;
+    return enabledApplets.map(entry => {
+        const parts = entry.split(':');
+        if (parts.length < 5 || parts[0] !== 'panel1' || parts[3] !== TASKBAR_APPLET) return entry;
+        parts[1] = alignment;
+        parts[2] = String(order);
+        return parts.join(':');
+    });
+}
+
+// The monitors of `caramos-ddc list` (JSON) that the sliders can show: [{bus, name, percent, max}].
+function ddcDisplays(output) {
+    let found;
+    try {
+        found = JSON.parse(output || '[]');
+    } catch (e) {
+        return [];
+    }
+    if (!Array.isArray(found)) return [];
+    return found.filter(display => display && Number.isInteger(display.bus) && display.bus >= 0
+            && Number.isInteger(display.max) && display.max > 0
+            && Number.isInteger(display.brightness) && display.brightness >= 0 && display.brightness <= display.max)
+        .map(display => ({
+            bus: display.bus,
+            name: typeof display.name === 'string' ? display.name : '',
+            percent: Math.round(display.brightness * 100 / display.max),
+            max: display.max,
+        }));
+}
+
 function optionalSettings(schemaId) {
     const source = Gio.SettingsSchemaSource.get_default();
     if (!source || !source.lookup(schemaId, true)) return null;
@@ -2239,6 +2318,27 @@ function createAccentSwatches(choice, onPick) {
     return row;
 }
 
+// The volume step: a label and one small button per step, the current one marked.
+function createStepChooser(current, onPick) {
+    const row = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-step-row', x_expand: true });
+    row.add_child(new St.Label({ text: _('Volume step'), style_class: 'caramos-cc-list-label caramos-cc-step-label',
+        y_align: Clutter.ActorAlign.CENTER, x_expand: true }));
+    VOLUME_STEPS.forEach(step => {
+        const selected = step === current;
+        const button = new St.Button({
+            label: `${step}%`,
+            style_class: selected ? 'caramos-cc-step caramos-cc-step-selected' : 'caramos-cc-step',
+            reactive: true,
+            can_focus: true,
+            track_hover: true,
+        });
+        setAccessibleName(button, _('Volume step: %d%%').format(step));
+        button.connect('clicked', () => onPick(step));
+        row.add_child(button);
+    });
+    return row;
+}
+
 // Audio rows own pointer/key activation so release events never reach the parent popup.
 function createAudioDeviceRow(iconName, text, selected, onClick) {
     const item = new PopupMenu.PopupBaseMenuItem({ activate: true, focusOnHover: false });
@@ -2358,8 +2458,25 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         if (this._accentSettings) {
             this._accentSignalId = this._accentSettings.connect('changed', (_settings, key) => {
                 if (key === ACCENT_KEY || key === ACCENT_CUSTOM_KEY) this._onAccentChanged();
+                if (key === VOLUME_STEP_KEY) this._syncVolumeKeys(false);
             });
         }
+        this._mediaKeySettings = optionalSettings(MEDIA_KEYS_SCHEMA);
+        this._volumeKeysTaken = false;
+        this._scrollDelta = 0;
+        this.actor.connect('scroll-event', (_actor, event) => this._onPanelScroll(event));
+        this._notificationSettings = optionalSettings(NOTIFICATIONS_SCHEMA);
+        this._notificationSignalId = 0;
+        if (this._notificationSettings) {
+            this._notificationSignalId = this._notificationSettings.connect(`changed::${NOTIFICATIONS_KEY}`,
+                () => this._refreshDoNotDisturbTile());
+        }
+        this._taskbarThemeReloaded = false;
+        this._ddcRows = new Map();
+        this._ddcWrites = new Map();
+        this._ddcBuses = '';
+        this._ddcListing = false;
+        this._taskbarSignalId = global.settings.connect('changed::enabled-applets', () => this._refreshTaskbarTile());
         this._customAccentPath = null;
         this._customAccentTheme = null;
         this._customAccentClass = null;
@@ -2443,6 +2560,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
                 this._alignMenuToRightEdge();
                 this._addOneShot(1, () => this._focusFirstControl(this._container));
                 this._refreshVpnState();
+                this._refreshDdc();
             } else {
                 this._restoreFocus();
             }
@@ -2552,6 +2670,15 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         }
         this._themeSettingsSignalId = 0;
         this._themeSettings = null;
+        if (this._volumeKeysTaken) this._releaseVolumeKeys();
+        if (this._notificationSettings && this._notificationSignalId) {
+            try { this._notificationSettings.disconnect(this._notificationSignalId); } catch (e) { /* disposed */ }
+        }
+        this._notificationSignalId = 0;
+        if (this._taskbarSignalId) {
+            try { global.settings.disconnect(this._taskbarSignalId); } catch (e) { /* disposed */ }
+        }
+        this._taskbarSignalId = 0;
         if (this._accentSettings && this._accentSignalId) {
             try { this._accentSettings.disconnect(this._accentSignalId); } catch (e) { /* disposed */ }
         }
@@ -2738,6 +2865,11 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
 
     _buildPanelIndicator() {
         const box = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-indicator' });
+        // A crossed bell while Do not disturb is on, so hidden notifications are not a surprise.
+        this._panelQuietIcon = createIcon('notifications-disabled-symbolic', 'caramos-cc-panel-icon');
+        this._panelQuietIcon.gicon = Gio.ThemedIcon.new_from_names(['notifications-disabled-symbolic',
+            'preferences-system-notifications-symbolic']);
+        this._panelQuietIcon.hide();
         this._panelNetworkIcon = createIcon('network-wireless-symbolic', 'caramos-cc-panel-icon');
         this._panelVpnIcon = createIcon('network-vpn-symbolic', 'caramos-cc-panel-icon');
         this._panelMicIcon = createIcon('microphone-sensitivity-high-symbolic', 'caramos-cc-panel-icon');
@@ -2749,6 +2881,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             y_align: Clutter.ActorAlign.CENTER,
         });
 
+        box.add_child(this._panelQuietIcon);
         box.add_child(this._panelNetworkIcon);
         box.add_child(this._panelVpnIcon);
         box.add_child(this._panelMicIcon);
@@ -2830,6 +2963,8 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._audioInputGroup.add_child(this._micRow.actor);
         container.add_child(this._audioInputGroup);
         container.add_child(this._brightnessRow.actor);
+        this._ddcGroup = new St.BoxLayout({ vertical: true, x_expand: true });
+        container.add_child(this._ddcGroup);
 
         this._ethernetTile = createSplitTile('network-wired-symbolic', _('Wired network'), _('Checking…'), false, () => this._openSettings('networkSettings'), () => this._openEthernetOverlay());
         this._wifiTile = createSplitTile('network-wireless-symbolic', _('Wi‑Fi'), _('Checking…'), true, () => this._toggleWifi(), () => this._openWifiOverlay());
@@ -2865,11 +3000,25 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._accentTile.icon.gicon = Gio.ThemedIcon.new_from_names(['preferences-color-symbolic', 'color-select-symbolic', 'applications-graphics-symbolic']);
         if (this._accentSettings) this._powerRow.add_child(this._accentTile.actor);
         this._refreshAccentTile();
+        this._dndTile = createSimpleTile('notifications-disabled-symbolic', _('Do not disturb'), _('Disabled'), false,
+            () => this._toggleDoNotDisturb());
+        this._dndTile.icon.gicon = Gio.ThemedIcon.new_from_names(['notifications-disabled-symbolic',
+            'preferences-system-notifications-symbolic']);
+        // Translators: tile of the Control Center: where the apps' island of the taskbar sits (centre or left).
+        this._taskbarTile = createSimpleTile('format-justify-center-symbolic', _('Taskbar'), '', false,
+            () => this._openTaskbarPanel());
+        this._notificationsRow = new St.BoxLayout({ vertical: false, style_class: 'caramos-cc-grid-row', x_expand: true, x_align: Clutter.ActorAlign.FILL });
+        this._notificationsRow.layout_manager.homogeneous = true;   // two halves, as the tiles above
+        this._notificationsRow.add_child(this._dndTile.actor);
+        this._notificationsRow.add_child(this._taskbarTile.actor);
+        this._refreshDoNotDisturbTile();
+        this._refreshTaskbarTile();
 
         container.add_child(this._networkRow);
         container.add_child(this._connectionsRow);
         container.add_child(this._displayRow);
         container.add_child(this._powerRow);
+        container.add_child(this._notificationsRow);
         this._refreshAppearanceTile();
 
         this._container = container;
@@ -3464,6 +3613,13 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             });
         }
         body.add_child(list);
+        if (type === 'output' && this._accentSettings && this._accentSettings.settings_schema.has_key(VOLUME_STEP_KEY)) {
+            body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
+            body.add_child(createStepChooser(this._volumeStep(), step => {
+                try { this._accentSettings.set_int(VOLUME_STEP_KEY, step); } catch (e) { global.logError(e); }
+                this._fillAudioDeviceList(body, type);
+            }));
+        }
         body.add_child(new St.Widget({ style_class: 'caramos-cc-expand-separator' }));
         body.add_child(createIconRow('preferences-desktop-sound-symbolic', _('Open sound settings'), null, () => {
             this._closeSubmenus();
@@ -3544,6 +3700,221 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         return Math.max(0, Math.min(100, Math.round(stream.volume / this._volumeNorm * 100)));
     }
 
+    _volumeStep() {
+        let step = CINNAMON_VOLUME_STEP;
+        try {
+            if (this._accentSettings && this._accentSettings.settings_schema.has_key(VOLUME_STEP_KEY)) {
+                step = this._accentSettings.get_int(VOLUME_STEP_KEY);
+            }
+        } catch (e) {
+            global.logError(e);
+        }
+        return Math.max(1, Math.min(20, step || CINNAMON_VOLUME_STEP));
+    }
+
+    // Scrolling over the panel icon changes the volume, as over Cinnamon's sound applet (ticket H-1180).
+    _onPanelScroll(event) {
+        // A wheel click arrives twice, as a smooth scroll and as an emulated up/down: count one, as GNOME's sliders do.
+        if (event.is_pointer_emulated()) return Clutter.EVENT_STOP;
+        const direction = event.get_scroll_direction();
+        let steps = 0;
+        if (direction === Clutter.ScrollDirection.UP) steps = 1;
+        else if (direction === Clutter.ScrollDirection.DOWN) steps = -1;
+        else if (direction === Clutter.ScrollDirection.SMOOTH) {
+            const [, dy] = event.get_scroll_delta();
+            this._scrollDelta -= dy;
+            steps = Math.trunc(this._scrollDelta);
+            this._scrollDelta -= steps;
+        }
+        if (!steps) return Clutter.EVENT_PROPAGATE;
+        this._stepVolume(steps);
+        return Clutter.EVENT_STOP;
+    }
+
+    _stepVolume(steps) {
+        const stream = this._output;
+        if (!stream || !this._volumeNorm) return;
+        const step = this._volumeNorm * this._volumeStep() / 100;
+        let volume = Math.max(0, Math.min(this._volumeMax, Math.round(stream.volume + steps * step)));
+        // 100 % is magnetic, as with Cinnamon's own keys.
+        if (volume !== this._volumeNorm && Math.abs(volume - this._volumeNorm) < step / 2) volume = this._volumeNorm;
+        stream.volume = volume;
+        stream.push_volume();
+        if (steps > 0 && stream.is_muted) stream.change_is_muted(false);
+        const percent = Math.round(volume / this._volumeNorm * 100);
+        const muted = stream.is_muted && steps < 0;
+        Main.osdWindowManager.show(-1, Gio.ThemedIcon.new(this._volumeIconName(percent, muted)), null, percent, false);
+    }
+
+    // With a step other than Cinnamon's 5 % the applet handles the volume keys: Cinnamon's bindings are emptied
+    // and given back (reset) when the step returns to 5 % or the applet leaves the panel. At startup `force`
+    // also repairs a takeover a crash left behind.
+    _syncVolumeKeys(force) {
+        if (!this._mediaKeySettings) return;
+        const take = !this._removed && this._audioAvailable && this._volumeStep() !== CINNAMON_VOLUME_STEP;
+        if (!force && take === this._volumeKeysTaken) return;
+        if (take) {
+            try {
+                VOLUME_KEYS.forEach(([key, accelerator, steps]) => {
+                    this._mediaKeySettings.set_strv(key, []);
+                    Main.keybindingManager.addHotKey(`caramos-cc-${key}`, accelerator, () => this._stepVolume(steps));
+                });
+                this._volumeKeysTaken = true;
+            } catch (e) {
+                global.logError(e);
+            }
+        } else if (this._volumeKeysTaken || VOLUME_KEYS.some(([key]) => this._mediaKeySettings.get_strv(key).length === 0)) {
+            this._releaseVolumeKeys();
+        }
+    }
+
+    _releaseVolumeKeys() {
+        VOLUME_KEYS.forEach(([key]) => {
+            try { Main.keybindingManager.removeHotKey(`caramos-cc-${key}`); } catch (e) { /* not added */ }
+            try { if (this._mediaKeySettings) this._mediaKeySettings.reset(key); } catch (e) { global.logError(e); }
+        });
+        this._volumeKeysTaken = false;
+    }
+
+    _toggleDoNotDisturb() {
+        if (!this._notificationSettings) return;
+        const shown = this._notificationSettings.get_boolean(NOTIFICATIONS_KEY);
+        this._notificationSettings.set_boolean(NOTIFICATIONS_KEY, !shown);
+        this._refreshDoNotDisturbTile();
+    }
+
+    _refreshDoNotDisturbTile() {
+        const quietNow = !!this._notificationSettings && !this._notificationSettings.get_boolean(NOTIFICATIONS_KEY);
+        if (this._panelQuietIcon) {
+            if (quietNow) this._panelQuietIcon.show();
+            else this._panelQuietIcon.hide();
+        }
+        const tile = this._dndTile;
+        if (!tile) return;
+        setTileEnabled(tile, !!this._notificationSettings);
+        if (!this._notificationSettings) return;
+        const quiet = !this._notificationSettings.get_boolean(NOTIFICATIONS_KEY);
+        const label = quiet ? _('Notifications hidden') : _('Disabled');
+        tile.subtitleLabel.set_text(label);
+        setAccessibleName(tile.button, _('%s: %s').format(_('Do not disturb'), label));
+        this._setSimpleTileState(tile, quiet, false);
+    }
+
+    _refreshDdc() {
+        if (this._ddcListing || !GLib.file_test(DDC_HELPER, GLib.FileTest.IS_EXECUTABLE)) return;
+        this._ddcListing = true;
+        commandOutputAsync([DDC_HELPER, 'list'], DDC_LIST_TIMEOUT_S, (ok, stdout) => {
+            this._ddcListing = false;
+            if (this._removed) return;
+            this._showDdcDisplays(ok ? ddcDisplays(stdout) : []);
+        });
+    }
+
+    _showDdcDisplays(displays) {
+        if (!this._ddcGroup) return;
+        const buses = displays.map(display => display.bus).join(',');
+        if (buses !== this._ddcBuses) {
+            this._ddcBuses = buses;
+            this._ddcGroup.destroy_all_children();
+            this._ddcRows.clear();
+            for (const display of displays) {
+                const name = display.name
+                    // Translators: accessible name of the brightness slider of an external monitor; %s is its model.
+                    ? _('Brightness of %s').format(display.name)
+                    : _('Monitor brightness');
+                const row = createSliderRow('video-display-symbolic', name, display.percent, value => {
+                    if (!this._updatingSliders) this._setDdcBrightness(display, value);
+                });
+                this._ddcRows.set(display.bus, row);
+                this._ddcGroup.add_child(row.actor);
+            }
+        }
+        for (const display of displays) {
+            const row = this._ddcRows.get(display.bus);
+            const write = this._ddcWrites.get(display.bus);
+            if (!row || (write && (write.busy || write.pending !== null))) continue;
+            this._updatingSliders = true;
+            row.slider.setValue(display.percent / 100);
+            this._updatingSliders = false;
+        }
+    }
+
+    // DDC is slow: one write at a time for each monitor, and the last value wins.
+    _setDdcBrightness(display, percent) {
+        let write = this._ddcWrites.get(display.bus);
+        if (!write) {
+            write = { busy: false, pending: null };
+            this._ddcWrites.set(display.bus, write);
+        }
+        write.pending = Math.max(0, Math.min(100, Math.round(percent)));
+        if (write.busy) return;
+        const send = () => {
+            if (this._removed || write.pending === null) {
+                write.busy = false;
+                return;
+            }
+            const value = write.pending;
+            write.pending = null;
+            write.busy = true;
+            spawnArgvChecked([DDC_HELPER, 'set', String(display.bus), String(value), String(display.max)], () => send());
+        };
+        send();
+    }
+
+    _openTaskbarPanel() {
+        this._toggleInlinePanel('taskbar', 'format-justify-center-symbolic', _('Taskbar'),
+            body => this._fillTaskbarList(body), this._notificationsRow);
+    }
+
+    _fillTaskbarList(body) {
+        body = body || this._expandedBody;
+        if (!body) return;
+        const restoreFocus = this._parkInlineFocus(body);
+        body.destroy_all_children();
+        const current = taskbarAlignment(global.settings.get_strv('enabled-applets'));
+        const list = new St.BoxLayout({ vertical: true, style_class: 'caramos-cc-inline-list' });
+        const choices = [
+            // Translators: taskbar choice: the apps' island in the middle of the screen.
+            ['center', 'format-justify-center-symbolic', _('Centre')],
+            // Translators: taskbar choice: the apps' island on the left, next to the menu button.
+            ['left', 'format-justify-left-symbolic', _('Left')],
+        ];
+        for (const [alignment, iconName, label] of choices) {
+            list.add_child(createPowerProfileRow(iconName, label, alignment === current,
+                () => this._setTaskbarAlignment(alignment)).actor);
+        }
+        body.add_child(list);
+        restoreFocus();
+    }
+
+    _setTaskbarAlignment(alignment) {
+        const applets = global.settings.get_strv('enabled-applets');
+        const moved = withTaskbarAlignment(applets, alignment);
+        if (!moved || moved.join('\n') === applets.join('\n')) return;
+        global.settings.set_strv('enabled-applets', moved);
+        if (this._taskbarThemeReloaded) return;
+        this._taskbarThemeReloaded = true;
+        this._addOneShot(TASKBAR_THEME_RELOAD_MS, () => {
+            try {
+                Main.themeManager._changeTheme();
+            } catch (e) {
+                global.logError(e);
+            }
+        });
+    }
+
+    _refreshTaskbarTile() {
+        const tile = this._taskbarTile;
+        if (!tile) return;
+        const alignment = taskbarAlignment(global.settings.get_strv('enabled-applets'));
+        setTileEnabled(tile, alignment !== null);
+        const label = alignment === 'left' ? _('Left') : alignment === 'center' ? _('Centre') : _('Unavailable');
+        tile.subtitleLabel.set_text(label);
+        tile.icon.icon_name = alignment === 'left' ? 'format-justify-left-symbolic' : 'format-justify-center-symbolic';
+        setAccessibleName(tile.button, _('%s: %s').format(_('Taskbar'), label));
+        if (this._expandedKind === 'taskbar' && this._expandedPanel && this._expandedPanel.visible) this._fillTaskbarList();
+    }
+
     _volumeIconName(percent, muted) {
         if (muted || percent <= 0) return 'audio-volume-muted-symbolic';
         if (percent < 34) return 'audio-volume-low-symbolic';
@@ -3557,6 +3928,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             this._readOutput();
             this._readInput();
             this._refresh();
+            this._syncVolumeKeys(true);
         } else {
             this._audioAvailable = false;
             this._audioDevices = { output: [], input: [] };
@@ -4002,9 +4374,9 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
             if (this._portalSettings) this._portalSettings.set_string('color-scheme', plan.colorScheme);
             if (plan.variant) {
                 this._themeSettings.set_string('gtk-theme', plan.variant.gtk);
-                this._themeSettings.set_string('icon-theme', plan.variant.icons);
+                if (!plan.keep.icons) this._themeSettings.set_string('icon-theme', plan.variant.icons);
                 if (this._cinnamonThemeSettings) this._cinnamonThemeSettings.set_string('name', plan.variant.cinnamon);
-                this._themeSettings.set_string('cursor-theme', plan.variant.cursor);
+                if (!plan.keep.cursor) this._themeSettings.set_string('cursor-theme', plan.variant.cursor);
             }
         } catch (e) {
             global.logError(e);

@@ -1,0 +1,4 @@
+{
+ "command": "{\n \"seq\": 41,\n \"id\": \"00000000-0000-4000-8000-000000000041\",\n \"targets\": {\n  \"machines\": [\n   \"7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6\"\n  ]\n },\n \"action\": \"message\",\n \"args\": {\n  \"title\": \"Họp 15h\",\n  \"body\": \"Phòng họp tầng 3.\",\n  \"ack\": true\n },\n \"issued\": \"2026-11-21T14:00:00+07:00\",\n \"expires\": \"2099-01-01T00:00:00+07:00\"\n}",
+ "signature": "+Qts09Ulf+ENNFq+MTHXo31HwWNHeqEByODguuprOqd94k1EFbyEZrHYD9szgZ8yCuzNy4TOODOEWTLSVxeOBQ=="
+}

@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Tự động cập nhật (dưới 1 MB)",
+  "size_en": "Automatic updates (under 1 MB)",
+  "title": "CaramOS tự cập nhật",
+  "summary": "Từ nay bản CaramOS mới tự cài khi có, xong thì báo cho bạn. Muốn tự bấm cập nhật như trước: mở Trung tâm cập nhật và tắt Tự động cập nhật.",
+  "title_en": "CaramOS updates itself",
+  "summary_en": "From now on new CaramOS versions install by themselves, and you are told when they are done. To update by hand as before, open the Update Center and turn off Automatic updates.",
+  "release_notes_vi": [
+    "Mỗi ngày máy vẫn kiểm tra bản mới như trước. Khi có, máy tự cài trong lúc bạn làm việc: không hỏi mật khẩu, không có gì trên màn hình tắt đi hay tải lại. Xong thì hiện thông báo “CaramOS đã cập nhật lên …”, bấm Xem có gì mới để đọc những thay đổi.",
+    "Thay đổi về giao diện hiện ra từ lần đăng nhập sau. Khi cần khởi động lại, thông báo ghi “Khởi động lại để hoàn tất”; máy không tự khởi động lại.",
+    "Máy chờ, để bạn tự cập nhật trong Trung tâm cập nhật như trước, khi đang dùng mạng tính theo dung lượng (phát từ điện thoại), khi pin dưới 50% mà không cắm sạc, khi ổ đĩa sắp đầy, hoặc khi một chương trình khác đang cài phần mềm.",
+    "Bật hay tắt: mở Trung tâm cập nhật trong menu, gạt nút Tự động cập nhật. Cần mật khẩu của tài khoản quản trị."
+  ],
+  "release_notes_en": [
+    "The computer still checks for a new version every day. When there is one, it installs it while you work: no password to type, nothing on the screen closes or reloads. When it is done, a notification says “CaramOS updated to …”; click See what's new to read the changes.",
+    "Changes to the desktop show from the next login. When a restart is needed, the notification says “Restart to finish”; the computer never restarts by itself.",
+    "The computer waits, and you can update in the Update Center as before, while it is on a metered connection (a phone's hotspot), on battery under 50% without the charger, when the disk is almost full, or while another program installs software.",
+    "To turn it on or off: open the Update Center from the menu and flip Automatic updates. It needs an administrator's password."
+  ]
+}

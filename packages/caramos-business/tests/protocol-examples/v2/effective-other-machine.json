@@ -1,0 +1,58 @@
+{
+ "wallpaper": {
+  "default": "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7",
+  "periods": [],
+  "lock": false
+ },
+ "browser": null,
+ "printers": [
+  {
+   "name": "Máy in tầng 2",
+   "uri": "ipp://192.168.1.50/ipp/print",
+   "location": "Tầng 2",
+   "default": true
+  }
+ ],
+ "power": {
+  "shutdown": {
+   "days": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "time": "18:30",
+   "warn_minutes": 10,
+   "postpone_minutes": 30,
+   "max_postpones": 2,
+   "laptops": "skip"
+  },
+  "wake": {
+   "days": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
+   ],
+   "time": "07:45"
+  }
+ },
+ "usb": {
+  "storage": "read-only"
+ },
+ "screen_lock": {
+  "idle_minutes": 10,
+  "on_suspend": true
+ },
+ "wifi": [
+  {
+   "ssid": "CongTy",
+   "security": "wpa-psk",
+   "hidden": false
+  }
+ ]
+}

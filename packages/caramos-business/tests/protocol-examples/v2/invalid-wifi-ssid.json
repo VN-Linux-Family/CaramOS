@@ -1,0 +1,151 @@
+{
+ "format": 2,
+ "serial": 12,
+ "issued": "2026-11-21T09:00:00+07:00",
+ "admin": "máy-quản-lý",
+ "admin_box_key": "NYBy1jZYgNGu6jKa35EhODhR7SGijjt16WXQ0s0WYlQ=",
+ "remote_help_cert": "-----BEGIN CERTIFICATE-----\nMIIBRzCB76ADAgECAgEBMAoGCCqGSM49BAMCMC4xLDAqBgNVBAMMI2NhcmFtb3Mt\nYnVzaW5lc3MgcmVtb3RlIGhlbHAgKHRlc3QpMB4XDTI2MTEyMTAwMDAwMFoXDTM2\nMTExODAwMDAwMFowLjEsMCoGA1UEAwwjY2FyYW1vcy1idXNpbmVzcyByZW1vdGUg\naGVscCAodGVzdCkwWTATBgcqhkjOPQIBBggqhkjOPQMBBwNCAAQY+tEsHfmIP8Oe\nw0k5sfM/TKkjtK3QTwW97TQw+CTGjgg/wu2uUQxnI63xNfqI6/fXTQ1NDWOTl5oJ\nMfJo0JpvMAoGCCqGSM49BAMCA0cAMEQCIHHsWN/MGocODCR9v1tYHBZHuTK8Kyoz\nVIYWoVuCYE3iAiAnQWYmhNg9N38Nyml2LLdKJdxaIGvWunHaZURwCP7zNA==\n-----END CERTIFICATE-----\n",
+ "files": {
+  "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7": {
+   "size": 31,
+   "type": "jpg"
+  }
+ },
+ "settings": {
+  "wallpaper": {
+   "default": "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7",
+   "periods": [],
+   "lock": false
+  },
+  "browser": {
+   "homepage": "https://amis.misa.vn",
+   "bookmarks": [
+    {
+     "name": "Thuế điện tử",
+     "url": "https://thuedientu.gdt.gov.vn"
+    }
+   ],
+   "block": [
+    "facebook.com",
+    "tiktok.com",
+    "youtube.com"
+   ],
+   "block_hours": {
+    "days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "ranges": [
+     [
+      "08:00",
+      "12:00"
+     ],
+     [
+      "13:30",
+      "17:30"
+     ]
+    ]
+   },
+   "safe_search": true
+  },
+  "printers": [
+   {
+    "name": "Máy in tầng 2",
+    "uri": "ipp://192.168.1.50/ipp/print",
+    "location": "Tầng 2",
+    "default": true
+   }
+  ],
+  "power": {
+   "shutdown": {
+    "days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "time": "18:30",
+    "warn_minutes": 10,
+    "postpone_minutes": 30,
+    "max_postpones": 2,
+    "laptops": "skip"
+   },
+   "wake": {
+    "days": [
+     1,
+     2,
+     3,
+     4,
+     5,
+     6
+    ],
+    "time": "07:45"
+   }
+  },
+  "usb": {
+   "storage": "read-only"
+  },
+  "screen_lock": {
+   "idle_minutes": 10,
+   "on_suspend": true
+  },
+  "wifi": [
+   {
+    "ssid": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "security": "wpa-psk",
+    "hidden": false
+   }
+  ]
+ },
+ "departments": {
+  "ke-toan": {
+   "name": "Kế toán",
+   "settings": {
+    "shares": [
+     {
+      "name": "Kế toán",
+      "url": "smb://nas/ketoan"
+     }
+    ],
+    "usb": {
+     "storage": "block"
+    },
+    "apps": {
+     "required": [
+      "libreoffice"
+     ],
+     "forbidden": [
+      "discord"
+     ]
+    }
+   }
+  },
+  "kinh-doanh": {
+   "name": "Kinh doanh",
+   "settings": {
+    "browser": null
+   }
+  }
+ },
+ "members": {
+  "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6": "ke-toan",
+  "0d9e8f7a-6b5c-4d3e-9f21-0a1b2c3d4e5f": "kinh-doanh"
+ },
+ "machines": {
+  "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6": {
+   "settings": {
+    "screen_lock": {
+     "idle_minutes": 5,
+     "on_suspend": true
+    }
+   },
+   "sealed": "ZGVmZ2hpamtsbW5vGSGuHMlzMq1s52EXLJVmn3oRWZuoRpdIT8o8X6ZqGscwB80BSEYyumpcNuI7XZuIjor/LXGabWQ="
+  }
+ }
+}

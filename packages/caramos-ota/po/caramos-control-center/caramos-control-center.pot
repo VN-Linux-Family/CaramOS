@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-control-center\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-19 21:09+0700\n"
+"POT-Creation-Date: 2026-11-23 14:28+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,14 +18,14 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:242
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:256
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:266
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:271
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:263
 #: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:277
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:284
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:286
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3210
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:287
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:292
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:298
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:305
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:307
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3359
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:41
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:47
@@ -33,180 +33,183 @@ msgstr ""
 msgid "Unknown"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:243
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:262
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:264
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:283
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
 msgid "Unmanaged"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:244
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:261
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3290
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3980
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4237
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4597
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4607
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4663
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4677
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:265
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:282
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3439
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3911
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4352
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4609
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4969
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4979
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5035
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5049
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:313
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:326
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:361
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:385
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:395
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:239
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:252
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:287
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:311
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:321
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:332
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:336
 msgid "Unavailable"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:245
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:260
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4293
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:266
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:281
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4665
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
 msgid "Disconnected"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:246
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:267
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:36
 msgid "Preparing"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:247
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:268
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:37
 msgid "Configuring"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:248
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:269
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:37
 msgid "Authentication required"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:249
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:270
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:37
 msgid "Getting network address"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:250
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:271
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:38
 msgid "Checking connection"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:251
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:272
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:38
 msgid "Finishing"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:252
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:259
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:273
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:280
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:38
 msgid "Connected"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:253
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:274
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:38
 msgid "Disconnecting"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:254
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:264
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:275
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:285
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:39
 msgid "Connection failed"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:263
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:284
 msgid "Connecting"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:272
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:280
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:293
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:301
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:47
 msgid "No network"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:273
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:294
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:47
 msgid "Local network only"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:274
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:281
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:295
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:302
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:47
 msgid "Network sign-in required"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:275
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:283
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:296
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:304
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:48
 msgid "Internet access"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:282
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:303
 msgid "Limited connectivity"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:825
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4748
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:371
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:846
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5120
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:297
 msgid "Battery"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1056
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:598
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1077
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:574
 msgid "Could not change the power mode"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1833
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:721
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1859
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:709
 msgid "Blue"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1834
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:721
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1860
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:709
 msgid "Teal"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1835
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:721
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1861
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:709
 msgid "Green"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1836
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:722
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1862
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:710
 msgid "Purple"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1837
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:722
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1863
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:710
 msgid "Pink"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1838
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:722
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1864
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:710
 msgid "Red"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1839
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:722
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1865
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:710
 msgid "Graphite"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1840
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:721
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1866
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:709
 msgid "Orange"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1962
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2041
 msgid "Battery and power status"
 msgstr ""
 
 #. Translators: accessible name of the icon button in front of a slider; %s is the slider name.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:1983
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2062
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:100
 #, python-format, javascript-format
 msgid "Mute or unmute %s"
 msgstr ""
 
 #. Translators: accessible name of a disclosure button; %s is a slider or tile name.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2007
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2076
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2086
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2155
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:121
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:188
 #, python-format, javascript-format
@@ -215,612 +218,709 @@ msgstr ""
 
 #. Translators: "label: value" pair, e.g. a tile name and its state ("Power mode: Balanced") or a
 #. network detail ("Gateway: 192.168.1.1").
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2059
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2108
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3292
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3930
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3988
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4343
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4749
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:372
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2138
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2187
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3441
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3799
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3914
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4302
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4360
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4715
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5121
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:298
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:202
 #, python-format, javascript-format
 msgid "%s: %s"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2270
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/indicator.py:26
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/indicator.py:27
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:49
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2324
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:453
+msgid "Volume step"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2335
+#, javascript-format
+msgid "Volume step: %d%%"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2370
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/indicator.py:36
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/indicator.py:37
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:43
 msgid "CaramOS Control Center"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2781
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:78
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2914
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:56
 msgid "Take a screenshot"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2782
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:79
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2915
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:57
 msgid "Open system settings"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2783
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:80
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2916
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:58
 msgid "Lock screen"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2784
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:81
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2917
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:59
 msgid "Open power menu"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2788
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:89
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2921
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:67
 msgid "Volume"
 msgstr ""
 
 #. Translators: screen-reader name of the microphone volume slider; a short form is fine.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2797
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:94
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2930
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:72
 msgid "Microphone"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2815
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:100
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2948
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:78
 msgid "Brightness"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2834
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4337
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4359
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:105
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:107
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2969
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4709
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4731
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:87
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:89
 msgid "Wired network"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2834
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2835
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2841
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:105
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:109
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:115
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2969
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2970
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2976
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:87
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:91
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:97
 msgid "Checking…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2835
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3201
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4401
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:109
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:110
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2970
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3350
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4773
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:91
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:92
 msgid "Wi‑Fi"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2840
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4144
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4333
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2975
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4516
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4705
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:347
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:112
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:113
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:432
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:94
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:95
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:385
 msgid "VPN"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2840
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4240
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:112
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:344
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:354
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2975
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4612
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:94
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:270
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:280
 msgid "Not connected"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2841
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4408
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:115
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:116
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2976
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4780
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:97
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:98
 msgid "Bluetooth"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2848
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3226
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3292
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:122
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:463
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2983
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3375
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3441
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:104
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:431
 msgid "Power mode"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2849
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3287
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:122
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:379
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2984
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3436
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:104
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:305
 msgid "Loading…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2854
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3988
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:118
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2989
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4360
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:100
 msgid "Dark mode"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2854
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3986
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4604
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:118
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:121
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:395
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:399
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:447
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2989
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3003
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3797
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4358
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4976
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:100
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:103
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:112
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:321
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:325
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:331
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:400
 msgid "Disabled"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2857
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:120
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2992
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:102
 msgid "Night Light"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2857
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2992
 msgid "Turn Night Light on or off"
 msgstr ""
 
 #. Translators: the colour of this popup's tiles and sliders, as Windows calls it ("accent color").
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2864
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3930
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3939
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:125
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:127
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2999
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4302
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4311
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:107
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:109
 msgid "Accent colour"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:2916
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3003
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3799
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:112
+msgid "Do not disturb"
+msgstr ""
+
+#. Translators: tile of the Control Center: where the apps' island of the taskbar sits (centre or left).
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3008
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3865
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3914
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:114
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:420
+msgid "Taskbar"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3065
 msgid "Close dialog"
 msgstr ""
 
 #. Translators: accessible name of the close button of an inline panel; %s is the panel title.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3130
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:280
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3279
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/widgets.py:295
 #, python-format, javascript-format
 msgid "Close %s"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3206
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3355
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:36
 msgid "Performance"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3207
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3356
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:36
 msgid "Balanced"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3208
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3357
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:37
 msgid "Power saver"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3240
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:592
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3389
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:568
 msgid "Loading power modes…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3242
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:594
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3391
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:570
 msgid "Power mode service unavailable"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3244
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:596
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3393
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:572
 msgid "No power modes"
 msgstr ""
 
 #. Translators: %s is a power mode name; shown when the daemon reports degraded performance.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3249
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:383
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3398
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:309
 #, python-format, javascript-format
 msgid "%s · limited"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3264
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:605
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3413
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:581
 msgid "Power settings"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3283
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:375
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3432
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:301
 msgid "Changing…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3285
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:377
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3434
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:303
 msgid "Change failed"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3299
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:82
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3448
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:60
 msgid "Power"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3314
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:614
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3463
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:602
 msgid "Session service unavailable"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3318
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3467
 msgid "Processing…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3320
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:617
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3469
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:605
 msgid "Suspend"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3321
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:618
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3470
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:606
 msgid "Hibernate"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3322
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:619
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3471
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:607
 msgid "Restart…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3323
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:620
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3472
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:608
 msgid "Shut down…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3325
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:625
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3474
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:613
 msgid "Log out…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3326
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:626
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3475
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:614
 msgid "Switch user…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3377
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:92
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3526
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:70
 msgid "Output device"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3377
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:98
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3526
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:76
 msgid "Input device"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3422
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3571
 msgid "Sound output devices"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3422
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3571
 msgid "Sound input devices"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3435
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:472
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3584
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:440
 msgid "No sound devices"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3468
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:479
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3624
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:455
 msgid "Open sound settings"
 msgstr ""
 
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3797
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:331
+msgid "Notifications hidden"
+msgstr ""
+
+#. Translators: accessible name of the brightness slider of an external monitor; %s is its model.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3823
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:354
+#, python-format, javascript-format
+msgid "Brightness of %s"
+msgstr ""
+
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3824
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:354
+msgid "Monitor brightness"
+msgstr ""
+
+#. Translators: taskbar choice: the apps' island in the middle of the screen.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3878
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3911
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:336
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:590
+msgid "Centre"
+msgstr ""
+
+#. Translators: taskbar choice: the apps' island on the left, next to the menu button.
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3880
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3911
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:336
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:591
+msgid "Left"
+msgstr ""
+
 #. Translators: subtitle of the accent colour tile for a colour picked with the colour chooser.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3926
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:713
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4298
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:701
 msgid "Custom colour"
 msgstr ""
 
 #. Translators: subtitle of the accent colour tile when the colour follows the theme; %s is a colour name.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3928
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:717
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4300
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:705
 #, python-format, javascript-format
 msgid "%s · from the theme"
 msgstr ""
 
 #. Translators: first choice of the accent colour list: use the colour of the current theme.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3954
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:668
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4326
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:656
 msgid "Follow the theme"
 msgstr ""
 
 #. Translators: last row of the accent colour list; opens a colour chooser for any colour.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3957
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:683
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4329
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:671
 msgid "Other colour…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:3986
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4604
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:395
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:399
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:447
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4358
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4976
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:321
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:325
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:400
 msgid "Enabled"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4041
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4060
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4062
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4084
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4111
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:334
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:361
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:418
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:439
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4413
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4432
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4434
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4456
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4483
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:260
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:287
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:371
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:392
 msgid "On"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4041
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4060
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4061
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4084
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4111
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:332
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:361
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:418
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:439
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4413
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4432
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4433
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4456
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4483
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:258
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:287
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:371
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:392
 msgid "Off"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4058
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4664
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4678
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:315
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:328
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4430
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5036
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5050
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:241
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:254
 msgid "No device"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4059
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:330
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4431
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:256
 msgid "Blocked by hardware"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4199
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4571
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:376
 msgid "Could not read the VPN status"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4239
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:350
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4611
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:276
 #, python-format, javascript-format
 msgid "%d active connection"
 msgid_plural "%d active connections"
 msgstr[0] ""
 msgstr[1] ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4240
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:352
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4612
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:278
 msgid "No profiles"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4275
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4647
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/network.py:386
 msgid "Could not change the VPN connection"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4292
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4664
 msgid "WireGuard active"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4292
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4664
 msgid "Active"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4293
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4665
 msgid "WireGuard"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4304
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4354
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:551
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4676
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4726
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:527
 msgid "NetworkManager unavailable"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4306
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:549
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4678
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:525
 msgid "Reading VPN profiles…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4309
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:552
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4681
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:528
 msgid "Try again"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4311
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:554
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4683
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:530
 msgid "No VPN profiles"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4325
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:564
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4697
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:540
 msgid "Open VPN settings"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4356
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:485
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4728
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:461
 msgid "No wired network devices"
 msgstr ""
 
 #. Translators: %s is a network interface name; marks the device that carries the default route.
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4361
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:489
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4733
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:465
 #, python-format, javascript-format
 msgid "%s · default route"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4369
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:490
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4741
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:466
 msgid "Status"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4370
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:490
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4742
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:466
 msgid "Profile"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4371
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:491
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4743
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:467
 msgid "Link"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4371
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:491
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4743
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:467
 msgid "Signal detected"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4371
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:491
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4743
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:467
 msgid "No signal"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4372
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:492
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4744
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:468
 msgid "Speed"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4373
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:492
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4745
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:468
 msgid "Address"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4374
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:493
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4746
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:469
 msgid "Gateway"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4375
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:493
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4747
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:469
 msgid "DNS"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4389
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:505
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4761
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:481
 msgid "Open network sign-in page"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4394
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4453
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:508
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:535
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4766
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4825
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:484
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:511
 msgid "Open network settings"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4426
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:518
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4798
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:494
 msgid "No Wi‑Fi device"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4428
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:520
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4800
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:496
 msgid "Wi‑Fi is blocked by hardware"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4430
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:522
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4802
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:498
 msgid "Wi‑Fi is off"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4433
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:524
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4805
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:500
 msgid "Searching for Wi‑Fi networks…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4433
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:525
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4805
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:501
 msgid "No Wi‑Fi networks found"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4449
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:533
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4821
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:509
 msgid "Scan for Wi‑Fi networks again"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4509
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:570
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4881
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:546
 msgid "Searching for Bluetooth devices…"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4527
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:578
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4899
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:554
 msgid "No available or connected devices"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4528
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:579
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4900
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:555
 msgid "BlueZ unavailable; open Bluetooth settings"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4538
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:584
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4910
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:560
 msgid "Stop searching"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4538
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:584
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4910
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:560
 msgid "Search for new devices"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4546
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:586
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4918
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:562
 msgid "Bluetooth settings"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4665
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:317
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5037
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:243
 msgid "In use for Internet"
 msgstr ""
 
 #. Translators: remaining battery time, abbreviated hours and minutes (e.g. "2h 15m").
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4736
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5108
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:55
 #, python-format, javascript-format
 msgid "%dh %dm"
 msgstr ""
 
 #. Translators: remaining battery time, abbreviated minutes (e.g. "45m").
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4738
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5110
 #: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/backends/power.py:55
 #, python-format, javascript-format
 msgid "%dm"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4748
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:371
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5120
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:297
 msgid "UPS"
 msgstr ""
 
-#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:4748
+#: usr/share/caramos-ota/applets/caramos-control-center@caramos/applet.js:5120
 #, javascript-format
 msgid "%d power device"
 msgid_plural "%d power devices"
 msgstr[0] ""
 msgstr[1] ""
 
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:640
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/calendar_popup.py:79
+msgid "Calendar"
+msgstr ""
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/calendar_popup.py:109
+msgid "Previous month"
+msgstr ""
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/calendar_popup.py:109
+msgid "Next month"
+msgstr ""
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/calendar_popup.py:110
+msgid "Previous year"
+msgstr ""
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/calendar_popup.py:110
+msgid "Next year"
+msgstr ""
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/calendar_popup.py:133
+msgid "Date and Time Settings"
+msgstr ""
+
+#. Translators: the taskbar's panels were changed, so the Taskbar choices cannot move the apps' island.
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:588
+msgid "The taskbar was changed in the panel settings"
+msgstr ""
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:594
+msgid "The taskbar reloads for a second or two."
+msgstr ""
+
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:628
 msgid "Restart the computer?"
 msgstr ""
 
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:640
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:628
 msgid "Restart"
 msgstr ""
 
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:641
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:629
 msgid "Shut down the computer?"
 msgstr ""
 
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:641
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:629
 msgid "Shut down"
 msgstr ""
 
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:642
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:630
 msgid "Log out of CaramOS?"
 msgstr ""
 
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:642
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:630
 msgid "Log out"
 msgstr ""
 
-#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:646
+#: usr/share/caramos-ota/xfce/control-center/caramos_xfce_cc/popup.py:634
 msgid "Cancel"
 msgstr ""

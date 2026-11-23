@@ -24,6 +24,7 @@ UI_SOURCES = [
     DIST / "caramos_ota_notifier/app.py",
     DIST / "caramos_ota_notifier/state.py",
     DIST / "caramos_ota_notifier/problem.py",
+    DIST / "caramos_ota_notifier/auto_update.py",
     DIST / "caramos_ota_audit/ui.py",
     DIST / "caramos_ota_audit/cli.py",
 ] + sorted((ROOT / "usr/share/caramos-ota/driver-check/caramos_driver_check").rglob("*.py")) + [
@@ -100,7 +101,7 @@ class CatalogTests(unittest.TestCase):
             self.skipTest("msgfmt not installed")
         subprocess.run(["msgfmt", "--check", "-o", os.devnull, str(PO)], check=True)
 
-    def test_vietnamese_session_gets_the_old_wording(self) -> None:
+    def test_vietnamese_session_gets_vietnamese_words(self) -> None:
         if shutil.which("msgfmt") is None:
             self.skipTest("msgfmt not installed")
         with tempfile.TemporaryDirectory() as tmp:
@@ -109,12 +110,13 @@ class CatalogTests(unittest.TestCase):
             subprocess.run(["msgfmt", "-o", str(target / "caramos-ota.mo"), str(PO)], check=True)
             code = (
                 "from caramos_ota.i18n import _, ngettext\n"
-                "print(_('CaramOS - Update Center'))\n"
-                "print(ngettext('%d change in this update', '%d changes in this update', 2) % 2)\n"
+                "print(_('Update Center'))\n"
+                "print(ngettext('This update has %d change for the version you have.',\n"
+                "               'This update has %d changes for the version you have.', 2) % 2)\n"
             )
             for language, expected in (
-                ("vi_VN:vi", ["CaramOS - Trung tâm cập nhật", "Nội dung sẽ cập nhật (2)"]),
-                ("en_US:en", ["CaramOS - Update Center", "2 changes in this update"]),
+                ("vi_VN:vi", ["Trung tâm cập nhật", "Bản cập nhật này có 2 thay đổi cho phiên bản bạn đang dùng."]),
+                ("en_US:en", ["Update Center", "This update has 2 changes for the version you have."]),
             ):
                 env = dict(os.environ, CARAMOS_OTA_LOCALEDIR=tmp, LANGUAGE=language, PYTHONPATH=str(DIST))
                 output = subprocess.run([sys.executable, "-c", code], env=env, check=True, capture_output=True, text=True)

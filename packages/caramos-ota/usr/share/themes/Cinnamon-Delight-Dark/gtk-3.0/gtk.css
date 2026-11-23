@@ -4179,3 +4179,6 @@ hdyleaflet:first-child headerbar {
 
 /* CaramOS Xfce: the panel islands (on Cinnamon nothing matches these selectors). */
 @import url("file:///usr/share/caramos-ota/xfce/panel-islands-dark.css");
+
+/* CaramOS: round right-click menus, on both editions (caramos-ota). */
+@import url("file:///usr/share/caramos-ota/gtk/round-menus.css");

@@ -1,0 +1,23 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "ddcutil (~0,4 MB)",
+  "size_en": "ddcutil (~0.4 MB)",
+  "title": "Chỉnh độ sáng màn hình rời ngay trong Control Center",
+  "summary": "Máy bàn và laptop cắm thêm màn hình: Control Center có thanh trượt độ sáng cho từng màn hình rời hỗ trợ DDC/CI, khỏi phải bấm nút trên màn hình.",
+  "title_en": "External monitor brightness in the Control Center",
+  "summary_en": "Desktops, and laptops with another monitor: the Control Center gets a brightness slider for each external monitor that supports DDC/CI, without its buttons.",
+  "release_notes_vi": [
+    "Mở Control Center: dưới thanh âm lượng có thanh độ sáng cho mỗi màn hình rời (biểu tượng màn hình).",
+    "Cần màn hình hỗ trợ DDC/CI, như phần lớn màn hình đời mới; nếu không thấy thanh trượt, bật DDC/CI trong menu của màn hình rồi mở lại Control Center.",
+    "Lần đầu mở có thể mất vài giây để tìm màn hình. Màn hình của laptop vẫn chỉnh như cũ."
+  ],
+  "release_notes_en": [
+    "Open the Control Center: under the volume there is a brightness slider for each external monitor (the monitor icon).",
+    "It needs a monitor with DDC/CI, as most recent ones have; without the slider, turn DDC/CI on in the monitor's menu and open the Control Center again.",
+    "The first time, finding the monitors can take a few seconds. A laptop's own screen works as before."
+  ]
+}

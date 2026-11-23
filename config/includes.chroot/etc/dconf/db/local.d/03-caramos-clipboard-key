@@ -1,0 +1,8 @@
+# CaramOS: Super+V shows the clipboard history (caramos-clipboard, with CopyQ), as Win+V does on Windows.
+# custom2 is in the custom-list of 99_caramos.gschema.override. Custom shortcuts live at relocatable paths,
+# whose defaults gschema overrides cannot set: dconf sets them here.
+
+[org/cinnamon/desktop/keybindings/custom-keybindings/custom2]
+name='CopyQ'
+command='caramos-clipboard'
+binding=['<Super>v']

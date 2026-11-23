@@ -1,0 +1,16 @@
+{
+ "format": 1,
+ "kind": "caramos-business-enroll",
+ "admin_url": "http://192.168.1.5:47022",
+ "admin_name": "quan-ly",
+ "admin_key": "A6EHv/POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg=",
+ "admin_box_key": "NYBy1jZYgNGu6jKa35EhODhR7SGijjt16WXQ0s0WYlQ=",
+ "fingerprint": "56475aa75463474c",
+ "department": "ke-toan",
+ "department_name": "Kế toán",
+ "token_id": "a1b2c3d4e5f60718",
+ "token": "yMnKy8zNzs/Q0dLT1NXW19jZ2tvc3d7f4OHi4+Tl5uc=",
+ "expires": "2099-01-01T00:00:00+07:00",
+ "max_uses": 30,
+ "hostname_prefix": null
+}

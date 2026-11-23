@@ -1,0 +1,106 @@
+#!/usr/bin/python3
+"""Super+V: the clipboard history, as on Windows (ticket H-1182).
+
+The latest copied items show under the mouse pointer: typing searches them, and Enter or a click pastes one into
+the window that had the focus. With an input method such as Lotus, a number goes into the search rather than
+picking the item with that number.
+
+CopyQ keeps the history. It does not wait in the background from login (about 45 MiB, see migration
+20261014120000), so the first Super+V starts it and turns on its start at login, once, so the history goes on after
+the next login, and a notification says so. Someone who then turns that off in CopyQ's preferences or in the
+startup applications keeps it off: later presses only start CopyQ for the session. CopyQ keeps only what is copied
+while it runs, so the text copied before it starts goes in first.
+
+Cinnamon's custom shortcut and Xfce's keyboard shortcut run this (ISO defaults, migration 20261120100000).
+"""
+
+from __future__ import annotations
+
+import gettext
+import os
+import shutil
+import subprocess
+import sys
+from collections.abc import Mapping
+from pathlib import Path
+
+_ = gettext.translation("caramos-ota", localedir=os.environ.get("CARAMOS_OTA_LOCALEDIR", "/usr/share/locale"),
+                        fallback=True).gettext
+
+COPYQ = "copyq"
+ITEMS = 20
+# CopyQ script: the newest items of the tab that keeps the clipboard, without CopyQ's own entries, or "empty" when it
+# has none (CopyQ would show nothing); CopyQ's tray menu when the clipboard is kept in no tab.
+EMPTY = "empty"
+MENU = ('var name = str(config("clipboard_tab"));'
+        ' if (!name || tab().indexOf(name) < 0) menu();'
+        f' else {{ tab(name); if (size() > 0) menu(name, {ITEMS}); else print("{EMPTY}"); }}')
+# CopyQ script for a CopyQ that Super+V has just started: CopyQ keeps what is copied from its start on, so the text
+# copied before goes in first, unless it is there already.
+STORE = ('var text = str(clipboard()); if (text) { var name = str(config("clipboard_tab"));'
+         ' if (name) { tab(name); if (size() == 0 || str(read(0)) != text) add(text); } }')
+TIMEOUT = 30  # seconds; CopyQ's first start on an old computer with a hard disk takes a few
+QUIET = {"stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+
+
+def marker(environ: Mapping[str, str] = os.environ) -> Path:
+    """Exists once the first Super+V has turned the history on for this user."""
+
+    state = environ.get("XDG_STATE_HOME") or str(Path(environ.get("HOME") or Path.home()) / ".local/state")
+    return Path(state) / "caramos" / "clipboard-history"
+
+
+def copyq(*args: str, output: bool = False) -> tuple[bool, str]:
+    """Runs a CopyQ command: whether it worked, and what it printed when asked."""
+
+    try:
+        result = subprocess.run([COPYQ, *args], timeout=TIMEOUT, check=False, text=True,
+                                **(dict(QUIET, stdout=subprocess.PIPE) if output else QUIET))
+    except (OSError, subprocess.TimeoutExpired):
+        return False, ""
+    return result.returncode == 0, result.stdout or ""
+
+
+def start() -> None:
+    """Starts CopyQ when it is not running, with the text copied before it. The command that starts it gives CopyQ its
+    output, which CopyQ keeps open as long as it runs: so it goes nowhere here, and the menu's command, which reads
+    its output, starts nothing."""
+
+    if subprocess.run(["pgrep", "-u", str(os.getuid()), "-x", COPYQ], check=False, **QUIET).returncode != 0:
+        copyq("--start-server", "eval", "--", STORE)
+
+
+def notify(title: str, body: str) -> None:
+    try:
+        subprocess.Popen(["notify-send", "--app-name=CopyQ", "--icon=edit-paste", title, body], **QUIET)
+    except OSError:
+        print(f"{title}: {body}", file=sys.stderr)
+
+
+def main() -> int:
+    if not shutil.which(COPYQ):
+        notify(_("Clipboard history needs CopyQ"),
+               _("Install it, then press Super+V again: sudo apt install copyq"))
+        return 1
+    start()
+    shown, printed = copyq("eval", "--", MENU, output=True)
+    if not shown:
+        shown, _printed = copyq("--start-server", "menu")
+    first = marker()
+    if shown and not first.exists() and copyq("--start-server", "config", "autostart", "true")[0]:
+        try:
+            first.parent.mkdir(parents=True, exist_ok=True)
+            first.touch()
+        except OSError:
+            pass
+        # Also what an empty history needs to say the first time.
+        notify(_("Clipboard history is on"),
+               _("From now on, what you copy is kept, also after a restart: Super+V pastes it again. CopyQ, the "
+                 "scissors in the system tray, keeps it; its Preferences can turn this off."))
+    elif shown and printed.strip() == EMPTY:
+        notify(_("Nothing copied yet"), _("Copy some text or a picture (Ctrl+C), then press Super+V again."))
+    return 0 if shown else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -47,7 +47,7 @@ class WantedTests(unittest.TestCase):
 
 class LookupTests(unittest.TestCase):
     PROPOSAL = {"package": "nvidia-driver-580-open", "target": "nvidia:580-open", "address": "0000:01:00.0",
-                "vendor": "NVIDIA", "model": "GA107", "free": False, "offline": False}
+                "vendor": "NVIDIA", "model": "GA107", "free": False, "offline": False, "usable": True}
 
     def run_lookup(self, snapshot: Snapshot, **result) -> tuple[drivers.Lookup, mock.Mock]:
         with mock.patch.object(drivers.subprocess, "run", **result) as run:

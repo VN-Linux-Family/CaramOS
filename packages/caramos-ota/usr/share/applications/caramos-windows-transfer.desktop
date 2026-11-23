@@ -1,0 +1,16 @@
+[Desktop Entry]
+Type=Application
+Name=Windows Data Transfer
+Name[vi]=Chuyển dữ liệu từ Windows
+GenericName=Data transfer
+GenericName[vi]=Chuyển dữ liệu
+Comment=Copy documents, pictures, browser bookmarks, Outlook mail and fonts from an old Windows computer
+Comment[vi]=Chép tài liệu, ảnh, dấu trang trình duyệt, thư Outlook và phông chữ từ máy Windows cũ sang máy này
+Exec=caramos-windows-transfer
+Icon=drive-harddisk
+Terminal=false
+Categories=System;
+Keywords=Windows;migration;transfer;copy;Outlook;pst;bookmarks;fonts;Zalo;chuyển;dữ liệu;sao chép;máy cũ;
+StartupNotify=true
+# Matches the window so the taskbar shows this entry's icon.
+StartupWMClass=caramos-windows-transfer

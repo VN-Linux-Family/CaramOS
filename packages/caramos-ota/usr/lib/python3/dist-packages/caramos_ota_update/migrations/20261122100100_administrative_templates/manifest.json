@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Mẫu văn bản hành chính (dưới 1 MB)",
+  "size_en": "Administrative document templates (under 1 MB)",
+  "title": "Mẫu văn bản hành chính theo Nghị định 30 ngay trong menu Mới",
+  "summary": "Bấm chuột phải vào chỗ trống trong Tệp, chọn Mới > Văn bản hành chính: công văn, quyết định, tờ trình, báo cáo, thông báo, giấy mời, biên bản và biên bản bàn giao tài sản, trình bày sẵn theo Nghị định 30/2020/NĐ-CP.",
+  "title_en": "Administrative document templates of Decree 30 in the New menu",
+  "summary_en": "Right-click an empty area in Files and choose New > Vietnamese Official Documents: an official letter, a decision, a submission, a report, a notice, an invitation, minutes and an asset handover record for companies, laid out as Decree 30/2020/ND-CP sets out.",
+  "release_notes_vi": [
+    "Bấm chuột phải vào chỗ trống trong Tệp, chọn Mới > Văn bản hành chính rồi chọn loại văn bản: một tệp Word mới hiện ra, mở bằng ONLYOFFICE, WPS hay LibreOffice.",
+    "Có công văn, quyết định, tờ trình, báo cáo, thông báo, giấy mời, biên bản, và biên bản bàn giao tài sản cho công ty.",
+    "Khổ A4, lề trang, phông Times New Roman, quốc hiệu, tiêu ngữ, số và ký hiệu, nơi nhận đều đặt sẵn theo Nghị định 30/2020/NĐ-CP. Chỉ cần thay các chữ giữ chỗ và các dòng chấm.",
+    "Máy chưa có Times New Roman thì văn bản hiện bằng một phông cùng cỡ chữ. Muốn in đúng phông, mở App Center và cài Microsoft Core Fonts.",
+    "Các tệp bạn đã có trong thư mục Mẫu giữ nguyên; thư mục Văn bản hành chính chỉ được thêm một lần."
+  ],
+  "release_notes_en": [
+    "Right-click an empty area in Files, choose New > Vietnamese Official Documents and pick a document: a new Word file appears, ready for ONLYOFFICE, WPS or LibreOffice.",
+    "There are an official letter (công văn), a decision (quyết định), a submission (tờ trình), a report (báo cáo), a notice (thông báo), an invitation (giấy mời), minutes (biên bản), and a record of handing over assets for companies.",
+    "A4 paper, margins, Times New Roman, the national name and motto, the number and code, and the recipients are laid out as Decree 30/2020/ND-CP sets out. Replace the placeholder words and the dotted lines.",
+    "Without Times New Roman on this computer, the documents show a font with the same letter widths. To print in Times New Roman, open the App Center and install Microsoft Core Fonts.",
+    "Files you have in your Templates folder stay as they are; the new folder is added only once."
+  ]
+}

@@ -27,7 +27,9 @@
 6. Không chọn migration mới bằng product version.
 7. Legacy `v1_0_2..v1_0_12` chỉ để tương thích và coi như frozen.
 8. Migration vẫn dùng APT/PPA để cài package; không tải `.deb` thủ công.
-9. Systemd timer chỉ check/chuẩn bị state, không tự apply migration.
+9. Systemd timer chỉ check/chuẩn bị state. Check xong, `caramos-ota-auto-update.service` tự cài bản cập nhật khi Tự
+   động cập nhật đang bật (mặc định bật) và không có gì ngăn; migration `"unattended": "nobody-logged-in"` chờ đến
+   lúc không ai đăng nhập. Xem `caramos_ota/auto_update.py` và `MIGRATIONS.md`.
 10. Local `make compile`, `make validate`, `make build` không cần `VERSION`. Chỉ `make release VERSION=x.y.z` nhận product version.
 
 ---
@@ -47,6 +49,11 @@ caramos-ota --check
   ├── inspect packaged migration metadata
   ├── compare timestamp IDs with ledger
   └── write /var/lib/caramos-ota/state.json
+
+caramos-ota --auto-upgrade      # caramos-ota-auto-update.service, sau mỗi lần check thành công
+  ├── tắt (/etc/caramos-ota/auto-update.conf), không có bản cập nhật, hay có lý do chờ: dừng, ghi lý do
+  ├── caramos-ota --upgrade --yes --unattended
+  └── ghi /var/lib/caramos-ota/auto-update.json → caramos-ota-auto-update-notify.path của từng người dùng
 
 caramos-ota-notifier
   ├── read state.json
@@ -81,6 +88,8 @@ sudo caramos-ota --dry-run
 sudo caramos-ota --upgrade
 sudo caramos-ota --upgrade --yes
 sudo caramos-ota --repair
+sudo caramos-ota --auto-update off   # hoặc on (mặc định)
+sudo caramos-ota --auto-upgrade
 sudo caramos-ota-update --dry-run
 sudo caramos-ota-update
 ```
@@ -297,7 +306,7 @@ Nếu cần rollback thật, mỗi migration phải có `rollback(context)` riê
 - Không dùng `shell=True` nếu không bắt buộc.
 - Không tải `.deb` thủ công từ Internet.
 - Không tự thêm PPA.
-- Không tự install từ timer.
+- Timer chỉ check; chỉ `caramos-ota-auto-update.service` tự cài, khi Tự động cập nhật đang bật.
 - Migration phải log rõ từng action.
 - Migration phải tránh duplicate config khi chạy lại.
 - Package install phải đi qua APT/PPA.
@@ -310,6 +319,7 @@ Nếu cần rollback thật, mỗi migration phải có `rollback(context)` riê
 - [ ] Entry point `/usr/bin/*` mỏng, logic nằm trong package Python.
 - [ ] Migration mới có timestamp ID lexical.
 - [ ] Manifest schema 2 không có `release`, `version`, `from_version`, `to_version`.
+- [ ] Manifest có `unattended`: `anytime` hoặc `nobody-logged-in` (xem `MIGRATIONS.md`).
 - [ ] Không thêm cơ chế chọn migration theo product version.
 - [ ] Legacy `v1_0_2..v1_0_12` không bị sửa nếu không có migration-fix bắt buộc.
 - [ ] Migration có dry-run hoặc context hỗ trợ dry-run.

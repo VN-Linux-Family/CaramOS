@@ -1,0 +1,23 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Thanh tác vụ (dưới 1 MB)",
+  "size_en": "Taskbar (under 1 MB)",
+  "title": "Đặt các ứng dụng trên thanh tác vụ ở giữa hoặc bên trái",
+  "summary": "Như Windows 11: ô Thanh tác vụ mới trong Control Center cho chọn để đảo giữa (các ứng dụng) ở giữa màn hình hay ngay cạnh nút menu.",
+  "title_en": "Apps on the taskbar in the middle or on the left",
+  "summary_en": "As on Windows 11: a new Taskbar tile in the Control Center puts the middle island (your apps) in the middle of the screen or right next to the menu button.",
+  "release_notes_vi": [
+    "Mở Control Center (các biểu tượng mạng và loa ở đảo bên phải), bấm ô Thanh tác vụ rồi chọn Ở giữa hoặc Bên trái.",
+    "Bên trái: các ứng dụng nằm ngay cạnh nút menu, như thanh tác vụ của Windows 10.",
+    "Bản Xfce: thanh tác vụ tải lại trong một hai giây khi đổi chỗ."
+  ],
+  "release_notes_en": [
+    "Open the Control Center (the network and sound icons in the right island), press the Taskbar tile and pick Centre or Left.",
+    "Left: your apps sit right next to the menu button, as on the Windows 10 taskbar.",
+    "Xfce edition: the taskbar reloads for a second or two when it moves."
+  ]
+}

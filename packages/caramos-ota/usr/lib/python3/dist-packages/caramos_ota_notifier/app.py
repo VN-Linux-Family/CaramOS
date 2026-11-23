@@ -9,6 +9,7 @@ from typing import Any
 
 from caramos_ota.i18n import _
 
+from . import auto_update as auto_update_ui
 from . import problem
 from .constants import (
     BUSY,
@@ -23,6 +24,8 @@ from .constants import (
 )
 from .state import read_available_update, read_no_update_status, resolve_available_update_now
 from .ui import (
+    AutoUpdateSwitch,
+    build_auto_updated_page,
     build_no_update_page,
     build_progress_page,
     build_result_page,
@@ -42,24 +45,24 @@ def has_display() -> bool:
 
 
 def stage_for_line(line: str) -> str:
-    """Map updater output to a user-friendly progress stage."""
+    """Map updater output to a progress stage in plain words."""
 
     text = line.lower()
     if "updating package index" in text or "apt-get update" in text:
-        return _("Downloading the package list…")
+        return _("Downloading the list of software…")
     if "repository:" in text:
-        return _("Checking the update repository…")
+        return _("Checking the update source…")
     if "migration path" in text:
-        return _("Preparing migrations…")
+        return _("Preparing the changes…")
     if "run:" in text or "starting migration" in text:
-        return _("Running system migrations…")
+        return _("Applying the changes…")
     if "updated version metadata" in text or "set caramos system version" in text:
-        return _("Updating version information…")
+        return _("Saving the new version number…")
     if "update complete" in text or "finished migration" in text:
-        return _("Finishing the update…")
+        return _("Finishing…")
     if "error" in text or "failed" in text:
         return _("The update ran into an error.")
-    return _("Updating CaramOS…")
+    return _("Updating…")
 
 
 def upgrade_outcome(return_code: int) -> str:
@@ -122,9 +125,14 @@ def run_upgrade_stream(on_line) -> tuple[str, str]:
 
 
 class UpdateWindowController:
-    """Drive every OTA state inside one top-level GTK window."""
+    """Drive every OTA state inside one top-level GTK window.
 
-    def __init__(self, Gtk, GLib, update_info: dict[str, Any] | None, no_update_status: dict[str, str] | None):
+    auto_result: the result of the last automatic update (caramos_ota.auto_update), shown instead: what it installed,
+    or the failure page with Ask for help.
+    """
+
+    def __init__(self, Gtk, GLib, update_info: dict[str, Any] | None, no_update_status: dict[str, str] | None,
+                 auto_result: dict[str, Any] | None = None):
         self.Gtk = Gtk
         self.GLib = GLib
         self.update_info = update_info
@@ -140,20 +148,55 @@ class UpdateWindowController:
 
         self.window.connect("delete-event", self._on_delete_event)
 
-        if update_info is None:
-            page = build_no_update_page(no_update_status, self.close)
+        if auto_result is not None:
+            self.progress_bar = None
+            self.stage_label = None
+            self.log_view = None
+            self._show_auto_result(auto_result)
+        elif update_info is None:
+            page = build_no_update_page(no_update_status, self.close, auto_update=self.auto_update_switch())
             self.stack.add_named(page, "no-update")
             self.stack.set_visible_child_name("no-update")
             self.progress_bar = None
             self.stage_label = None
             self.log_view = None
         else:
-            info_page = build_update_page(update_info, self.start_upgrade, self.close)
-            progress_page, self.progress_bar, self.stage_label, self.log_view = build_progress_page()
+            note = auto_update_ui.waiting_reason(update_info)
+            info_page = build_update_page(update_info, self.start_upgrade, self.close,
+                                          auto_update=self.auto_update_switch(note))
+            progress_page, self.progress_bar, self.stage_label, self.log_view = build_progress_page(update_info)
             self.log_view.get_vadjustment().connect("changed", self._log_resized)
             self.stack.add_named(info_page, "info")
             self.stack.add_named(progress_page, "progress")
             self.stack.set_visible_child_name("info")
+
+    def auto_update_switch(self, note: str = "") -> AutoUpdateSwitch:
+        return AutoUpdateSwitch(enabled=auto_update_ui.enabled(), on_toggle=self.toggle_auto_update, note=note)
+
+    def toggle_auto_update(self, wanted: bool, finish) -> None:
+        """The person flipped Automatic updates: pkexec asks for an administrator's password in a thread of its own,
+        then the switch goes where the setting is."""
+
+        def work() -> None:
+            self.GLib.idle_add(finish, auto_update_ui.change(wanted))
+
+        threading.Thread(target=work, daemon=True).start()
+
+    def _show_auto_result(self, result: dict[str, Any]) -> None:
+        if result.get("outcome") == auto_update_ui.auto_update.FAILED:
+            # The page a failed update shows in the Update Center, with this run's output under Details.
+            self.update_info = result.get("update") or None
+            detail = auto_update_ui.failure_detail(result)
+            on_help = None
+            if problem.help_available():
+                on_help = lambda: problem.ask_for_help(detail, self.update_info)   # noqa: E731
+            page = build_result_page(FAILED, detail, self.close, on_help, None, update_info=self.update_info)
+            self.stack.add_named(page, "result")
+            self.stack.set_visible_child_name("result")
+            return
+        page = build_auto_updated_page(result, self.close, auto_update=self.auto_update_switch())
+        self.stack.add_named(page, "auto-updated")
+        self.stack.set_visible_child_name("auto-updated")
 
     def show(self) -> None:
         """Show the update center and start its single GTK loop."""
@@ -183,11 +226,10 @@ class UpdateWindowController:
 
         self.upgrade_running = True
         self.window.set_deletable(False)
-        self.window.set_title(_("CaramOS - Updating…"))
         if self.log_view is not None and self.stage_label is not None:
             # Try again: the progress shows this run only.
             self.log_view.get_buffer().set_text("")
-            self.stage_label.set_text(_("Preparing the update…"))
+            self.stage_label.set_text(_("Getting ready…"))
             self.progress_bar.set_fraction(0.0)
         self.stack.set_visible_child_name("progress")
         self.pulse_source_id = self.GLib.timeout_add(100, self.pulse)
@@ -274,24 +316,22 @@ class UpdateWindowController:
         if self.progress_bar is not None:
             self.progress_bar.set_fraction(1.0)
         if self.stage_label is not None:
-            stages = {DONE: _("Update complete."), CANCELLED: _("Not updated."),
-                      BUSY: _("Another update is running.")}
-            self.stage_label.set_text(stages.get(outcome, _("Update failed.")))
+            stages = {DONE: _("Updated."), CANCELLED: _("Not updated."), BUSY: _("Another update is running.")}
+            self.stage_label.set_text(stages.get(outcome, _("Could not update.")))
 
         # Only a real failure goes to VNLF; no password or a busy updater only needs another try.
         on_help = None
         if outcome == FAILED and problem.help_available():
             on_help = lambda: problem.ask_for_help(detail, self.update_info)   # noqa: E731
         on_retry = self.start_upgrade if outcome in (CANCELLED, BUSY) else None
-        result_page = build_result_page(outcome, detail, self.close, on_help, on_retry)
+        result_page = build_result_page(outcome, detail, self.close, on_help, on_retry, update_info=self.update_info)
         old_result = self.stack.get_child_by_name("result")
         if old_result is not None:
             self.stack.remove(old_result)
         self.stack.add_named(result_page, "result")
         result_page.show_all()
         self.stack.set_visible_child_name("result")
-        titles = {DONE: _("CaramOS - Update complete!"), FAILED: _("CaramOS - Update failed")}
-        self.window.set_title(titles.get(outcome, _("CaramOS - Not updated")))
+        # The title stays the app's name, "Update Center": the page says how the update went.
         self.window.set_deletable(True)
         return False
 
@@ -307,7 +347,21 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Run from desktop autostart and stay silent when no update is available.",
     )
+    parser.add_argument(
+        "--auto-update-result",
+        action="store_true",
+        help="Tell this user how the last automatic update went, once (caramos-ota-auto-update-notify.service).",
+    )
+    parser.add_argument(
+        "--show-auto-update",
+        action="store_true",
+        help="Show what the last automatic update installed, or why it failed.",
+    )
     args = parser.parse_args(argv)
+
+    if args.auto_update_result:
+        # A notification only: GTK starts if the person clicks its button (--show-auto-update).
+        return auto_update_ui.notify_result()
 
     if not has_display():
         return 0
@@ -317,15 +371,28 @@ def main(argv: list[str] | None = None) -> int:
     except Exception:
         return 0
 
+    auto_result = None
+    if args.show_auto_update:
+        auto_result = auto_update_ui.auto_update.read_result()
+        if auto_result is not None:
+            auto_update_ui.mark(auto_result, "notified", "opened")
+    elif args.autostart:
+        # A failed automatic update the user has not seen opens its failure page; a finished one has its
+        # notification, started on its own.
+        auto_result = auto_update_ui.at_login()
+
     update_info = read_available_update() if args.autostart else None
     no_update_status = read_no_update_status()
-    if not args.autostart:
+    if not args.autostart and auto_result is None:
         update_info, no_update_status = resolve_available_update_now()
 
-    if args.autostart and update_info is None:
-        return 0
+    if args.autostart and auto_result is None:
+        if update_info is None:
+            return 0
+        if auto_update_ui.enabled() and auto_update_ui.service_running():
+            return 0   # an automatic update is installing it; its notification comes when it is done
 
-    controller = UpdateWindowController(Gtk, GLib, update_info, no_update_status)
+    controller = UpdateWindowController(Gtk, GLib, update_info, no_update_status, auto_result=auto_result)
     controller.show()
     Gtk.main()
     return 0

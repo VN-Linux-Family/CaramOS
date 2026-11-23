@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Giao diện (dưới 1 MB)",
+  "size_en": "Look (under 1 MB)",
+  "title": "Các menu bo tròn góc",
+  "summary": "Menu chuột phải trong các ứng dụng, và trên bản Cinnamon cả menu Start, lịch và menu của thanh tác vụ, bo tròn góc như các đảo và Control Center.",
+  "title_en": "Round corners for the menus",
+  "summary_en": "Right-click menus in applications, and on the Cinnamon edition also the Start menu, the calendar and the taskbar's menus, have round corners, like the islands and the Control Center.",
+  "release_notes_vi": [
+    "Menu chuột phải trong Nemo, Thunar và các ứng dụng khác bo tròn góc, mục đang trỏ chuột cũng bo tròn.",
+    "Trên bản Cinnamon: menu Start bo tròn góc, nút danh mục, ứng dụng và ô tìm kiếm cũng vậy; lịch và menu của thanh tác vụ, của các applet bo tròn góc.",
+    "Theo góp ý của các bạn trong nhóm Việt Nam Linux Family.",
+    "Hiện ra từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "Right-click menus in Nemo, Thunar and other applications have round corners, and so has the item under the pointer.",
+    "On the Cinnamon edition: the Start menu has round corners, and so have its category and application buttons and its search box; the calendar and the menus of the taskbar and the applets are round too.",
+    "As members of the Việt Nam Linux Family group suggested.",
+    "Shows from the next login."
+  ]
+}

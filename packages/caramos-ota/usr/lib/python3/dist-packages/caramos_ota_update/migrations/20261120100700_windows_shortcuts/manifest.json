@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Phím tắt (dưới 1 MB)",
+  "size_en": "Shortcuts (under 1 MB)",
+  "title": "Phím tắt quen thuộc như trên Windows",
+  "summary": "Super+L khóa máy, Ctrl+Alt+Delete mở hộp đăng xuất, như nhau trên cả hai bản.",
+  "title_en": "Shortcuts as on Windows",
+  "summary_en": "Super+L locks the screen and Ctrl+Alt+Delete opens the log out dialog, the same on both editions.",
+  "release_notes_vi": [
+    "Super+L khóa máy như trên Windows; Ctrl+Alt+L cũng khóa máy.",
+    "Ctrl+Alt+Delete mở hộp đăng xuất trên cả hai bản (trên bản Xfce, hộp này có cả tắt máy và khởi động lại); bản Cinnamon còn có Ctrl+Alt+End để tắt máy.",
+    "Bấm phím Super rồi gõ ngay để tìm ứng dụng, tệp hay cài đặt.",
+    "Hiện ra từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "Super+L locks the screen as on Windows; Ctrl+Alt+L does too.",
+    "Ctrl+Alt+Delete opens the log out dialog on both editions (on the Xfce edition it has shutting down and restarting too); the Cinnamon edition also has Ctrl+Alt+End to shut down.",
+    "Press Super and type at once to find applications, files or settings.",
+    "Shows from the next login."
+  ]
+}

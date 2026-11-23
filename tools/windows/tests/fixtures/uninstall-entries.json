@@ -1,0 +1,20 @@
+[
+  { "KeyName": "{90160000-0011-0000-0000-0000000FF1CE}", "Scope": "HKLM32", "DisplayName": "Microsoft Office Professional Plus 2016", "DisplayVersion": "16.0.4266.1001", "Publisher": "Microsoft Corporation", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "{90160000-0011-0000-0000-0000000FF1CE}_Office16.PROPLUS_{6C1F2B4A-0D62-4F1A-9C0E-2B1D1E5A7C11}", "Scope": "HKLM32", "DisplayName": "Security Update for Microsoft Office 2016 (KB5002623) 32-Bit Edition", "DisplayVersion": null, "Publisher": "Microsoft", "SystemComponent": null, "ParentKeyName": "Office16.PROPLUS", "ReleaseType": "Security Update" },
+  { "KeyName": "{90160000-0015-0409-0000-0000000FF1CE}", "Scope": "HKLM32", "DisplayName": "Microsoft Access MUI (English) 2016", "DisplayVersion": "16.0.4266.1001", "Publisher": "Microsoft Corporation", "SystemComponent": 1, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "MISA SME.NET 2023", "Scope": "HKLM32", "DisplayName": "MISA SME.NET 2023", "DisplayVersion": "R46", "Publisher": "MISA JSC", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "HTKK", "Scope": "HKLM32", "DisplayName": "HTKK", "DisplayVersion": "5.2.6", "Publisher": "Tổng cục Thuế", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "UltraViewer_is1", "Scope": "HKLM32", "DisplayName": "UltraViewer version 6.6.48", "DisplayVersion": "6.6.48", "Publisher": "DucFabulous", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "UniKey", "Scope": "HKLM", "DisplayName": "UniKey 4.6 RC2", "DisplayVersion": "4.6", "Publisher": "Phạm Kim Long", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "f2d9c9b3-zalo", "Scope": "HKCU", "DisplayName": "Zalo", "DisplayVersion": "24.11.1", "Publisher": "VNG Corp.", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "Google Chrome", "Scope": "HKLM", "DisplayName": "Google Chrome", "DisplayVersion": "131.0.6778.86", "Publisher": "Google LLC", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "Google Chrome", "Scope": "HKLM32", "DisplayName": "Google Chrome", "DisplayVersion": "131.0.6778.86", "Publisher": "", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "CocCocBrowser", "Scope": "HKCU", "DisplayName": "Cốc Cốc", "DisplayVersion": "131.0.6778.120", "Publisher": "COCCOC Company Limited", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "{2A7F3B71-0B5E-4C7E-8C1E-9C3F2B6D5A10}", "Scope": "HKLM32", "DisplayName": "Foxit PDF Reader", "DisplayVersion": "2024.3.0.26795", "Publisher": "Foxit Software Inc.", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "WinRAR archiver", "Scope": "HKLM", "DisplayName": "WinRAR 7.01 (64-bit)", "DisplayVersion": "7.01.0", "Publisher": "win.rar GmbH", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "ABC-ThuVien", "Scope": "HKLM32", "DisplayName": "Phần mềm Quản lý Thư viện ABC", "DisplayVersion": "2.1", "Publisher": "Công ty ABC", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "evil", "Scope": "HKCU", "DisplayName": "<script>alert(1)</script> & Co", "DisplayVersion": "1.0", "Publisher": "\"Evil\" <b>Corp</b>", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "KB5001716", "Scope": "HKLM", "DisplayName": "Update for Windows 10 for x64-based Systems (KB5001716)", "DisplayVersion": "8.94.0.0", "Publisher": "Microsoft Corporation", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "{00000000-EMPTY}", "Scope": "HKLM", "DisplayName": null, "DisplayVersion": "1.0", "Publisher": "Nobody", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null },
+  { "KeyName": "{00000000-BLANK}", "Scope": "HKLM", "DisplayName": "   ", "DisplayVersion": "1.0", "Publisher": "Nobody", "SystemComponent": null, "ParentKeyName": null, "ReleaseType": null }
+]

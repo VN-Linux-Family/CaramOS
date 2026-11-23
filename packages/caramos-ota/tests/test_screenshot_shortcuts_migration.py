@@ -91,7 +91,8 @@ class DefaultsTests(unittest.TestCase):
         media_keys = next(group for group in groups if group.startswith("org.cinnamon.desktop.keybindings.media-keys]"))
         for key in ("screenshot", "window-screenshot", "area-screenshot"):
             self.assertIn(f"\n{key}=@as []\n", media_keys)
-        self.assertIn("\ncustom-list=['custom0', 'custom1']\n", text)
+        # custom2 is Super+V, the clipboard history (migration 20261120100000).
+        self.assertIn("\ncustom-list=['custom0', 'custom1', 'custom2']\n", text)
 
     def test_values_as_gsettings_prints_them(self) -> None:
         self.assertEqual([], migration.parse("@as []"))

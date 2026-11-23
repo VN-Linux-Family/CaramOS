@@ -792,6 +792,44 @@
   color: #ffffff;
 }
 
+/* The volume step under the output devices (createStepChooser): small buttons, the current one ringed. */
+.caramos-cc-step-row {
+  spacing: 6px;
+  padding: 6px 8px 4px 8px;
+}
+
+.caramos-cc-step {
+  padding: 2px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  font-size: 0.82em;
+  color: rgba(38, 38, 38, 0.90);
+}
+
+.caramos-cc-step:hover,
+.caramos-cc-step:focus {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.caramos-cc-step-selected {
+  border: 1px solid rgba(0, 0, 0, 0.60);
+  font-weight: bold;
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-step {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-step:hover,
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-step:focus {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.caramos-cc-popup.caramos-cc-dark .caramos-cc-step-selected {
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
 /* -------- Accent colours (applet.js ACCENTS; orange is the base style above) -------- */
 
 .caramos-cc-accent-dot {

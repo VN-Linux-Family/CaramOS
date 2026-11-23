@@ -1,0 +1,22 @@
+# CaramOS Doanh nghiệp, admin machine: answers the employee machines on the LAN (PROTOCOL.md). Enabled by
+# caramos-business-helper when this machine becomes the admin.
+[Unit]
+Description=CaramOS Business: the admin machine's server for the employee machines
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/caramos-business/admin-key.pem
+
+[Service]
+ExecStart=/usr/lib/caramos-business/caramos-business-server
+Restart=on-failure
+RestartSec=5
+StateDirectory=caramos-business
+RuntimeDirectory=caramos-business
+RuntimeDirectoryPreserve=yes
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

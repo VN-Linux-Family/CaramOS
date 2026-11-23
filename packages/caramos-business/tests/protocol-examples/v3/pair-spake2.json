@@ -1,0 +1,41 @@
+{
+ "code": "482913",
+ "idA": "caramos-business employee",
+ "idB": "caramos-business admin",
+ "entropy": "SHA-256(seed + 4-byte big-endian counter) blocks, concatenated",
+ "entropy_seed_employee": "caramos-business/3 test entropy A",
+ "entropy_seed_admin": "caramos-business/3 test entropy B",
+ "start_request": {
+  "msg": "QYWsOwzNoFS1vqfJj5FD5dCICpeybsWXejyex8rBkYZM"
+ },
+ "start_answer": {
+  "session": "6f1d2c3b-4a59-4e68-8d7c-1b2a3c4d5e6f",
+  "msg": "QtQmfDXJmjzxRd74JcCVsVrD+nxV+1KsTWf5uLhjBkVO",
+  "admin_name": "quan-ly",
+  "admin_key": "A6EHv/POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg=",
+  "admin_box_key": "NYBy1jZYgNGu6jKa35EhODhR7SGijjt16WXQ0s0WYlQ="
+ },
+ "K_hex": "6f73552ae92b5efff69bc830bfa3ab002418232b2ef9b08bcfb3f264cd345650",
+ "k_employee_hex": "8e6a43122b905f4580954e2e8e94436fac0d90ba08b8c680d2824305ad257b52",
+ "k_admin_hex": "0e3e39f41f113b7436752eab12abb281cd500a6d7a5169dd35930948f251d7a6",
+ "T": "{\"admin_box_key\":\"NYBy1jZYgNGu6jKa35EhODhR7SGijjt16WXQ0s0WYlQ=\",\"admin_key\":\"A6EHv/POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg=\",\"admin_name\":\"quan-ly\",\"kind\":\"caramos-business/3 pair\",\"machine\":{\"edition\":\"cinnamon\",\"ip\":\"192.168.1.20\",\"mac\":\"52:54:00:12:34:56\",\"name\":\"ke-toan-01\",\"version\":\"1.4.0\"},\"machine_box_key\":\"eaYx7t4b+cmPEgMs3q3Q56B5OY/HhriMyEbsia+FpRo=\",\"msg_a\":\"QYWsOwzNoFS1vqfJj5FD5dCICpeybsWXejyex8rBkYZM\",\"msg_b\":\"QtQmfDXJmjzxRd74JcCVsVrD+nxV+1KsTWf5uLhjBkVO\",\"session\":\"6f1d2c3b-4a59-4e68-8d7c-1b2a3c4d5e6f\"}",
+ "finish_request": {
+  "session": "6f1d2c3b-4a59-4e68-8d7c-1b2a3c4d5e6f",
+  "machine": {
+   "name": "ke-toan-01",
+   "ip": "192.168.1.20",
+   "mac": "52:54:00:12:34:56",
+   "edition": "cinnamon",
+   "version": "1.4.0"
+  },
+  "box_key": "eaYx7t4b+cmPEgMs3q3Q56B5OY/HhriMyEbsia+FpRo=",
+  "confirm": "exQz1NJVGm7iyaVNpuFuf3JFY9p1m0vj11rg/pUykCg="
+ },
+ "finish_answer": {
+  "machine_id": "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6",
+  "state": "approved",
+  "confirm": "vbwrnDpAwm3Ry5PMuJCsUarnc72H2uY2ECgLqjN+fZI="
+ },
+ "wrong_code_admin_K_hex": "1c0d163e75ae2c1edb2172a96f45a753d285d0d26a7a63e7cdb8222700a3690a",
+ "wrong_code_expected_confirm": "n3Ww0Pr6I0uOucmC+2ucuHqdIocFf9jROkgetQXwk10="
+}

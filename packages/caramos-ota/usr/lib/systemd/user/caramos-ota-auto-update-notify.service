@@ -1,0 +1,12 @@
+# Started by caramos-ota-auto-update-notify.path: "CaramOS đã cập nhật lên X.Y.Z" with "Xem có gì mới", or after a
+# failure a notification whose button opens the Update Center's failure page. Once per update and user; what the user
+# has not seen comes at the next login (caramos-ota-notifier --autostart).
+[Unit]
+Description=CaramOS: tell the user an automatic update finished
+# Only in a desktop session: not for a user logged in over SSH alone.
+ConditionEnvironment=|DISPLAY
+ConditionEnvironment=|WAYLAND_DISPLAY
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/caramos-ota-notifier --auto-update-result

@@ -132,6 +132,12 @@ window-screenshot=@as []
 window-screenshot-clip=@as []
 area-screenshot=@as []
 area-screenshot-clip=@as []
+# Super+L locks the screen, as on Windows, and Ctrl+Alt+L (Cinnamon's own).
+screensaver=['<Control><Alt>l', '<Super>l', 'XF86ScreenSaver']
 
+# custom2: Super+V shows the clipboard history (caramos-clipboard, with CopyQ), from
+# /etc/dconf/db/local.d/03-caramos-clipboard-key.
 [org.cinnamon.desktop.keybindings]
-custom-list=['custom0', 'custom1']
+custom-list=['custom0', 'custom1', 'custom2']
+# Super+L opened Looking Glass, Cinnamon's debugger: Alt+F2 then lg still does.
+looking-glass-keybinding=@as []

@@ -11,11 +11,14 @@ import threading
 from time import monotonic
 from typing import Any
 
+from datetime import datetime
+from pathlib import Path
+
 from gi.repository import Adw, Gio, GLib, Gtk
 
 from caramos_ota.i18n import _
 
-from .. import actions, canon_capt
+from .. import actions, canon_capt, export
 from ..analysis import INSTALL, REBOOT, REPORT, WIFI_ON, Action, Finding, Report
 from ..logs import Log, install_failure_log, system_logs
 from . import canon
@@ -34,6 +37,7 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
         self.set_size_request(360, 480)
         self.scanner = scanner
         self.report: Report | None = None
+        self.snapshot = None             # the hardware of the last check, for a saved report
         self.pending: Report | None = None
         self.scanning = False
         self.busy = False            # a driver install, a hardware report or a help request is running
@@ -81,6 +85,7 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
 
         def work() -> None:
             snapshot = self.scanner.snapshot()
+            self.snapshot = snapshot
             basic = self.scanner.analyze(snapshot, ())
             GLib.idle_add(lambda: (view.reveal(basic, lambda: self._scan_finished()), False)[1])
             full = self.scanner.analyze(snapshot, self.scanner.proposals(snapshot))
@@ -108,6 +113,7 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
 
         def work() -> None:
             snapshot = self.scanner.snapshot()
+            self.snapshot = snapshot
             report = self.scanner.analyze(snapshot, self.scanner.proposals(snapshot))
             GLib.idle_add(self._quiet_done, report)
 
@@ -127,7 +133,7 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
         view = ResultsView(report, came_online=self.came_online, on_action=self._on_action,
                            on_install_all=self.install, on_report=lambda: self.show_help("driver"),
                            on_recheck=self.start_scan, on_close=self.close,
-                           on_canon_network=self.add_canon_network_printer)
+                           on_canon_network=self.add_canon_network_printer, on_save=self.save_report)
         self._set_page("results", view)
         if report.needs_connection and self.poll_id is None:
             self.poll_id = GLib.timeout_add_seconds(POLL_SECONDS, self._poll)
@@ -148,6 +154,38 @@ class MainWindow(HelpPages, Adw.ApplicationWindow):
         if self.is_active() and self.stack.get_visible_child_name() == "results" \
                 and monotonic() - self.last_scan > FOCUS_RECHECK_SECONDS:
             self.quiet_rescan()
+
+    # Saving a report -------------------------------------------------------------------------
+
+    def save_report(self) -> None:
+        """Save report: a web page (and its JSON) wherever the user chooses, such as a USB drive."""
+
+        if self.report is None:
+            return
+        report, snapshot, when = self.report, self.snapshot, datetime.now()
+        dialog = Gtk.FileDialog(title=_("Save the hardware report"), initial_name=export.default_name(when),
+                                modal=True)
+        web_pages = Gtk.FileFilter(name=_("Web page"))
+        web_pages.add_suffix("html")
+        filters = Gio.ListStore.new(Gtk.FileFilter)
+        filters.append(web_pages)
+        dialog.set_filters(filters)
+
+        def chosen(_dialog, result) -> None:
+            try:
+                target = dialog.save_finish(result)
+            except GLib.Error:
+                return                      # closed without saving
+            if target is None or not target.get_path():
+                return
+            try:
+                page, _data = export.save(Path(target.get_path()), report, snapshot, when)
+            except OSError as error:
+                self.toast(_("The report could not be saved: {error}").format(error=error.strerror or error))
+                return
+            self.toast(_("Report saved as “{name}”.").format(name=page.name))
+
+        dialog.save(self, None, chosen)
 
     # Actions ---------------------------------------------------------------------------------
 

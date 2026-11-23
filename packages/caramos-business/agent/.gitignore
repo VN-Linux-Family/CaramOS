@@ -1,0 +1,5 @@
+# Cargo's build output.
+/target/
+# vendor/ is committed exactly as `cargo vendor` wrote it: each crate's .cargo-checksum.json lists every file, so a
+# file dropped by an ignore rule of the repository (build/, *.log, ...) would break the offline build.
+!/vendor/**

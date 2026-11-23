@@ -1,7 +1,8 @@
 # xfce4-caramos-plugin
 
 Plugin thanh tác vụ Xfce của CaramOS, đóng gói cho PPA. Trên CaramOS Xfce nó giữ chỗ cho Control Center trong đảo
-phải của thanh tác vụ (giữa đồng hồ và nút Góp ý & hỗ trợ), như applet Control Center của bản Cinnamon.
+phải của thanh tác vụ (giữa khay hệ thống và nút Góp ý & hỗ trợ), như applet Control Center của bản Cinnamon. Control
+Center vẽ ở đó cả đồng hồ, để lịch của đồng hồ hiện được âm lịch.
 
 ## Chia việc với caramos-ota
 
@@ -12,7 +13,8 @@ thanh tác vụ rồi chạy Control Center vào ô đó:
 /usr/share/caramos-ota/xfce/caramos-control-center --plug <số của ô>
 ```
 
-Bản thân Control Center (nút trên thanh tác vụ, bảng điều khiển, ô hiện mức âm lượng khi bấm phím âm lượng) viết bằng
+Bản thân Control Center (đồng hồ và lịch âm, nút trên thanh tác vụ, bảng điều khiển, ô hiện mức âm lượng khi bấm phím
+âm lượng) viết bằng
 Python và GTK 3, nằm trong gói `caramos-ota`, ở `packages/caramos-ota/usr/share/caramos-ota/xfce/control-center/`. Nhờ
 vậy, sửa Control Center chỉ cần cập nhật `caramos-ota` qua OTA như mọi thứ khác; gói này hầu như không phải đổi.
 

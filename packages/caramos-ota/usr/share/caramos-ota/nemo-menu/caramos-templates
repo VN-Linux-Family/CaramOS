@@ -1,10 +1,20 @@
 #!/usr/bin/python3 -I
-"""Put the empty Word, Excel, PowerPoint and text documents into the user's Templates folder, once.
+"""Put the document templates into the user's Templates folder, once per set of templates.
 
 Files (Nemo) lists the files of that folder (~/Mẫu in Vietnamese) under right-click > "Mới", after "Thư mục", like
-Windows' New > Microsoft Word Document. caramos-templates.timer runs this a minute after login, when
-xdg-user-dirs has made the folder. Existing files are never replaced, and a user who deletes the templates does
-not get them back: ~/.local/state/caramos/templates.json records that this ran.
+Windows' New > Microsoft Word Document, and each folder in it as a submenu. caramos-templates.timer runs this a
+minute after login, when xdg-user-dirs has made the folder. Two sets:
+
+- the empty Word, Excel, PowerPoint and text documents (templates/vi or templates/en), into the folder itself;
+- the Vietnamese administrative documents of Nghị định 30/2020/NĐ-CP (templates/nd30, written by
+  tools/make-nd30-templates.py), into a folder of their own: "Văn bản hành chính" in Vietnamese sessions,
+  "Vietnamese Official Documents" in the others (the Xfce edition is English for schools, whose official
+  documents are still Vietnamese, so the documents themselves keep their Vietnamese names).
+
+Each set has its own record in ~/.local/state/caramos (templates.json for the first, as since 1.4.0), written once
+the set is in. A set added by a later version therefore reaches existing users once, at their next login or when
+the update starts this; the units run while a record is missing. Existing files are never replaced, and a user who
+deletes the templates does not get them back.
 """
 
 from __future__ import annotations
@@ -15,9 +25,23 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import NamedTuple
 
 TEMPLATES = Path("/usr/share/caramos-ota/templates")
 STATE = Path(".local/state/caramos/templates.json")
+
+
+class TemplateSet(NamedTuple):
+    state: Path                        # under the home folder, written once the set is in
+    source: str                        # folder in TEMPLATES; "{lang}" is the session's language
+    subfolder: dict[str, str] | None = None   # folder inside Templates, by language; None: Templates itself
+
+
+SETS = (
+    TemplateSet(STATE, "{lang}"),
+    TemplateSet(Path(".local/state/caramos/templates-nd30.json"), "nd30",
+                {"vi": "Văn bản hành chính", "en": "Vietnamese Official Documents"}),
+)
 
 
 def language(environ: dict[str, str]) -> str:
@@ -69,20 +93,36 @@ def seed(source: Path, target: Path) -> list[str]:
     return copied
 
 
+def put_in(item: TemplateSet, home: Path, target: Path, lang: str, templates: Path) -> None:
+    source = templates / item.source.format(lang=lang)
+    if not source.is_dir():
+        print(f"{source} is missing; trying again at the next login")
+        return
+    folder = target / item.subfolder.get(lang, item.subfolder["en"]) if item.subfolder else target
+    record = {"language": lang, "folder": str(folder)}
+    if os.path.lexists(folder) and not folder.is_dir():
+        # A file of the user's where the folder would go: left alone, and not tried again.
+        record.update(copied=[], error=f"{folder} is not a folder")
+    else:
+        record["copied"] = seed(source, folder)    # any other error: no record, so the next login tries again
+    state = home / item.state
+    state.parent.mkdir(parents=True, exist_ok=True)
+    state.write_text(json.dumps(record, ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
+    copied = record["copied"]
+    print(f"put {len(copied)} templates into {folder}" if copied else f"no new templates for {folder}")
+
+
 def run(home: Path, environ: dict[str, str], templates: Path = TEMPLATES) -> int:
-    state = home / STATE
-    if state.exists():
+    pending = [item for item in SETS if not (home / item.state).exists()]
+    if not pending:
         return 0
     target = templates_dir(home)
     if target is None:
         print("no Templates folder yet; trying again at the next login")
         return 0
     lang = language(environ)
-    copied = seed(templates / lang, target)
-    state.parent.mkdir(parents=True, exist_ok=True)
-    state.write_text(json.dumps({"language": lang, "folder": str(target), "copied": copied}, ensure_ascii=False,
-                                indent=1) + "\n", encoding="utf-8")
-    print(f"put {len(copied)} templates into {target}" if copied else f"the templates were already in {target}")
+    for item in pending:
+        put_in(item, home, target, lang, templates)
     return 0
 
 

@@ -1,0 +1,9 @@
+[
+  { "Name": "Canon LBP2900", "DriverName": "Canon LBP2900", "PortName": "USB001", "IsConnection": false },
+  { "Name": "HP LaserJet Pro M402dn", "DriverName": "HP LaserJet Pro M402-M403 PCL 6", "PortName": "IP_192.168.1.25", "IsConnection": false },
+  { "Name": "\\\\KETOAN-PC\\Brother DCP-L2520D", "DriverName": "Brother DCP-L2520D series", "PortName": "\\\\KETOAN-PC\\Brother DCP-L2520D", "IsConnection": true },
+  { "Name": "Microsoft Print to PDF", "DriverName": "Microsoft Print To PDF", "PortName": "PORTPROMPT:", "IsConnection": false },
+  { "Name": "OneNote (Desktop)", "DriverName": "Send to Microsoft OneNote 16 Driver", "PortName": "nul:", "IsConnection": false },
+  { "Name": "Fax", "DriverName": "Microsoft Shared Fax Driver", "PortName": "SHRFAX:", "IsConnection": false },
+  { "Name": "Máy in <i>phòng</i> họp", "DriverName": "Generic / Text Only", "PortName": "LPT1:", "IsConnection": false }
+]

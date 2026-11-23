@@ -1,0 +1,502 @@
+[
+ {
+  "KeyName": "key-00",
+  "Scope": "HKLM32",
+  "DisplayName": "MISA SME.NET 2023",
+  "DisplayVersion": "R46",
+  "Publisher": "MISA JSC",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-01",
+  "Scope": "HKLM32",
+  "DisplayName": "HTKK",
+  "DisplayVersion": "5.2.6",
+  "Publisher": "Tổng cục Thuế",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-02",
+  "Scope": "HKLM32",
+  "DisplayName": "iTaxViewer 2.4.1",
+  "DisplayVersion": "2.4.1",
+  "Publisher": "Tổng cục Thuế",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-03",
+  "Scope": "HKLM32",
+  "DisplayName": "VNPT-CA Token Manager",
+  "DisplayVersion": "2.0.7",
+  "Publisher": "VNPT",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-04",
+  "Scope": "HKLM32",
+  "DisplayName": "UltraViewer version 6.6.48",
+  "DisplayVersion": "6.6.48",
+  "Publisher": "DucFabulous",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-05",
+  "Scope": "HKLM32",
+  "DisplayName": "TeamViewer",
+  "DisplayVersion": "15.48.5",
+  "Publisher": "TeamViewer",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-06",
+  "Scope": "HKLM",
+  "DisplayName": "UniKey 4.6 RC2",
+  "DisplayVersion": "4.6",
+  "Publisher": "Phạm Kim Long",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-07",
+  "Scope": "HKCU",
+  "DisplayName": "Zalo",
+  "DisplayVersion": "24.11.1",
+  "Publisher": "VNG Corp.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-08",
+  "Scope": "HKLM",
+  "DisplayName": "Google Chrome",
+  "DisplayVersion": "131.0.6778.86",
+  "Publisher": "Google LLC",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-09",
+  "Scope": "HKCU",
+  "DisplayName": "Cốc Cốc",
+  "DisplayVersion": "131.0.6778.120",
+  "Publisher": "COCCOC Company Limited",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-10",
+  "Scope": "HKLM32",
+  "DisplayName": "Microsoft Edge",
+  "DisplayVersion": "131.0.2903.70",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-11",
+  "Scope": "HKLM32",
+  "DisplayName": "Microsoft Edge WebView2 Runtime",
+  "DisplayVersion": "131.0.2903.70",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-12",
+  "Scope": "HKLM",
+  "DisplayName": "Mozilla Firefox (x64 vi)",
+  "DisplayVersion": "133.0",
+  "Publisher": "Mozilla",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-13",
+  "Scope": "HKLM",
+  "DisplayName": "Mozilla Maintenance Service",
+  "DisplayVersion": "133.0",
+  "Publisher": "Mozilla",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-14",
+  "Scope": "HKLM32",
+  "DisplayName": "Foxit PDF Reader",
+  "DisplayVersion": "2024.3.0.26795",
+  "Publisher": "Foxit Software Inc.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-15",
+  "Scope": "HKLM",
+  "DisplayName": "WinRAR 7.01 (64-bit)",
+  "DisplayVersion": "7.01.0",
+  "Publisher": "win.rar GmbH",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-16",
+  "Scope": "HKLM",
+  "DisplayName": "7-Zip 23.01 (x64)",
+  "DisplayVersion": "23.01",
+  "Publisher": "Igor Pavlov",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-17",
+  "Scope": "HKLM32",
+  "DisplayName": "Microsoft Office Professional Plus 2016",
+  "DisplayVersion": "16.0.4266.1001",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-18",
+  "Scope": "HKLM32",
+  "DisplayName": "Microsoft Office Proofing Tools 2016 - Tiếng Việt",
+  "DisplayVersion": "16.0.4266.1001",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-19",
+  "Scope": "HKCU",
+  "DisplayName": "Microsoft Teams classic",
+  "DisplayVersion": "1.7.00.13456",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-20",
+  "Scope": "HKCU",
+  "DisplayName": "Zoom Workplace",
+  "DisplayVersion": "6.2.11",
+  "Publisher": "Zoom Video Communications, Inc.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-21",
+  "Scope": "HKLM32",
+  "DisplayName": "Skype version 8.110",
+  "DisplayVersion": "8.110",
+  "Publisher": "Skype Technologies S.A.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-22",
+  "Scope": "HKCU",
+  "DisplayName": "Telegram Desktop",
+  "DisplayVersion": "5.8.3",
+  "Publisher": "Telegram FZ-LLC",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-23",
+  "Scope": "HKLM",
+  "DisplayName": "VLC media player",
+  "DisplayVersion": "3.0.21",
+  "Publisher": "VideoLAN",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-24",
+  "Scope": "HKLM32",
+  "DisplayName": "K-Lite Codec Pack 18.0.5 Basic",
+  "DisplayVersion": "18.0.5",
+  "Publisher": "KLCP",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-25",
+  "Scope": "HKLM32",
+  "DisplayName": "Adobe Photoshop CS6",
+  "DisplayVersion": "13.0",
+  "Publisher": "Adobe Systems Incorporated",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-26",
+  "Scope": "HKLM32",
+  "DisplayName": "Kaspersky Free",
+  "DisplayVersion": "21.3.10.391",
+  "Publisher": "Kaspersky",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-27",
+  "Scope": "HKLM",
+  "DisplayName": "Microsoft Visual C++ 2015-2022 Redistributable (x64) - 14.38.33135",
+  "DisplayVersion": "14.38.33135.0",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-28",
+  "Scope": "HKLM32",
+  "DisplayName": "Microsoft Visual C++ 2013 Redistributable (x86) - 12.0.40664",
+  "DisplayVersion": "12.0.40664.0",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-29",
+  "Scope": "HKLM",
+  "DisplayName": "Intel(R) Graphics Driver",
+  "DisplayVersion": "20.19.15.5107",
+  "Publisher": "Intel Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-30",
+  "Scope": "HKLM",
+  "DisplayName": "Realtek High Definition Audio Driver",
+  "DisplayVersion": "6.0.9239.1",
+  "Publisher": "Realtek Semiconductor Corp.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-31",
+  "Scope": "HKLM32",
+  "DisplayName": "Canon LBP2900",
+  "DisplayVersion": "1.0",
+  "Publisher": "Canon Inc.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-32",
+  "Scope": "HKLM",
+  "DisplayName": "HP LaserJet Pro M402-M403 PCL 6",
+  "DisplayVersion": "44.6.2681",
+  "Publisher": "HP Inc.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-33",
+  "Scope": "HKLM",
+  "DisplayName": "Microsoft SQL Server 2014 (64-bit)",
+  "DisplayVersion": "12.2.5000.0",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-34",
+  "Scope": "HKLM",
+  "DisplayName": "Microsoft SQL Server 2014 Express LocalDB",
+  "DisplayVersion": "12.2.5000.0",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-35",
+  "Scope": "HKLM32",
+  "DisplayName": "Java 8 Update 381",
+  "DisplayVersion": "8.0.3810.9",
+  "Publisher": "Oracle Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-36",
+  "Scope": "HKLM",
+  "DisplayName": "Notepad++ (64-bit x64)",
+  "DisplayVersion": "8.6.2",
+  "Publisher": "Notepad++ Team",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-37",
+  "Scope": "HKCU",
+  "DisplayName": "Microsoft OneDrive",
+  "DisplayVersion": "24.211.1020.0001",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-38",
+  "Scope": "HKLM32",
+  "DisplayName": "Phần mềm Quản lý Thư viện ABC",
+  "DisplayVersion": "2.1",
+  "Publisher": "Công ty ABC",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-39",
+  "Scope": "HKLM32",
+  "DisplayName": "Từ điển Lạc Việt mtd9 EVA",
+  "DisplayVersion": "9.0",
+  "Publisher": "Lạc Việt",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-40",
+  "Scope": "HKLM32",
+  "DisplayName": "Phần mềm chấm công Ronald Jack",
+  "DisplayVersion": "5.2",
+  "Publisher": "Ronald Jack",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-41",
+  "Scope": "HKLM",
+  "DisplayName": "CCleaner",
+  "DisplayVersion": "6.20",
+  "Publisher": "Piriform Software",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-42",
+  "Scope": "HKLM32",
+  "DisplayName": "Internet Download Manager",
+  "DisplayVersion": "6.42.10",
+  "Publisher": "Tonec Inc.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-43",
+  "Scope": "HKLM",
+  "DisplayName": "Python 3.12.1 (64-bit)",
+  "DisplayVersion": "3.12.1150.0",
+  "Publisher": "Python Software Foundation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-44",
+  "Scope": "HKLM32",
+  "DisplayName": "GeoGebra Classic",
+  "DisplayVersion": "6.0.836.0",
+  "Publisher": "International GeoGebra Institute",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-45",
+  "Scope": "HKLM",
+  "DisplayName": "Dell SupportAssist",
+  "DisplayVersion": "4.0.3.53480",
+  "Publisher": "Dell Inc.",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-46",
+  "Scope": "HKLM32",
+  "DisplayName": "Microsoft Access database engine 2010 (English)",
+  "DisplayVersion": "14.0.7015.1000",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "key-47",
+  "Scope": "HKLM32",
+  "DisplayName": "Viettel S-Invoice Plugin",
+  "DisplayVersion": "2.0",
+  "Publisher": "Viettel",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "KB5034441",
+  "Scope": "HKLM",
+  "DisplayName": "Update for Windows 10 for x64-based Systems (KB5034441)",
+  "DisplayVersion": "1.0",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": null,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ },
+ {
+  "KeyName": "{X}",
+  "Scope": "HKLM32",
+  "DisplayName": "Microsoft Office 32-bit Components 2016",
+  "DisplayVersion": "16.0.4266.1001",
+  "Publisher": "Microsoft Corporation",
+  "SystemComponent": 1,
+  "ParentKeyName": null,
+  "ReleaseType": null
+ }
+]

@@ -98,6 +98,23 @@ class AllGoodTests(unittest.TestCase):
 
 
 class NetworkTests(unittest.TestCase):
+    def test_an_intel_port_stuck_in_ultra_low_power_mode(self) -> None:
+        # Ticket H-1174: "e1000e 0000:00:19.0: Failed to disable ULP", then the probe failed. No firmware or kernel
+        # update helps; the advice is a full power off.
+        stuck = Device("pci", "0000:00:19.0", "8086", "15a2", "Intel Ethernet Connection (3) I218-LM",
+                       pci_class="020000", modules=("e1000e",), loaded_modules=("e1000e",))
+        report = analyze(laptop(pci=(INTEL_WIFI, stuck, INTEL_GPU, INTEL_AUDIO), net=(WIFI_UP,),
+                                ulp_stuck=("0000:00:19.0",)))
+        finding = report.findings[0]
+        self.assertEqual(("ethernet:low-power:pci:8086:15a2", WARNING), (finding.key, finding.level))
+        self.assertEqual([REPORT], kinds(finding))
+        self.assertIn("Ultra Low Power Mode", finding.detail)
+        self.assertNotIn("linux-firmware", finding.detail)
+
+        # Without that kernel line it stays the general "does not start" finding.
+        other = analyze(laptop(pci=(INTEL_WIFI, stuck, INTEL_GPU, INTEL_AUDIO), net=(WIFI_UP,))).findings[0]
+        self.assertEqual("ethernet:failed:pci:8086:15a2", other.key)
+
     def test_broadcom_offline_is_critical_and_explains_how_to_get_online(self) -> None:
         report = analyze(broadcom_laptop())
 
@@ -290,6 +307,28 @@ class GraphicsTests(unittest.TestCase):
         self.assertEqual(("graphics:nvidia:pci:10de:1f99", WARNING), (finding.key, finding.level))
         self.assertEqual([DRIVER_MANAGER], kinds(finding))
         self.assertIn("nouveau", finding.detail)
+
+    # GeForce GT 730 (Kepler): Ubuntu's only driver is NVIDIA 470, which cannot work with Linux 6.12 and later.
+    KEPLER = Device("pci", "0000:01:00.0", "10de", "1287", "NVIDIA GeForce GT 730", driver="nouveau",
+                    pci_class="030000", modules=("nouveau",), loaded_modules=("nouveau",))
+    NVIDIA_470 = DriverProposal(package="nvidia-driver-470", target="nvidia:470", address="0000:01:00.0", usable=False)
+
+    def test_an_nvidia_card_whose_only_driver_cannot_work_stays_on_nouveau(self) -> None:
+        # Ticket H-1177: the warning sent the user to Driver Manager, which installs 470 and breaks dpkg.
+        report = analyze(laptop(pci=(INTEL_WIFI, self.KEPLER, INTEL_AUDIO)), proposals=[self.NVIDIA_470])
+        finding = report.findings[0]
+        self.assertEqual(("graphics:nvidia-none:pci:10de:1287", INFO), (finding.key, finding.level))
+        self.assertEqual([], kinds(finding))
+        self.assertIn("NVIDIA 470", finding.detail)
+        self.assertIn("6.14", finding.detail)
+        self.assertNotIn(DRIVER_MANAGER, [kind for f in report.findings for kind in kinds(f)])
+        self.assertEqual((), report.installs)
+
+    def test_an_nvidia_card_with_neither_driver_asks_for_help(self) -> None:
+        bare = replace(self.KEPLER, driver="", loaded_modules=())
+        finding = analyze(laptop(pci=(INTEL_WIFI, bare, INTEL_AUDIO)), proposals=[self.NVIDIA_470]).findings[0]
+        self.assertEqual(("graphics:nvidia-none:pci:10de:1287", WARNING), (finding.key, finding.level))
+        self.assertEqual([REPORT], kinds(finding))
 
     def test_nvidia_driver_installed_but_not_running_asks_for_a_restart(self) -> None:
         installed = replace(self.NVIDIA, modules=("nouveau", "nvidia"), new_modules=("nvidia",))

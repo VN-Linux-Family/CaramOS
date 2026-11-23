@@ -1,0 +1,34 @@
+{
+ "wallpaper": {
+  "default": "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7",
+  "periods": [],
+  "lock": false
+ },
+ "inventory": {
+  "enabled": true
+ },
+ "screen_lock": {
+  "idle_minutes": 10,
+  "on_suspend": true
+ },
+ "wifi": [
+  {
+   "ssid": "CongTy",
+   "security": "wpa-psk",
+   "hidden": false
+  }
+ ],
+ "snapshots": null,
+ "shared": {
+  "guest": true,
+  "freeze": true,
+  "maintenance": {
+   "days": [
+    7
+   ],
+   "time": "02:00",
+   "max_minutes": 60
+  },
+  "low_memory_ok": false
+ }
+}

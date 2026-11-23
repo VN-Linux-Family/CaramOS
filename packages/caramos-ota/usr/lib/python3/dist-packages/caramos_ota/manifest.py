@@ -163,7 +163,8 @@ def _manifest_from_descriptors(
         source=", ".join(item.source for item in shown),
         min_client_version=TOOL_VERSION,
         channel=display.channel,
-        severity=display.severity,
+        # One security fix makes the whole update a security update, which the Update Center says first.
+        severity="security" if any(item.severity == "security" for item in shown) else display.severity,
         size=" + ".join(item.size for item in shown if item.size) or "Cập nhật hệ thống",
         title=display.title,
         summary=display.summary,

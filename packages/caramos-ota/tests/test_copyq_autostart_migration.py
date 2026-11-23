@@ -139,23 +139,25 @@ class StopCopyqAutostartTests(unittest.TestCase):
 
 @unittest.skipUnless((REPO / "config").is_dir(), "ISO tree is not in the source package")
 class NewInstallTests(unittest.TestCase):
-    def test_the_iso_has_no_copyq(self) -> None:
-        for name in ("config/packages.txt", "config/package-lists/caramos.list.chroot"):
-            packages = [line.strip() for line in (REPO / name).read_text(encoding="utf-8").splitlines()]
-            self.assertNotIn("copyq", packages, name)
+    def test_the_iso_ships_copyq_without_its_autostart(self) -> None:
+        # CopyQ came back for Super+V (ticket H-1182, migration 20261120100000), which starts it on the first press.
+        packages = [line.strip() for line in (REPO / "config/packages.txt").read_text(encoding="utf-8").splitlines()]
+        self.assertIn("copyq", packages)
         self.assertFalse((REPO / "config/includes.chroot/etc/skel/.config/autostart/copyq.desktop").exists())
 
     def test_every_listed_shortcut_is_defined(self) -> None:
-        # custom2 was CopyQ's Super+V, whose definition went in May 2026. The others are defined in dconf, as
-        # overrides cannot reach the relocatable custom shortcuts (20261112100000_screenshot_shortcuts).
+        # Custom shortcuts are defined in dconf, as overrides cannot reach their relocatable paths
+        # (20261112100000_screenshot_shortcuts). custom2 was CopyQ's Super+V until May 2026, defined where it never
+        # applied; it is Super+V again, for caramos-clipboard (20261120100000_clipboard_history).
         override = (REPO / "config/includes.chroot/usr/share/glib-2.0/schemas/99_caramos.gschema.override").read_text(
             encoding="utf-8")
-        defaults = (REPO / "config/includes.chroot/etc/dconf/db/local.d/02-caramos-screenshot-keys").read_text(
-            encoding="utf-8")
+        local = REPO / "config/includes.chroot/etc/dconf/db/local.d"
+        defaults = "".join((local / name).read_text(encoding="utf-8")
+                           for name in ("02-caramos-screenshot-keys", "03-caramos-clipboard-key"))
         listed = re.search(r"^custom-list=\[(.*)\]$", override, re.MULTILINE).group(1)
         for name in re.findall(r"'([^']+)'", listed):
             self.assertIn(f"\n[org/cinnamon/desktop/keybindings/custom-keybindings/{name}]\n", defaults)
-        self.assertNotIn("'custom2'", listed)
+        self.assertIn("\ncommand='caramos-clipboard'\nbinding=['<Super>v']\n", defaults)
 
 
 if __name__ == "__main__":

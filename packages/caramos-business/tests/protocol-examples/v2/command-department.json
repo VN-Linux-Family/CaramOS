@@ -1,0 +1,4 @@
+{
+ "command": "{\n \"seq\": 42,\n \"id\": \"00000000-0000-4000-8000-000000000042\",\n \"targets\": {\n  \"departments\": [\n   \"ke-toan\"\n  ]\n },\n \"action\": \"lock\",\n \"args\": {},\n \"issued\": \"2026-11-21T14:00:00+07:00\",\n \"expires\": \"2099-01-01T00:00:00+07:00\"\n}",
+ "signature": "8GLV+fp7HpUy36+6Ak5RaRA4nwiMbScvVQjE+QsDJLhBwxZIWwLj5VMIqlWioZiLtAplV27aTh1tf5n/PbIBDQ=="
+}

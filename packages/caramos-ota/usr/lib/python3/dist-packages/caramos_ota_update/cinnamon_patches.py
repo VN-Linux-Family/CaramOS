@@ -1,11 +1,13 @@
 """Make the CaramOS changes to Cinnamon's own files again after a Cinnamon update put the originals back.
 
-CaramOS changes three files of the Mint package cinnamon-common:
+CaramOS changes these files of the Mint package cinnamon-common:
 - grouped-window-list@cinnamon.org/appGroup.js: 32 px icons in the 40 px dock in the middle of the panel and
   a dot under running apps (migration 20260803120000_apply_three_dock_taskbar);
 - systray@cinnamon.org/applet.js: a tray hover as high as the dock (the same migration);
 - cinnamon-settings/modules/cs_backgrounds.py: the "CaramOS" wallpaper collection in System Settings >
-  Backgrounds (migration 20260804223346_change_default_wallpaper).
+  Backgrounds (migration 20260804223346_change_default_wallpaper);
+- calendar@cinnamon.org/calendar.js and applet.js: lunar dates in the calendar (migration
+  20261120100200_lunar_calendar).
 An update of Cinnamon installs the original files again: after 6.6.4 -> 6.6.9 the icons in the middle grew
 to 48 px and spilled out of their dock (ticket H-1046). Migration 20261018120000 makes the changes again,
 and the dpkg trigger of this package (debian/triggers) runs this module after each later update:
@@ -35,6 +37,7 @@ from .ledger import MigrationLedgerError, applied_ids, load_ledger
 
 TASKBAR_MIGRATION = "20260803120000_apply_three_dock_taskbar"
 WALLPAPER_MIGRATION = "20260804223346_change_default_wallpaper"
+LUNAR_MIGRATION = "20261120100200_lunar_calendar"
 # Since 6.6.9 Cinnamon itself makes tray buttons as high as the panel, which is what the hover change did.
 NATIVE_FULL_HEIGHT_TRAY = "            button.set_y_align(Clutter.ActorAlign.FILL);\n"
 
@@ -95,6 +98,8 @@ def restore(context: MigrationContext, applied: Collection[str] | None = None) -
         restore_taskbar(context)
     if applied is None or WALLPAPER_MIGRATION in applied:
         restore_wallpaper_collection_name(context)
+    if applied is None or LUNAR_MIGRATION in applied:
+        _migration(LUNAR_MIGRATION).restore(context)
 
 
 def main() -> int:

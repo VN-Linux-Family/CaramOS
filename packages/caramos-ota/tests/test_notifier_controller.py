@@ -260,6 +260,8 @@ class UpdateWindowControllerTests(unittest.TestCase):
         controller.start_upgrade()
 
         self.assertIs(original_window, controller.window)
+        # The progress page names the version the update goes to.
+        app.build_progress_page.assert_called_once_with({"release": "1.1"})
         self.assertEqual("progress", self.stack.visible)
         self.assertTrue(controller.upgrade_running)
         self.assertFalse(self.window.deletable)
@@ -281,13 +283,25 @@ class UpdateWindowControllerTests(unittest.TestCase):
         self.assertFalse(controller.upgrade_running)
         self.assertEqual([41], self.glib.removed_sources)
         self.assertEqual(1.0, self.progress.fraction)
-        self.assertEqual("Update complete.", self.stage.text)
+        self.assertEqual("Updated.", self.stage.text)
         self.assertEqual("result", self.stack.visible)
         self.assertIs(result_page, self.stack.children["result"])
         self.assertTrue(result_page.shown)
         self.assertTrue(self.window.deletable)
-        self.assertEqual("CaramOS - Update complete!", self.window.title)
-        build_result.assert_called_once_with(app.DONE, "complete", controller.close, None, None)
+        build_result.assert_called_once_with(app.DONE, "complete", controller.close, None, None,
+                                             update_info={"release": "1.1"})
+
+    def test_the_window_title_stays_the_name_of_the_app(self) -> None:
+        # Up to 1.4.0 the title said "CaramOS - Updating…", then "CaramOS - Update complete!"; the pages say it now.
+        for outcome in (app.DONE, app.FAILED, app.CANCELLED, app.BUSY):
+            with self.subTest(outcome=outcome):
+                self.window.title = "Update Center"
+                controller = self.make_controller({"release": "1.1"})
+                controller.start_upgrade()
+                self.assertEqual("Update Center", self.window.title)
+                with mock.patch.object(app, "build_result_page", return_value=FakePage("result")):
+                    controller.on_upgrade_done(outcome, "")
+                self.assertEqual("Update Center", self.window.title)
 
     def test_a_failed_update_can_ask_vnlf_for_help_with_its_log(self) -> None:
         controller = self.make_controller({"release": "1.1", "title": "Zalo"})
@@ -329,9 +343,9 @@ class UpdateWindowControllerTests(unittest.TestCase):
                         mock.patch.object(app.problem, "help_available", return_value=True):
                     controller.on_upgrade_done(outcome, "Error: Another CaramOS OTA operation is already running.")
                 build_result.assert_called_once_with(outcome, "Error: Another CaramOS OTA operation is already running.",
-                                                     controller.close, None, controller.start_upgrade)
+                                                     controller.close, None, controller.start_upgrade,
+                                                     update_info={"release": "1.1"})
                 self.assertEqual(stage, self.stage.text)
-                self.assertEqual("CaramOS - Not updated", self.window.title)
                 self.assertFalse(controller.upgrade_running)
 
     def test_try_again_shows_only_the_new_run(self) -> None:
@@ -347,9 +361,8 @@ class UpdateWindowControllerTests(unittest.TestCase):
         self.assertTrue(controller.upgrade_running)
         self.assertEqual("progress", self.stack.visible)
         self.assertEqual("", self.log_view.buffer.text)
-        self.assertEqual("Preparing the update…", self.stage.text)
+        self.assertEqual("Getting ready…", self.stage.text)
         self.assertEqual(0.0, self.progress.fraction)
-        self.assertEqual("CaramOS - Updating…", self.window.title)
 
     def test_worker_queues_lines_for_one_flush_on_glib(self) -> None:
         controller = self.make_controller({"release": "1.1"})
@@ -371,12 +384,12 @@ class UpdateWindowControllerTests(unittest.TestCase):
         self.assertEqual("Updating package index\nstarting migration\nGet:1 http://archive.ubuntu.com\n",
                          self.log_view.buffer.text)
         self.assertEqual(1, self.log_view.buffer.inserts)
-        self.assertEqual("Updating CaramOS…", self.stage.text)
+        self.assertEqual("Updating…", self.stage.text)
 
         controller.queue_log_line("Run: zalo")
         self.assertEqual(2, len(self.glib.timeout_callbacks))
         controller.flush_log_lines()
-        self.assertEqual("Running system migrations…", self.stage.text)
+        self.assertEqual("Applying the changes…", self.stage.text)
 
     def test_a_flood_of_lines_keeps_the_end_in_two_inserts(self) -> None:
         # The 1.3.4 -> 1.3.5 update of a machine Driver Check had left broken printed 49,233 objtool lines.
@@ -398,7 +411,7 @@ class UpdateWindowControllerTests(unittest.TestCase):
         self.assertEqual(2, len(self.glib.timeout_callbacks))
         self.assertEqual(2, self.log_view.buffer.inserts)
         self.assertEqual([], self.log_view.buffer.marks)   # 1.3.5 left one per line in the buffer
-        self.assertEqual("Finishing the update…", self.stage.text)
+        self.assertEqual("Finishing…", self.stage.text)
 
     def test_the_log_shows_its_end_once_gtk_has_laid_it_out(self) -> None:
         controller = self.make_controller({"release": "1.1"})
@@ -436,7 +449,7 @@ class UpdateWindowControllerTests(unittest.TestCase):
             controller.on_upgrade_done(app.DONE, "Update complete.")
 
         self.assertEqual("Update complete.\n", self.log_view.buffer.text)
-        self.assertEqual("Update complete.", self.stage.text)
+        self.assertEqual("Updated.", self.stage.text)
         self.assertFalse(controller.flush_log_lines())   # the queued callback finds nothing left
         self.assertEqual(1, self.log_view.buffer.inserts)
 

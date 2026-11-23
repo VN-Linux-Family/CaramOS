@@ -1,0 +1,26 @@
+/* CaramOS: right-click menus with round corners, like the islands of the taskbar and the Control Center (users asked
+   for it after 1.4.0), in every GTK 3 program on both editions: Nemo, Thunar, the Xfce desktop and panel.
+
+   Both Cinnamon-Delight themes import this file: the light one since migration 20261120100600, the dark one (in this
+   package) in its gtk.css. GTK draws a menu with round corners only on a composited screen, where its window has the
+   .csd class and transparency: without a compositor the menus stay square instead of getting black corners. Shapes
+   only: the colours stay the theme's. */
+.csd menu,
+.csd .menu,
+.csd .context-menu {
+  border-radius: 12px;
+  padding: 6px;
+}
+
+.csd.popup decoration {
+  border-radius: 12px;
+}
+
+/* The item under the pointer is round too, inside the menu's padding. */
+.csd menu menuitem,
+.csd .menu menuitem,
+.csd .context-menu menuitem,
+.csd menu > arrow,
+.csd .menu > arrow {
+  border-radius: 8px;
+}

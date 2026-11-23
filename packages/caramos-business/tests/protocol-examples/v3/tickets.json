@@ -1,0 +1,4 @@
+{
+ "tickets": "{\"kind\":\"tickets\",\"machine_id\":\"7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6\",\"version\":7,\"issued\":\"2026-11-23T11:00:00+07:00\",\"tickets\":[{\"id\":\"HT-0007\",\"user\":\"lan\",\"created\":\"2026-11-23T08:10:00+07:00\",\"status\":\"working\",\"note\":\"Máy in không in được\",\"updates\":[{\"time\":\"2026-11-23T08:30:00+07:00\",\"status\":\"working\",\"text\":\"Bên mình đang xem, chiều nay xong.\"}]},{\"id\":\"HT-0005\",\"user\":\"minh\",\"created\":\"2026-11-20T15:00:00+07:00\",\"status\":\"done\",\"note\":\"Không vào được ổ chung\",\"updates\":[{\"time\":\"2026-11-21T09:00:00+07:00\",\"status\":\"done\",\"text\":\"Đã cấp lại mật khẩu ổ chung.\"}]},{\"id\":\"HT-0006\",\"user\":\"lan\",\"created\":\"2026-11-22T10:00:00+07:00\",\"status\":\"new\",\"note\":\"Cài giúp phần mềm kế toán\",\"updates\":[]}]}",
+ "signature": "no08bDvifEXVNxbrXV5FcJ6T0YiM2y1ZVR3Hz6RK9Fl5Nhz2x3WjBRTjM/JqaFFaWH49jFZs9YfqPexuIktkDw=="
+}

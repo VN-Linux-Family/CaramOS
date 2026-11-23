@@ -1,0 +1,77 @@
+{
+ "format": 2,
+ "serial": 21,
+ "issued": "2026-11-23T09:00:00+07:00",
+ "admin": "quan-ly",
+ "admin_box_key": "NYBy1jZYgNGu6jKa35EhODhR7SGijjt16WXQ0s0WYlQ=",
+ "files": {
+  "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7": {
+   "size": 31,
+   "type": "jpg"
+  }
+ },
+ "settings": {
+  "wallpaper": {
+   "default": "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7",
+   "periods": [],
+   "lock": false
+  },
+  "inventory": {
+   "enabled": true
+  },
+  "screen_lock": {
+   "idle_minutes": 10,
+   "on_suspend": true
+  },
+  "wifi": [
+   {
+    "ssid": "CongTy",
+    "security": "wpa-psk",
+    "hidden": false
+   }
+  ],
+  "snapshots": {
+   "schedule": "hourly",
+   "keep": 3,
+   "before_update": true
+  }
+ },
+ "departments": {
+  "ke-toan": {
+   "name": "Kế toán",
+   "settings": {
+    "usb": {
+     "storage": "block"
+    }
+   }
+  },
+  "phong-may": {
+   "name": "Phòng máy",
+   "settings": {
+    "shared": {
+     "guest": true,
+     "freeze": true,
+     "maintenance": {
+      "days": [
+       7
+      ],
+      "time": "02:00",
+      "max_minutes": 60
+     },
+     "low_memory_ok": false
+    },
+    "snapshots": null
+   }
+  }
+ },
+ "members": {
+  "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6": "ke-toan",
+  "0d9e8f7a-6b5c-4d3e-9f21-0a1b2c3d4e5f": "phong-may"
+ },
+ "machines": {
+  "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6": {
+   "settings": {},
+   "sealed": "ZGVmZ2hpamtsbW5vGSGuHMlzMq1s52EXLJVmn3oRWZuoRpdIT8o8X6ZqGscwB80BSEYyumpcNuI7XZuIjor/LXGabWQ="
+  }
+ }
+}

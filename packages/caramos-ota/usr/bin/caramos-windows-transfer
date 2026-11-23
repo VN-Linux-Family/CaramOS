@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""Command entrypoint for Chuyển dữ liệu từ Windows, installed in /usr/share/caramos-ota/windows-transfer."""
+
+import sys
+
+sys.path.insert(0, "/usr/share/caramos-ota/windows-transfer")
+
+from caramos_transfer.app import main  # noqa: E402
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

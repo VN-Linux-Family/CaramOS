@@ -1,0 +1,10 @@
+{
+ "note": "v2's keys (see ../v2/keys.json)",
+ "admin_sign_public": "A6EHv/POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg=",
+ "admin_box_public": "NYBy1jZYgNGu6jKa35EhODhR7SGijjt16WXQ0s0WYlQ=",
+ "machine_box_public": "eaYx7t4b+cmPEgMs3q3Q56B5OY/HhriMyEbsia+FpRo=",
+ "machine_id": "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6",
+ "fingerprint": "56475aa75463474c",
+ "mac_key_hex": "8d582d9d5ff83d8edfa7a14acaa758e89182c1121613b6b3fcf906eaa4b12d1c",
+ "seal_key_hex": "ab83daa3a9638ff68bf794ab85049c7669f868005a2090c8a5a269a90fcd3853"
+}

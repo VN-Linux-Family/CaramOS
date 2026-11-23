@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import dataclasses
+import os
 import unittest
 from unittest import mock
 
@@ -95,6 +97,41 @@ class ReleaseMetadataUpdateTests(unittest.TestCase):
 
         self.assertEqual([], updates)
         self.assertIsNone(state["available_update"])
+
+    def test_one_security_fix_makes_a_security_update(self) -> None:
+        from caramos_ota_update.registry import discover_migrations
+
+        catalog = {item.migration_id: item for item in discover_migrations()}
+        pending = [catalog["20261117100000_lotus_source_amd64_only"], catalog["20261119100000_open_office_documents"]]
+        current = ReleaseInfo(name="CaramOS", version="1.3.11", codename="noble", channel="stable")
+        self.assertEqual("normal", manifest._manifest_from_descriptors(pending, current, "1.4.0").severity)
+        pending[0] = dataclasses.replace(pending[0], severity="security")
+        # The Update Center says so first, whichever change leads.
+        self.assertEqual("security", manifest._manifest_from_descriptors(pending, current, "1.4.0").severity)
+
+    def test_the_update_center_lists_only_the_changes_for_this_edition(self) -> None:
+        from caramos_ota_update.registry import discover_migrations
+
+        catalog = {item.migration_id: item for item in discover_migrations()}
+        cinnamon_only = catalog["20261112100000_screenshot_shortcuts"]
+        everywhere = catalog["20261119100000_open_office_documents"]
+        self.assertEqual(("cinnamon",), cinnamon_only.desktops)
+        current = ReleaseInfo(name="CaramOS", version="1.4.0", codename="noble", channel="stable")
+        for pending, listed in (([cinnamon_only, everywhere], [everywhere]), ([cinnamon_only], [cinnamon_only])):
+            with self.subTest(pending=[item.migration_id for item in pending]):
+                plan = MigrationPlan(current_version="1.4.0", target_version="1.4.0", migrations=pending)
+                state = {"available_update": None}
+                with (
+                    mock.patch.dict(os.environ, {"CARAMOS_OTA_DESKTOP": "xfce"}),
+                    mock.patch.object(apt, "resolve_update_plan", return_value=plan),
+                    mock.patch.object(apt, "save_state"),
+                ):
+                    _, updates = apt.detect_updates(current, state)
+                # Whether there is an update, and what the runner does, stay as they were.
+                self.assertEqual(len(pending), len(updates))
+                self.assertEqual([item.migration_id for item in pending], state["available_update"]["migration_ids"])
+                self.assertEqual([item.title for item in listed],
+                                 [package["name"] for package in state["available_update"]["packages"]])
 
 
 if __name__ == "__main__":

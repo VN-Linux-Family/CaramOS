@@ -66,6 +66,25 @@ class ChooseTests(unittest.TestCase):
         self.assertEqual("580", nvidia.version)
         self.assertTrue(nvidia.open_kernel_modules)
 
+    def test_a_driver_that_cannot_work_with_the_kernel_is_reported_but_never_offered(self) -> None:
+        # Kepler (GeForce GT 730): nvidia-driver-470 is the only one, and it has no modules for Linux 6.14.
+        devices = {NVIDIA_SYSPATH: {"vendor": "NVIDIA", "model": "GK208B [GeForce GT 730]",
+                                    "drivers": {"nvidia-driver-470": {"recommended": True},
+                                                "nvidia-driver-470-server": {}}}}
+        proposals = drivers.proposals_from(devices, installed=lambda name: False,
+                                           usable=lambda name: not name.startswith("nvidia-driver-470"))
+        self.assertEqual([("nvidia-driver-470", "0000:01:00.0", False)],
+                         [(p.package, p.address, p.usable) for p in proposals])
+        self.assertEqual("470", proposals[0].version)
+
+    def test_a_usable_driver_beats_one_that_cannot_work(self) -> None:
+        # Maxwell and Pascal: Ubuntu recommends 470, but 580 works and is the one offered.
+        devices = {NVIDIA_SYSPATH: {"drivers": {"nvidia-driver-470": {"recommended": True},
+                                                "nvidia-driver-580": {}, "nvidia-driver-580-open": {}}}}
+        proposals = drivers.proposals_from(devices, installed=lambda name: False,
+                                           usable=lambda name: name != "nvidia-driver-470")
+        self.assertEqual([("nvidia-driver-580-open", True)], [(p.package, p.usable) for p in proposals])
+
     def test_without_ubuntu_drivers_there_is_nothing_to_propose(self) -> None:
         with mock.patch.dict(sys.modules, {"apt_pkg": None}):
             self.assertEqual([], drivers.find_proposals())

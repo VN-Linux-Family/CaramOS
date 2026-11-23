@@ -1,0 +1,4 @@
+{
+ "command": "{\n \"seq\": 44,\n \"id\": \"00000000-0000-4000-8000-000000000044\",\n \"targets\": {\n  \"all\": true\n },\n \"action\": \"sync\",\n \"args\": {},\n \"issued\": \"2026-11-21T14:00:00+07:00\",\n \"expires\": \"2099-01-01T00:00:00+07:00\"\n}",
+ "signature": "+I0VrXAefmP3fQLfAeOED5yYRGGDzbjMc/J+oaLHLxO0QmFXmI/b2Q3GoEe+178IuaHxCeb1y9OqnNm+1FdSDg=="
+}

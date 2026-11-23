@@ -1,0 +1,12 @@
+usr/bin/caramos-business usr/bin/
+usr/lib/caramos-business/caramos-business-helper usr/lib/caramos-business/
+usr/lib/caramos-business/caramos-business-server usr/lib/caramos-business/
+usr/lib/python3/dist-packages/caramos_business usr/lib/python3/dist-packages/
+usr/share/applications/caramos-business.desktop usr/share/applications/
+usr/share/caramos-business usr/share/
+usr/share/polkit-1/actions/net.vietnamlinuxfamily.caramos-business.policy usr/share/polkit-1/actions/
+etc/xdg/autostart/caramos-business-session.desktop etc/xdg/autostart/
+lib/systemd/system/caramos-business-server.service lib/systemd/system/
+lib/systemd/system/caramos-business-agent.service lib/systemd/system/
+lib/systemd/system/caramos-business-enroll.service lib/systemd/system/
+lib/systemd/system/caramos-business-hostname.service lib/systemd/system/

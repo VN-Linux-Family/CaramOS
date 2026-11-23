@@ -331,6 +331,20 @@ class HardwareReaderTests(unittest.TestCase):
             [(error.driver, error.device, error.file) for error in errors],
         )
 
+    def test_an_intel_port_stuck_in_ultra_low_power_mode_is_read_from_the_kernel_log(self) -> None:
+        log = (
+            "e1000e 0000:00:19.0 0000:00:19.0 (uninitialized): Failed to disable ULP\n"
+            "e1000e 0000:00:19.0: probe with driver e1000e failed with error -2\n"
+        )
+        port = self.system.pci("0000:00:19.0", "8086", "15a2", "020000")
+        runner = FakeRunner(aliases={"pci:v00008086d000015A2": ("e1000e",)}, kernel_log=log)
+        self.assertEqual(("0000:00:19.0",), SystemReader(self.root, runner).snapshot().ulp_stuck)
+
+        # A working port: the kernel log is not read for it.
+        self.system.net("enp0s25", port)
+        working = FakeRunner(aliases={"pci:v00008086d000015A2": ("e1000e",)}, kernel_log=log)
+        self.assertEqual((), SystemReader(self.root, working).snapshot().ulp_stuck)
+
     def test_live_session_virtual_machine_and_secure_boot(self) -> None:
         _write(self.root / "proc/cmdline", "BOOT_IMAGE=/casper/vmlinuz boot=casper quiet splash\n")
         _write(self.root / "proc/cpuinfo", "flags\t\t: fpu vme hypervisor\n")

@@ -1,0 +1,673 @@
+{
+  "comment": "Bảng gợi ý cho caramos-assess.ps1. Mỗi mục trong programs: match là các biểu thức chính quy (không phân biệt hoa thường) so với tên chương trình (DisplayName); publisher (nếu có) so với nhà phát hành, và khi có cả hai thì phải khớp cả hai; exclude loại trừ. Mục đầu tiên khớp được dùng, nên mục cụ thể đặt trước mục chung. kind là một trong: windows-only, alternative, available, not-needed, check. devices dùng cho máy in (so với tên + driver) và máy quét.",
+  "schema": 1,
+  "updated": "2026-11-22",
+  "programs": [
+    {
+      "id": "misa-sme",
+      "name": "MISA SME",
+      "kind": "windows-only",
+      "match": ["^MISA\\s*SME", "MISA\\.SME", "^SME\\.NET"],
+      "advice": "Không có bản cho Linux, và CaramOS không chạy MISA SME bằng Wine. Cách dùng tiếp: để MISA SME trên một máy hoặc máy chủ Windows trong công ty rồi mở từ CaramOS bằng Remmina (kết nối RDP, có trong App Center); dùng máy ảo Windows; hoặc chuyển sang MISA AMIS (bản web) nếu công ty chọn. Nhiều người cùng dùng một máy Windows qua RDP thì cần Windows Server và giấy phép truy cập từ xa (RDS CAL)."
+    },
+    {
+      "id": "misa-public-sector",
+      "name": "MISA Mimosa, MISA Bamboo",
+      "kind": "windows-only",
+      "match": ["^MISA\\s*(Mimosa|Bamboo)", "Mimosa\\.NET", "Bamboo\\.NET"],
+      "advice": "Bản cài trên Windows, không có bản cho Linux. Dùng trên một máy Windows và mở từ CaramOS bằng Remmina (RDP, có trong App Center), hoặc dùng máy ảo Windows; hỏi MISA về bản web nếu đơn vị muốn chuyển."
+    },
+    {
+      "id": "misa-other",
+      "name": "Phần mềm MISA khác",
+      "kind": "check",
+      "match": ["^MISA"],
+      "advice": "Phần mềm của MISA. Nếu là bản cài trên Windows thì không chạy trên Linux: dùng qua Remmina (RDP) từ một máy Windows, dùng máy ảo Windows, hoặc hỏi MISA về bản web (MISA AMIS)."
+    },
+    {
+      "id": "htkk",
+      "name": "HTKK",
+      "kind": "windows-only",
+      "match": ["^HTKK", "H[oỗ]\\s*tr[oợ]\\s*k[eê]\\s*khai"],
+      "advice": "Ứng dụng kê khai thuế của cơ quan thuế, chỉ có bản cho Windows; CaramOS không chạy HTKK bằng Wine. Dùng HTKK trên một máy Windows và mở từ CaramOS bằng Remmina (RDP, có trong App Center), hoặc dùng máy ảo Windows."
+    },
+    {
+      "id": "itaxviewer",
+      "name": "iTaxViewer",
+      "kind": "windows-only",
+      "match": ["iTax\\s*Viewer"],
+      "advice": "Ứng dụng xem tờ khai thuế (tệp XML) của cơ quan thuế, chỉ có bản cho Windows. Dùng trên một máy Windows qua Remmina, hoặc trong máy ảo Windows."
+    },
+    {
+      "id": "tax-department",
+      "name": "Phần mềm của cơ quan thuế",
+      "kind": "windows-only",
+      "publisher": ["T[oổ]ng\\s*c[uụ]c\\s*Thu[eế]", "C[uụ]c\\s*Thu[eế]", "General Department of Taxation"],
+      "advice": "Phần mềm của cơ quan thuế cho Windows. Dùng trên một máy Windows qua Remmina (RDP), hoặc trong máy ảo Windows."
+    },
+    {
+      "id": "ca-token",
+      "name": "Công cụ chữ ký số (USB token)",
+      "kind": "check",
+      "match": ["VNPT[- ]?CA", "VNPT.*(Token|Ký số|Ky so|SmartCA|Plugin)", "Viettel[- ]?CA", "Viettel.*(Token|Ký số|Ky so|Sign)", "FPT[- ]?CA", "BKAV[- ]?CA", "\\bEasy[- ]?CA\\b", "\\bNew[- ]?CA\\b", "^CA2\\b", "Nacencomm", "SmartSign", "\\bSmart\\s*CA\\b", "Token\\s*Manager", "ePass\\s*2003", "^ePass", "SafeNet Authentication Client", "Gemalto", "Bit4id", "eToken", "\\bSAFE[- ]?CA\\b", "\\bVina[- ]?CA\\b", "\\bTrust[- ]?CA\\b", "\\bWIN[- ]?CA\\b", "\\bEFY[- ]?CA\\b", "Mat\\s*Bao[- ]?CA", "MISA eSign", "Chữ ký số", "Chu ky so", "\\bKý số\\b", "\\bKy so\\b"],
+      "advice": "Phần mềm của USB token chữ ký số. Hỏi nhà cung cấp chữ ký số có driver và công cụ ký cho Linux hay không, rồi thử ký một tờ khai, một hóa đơn trước khi chuyển máy. Nếu chưa có, giữ việc ký số trên một máy Windows."
+    },
+    {
+      "id": "e-invoice",
+      "name": "Phần mềm hóa đơn điện tử",
+      "kind": "check",
+      "match": ["Invoice", "Hóa đơn", "Hoa don", "eHoaDon"],
+      "advice": "Phần mềm hóa đơn điện tử. Hỏi nhà cung cấp có bản web không; việc ký hóa đơn bằng USB token cần thử trên CaramOS trước, hoặc giữ trên một máy Windows."
+    },
+    {
+      "id": "social-insurance",
+      "name": "Phần mềm kê khai bảo hiểm xã hội",
+      "kind": "check",
+      "match": ["BHXH", "B[aả]o hi[eể]m x[aã] h[oộ]i", "\\beBH\\b", "\\bTS24\\b"],
+      "advice": "Thường chỉ có bản cho Windows. Hỏi nhà cung cấp có bản web không; nếu không, dùng trên một máy Windows qua Remmina (RDP) hoặc trong máy ảo Windows."
+    },
+    {
+      "id": "bank",
+      "name": "Phần mềm ngân hàng",
+      "kind": "check",
+      "match": ["^(Vietcombank|VietinBank|BIDV|Agribank|Techcombank|ACB|VPBank|MB ?Bank|Sacombank|TPBank|SHB|HDBank|VIB|SeABank|OCB|Eximbank|LPBank|MSB)\\b"],
+      "advice": "Phần mềm hoặc plugin của ngân hàng (thường cho token ký giao dịch). Hỏi ngân hàng có hỗ trợ Linux không trước khi chuyển máy kế toán; nếu chưa, giữ việc này trên một máy Windows."
+    },
+    {
+      "id": "ultraviewer",
+      "name": "UltraViewer",
+      "kind": "alternative",
+      "match": ["^UltraViewer"],
+      "advice": "Thay bằng RustDesk (có trong App Center). Người hỗ trợ cũng cần cài RustDesk."
+    },
+    {
+      "id": "teamviewer",
+      "name": "TeamViewer",
+      "kind": "alternative",
+      "match": ["^TeamViewer"],
+      "advice": "TeamViewer có bản Linux tải từ trang của hãng (không có trong App Center). Trong App Center có RustDesk để hỗ trợ từ xa; người hỗ trợ cũng cần RustDesk."
+    },
+    {
+      "id": "anydesk",
+      "name": "AnyDesk",
+      "kind": "alternative",
+      "match": ["^AnyDesk"],
+      "advice": "AnyDesk có bản Linux tải từ trang của hãng (không có trong App Center). Trong App Center có RustDesk để hỗ trợ từ xa; người hỗ trợ cũng cần RustDesk."
+    },
+    {
+      "id": "rustdesk",
+      "name": "RustDesk",
+      "kind": "available",
+      "match": ["^RustDesk"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "unikey",
+      "name": "Unikey",
+      "kind": "not-needed",
+      "match": ["^Uni\\s?Key"],
+      "advice": "CaramOS có sẵn bộ gõ tiếng Việt (Fcitx5 với Lotus), gõ được Telex và VNI. Không cần cài Unikey."
+    },
+    {
+      "id": "evkey",
+      "name": "EVKey",
+      "kind": "not-needed",
+      "match": ["^EVKey"],
+      "advice": "CaramOS có sẵn bộ gõ tiếng Việt (Fcitx5 với Lotus), gõ được Telex và VNI. Không cần cài EVKey."
+    },
+    {
+      "id": "vietkey",
+      "name": "VietKey",
+      "kind": "not-needed",
+      "match": ["^Viet\\s?Key"],
+      "advice": "CaramOS có sẵn bộ gõ tiếng Việt (Fcitx5 với Lotus), gõ được Telex và VNI. Tài liệu cũ gõ bằng bảng mã TCVN3 (ABC) hay VNI: trên CaramOS, bấm chuột phải vào tệp và chọn “Chuyển mã sang Unicode”."
+    },
+    {
+      "id": "other-vietnamese-input",
+      "name": "Bộ gõ tiếng Việt khác",
+      "kind": "not-needed",
+      "match": ["^OpenKey", "^G[oõ]\\s*Ti[eế]ng\\s*Vi[eệ]t", "^Laban\\s*Key", "^VPSKeys"],
+      "advice": "CaramOS có sẵn bộ gõ tiếng Việt (Fcitx5 với Lotus), gõ được Telex và VNI. Không cần cài thêm bộ gõ."
+    },
+    {
+      "id": "zalo",
+      "name": "Zalo",
+      "kind": "available",
+      "match": ["^Zalo\\b"],
+      "advice": "Có trong App Center (bản Linux do cộng đồng đóng gói, không phải của Zalo). Cũng dùng được Zalo Web trong trình duyệt. Thư mục Zalo Received Files được công cụ Chuyển dữ liệu từ Windows chép sang."
+    },
+    {
+      "id": "chrome",
+      "name": "Google Chrome",
+      "kind": "available",
+      "match": ["^Google Chrome"],
+      "advice": "Có trong App Center. Đăng nhập tài khoản Google để đồng bộ; công cụ Chuyển dữ liệu từ Windows chép được dấu trang."
+    },
+    {
+      "id": "coccoc",
+      "name": "Cốc Cốc",
+      "kind": "available",
+      "match": ["^C[ốo]c\\s*C[ốo]c"],
+      "advice": "Có trong App Center. Công cụ Chuyển dữ liệu từ Windows chép được dấu trang."
+    },
+    {
+      "id": "edge-webview",
+      "name": "Microsoft Edge WebView2",
+      "kind": "not-needed",
+      "match": ["^Microsoft Edge WebView2"],
+      "advice": "Thành phần chạy kèm ứng dụng Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "edge-update",
+      "name": "Microsoft Edge Update",
+      "kind": "not-needed",
+      "match": ["^Microsoft Edge Update"],
+      "advice": "Trình cập nhật của Edge cho Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "edge",
+      "name": "Microsoft Edge",
+      "kind": "available",
+      "match": ["^Microsoft Edge"],
+      "advice": "Có trong App Center. Đăng nhập tài khoản Microsoft để đồng bộ; công cụ Chuyển dữ liệu từ Windows chép được dấu trang."
+    },
+    {
+      "id": "firefox-maintenance",
+      "name": "Mozilla Maintenance Service",
+      "kind": "not-needed",
+      "match": ["^Mozilla Maintenance Service"],
+      "advice": "Trình cập nhật của Firefox cho Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "firefox",
+      "name": "Firefox",
+      "kind": "available",
+      "match": ["^Mozilla Firefox", "^Firefox"],
+      "advice": "Có sẵn trong CaramOS. Đăng nhập tài khoản Firefox để đồng bộ dấu trang và mật khẩu."
+    },
+    {
+      "id": "brave",
+      "name": "Brave",
+      "kind": "available",
+      "match": ["^Brave"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "foxit-editor",
+      "name": "Foxit PDF Editor",
+      "kind": "check",
+      "match": ["^Foxit PDF Editor", "^Foxit PhantomPDF"],
+      "advice": "Không có bản cho Linux. Đọc và in PDF: dùng trình xem PDF có sẵn trong CaramOS. Sửa PDF, hay ký số PDF bằng USB token, cần thử cách khác trước khi chuyển và hỏi nhà cung cấp chữ ký số về cách ký trên Linux."
+    },
+    {
+      "id": "foxit-reader",
+      "name": "Foxit Reader",
+      "kind": "alternative",
+      "match": ["^Foxit (PDF )?Reader"],
+      "advice": "Đọc và in PDF bằng trình xem PDF có sẵn trong CaramOS. Nếu đang dùng Foxit để ký số PDF bằng USB token, hãy hỏi nhà cung cấp chữ ký số cách ký trên Linux trước khi chuyển."
+    },
+    {
+      "id": "adobe-reader",
+      "name": "Adobe Acrobat Reader",
+      "kind": "alternative",
+      "match": ["^Adobe Acrobat Reader", "^Adobe Reader"],
+      "advice": "Đọc và in PDF bằng trình xem PDF có sẵn trong CaramOS. Nếu đang dùng Adobe Reader để ký số PDF bằng USB token, hãy hỏi nhà cung cấp chữ ký số cách ký trên Linux trước khi chuyển."
+    },
+    {
+      "id": "adobe-support",
+      "name": "Thành phần của Adobe",
+      "kind": "not-needed",
+      "match": ["^Adobe (Genuine|Refresh Manager|AIR|Flash|Creative Cloud|Update|Acrobat Update)"],
+      "advice": "Thành phần hoặc trình cập nhật của Adobe cho Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "adobe-acrobat",
+      "name": "Adobe Acrobat",
+      "kind": "check",
+      "match": ["^Adobe Acrobat"],
+      "advice": "Không có bản cho Linux. Đọc và in PDF: dùng trình xem PDF có sẵn trong CaramOS. Sửa, tạo hay ký số PDF cần thử cách khác trước khi chuyển."
+    },
+    {
+      "id": "photoshop",
+      "name": "Adobe Photoshop",
+      "kind": "alternative",
+      "match": ["^Adobe Photoshop"],
+      "advice": "Không có bản cho Linux. GIMP (có trong App Center) làm được nhiều việc chỉnh ảnh nhưng cách dùng khác và không mở đầy đủ mọi tệp .psd. Nếu công việc cần Photoshop, giữ một máy Windows."
+    },
+    {
+      "id": "illustrator",
+      "name": "Adobe Illustrator",
+      "kind": "alternative",
+      "match": ["^Adobe Illustrator"],
+      "advice": "Không có bản cho Linux. Inkscape (có trong App Center) là phần mềm vẽ vector, cách dùng khác; tệp .ai cần mở thử. Nếu công việc cần Illustrator, giữ một máy Windows."
+    },
+    {
+      "id": "premiere",
+      "name": "Adobe Premiere",
+      "kind": "alternative",
+      "match": ["^Adobe Premiere"],
+      "advice": "Không có bản cho Linux. Kdenlive (có trong App Center) dựng được video nhưng không mở được dự án Premiere. Nếu công việc cần Premiere, giữ một máy Windows."
+    },
+    {
+      "id": "coreldraw",
+      "name": "CorelDRAW",
+      "kind": "alternative",
+      "match": ["CorelDRAW", "^Corel Graphics Suite"],
+      "advice": "Không có bản cho Linux. Inkscape (có trong App Center) là phần mềm vẽ vector, mở được một phần tệp .cdr. Nếu công việc cần CorelDRAW, giữ một máy Windows."
+    },
+    {
+      "id": "autodesk-support",
+      "name": "Thành phần của Autodesk",
+      "kind": "not-needed",
+      "match": ["^Autodesk (Desktop App|Genuine Service|Access|Single Sign On|Material Library|Licensing|Save to Web|Identity Manager)"],
+      "advice": "Thành phần đi kèm phần mềm Autodesk, không cần trên CaramOS."
+    },
+    {
+      "id": "autocad",
+      "name": "AutoCAD",
+      "kind": "windows-only",
+      "match": ["^AutoCAD", "^Autodesk (AutoCAD|Revit|3ds Max|Inventor|Civil 3D|DWG TrueView)"],
+      "advice": "Không có bản cho Linux. Giữ một máy Windows cho công việc thiết kế; phần mềm CAD khác cần thử với bản vẽ thật trước khi chuyển."
+    },
+    {
+      "id": "winrar",
+      "name": "WinRAR",
+      "kind": "not-needed",
+      "match": ["^WinRAR"],
+      "advice": "Trình quản lý tệp của CaramOS mở được tệp .zip, .7z và .rar."
+    },
+    {
+      "id": "7zip",
+      "name": "7-Zip",
+      "kind": "not-needed",
+      "match": ["^7-Zip"],
+      "advice": "Trình quản lý tệp của CaramOS mở được tệp .zip, .7z và .rar."
+    },
+    {
+      "id": "other-archivers",
+      "name": "Phần mềm nén tệp",
+      "kind": "not-needed",
+      "match": ["^Bandizip", "^WinZip", "^PeaZip"],
+      "advice": "Trình quản lý tệp của CaramOS mở được tệp .zip, .7z và .rar."
+    },
+    {
+      "id": "office-components",
+      "name": "Thành phần của Microsoft Office",
+      "kind": "not-needed",
+      "match": ["^Microsoft Office.*(Proof|Language|MUI|Shared|Component|Validation|Add-?in|Click-to-Run|Extensibility|Licensing|Interop|Runtime|Service Pack|Web Components|Converter|Compatibility Pack)", "^Office\\s*1[4-6]\\s*Click-to-Run", "^Microsoft Access database engine"],
+      "advice": "Thành phần đi kèm Microsoft Office, không cần trên CaramOS."
+    },
+    {
+      "id": "access",
+      "name": "Microsoft Access",
+      "kind": "check",
+      "match": ["^Microsoft Access", "^Microsoft Office Access"],
+      "advice": "Không có bản cho Linux. Cơ sở dữ liệu Access (.mdb, .accdb) và phần mềm dựng trên Access cần chạy trên một máy Windows (mở từ CaramOS bằng Remmina) hoặc trong máy ảo Windows."
+    },
+    {
+      "id": "visio-project",
+      "name": "Microsoft Visio, Project",
+      "kind": "check",
+      "match": ["^Microsoft (Office )?Visio", "^Microsoft (Office )?Project"],
+      "advice": "Không có bản cho Linux. Nếu còn cần, dùng trên một máy Windows qua Remmina hoặc trong máy ảo Windows."
+    },
+    {
+      "id": "onenote",
+      "name": "Microsoft OneNote",
+      "kind": "check",
+      "match": ["^Microsoft OneNote", "^OneNote"],
+      "advice": "Không có bản cho Linux. Sổ tay lưu trên OneDrive mở được bằng OneNote bản web trong trình duyệt; sổ tay chỉ lưu trên máy thì cần đưa lên OneDrive trước khi chuyển."
+    },
+    {
+      "id": "onedrive",
+      "name": "Microsoft OneDrive",
+      "kind": "check",
+      "match": ["^Microsoft OneDrive"],
+      "advice": "Microsoft không có ứng dụng OneDrive cho Linux. Dùng OneDrive trên web trong trình duyệt, hoặc tải các tệp cần dùng về máy trước khi chuyển."
+    },
+    {
+      "id": "teams-addin",
+      "name": "Add-in Teams cho Office",
+      "kind": "not-needed",
+      "match": ["^Microsoft Teams Meeting Add-in"],
+      "advice": "Thành phần đi kèm Teams cho Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "teams",
+      "name": "Microsoft Teams",
+      "kind": "available",
+      "match": ["^Microsoft Teams", "^Teams Machine-Wide Installer"],
+      "advice": "Có trong App Center (Teams for Linux, bản không chính thức). Cũng dùng được Teams trên web trong trình duyệt."
+    },
+    {
+      "id": "skype-business",
+      "name": "Skype for Business",
+      "kind": "not-needed",
+      "match": ["^Skype for Business"],
+      "advice": "Microsoft đã chuyển Skype for Business sang Teams; Teams có trong App Center (Teams for Linux, bản không chính thức) và dùng được trên web."
+    },
+    {
+      "id": "skype",
+      "name": "Skype",
+      "kind": "not-needed",
+      "match": ["^Skype"],
+      "advice": "Microsoft đã ngừng Skype từ tháng 5/2025. Dùng Teams, Zalo hoặc Zoom (có trong App Center)."
+    },
+    {
+      "id": "ms-office",
+      "name": "Microsoft Office",
+      "kind": "alternative",
+      "match": ["^Microsoft Office", "^Microsoft 365", "^Office 1[4-6]", "^Microsoft (Word|Excel|PowerPoint|Outlook)\\b"],
+      "advice": "Không có bản cài cho Linux. Mở tệp Word, Excel, PowerPoint bằng ONLYOFFICE, WPS Office hoặc LibreOffice (có trong App Center); cài thêm Microsoft Core Fonts để có Times New Roman, Arial. Tệp có macro VBA và mẫu phức tạp cần mở thử trước. Công ty có Microsoft 365 thì dùng được bản web trong trình duyệt."
+    },
+    {
+      "id": "wps",
+      "name": "WPS Office",
+      "kind": "available",
+      "match": ["^WPS", "^Kingsoft Office"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "libreoffice",
+      "name": "LibreOffice",
+      "kind": "available",
+      "match": ["^LibreOffice"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "onlyoffice",
+      "name": "ONLYOFFICE",
+      "kind": "available",
+      "match": ["^ONLYOFFICE"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "openoffice",
+      "name": "OpenOffice",
+      "kind": "alternative",
+      "match": ["OpenOffice"],
+      "advice": "Dùng LibreOffice (cùng nguồn gốc với OpenOffice) hoặc ONLYOFFICE, có trong App Center."
+    },
+    {
+      "id": "zoom-plugin",
+      "name": "Plugin của Zoom",
+      "kind": "not-needed",
+      "match": ["^Zoom (Outlook|Plugin|Add-?in)"],
+      "advice": "Thành phần đi kèm Zoom cho Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "zoom",
+      "name": "Zoom",
+      "kind": "available",
+      "match": ["^Zoom(\\s|$|\\()"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "telegram",
+      "name": "Telegram",
+      "kind": "available",
+      "match": ["^Telegram"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "discord",
+      "name": "Discord",
+      "kind": "available",
+      "match": ["^Discord"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "vlc",
+      "name": "VLC",
+      "kind": "available",
+      "match": ["^VLC"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "codec-packs",
+      "name": "Gói codec",
+      "kind": "not-needed",
+      "match": ["K-Lite", "Codec Pack", "^CCCP", "Combined Community Codec", "^Shark007", "^LAV Filters"],
+      "advice": "Không cần gói codec trên CaramOS. VLC (có trong App Center) phát được hầu hết định dạng âm thanh, video."
+    },
+    {
+      "id": "media-players",
+      "name": "Trình xem video khác",
+      "kind": "alternative",
+      "match": ["^PotPlayer", "^KMPlayer", "^GOM Player", "^Media Player Classic", "^MPC-(HC|BE)"],
+      "advice": "Dùng VLC (có trong App Center) để xem video, nghe nhạc."
+    },
+    {
+      "id": "obs",
+      "name": "OBS Studio",
+      "kind": "available",
+      "match": ["^OBS Studio"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "thunderbird",
+      "name": "Thunderbird",
+      "kind": "available",
+      "match": ["^Mozilla Thunderbird", "^Thunderbird"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "gimp",
+      "name": "GIMP",
+      "kind": "available",
+      "match": ["^GIMP"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "inkscape",
+      "name": "Inkscape",
+      "kind": "available",
+      "match": ["^Inkscape"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "kdenlive",
+      "name": "Kdenlive",
+      "kind": "available",
+      "match": ["^Kdenlive"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "obsidian",
+      "name": "Obsidian",
+      "kind": "available",
+      "match": ["^Obsidian"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "geogebra",
+      "name": "GeoGebra",
+      "kind": "available",
+      "match": ["^GeoGebra"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "scratch",
+      "name": "Scratch",
+      "kind": "available",
+      "match": ["^Scratch(\\s|$)", "^TurboWarp"],
+      "advice": "Có trong App Center (Scratch 3, bản TurboWarp)."
+    },
+    {
+      "id": "thonny",
+      "name": "Thonny",
+      "kind": "available",
+      "match": ["^Thonny"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "stellarium",
+      "name": "Stellarium",
+      "kind": "available",
+      "match": ["^Stellarium"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "gcompris",
+      "name": "GCompris",
+      "kind": "available",
+      "match": ["^GCompris"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "tuxpaint",
+      "name": "Tux Paint",
+      "kind": "available",
+      "match": ["^Tux\\s?Paint"],
+      "advice": "Có trong App Center."
+    },
+    {
+      "id": "python",
+      "name": "Python",
+      "kind": "available",
+      "match": ["^Python \\d"],
+      "advice": "CaramOS có sẵn Python 3. Thonny (có trong App Center) là trình soạn thảo Python dễ dùng cho học sinh."
+    },
+    {
+      "id": "notepad-plus-plus",
+      "name": "Notepad++",
+      "kind": "alternative",
+      "match": ["^Notepad\\+\\+"],
+      "advice": "Không có bản cho Linux. CaramOS có sẵn trình soạn thảo văn bản."
+    },
+    {
+      "id": "google-drive",
+      "name": "Google Drive",
+      "kind": "check",
+      "match": ["^Google Drive", "^Google Backup and Sync"],
+      "advice": "Google không có ứng dụng Google Drive cho Linux. Dùng Google Drive trên web trong trình duyệt, hoặc tải các tệp cần dùng về máy trước khi chuyển."
+    },
+    {
+      "id": "sql-server-components",
+      "name": "Thành phần của SQL Server",
+      "kind": "not-needed",
+      "match": ["^Microsoft SQL Server .*(Setup|Browser|VSS Writer|Native Client|Management Objects|T-SQL|Transact-SQL|Data-Tier|Policies|Batch Parser|Management Studio|LocalDB|Language Service|Compact|Client|Tools|Support Files|Common Files|Upgrade Advisor|Data Tools|CLR Types)", "^SQL Server (Browser|Management Studio|\\d{4} )"],
+      "advice": "Thành phần đi kèm Microsoft SQL Server, không cần trên CaramOS."
+    },
+    {
+      "id": "sql-server",
+      "name": "Microsoft SQL Server",
+      "kind": "check",
+      "match": ["^Microsoft SQL Server"],
+      "advice": "Cơ sở dữ liệu, thường đi kèm phần mềm kế toán như MISA SME. Giữ nó trên máy Windows cùng phần mềm dùng nó, và sao lưu dữ liệu trước khi đổi máy."
+    },
+    {
+      "id": "java",
+      "name": "Java",
+      "kind": "check",
+      "match": ["^Java(\\s|\\(|$)", "^Java SE", "^Oracle Java"],
+      "advice": "Java dùng cho một số phần mềm cũ, ví dụ trang ký số của vài cơ quan. Nếu phần mềm nào trên máy còn cần Java, cần thử phần mềm đó trên CaramOS."
+    },
+    {
+      "id": "antivirus",
+      "name": "Phần mềm diệt virus",
+      "kind": "not-needed",
+      "match": ["^Kaspersky", "^Bkav(?!\\s*-?\\s*CA)", "^Avast", "^AVG(\\s|$)", "^ESET", "^McAfee", "^Norton", "^Malwarebytes", "^Bitdefender", "^Trend Micro", "^Sophos", "^Avira", "^Symantec Endpoint", "^360 Total Security", "^Comodo", "^CMC (Internet Security|Antivirus)"],
+      "advice": "Phần mềm diệt virus cho Windows, không dùng trên CaramOS. Nếu quy định của công ty bắt buộc có phần mềm bảo vệ máy trạm, hỏi nhà cung cấp về bản cho Linux."
+    },
+    {
+      "id": "cleanup-tools",
+      "name": "Tiện ích dọn dẹp",
+      "kind": "not-needed",
+      "match": ["^CCleaner", "^Revo Uninstaller", "^IObit", "^Advanced SystemCare", "^Driver Booster", "^Wise (Care|Disk|Registry)", "^Glary Utilities", "^Your Uninstaller", "^Auslogics"],
+      "advice": "Tiện ích dọn dẹp, tăng tốc cho Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "download-manager",
+      "name": "Internet Download Manager",
+      "kind": "not-needed",
+      "match": ["^Internet Download Manager"],
+      "advice": "Không có bản cho Linux. Trình duyệt tự tải được tệp."
+    },
+    {
+      "id": "canon-printer-software",
+      "name": "Phần mềm máy in Canon",
+      "kind": "check",
+      "match": ["^Canon"],
+      "advice": "Phần mềm máy in, máy quét Canon cho Windows. CaramOS dùng driver riêng: cắm máy in vào máy đang chạy CaramOS từ USB rồi mở Kiểm tra driver để xem mẫu máy. Kiểm tra driver hỗ trợ Canon LBP2900 và các máy in laser Canon dùng CAPT."
+    },
+    {
+      "id": "hp-printer-software",
+      "name": "Phần mềm máy in HP",
+      "kind": "check",
+      "match": ["^HP\\b.*(LaserJet|DeskJet|OfficeJet|ENVY|Photosmart|Ink Tank|Smart Tank|Scan|Print|MFP|Easy Start|Solution Center)", "^HP Smart$"],
+      "advice": "Phần mềm máy in, máy quét HP cho Windows. CaramOS dùng driver riêng: cắm máy in vào máy đang chạy CaramOS từ USB rồi mở Kiểm tra driver để xem mẫu máy."
+    },
+    {
+      "id": "brother-printer-software",
+      "name": "Phần mềm máy in Brother",
+      "kind": "check",
+      "match": ["^Brother"],
+      "advice": "Phần mềm máy in, máy quét Brother cho Windows. CaramOS dùng driver riêng: cắm máy in vào máy đang chạy CaramOS từ USB rồi mở Kiểm tra driver để xem mẫu máy."
+    },
+    {
+      "id": "epson-printer-software",
+      "name": "Phần mềm máy in Epson",
+      "kind": "check",
+      "match": ["^EPSON"],
+      "advice": "Phần mềm máy in, máy quét Epson cho Windows. CaramOS dùng driver riêng: cắm máy in vào máy đang chạy CaramOS từ USB rồi mở Kiểm tra driver để xem mẫu máy."
+    },
+    {
+      "id": "other-printer-software",
+      "name": "Phần mềm máy in khác",
+      "kind": "check",
+      "match": ["^(Samsung|Xerox|Fuji ?Xerox|FUJIFILM|Ricoh|Kyocera|Konica|Sharp|Lexmark|Pantum|OKI)\\b.*(Print|Scan|Driver|MFP|Universal)"],
+      "advice": "Phần mềm máy in, máy quét cho Windows. CaramOS dùng driver riêng: cắm máy in vào máy đang chạy CaramOS từ USB rồi mở Kiểm tra driver để xem mẫu máy."
+    },
+    {
+      "id": "oem-utilities",
+      "name": "Tiện ích của hãng máy tính",
+      "kind": "not-needed",
+      "match": ["^HP (Support Assistant|Wolf Security|Sure |System Event|Documentation|Connection Optimizer|Audio Switch|Hotkey|Notifications|JumpStart|Security Update|PC Hardware Diagnostics|Insights|Privacy Settings|Client Security|3D DriveGuard|Quick Launch|Power Manager|CoolSense|Recovery|Registration)", "^Dell (SupportAssist|Update|Command|Digital Delivery|Optimizer|Power Manager|Peripheral Manager|Pair|Core Services|Trusted Device|Display Manager)", "^Lenovo (Vantage|System Update|Service Bridge|Hotkeys|Power Management|Utility|Welcome|Commercial Vantage|Now)", "^ASUS (Giftbox|Live Update|Smart Gesture|ATK|System Control|Armoury|Splendid|Hotkey)", "^MyASUS", "^Acer (Care Center|Quick Access|Jumpstart|Collection|Portal|Configuration)"],
+      "advice": "Tiện ích của hãng máy tính cho Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "runtimes",
+      "name": "Thư viện chạy kèm phần mềm Windows",
+      "kind": "not-needed",
+      "match": ["^Microsoft Visual C\\+\\+", "^Microsoft \\.NET", "\\.NET Framework", "^Microsoft Windows Desktop Runtime", "^Windows Desktop Runtime", "^Microsoft ASP\\.NET", "^Microsoft XNA", "^(Microsoft )?DirectX", "^Microsoft Visual Studio .*Tools for Office Runtime", "^Microsoft Visual Basic", "^Microsoft Silverlight", "^Microsoft Update Health Tools", "^Update for Windows", "^Windows PC Health Check", "^Microsoft GameInput", "^Microsoft Search in Bing", "^Microsoft Policy Platform", "^Windows Driver Package", "^Microsoft (OLE DB|ODBC Driver)", "^Microsoft Analysis Services OLE DB", "^(SAP )?Crystal Reports", "^Microsoft Report Viewer", "^Microsoft System CLR Types", "^Windows Software Development Kit", "^Microsoft Windows SDK", "^Microsoft UI Xaml", "^Python Launcher", "^Microsoft Web Deploy", "^Google Update Helper"],
+      "advice": "Thư viện hoặc thành phần chạy kèm phần mềm Windows, không cần trên CaramOS."
+    },
+    {
+      "id": "hardware-drivers",
+      "name": "Driver và tiện ích phần cứng",
+      "kind": "not-needed",
+      "match": ["^Intel", "^Realtek", "^NVIDIA", "^AMD(\\s|$)", "^Synaptics", "^ELAN", "^Conexant", "^IDT ", "^Dolby", "^Waves", "^Killer", "^Qualcomm", "^Broadcom", "^Bluetooth", "^Ralink", "^MediaTek", "^Atheros", "^Alps", "^SRS Premium", "^DTS ", "^Microsoft Mouse and Keyboard Center", "^Logitech (Options|Unifying|SetPoint|G HUB|Download Assistant)", "^VIA Platform", "^ASMedia", "^Renesas", "^Fresco Logic", "\\bDrivers?\\b"],
+      "advice": "Driver hoặc tiện ích phần cứng cho Windows. CaramOS dùng driver riêng; mở Kiểm tra driver trên máy đang chạy CaramOS từ USB để xem phần cứng có chạy không."
+    }
+  ],
+  "devices": [
+    {
+      "id": "canon-lbp2900",
+      "appliesTo": ["printer"],
+      "match": ["LBP\\s?-?2900"],
+      "advice": "Kiểm tra driver của CaramOS hỗ trợ máy này: cắm máy in vào máy đang chạy CaramOS rồi mở Kiểm tra driver để cài driver."
+    },
+    {
+      "id": "canon-capt",
+      "appliesTo": ["printer"],
+      "match": ["Canon\\s+LBP\\s?-?\\d{4}"],
+      "exclude": ["UFR", "PCL", "PS3", "Generic", "XPS"],
+      "advice": "Nếu đây là máy in laser Canon dùng CAPT (như LBP2900, LBP3300, LBP6000), Kiểm tra driver của CaramOS cài được driver. Cắm máy in vào máy đang chạy CaramOS rồi mở Kiểm tra driver để xem."
+    }
+  ],
+  "defaults": {
+    "printer": "Kiểm tra mẫu máy này bằng Kiểm tra driver: cắm máy in vào máy đang chạy CaramOS từ USB rồi mở Kiểm tra driver.",
+    "networkPrinter": "Kiểm tra mẫu máy này bằng Kiểm tra driver trên máy đang chạy CaramOS từ USB. Ghi lại địa chỉ IP của máy in để thêm máy in trên CaramOS.",
+    "sharedPrinter": "Máy in này được chia sẻ từ một máy Windows khác. Kiểm tra mẫu máy bằng Kiểm tra driver trên máy đang chạy CaramOS từ USB.",
+    "scanner": "Thử quét trên máy đang chạy CaramOS từ USB trước khi chuyển."
+  },
+  "usbClassNotes": {
+    "SmartCardReader": "Đầu đọc thẻ hoặc USB token chữ ký số: hỏi nhà cung cấp chữ ký số về driver cho Linux.",
+    "SmartCard": "USB token chữ ký số: hỏi nhà cung cấp chữ ký số về driver cho Linux.",
+    "Biometric": "Đầu đọc vân tay: nhiều mẫu chưa có driver cho Linux; thử trên máy đang chạy CaramOS từ USB.",
+    "Net": "Thử trên máy đang chạy CaramOS từ USB; nếu không nhận, mở Kiểm tra driver.",
+    "Camera": "Thử trên máy đang chạy CaramOS từ USB.",
+    "Image": "Thử trên máy đang chạy CaramOS từ USB."
+  }
+}

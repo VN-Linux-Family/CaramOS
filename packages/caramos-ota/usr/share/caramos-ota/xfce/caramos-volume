@@ -3,10 +3,16 @@
 # Control Center to show the new level, as Cinnamon does (raising the volume also unmutes, as there). Without the
 # Control Center the keys still work.
 #   caramos-volume up | down | mute | mic-mute
+# The step is the Control Center's "Volume step" (2, 5 or 10 %; ticket H-1180), 5 % when it cannot be read.
+# Scrolling over the Control Center's indicator runs this too.
+
+step=$(gsettings get net.vietnamlinuxfamily.caramos.control-center volume-step 2>/dev/null) || step=5
+case "$step" in ''|*[!0-9]*) step=5 ;; esac
+if [ "$step" -lt 1 ] || [ "$step" -gt 20 ]; then step=5; fi
 
 case "${1:-}" in
-  up) wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+; kind=output ;;
-  down) wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-; kind=output ;;
+  up) wpctl set-mute @DEFAULT_AUDIO_SINK@ 0; wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ "${step}%+"; kind=output ;;
+  down) wpctl set-volume @DEFAULT_AUDIO_SINK@ "${step}%-"; kind=output ;;
   mute) wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; kind=output ;;
   mic-mute) wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle; kind=input ;;
   *) echo "usage: caramos-volume up|down|mute|mic-mute" >&2; exit 2 ;;

@@ -1,0 +1,4 @@
+{
+ "command": "{\n \"seq\": 43,\n \"id\": \"00000000-0000-4000-8000-000000000043\",\n \"targets\": {\n  \"departments\": [\n   \"kinh-doanh\"\n  ]\n },\n \"action\": \"lock\",\n \"args\": {},\n \"issued\": \"2026-11-21T14:00:00+07:00\",\n \"expires\": \"2099-01-01T00:00:00+07:00\"\n}",
+ "signature": "//7jCK2DDpQBUk5zpx1LOS/S9pSAkKLX2uy8dDDs4BAuDBsptveMJZ1mvdcAxm1Z2tZiQsVLOOpD5sxcmQ3iCA=="
+}

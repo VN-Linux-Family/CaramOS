@@ -1,0 +1,58 @@
+Source: caramos-business
+Section: admin
+Priority: optional
+Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+Build-Depends: debhelper-compat (= 13),
+               cargo-1.85,
+               rustc-1.85,
+               gettext,
+               python3,
+               python3-cryptography,
+               python3-openpyxl,
+               python3-spake2
+Rules-Requires-Root: no
+Standards-Version: 4.6.2
+Homepage: https://caramos.vietnamlinuxfamily.net
+
+Package: caramos-business
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         python3,
+         python3-cryptography,
+         python3-gi,
+         gir1.2-gtk-4.0,
+         gir1.2-adw-1,
+         pkexec,
+         libglib2.0-bin,
+         gvfs-backends,
+         gvfs-fuse,
+         libnotify-bin,
+         iproute2,
+         python3-openpyxl,
+         python3-spake2,
+         iptables,
+         x11vnc,
+         stunnel4,
+         tigervnc-viewer,
+         avahi-utils | cups-ipp-utils,
+         cups-client,
+         network-manager
+Description: CaramOS Business: manage the company's machines on the LAN
+ A company's admin machine manages its employee machines: the wallpaper, the
+ Desktop and Documents on the company's server, shared drives, browsers,
+ printers, Wi-Fi, required and forbidden apps, a power schedule, USB storage,
+ the screen lock, the firewall, shared machines that undo every change at
+ reboot, and system snapshots, for the whole company or per department.
+ Every feature is off until the admin turns it on.
+ .
+ It shows an inventory of the machines, an asset list with handover documents,
+ health problems, a licence report and a security report, turns help requests
+ into tickets, and sends instant actions: lock, a message, restart, shut down,
+ update. Remote help starts only after the employee accepts it.
+ .
+ Employee machines join with a 6-digit code checked without sending it
+ (SPAKE2), or in bulk with an enrolment file, also at the first boot of a
+ copied disk; the admin may approve each one. They take only the admin's signed
+ settings. Nothing covert is collected: no screens, keystrokes, browsing
+ history, location or messages.

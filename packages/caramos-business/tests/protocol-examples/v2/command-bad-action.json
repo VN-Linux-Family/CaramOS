@@ -1,0 +1,4 @@
+{
+ "command": "{\n \"seq\": 46,\n \"id\": \"00000000-0000-4000-8000-000000000046\",\n \"targets\": {\n  \"all\": true\n },\n \"action\": \"shell\",\n \"args\": {\n  \"run\": \"id\"\n },\n \"issued\": \"2026-11-21T14:00:00+07:00\",\n \"expires\": \"2099-01-01T00:00:00+07:00\"\n}",
+ "signature": "e3fNhMIEB912EEMw3H1Qgk03RYadlpfCivixUEGeTDXOrHZZv2+MTFLTu0xwN72s133bD+Esa37tjIL6YjLADg=="
+}

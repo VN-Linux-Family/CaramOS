@@ -3,6 +3,7 @@
 interest-noawait /usr/share/cinnamon/applets/grouped-window-list@cinnamon.org
 interest-noawait /usr/share/cinnamon/applets/systray@cinnamon.org
 interest-noawait /usr/share/cinnamon/cinnamon-settings/modules
+interest-noawait /usr/share/cinnamon/applets/calendar@cinnamon.org
 # Nemo's menus live in libnemo-extension: after a Nemo update, postinst writes the "Mới > Thư mục" menus again
 # from the new library (/usr/share/caramos-ota/nemo-menu/caramos-nemo-menu).
 interest-noawait /usr/lib/x86_64-linux-gnu/libnemo-extension.so.1

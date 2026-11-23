@@ -1,0 +1,4 @@
+{
+ "policy": "{\n \"format\": 1,\n \"serial\": 8,\n \"issued\": \"2026-11-21T09:00:00+07:00\",\n \"admin\": \"máy-quản-lý\",\n \"files\": {\n  \"a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7\": {\n   \"size\": 31,\n   \"type\": \"jpg\"\n  }\n },\n \"wallpaper\": {\n  \"default\": \"a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7\",\n  \"periods\": [\n   {\n    \"name\": \"Tết\",\n    \"from\": \"12-25\",\n    \"to\": \"01-05\",\n    \"image\": \"a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7\"\n   }\n  ],\n  \"lock\": true\n },\n \"folders\": {\n  \"share\": \"smb://nas.congty.local/nhanvien/%u\",\n  \"tidy\": true\n }\n}",
+ "signature": "60fscjXs8Cie3XCs/g7dAsUJU1U3hLiyJOYL/L2iXhlsW/CcbrRNa1m03ruMWXyQjgaJ0ngxFaZIk2uOVhqLAQ=="
+}

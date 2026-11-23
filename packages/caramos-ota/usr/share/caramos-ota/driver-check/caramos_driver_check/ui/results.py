@@ -48,7 +48,8 @@ class ResultsView(Gtk.Box):
     def __init__(self, report: Report, *, came_online: bool, on_action: Callable[[Action, Finding | None], None],
                  on_install_all: Callable[[list[Action]], None], on_report: Callable[[], None],
                  on_recheck: Callable[[], None], on_close: Callable[[], None],
-                 on_canon_network: Callable[[], None] | None = None) -> None:
+                 on_canon_network: Callable[[], None] | None = None,
+                 on_save: Callable[[], None] | None = None) -> None:
         super().__init__(orientation=Gtk.Orientation.VERTICAL)
         self.report = report
         self.on_action = on_action
@@ -59,6 +60,11 @@ class ResultsView(Gtk.Box):
         recheck = Gtk.Button(icon_name="view-refresh-symbolic", tooltip_text=_("Check again"))
         recheck.connect("clicked", lambda _button: on_recheck())
         bar.pack_end(recheck)
+        if on_save is not None:
+            # A report to keep: from the USB stick, saved onto a USB drive before deciding to switch.
+            save = Gtk.Button(label=_("Save report"), tooltip_text=_("Save what Driver Check found as a web page"))
+            save.connect("clicked", lambda _button: on_save())
+            bar.pack_end(save)
         view.add_top_bar(bar)
 
         content = page_box(30)

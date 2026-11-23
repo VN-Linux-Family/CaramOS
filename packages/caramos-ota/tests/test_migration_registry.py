@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(44, len(catalog))
+        self.assertEqual(56, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -121,6 +121,18 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261118090100_xfce_wallpapers",
                 "20261119100000_open_office_documents",
                 "20261119100200_lighten_xfce_session",
+                "20261120100000_clipboard_history",
+                "20261120100100_taskbar_alignment",
+                "20261120100200_lunar_calendar",
+                "20261120100300_external_monitor_brightness",
+                "20261120100400_xfce_lunar_clock",
+                "20261120100500_xfce_round_menus",
+                "20261120100600_round_menus",
+                "20261120100700_windows_shortcuts",
+                "20261122100000_carlito_font",
+                "20261122100100_administrative_templates",
+                "20261122100200_windows_migration_tools",
+                "20261123100000_automatic_updates",
             ],
             timestamp_ids,
         )
@@ -177,6 +189,18 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261118090100_xfce_wallpapers",
                 "20261119100000_open_office_documents",
                 "20261119100200_lighten_xfce_session",
+                "20261120100000_clipboard_history",
+                "20261120100100_taskbar_alignment",
+                "20261120100200_lunar_calendar",
+                "20261120100300_external_monitor_brightness",
+                "20261120100400_xfce_lunar_clock",
+                "20261120100500_xfce_round_menus",
+                "20261120100600_round_menus",
+                "20261120100700_windows_shortcuts",
+                "20261122100000_carlito_font",
+                "20261122100100_administrative_templates",
+                "20261122100200_windows_migration_tools",
+                "20261123100000_automatic_updates",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -229,6 +253,18 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261118090100_xfce_wallpapers",
                 "20261119100000_open_office_documents",
                 "20261119100200_lighten_xfce_session",
+                "20261120100000_clipboard_history",
+                "20261120100100_taskbar_alignment",
+                "20261120100200_lunar_calendar",
+                "20261120100300_external_monitor_brightness",
+                "20261120100400_xfce_lunar_clock",
+                "20261120100500_xfce_round_menus",
+                "20261120100600_round_menus",
+                "20261120100700_windows_shortcuts",
+                "20261122100000_carlito_font",
+                "20261122100100_administrative_templates",
+                "20261122100200_windows_migration_tools",
+                "20261123100000_automatic_updates",
             ],
             [item.migration_id for item in plan.migrations],
         )

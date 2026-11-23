@@ -24,5 +24,11 @@
       <summary>Colour picked with the colour chooser</summary>
       <description>The accent colour as #rrggbb, used when accent-color is "custom". The Control Center's "Other colour…" opens a colour chooser that sets it.</description>
     </key>
+    <key name="volume-step" type="i">
+      <range min="1" max="20"/>
+      <default>5</default>
+      <summary>Volume step, in percent</summary>
+      <description>How much the volume keys and scrolling over the Control Center's taskbar icon change the volume. Cinnamon's own volume keys change it by 5; with another value the Control Center handles the two volume keys itself. The Xfce edition's volume keys (caramos-volume) read it too.</description>
+    </key>
   </schema>
 </schemalist>

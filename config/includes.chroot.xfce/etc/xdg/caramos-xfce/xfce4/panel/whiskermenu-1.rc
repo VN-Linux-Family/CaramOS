@@ -9,3 +9,6 @@ position-categories-alternate=true
 command-switchuser=dm-tool switch-to-greeter
 item-icon-size=2
 view-as-icons=false
+# 99, not 100: Whisker gives its window transparency only under 100, and the round corners of CaramOS's look
+# (caramos-ota's panel-islands.css) need it. 99 looks opaque.
+menu-opacity=99

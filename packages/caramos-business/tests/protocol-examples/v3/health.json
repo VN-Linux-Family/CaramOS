@@ -1,0 +1,48 @@
+{
+ "health": {
+  "disk_free_pct": 48,
+  "disk_health": "ok",
+  "battery_health_pct": null,
+  "updates": {
+   "security": 0,
+   "other": 3
+  },
+  "reboot_required": false,
+  "firewall": "on",
+  "caramos_version": "1.4.0",
+  "uptime_hours": 2,
+  "applied": {
+   "shared": "ok",
+   "snapshots": "ok"
+  },
+  "memory_mb": 7834,
+  "encryption": "none",
+  "screen_lock_on": true,
+  "usb_storage": "block",
+  "frozen": false,
+  "freeze_configured": false,
+  "last_maintenance": null,
+  "maintenance_result": "",
+  "last_snapshot": "2026-11-23T01:02:55+07:00",
+  "snapshot_space_mb": 6780
+ },
+ "capabilities": [
+  "wallpaper",
+  "folders",
+  "shares",
+  "browser",
+  "printers",
+  "power",
+  "apps",
+  "usb",
+  "screen_lock",
+  "firewall",
+  "inventory",
+  "wifi",
+  "commands",
+  "licence-report",
+  "shared",
+  "snapshots",
+  "tickets"
+ ]
+}

@@ -24,15 +24,25 @@ CINNAMON_ONLY = {
     "20261012180000_add_help_applet", "20261016220000_translate_cinnamon_spices",
     "20261018120000_restore_taskbar_after_cinnamon_update", "20261105120100_search_menu_while_composing",
     "20261105120200_start_menu_file_search_without_freeze", "20261111090000_start_menu_ctrl_scroll_icon_size",
-    "20261112100000_screenshot_shortcuts", "v1_0_7", "v1_0_8", "v1_0_10",
+    "20261112100000_screenshot_shortcuts", "20261120100200_lunar_calendar", "v1_0_7", "v1_0_8", "v1_0_10",
 }
-XFCE_ONLY = {"20261118090100_xfce_wallpapers", "20261119100200_lighten_xfce_session"}
+XFCE_ONLY = {"20261118090100_xfce_wallpapers", "20261119100200_lighten_xfce_session",
+             "20261120100400_xfce_lunar_clock",
+             "20261120100500_xfce_round_menus"}
 # Migrations that run on both editions although their code talks about Cinnamon, and why that is right on Xfce.
 SHARED_ON_PURPOSE = {
     "20260808090000_restore_power_profiles_daemon": "power-profiles-daemon is a system service, not part of Cinnamon",
     "20261010120100_lighten_desktop_session": "its Cinnamon overrides go to /etc/xdg/xdg-cinnamon, which Xfce never reads",
     "20261022120000_start_fcitx_at_login": "Fcitx starts at login on both; it only looks for a running Cinnamon session",
     "20261117100100_nemo_actions_in_menu": "Nemo is the file manager of both editions",
+    "20261120100000_clipboard_history": "Super+V on both: a Cinnamon custom shortcut or an Xfce keyboard shortcut, "
+                                        "by the desktop it runs on",
+    "20261120100100_taskbar_alignment": "its notes tell both editions about the Control Center's Taskbar tile; only "
+                                        "the Cinnamon theme has something to change, and Xfce has no such block",
+    "20261120100600_round_menus": "the right-click menus of GTK programs round on both; the Cinnamon block of the "
+                                  "theme is only read by Cinnamon",
+    "20261120100700_windows_shortcuts": "the same Windows keys on both: Cinnamon's in its schema defaults, Xfce's in "
+                                        "its shortcuts, each only where that desktop's files are",
     "v1_0_9": "Fcitx/Lotus setup for both; it only resets old Cinnamon keybinding experiments",
     "v1_0_12": "Fcitx/Lotus setup for both; it only resets old Cinnamon keybinding experiments",
 }

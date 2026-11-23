@@ -1,0 +1,25 @@
+{
+  "backup_device_uuid": "33113ae9-4550-4a48-a3cb-12d57f6ae6ff",
+  "parent_device_uuid": "",
+  "do_first_run": "false",
+  "btrfs_mode": "false",
+  "include_btrfs_home": "false",
+  "stop_cron_emails": "true",
+  "schedule_monthly": "false",
+  "schedule_weekly": "true",
+  "schedule_daily": "false",
+  "schedule_hourly": "false",
+  "schedule_boot": "false",
+  "count_monthly": "2",
+  "count_weekly": "3",
+  "count_daily": "5",
+  "count_hourly": "6",
+  "count_boot": "5",
+  "snapshot_size": "0",
+  "snapshot_count": "0",
+  "exclude": [
+    "/home/**",
+    "/root/**"
+  ],
+  "exclude-apps": []
+}

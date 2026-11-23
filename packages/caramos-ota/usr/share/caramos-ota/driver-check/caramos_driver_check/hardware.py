@@ -82,6 +82,10 @@ _FIRMWARE_LINE = re.compile(
     r"^(?P<driver>\S+) (?P<device>[^\s:]+(?::[^\s:]+)*): "
     r"(?:Direct firmware load for (?P<file>\S+) failed with error|firmware: failed to load (?P<file2>\S+))"
 )
+# e1000e (Intel I217/I218/I219 network ports) could not wake the port from Ultra Low Power mode, which Windows or a
+# shutdown without a network cable leaves it in; the port then never appears (ticket H-1174):
+#   e1000e 0000:00:19.0 0000:00:19.0 (uninitialized): Failed to disable ULP
+_ULP_LINE = re.compile(r"^e1000e (?P<device>[0-9a-f]{4}:[0-9a-f]{2}:[0-9a-f]{2}\.[0-7])\b.*Failed to disable ULP", re.I)
 
 
 @dataclass(frozen=True)
@@ -203,6 +207,8 @@ class Snapshot:
     virtual: bool = False            # a virtual machine
     secure_boot: bool = False
     firmware_errors: tuple[FirmwareError, ...] = ()
+    # PCI addresses of Intel network ports e1000e could not wake from Ultra Low Power mode in this boot.
+    ulp_stuck: tuple[str, ...] = ()
     cmdline: str = ""                # the kernel command line
     # Modules modprobe refuses to load: (module, where: a modprobe.d file or "the kernel command line").
     blacklists: tuple[tuple[str, str], ...] = ()
@@ -589,6 +595,16 @@ class SystemReader:
                 ))
         return tuple(dict.fromkeys(errors))
 
+    def ulp_stuck(self) -> tuple[str, ...]:
+        """Intel network ports e1000e could not wake from Ultra Low Power mode in this boot (needs the kernel log)."""
+
+        output = self._run(
+            ["journalctl", "--dmesg", "--boot=0", "--output=cat", "--no-pager", "--quiet", "--grep=disable ULP"],
+            8.0,
+        )
+        found = (_ULP_LINE.match(line.strip()) for line in (output or "").splitlines())
+        return tuple(dict.fromkeys(match.group("device") for match in found if match))
+
     # System facts ------------------------------------------------------------------------------
 
     def live_session(self) -> bool:
@@ -742,6 +758,7 @@ class SystemReader:
         acpi = tuple(attach_acpi(device) for device in acpi_found)
         devices = pci + usb + acpi
         firmware = self.firmware_errors() if any(self._not_working(device) for device in devices) else ()
+        ulp = self.ulp_stuck() if any(self._not_working(device) and "e1000e" in device.modules for device in pci) else ()
         cmdline = self.kernel_cmdline()
         return Snapshot(
             pci=pci,
@@ -755,6 +772,7 @@ class SystemReader:
             virtual=self.virtual_machine(),
             secure_boot=self.secure_boot(),
             firmware_errors=firmware,
+            ulp_stuck=ulp,
             cmdline=cmdline,
             blacklists=self.module_blacklists(cmdline),
             unfinished_packages=self.unfinished_packages(),

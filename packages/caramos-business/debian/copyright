@@ -1,0 +1,20 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: caramos-business
+Source: https://github.com/VN-Linux-Family/CaramOS
+
+Files: *
+Copyright: 2026 Vietnam Linux Family
+License: GPL-3+
+
+Files: agent/vendor/*
+Copyright: the authors of each crate (see its Cargo.toml)
+License: MIT or Apache-2.0 (each crate's own license, see its Cargo.toml)
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify it under
+ the terms of the GNU General Public License as published by the Free Software
+ Foundation, either version 3 of the License, or (at your option) any later
+ version.
+ .
+ On Debian systems, the complete text of the GNU General Public License version
+ 3 can be found in /usr/share/common-licenses/GPL-3.

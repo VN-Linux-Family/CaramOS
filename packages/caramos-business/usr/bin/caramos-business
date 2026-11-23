@@ -1,0 +1,9 @@
+#!/usr/bin/python3
+"""CaramOS Doanh nghiệp: see caramos_business/ui/app.py."""
+
+import sys
+
+from caramos_business.ui.app import main
+
+if __name__ == "__main__":
+    sys.exit(main())

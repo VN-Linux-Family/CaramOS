@@ -14,6 +14,7 @@ from .constants import EXIT_APT, PPA_PATTERN
 from .errors import OtaError
 from .logging_utils import current_log_file, log_error, log_info, log_warn, now_iso, print_fail, print_ok
 from .manifest import manifest_for_plan, resolve_update_plan
+from caramos_ota_update.desktop import applies
 from caramos_ota_update.registry import version_lt
 from .models import Manifest, ReleaseInfo, UpdatePackage
 from .state import save_state
@@ -302,6 +303,9 @@ def detect_updates(
                 required=True,
             )
         )
+    # The Update Center does not list changes for the other edition (Cinnamon's calendar on the Xfce edition): the
+    # runner only records them as done. Whether there is an update at all does not change.
+    shown = [update for update, item in zip(updates, plan.migrations) if applies(item.desktops)] or updates
     if updates:
         state["available_update"] = {
             "detected_at": now_iso(),
@@ -321,7 +325,7 @@ def detect_updates(
             "release_notes_vi": manifest.release_notes_vi,
             "release_notes_en": manifest.release_notes_en,
             "migration_ids": [item.migration_id for item in plan.migrations],
-            "packages": [update.__dict__ for update in updates],
+            "packages": [update.__dict__ for update in shown],
         }
     else:
         state["available_update"] = None

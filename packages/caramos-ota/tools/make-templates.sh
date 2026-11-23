@@ -8,13 +8,23 @@ OUT=usr/share/caramos-ota/templates
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
 
-doc_fodt() {  # <language> <country>: an empty A4 page whose text is in that language (spelling check)
+# <language> <country> [<font> <size>]: an empty A4 page whose text is in that language (spelling check). The
+# Vietnamese one is in Times New Roman 13 pt, the font and size Nghị định 30/2020/NĐ-CP sets for official documents;
+# a computer without Times New Roman shows Liberation Serif, which has the same letter widths.
+doc_fodt() {
+local font="" faces=""
+if [[ -n "${3:-}" ]]; then
+  font=" style:font-name=\"$3\" fo:font-size=\"$4\""
+  faces="<office:font-face-decls><style:font-face style:name=\"$3\" svg:font-family=\"&apos;$3&apos;\" style:font-family-generic=\"roman\" style:font-pitch=\"variable\"/></office:font-face-decls>"
+fi
 cat <<XML
 <?xml version="1.0" encoding="UTF-8"?>
 <office:document xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0"
   xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0"
+  xmlns:svg="urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"
   xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0" office:version="1.3" office:mimetype="application/vnd.oasis.opendocument.text">
- <office:styles><style:default-style style:family="paragraph"><style:text-properties fo:language="$1" fo:country="$2"/>
+ $faces
+ <office:styles><style:default-style style:family="paragraph"><style:text-properties fo:language="$1" fo:country="$2"$font/>
  </style:default-style></office:styles>
  <office:automatic-styles>
   <style:page-layout style:name="pm1"><style:page-layout-properties fo:page-width="21cm" fo:page-height="29.7cm"
@@ -56,7 +66,7 @@ convert() {  # <source> <format> <target>
 for lang in vi en; do
   if [[ "$lang" == vi ]]; then
     names=("Văn bản Word.docx" "Bảng tính Excel.xlsx" "Trình chiếu PowerPoint.pptx" "Tệp văn bản.txt")
-    doc_fodt vi VN > "$WORK/doc.fodt"
+    doc_fodt vi VN "Times New Roman" 13pt > "$WORK/doc.fodt"
   else
     names=("Word Document.docx" "Excel Spreadsheet.xlsx" "PowerPoint Presentation.pptx" "Text Document.txt")
     doc_fodt en US > "$WORK/doc.fodt"

@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- CaramOS Xfce: the three islands of CaramOS Cinnamon, one panel each, at the bottom of the screen.
      Left: the CaramOS menu (Whisker). Middle: pinned and open apps (Docklike, its pins in panel/docklike.rc).
-     Right: the tray, the clock, the Control Center (network, volume, battery; its popup has the rest) and Feedback
-     & Help (the question mark), in the order of CaramOS Cinnamon.
+     Right: the tray, the clock and the Control Center (network, volume, battery; its popup has the rest), then
+     Feedback & Help (the question mark), in the order of CaramOS Cinnamon. The clock is the Control Center's own,
+     whose calendar shows lunar dates, so there is no Xfce clock plugin (caramos-ota's control-center/clock.py;
+     migration 20261120100400 takes it out of installed systems).
      The island look is caramos-ota's /usr/share/caramos-ota/xfce/panel-islands.css, imported by the theme. It needs
      this layout: three clear panels (background style 1, alpha 0) 48 px high, and the plugin ids below, which the CSS
      names (tests/test_xfce_panel_islands.py checks both).
@@ -69,7 +71,6 @@
       </property>
       <property name="plugin-ids" type="array">
         <value type="int" value="3"/>
-        <value type="int" value="4"/>
         <value type="int" value="5"/>
         <value type="int" value="6"/>
       </property>
@@ -88,12 +89,6 @@
         <value type="string" value="networkmanager applet"/>
       </property>
       <property name="show-frame" type="bool" value="false"/>
-    </property>
-    <property name="plugin-4" type="string" value="clock">
-      <property name="mode" type="uint" value="2"/>
-      <property name="digital-layout" type="uint" value="3"/>
-      <property name="digital-time-format" type="string" value="%A %H:%M, %e %B"/>
-      <property name="digital-time-font" type="string" value="Be Vietnam Pro Bold 10"/>
     </property>
     <property name="plugin-5" type="string" value="caramos-control-center"/>
     <property name="plugin-6" type="string" value="launcher">

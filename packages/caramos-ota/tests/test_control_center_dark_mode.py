@@ -132,6 +132,21 @@ class AppearanceLogicTests(unittest.TestCase):
         to_light = self.plan([MINT_STYLES], dark_aqua, False)
         self.assertEqual(("prefer-light", "Mint-Y-Aqua", "Mint-Y-Aqua"), (to_light["colorScheme"], to_light["variant"]["gtk"], to_light["variant"]["cinnamon"]))
 
+    def test_icons_the_user_picked_stay_when_the_mode_changes(self) -> None:
+        # Square Mint-Y icons with the CaramOS theme: the switch still finds the CaramOS set and keeps the icons.
+        current = {**CARAMOS_LIGHT, "icons": "Mint-Y", "colorScheme": "default"}
+
+        self.assertFalse(self.is_dark(self.caramos_styles(), current))
+        plan = self.plan(self.caramos_styles(), current, True)
+
+        self.assertEqual(("Cinnamon-Delight-Dark", "Cinnamon-Delight-Dark"), (plan["variant"]["gtk"], plan["variant"]["cinnamon"]))
+        self.assertEqual({"icons": True, "cursor": False}, plan["keep"])
+        self.assertTrue(self.is_dark(self.caramos_styles(), {**CARAMOS_DARK, "icons": "Mint-Y", "colorScheme": "prefer-dark"}))
+
+    def test_caramos_icons_follow_the_mode(self) -> None:
+        plan = self.plan(self.caramos_styles(), {**CARAMOS_LIGHT, "colorScheme": "default"}, True)
+        self.assertEqual({"icons": False, "cursor": False}, plan["keep"])
+
     def test_style_without_dark_mode_only_changes_the_color_scheme(self) -> None:
         mint_x = {"gtk": "Mint-X", "icons": "Mint-X", "cinnamon": "Mint-X", "cursor": "Bibata-Modern-Classic", "colorScheme": "default"}
 
@@ -267,7 +282,8 @@ class DarkModeAssetsTests(unittest.TestCase):
         self.assertNotIn("border:", block)
         self.assertNotIn("font-size", block)
         self.assertNotIn("247, 243, 233", block, "light dock colour leaked into the dark theme")
-        for selector in ("#panel", ".panelLeft .applet-box", ".panelCenter", ".panelRight", ".caramos-running-dot"):
+        for selector in ("#panel", ".panelLeft .applet-box", ".panelCenter", ".grouped-window-list-box", ".panelRight",
+                         ".caramos-running-dot"):
             self.assertIn(selector, block)
 
 
@@ -402,7 +418,9 @@ class DarkDockCssSyncTests(unittest.TestCase):
                 for selectors, body in re.findall(r"([^{}]+)\{([^{}]*)\}", re.sub(r"/\*.*?\*/", "", block, flags=re.S))
             ]
 
-        self.assertEqual(shape(module.DOCK_CSS), shape(dark_block))
+        # Since migration 20261120100100 the middle island is painted on the window list (ticket H-1181).
+        taskbar = importlib.import_module("caramos_ota_update.migrations.20261120100100_taskbar_alignment.migration")
+        self.assertEqual(shape(taskbar.island_on_window_list(module.DOCK_CSS)), shape(dark_block))
 
 
 class DarkModeAppletContractTests(unittest.TestCase):

@@ -1,0 +1,8 @@
+{
+ "method": "GET",
+ "path": "/caramos-business/v1/wait?after=4&serial=12",
+ "time": 1795200000,
+ "body": "",
+ "message": "GET\n/caramos-business/v1/wait?after=4&serial=12\n1795200000\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+ "mac": "yeacFkxWOUFVzkH3Sng1HYt+w1ZCBbPcJx0F4ImZ0sE="
+}

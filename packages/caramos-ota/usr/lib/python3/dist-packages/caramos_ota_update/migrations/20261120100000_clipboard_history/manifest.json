@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "CopyQ (~3 MB)",
+  "size_en": "CopyQ (~3 MB)",
+  "title": "Bấm Super+V để xem lịch sử clipboard",
+  "summary": "Như Win+V trên Windows: Super+V hiện những gì bạn sao chép gần đây ngay chỗ con trỏ chuột, chọn một mục là dán luôn.",
+  "title_en": "Press Super+V for the clipboard history",
+  "summary_en": "As Win+V on Windows: Super+V shows what you copied lately under the mouse pointer, and picking an item pastes it.",
+  "release_notes_vi": [
+    "Bấm Super+V (phím Windows + V) để xem những gì đã sao chép gần đây; gõ chữ để tìm, bấm Enter hoặc nhấp chuột vào một mục để dán vào cửa sổ đang dùng.",
+    "Lần bấm đầu tiên bật lịch sử clipboard: CopyQ bắt đầu ghi nhớ và tự chạy từ các lần đăng nhập sau. Ai không bấm thì máy không chạy thêm gì.",
+    "Tắt được trong Preferences của CopyQ (biểu tượng cây kéo ở khay hệ thống).",
+    "Ai đã tự gán Super+V cho việc khác thì vẫn giữ phím tắt của mình.",
+    "Bản Xfce: từ lần đăng nhập sau, Super+V, Super+E, Super+Shift+S… không còn mở menu Start kèm theo; bấm riêng phím Super vẫn mở menu Start như cũ."
+  ],
+  "release_notes_en": [
+    "Press Super+V (the Windows key + V) to see what you copied lately; type to search, press Enter or click an item to paste it into the window you were using.",
+    "The first press turns the clipboard history on: CopyQ starts keeping it and starts at the next logins. Nothing more runs for someone who never presses it.",
+    "It can be turned off in CopyQ's Preferences (the scissors icon in the system tray).",
+    "If you set Super+V to something else yourself, you keep your shortcut.",
+    "Xfce edition: from the next login, Super+V, Super+E, Super+Shift+S… no longer open the Start menu too; Super alone still opens it."
+  ]
+}

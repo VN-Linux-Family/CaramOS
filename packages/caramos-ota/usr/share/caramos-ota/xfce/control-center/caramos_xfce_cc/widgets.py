@@ -242,6 +242,21 @@ def list_row(lead_icon: str | None, text: str, trail_icon: str | None, on_click:
     return button
 
 
+def step_chooser(text: str, steps: tuple[int, ...], current: int, on_pick: Callable[[int], None]) -> Gtk.Box:
+    """A label and one small button per step ("2%"), the current one marked: the volume step."""
+
+    row = styled(Gtk.Box(spacing=6), "caramos-cc-step-row")
+    row.pack_start(label(text, "caramos-cc-list-label"), True, True, 0)
+    for step in steps:
+        button = styled(Gtk.Button(label=f"{step}%"), "caramos-cc-step")
+        if step == current:
+            styled(button, "selected")
+        button.get_accessible().set_name(f"{text}: {step}%")
+        button.connect("clicked", lambda _b, s=step: on_pick(s))
+        row.pack_start(button, False, False, 0)
+    return row
+
+
 def empty_text(text: str) -> Gtk.Label:
     widget = label(text, "caramos-cc-expand-empty", ellipsize=False)
     widget.set_line_wrap(True)

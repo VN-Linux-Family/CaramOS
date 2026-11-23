@@ -1,0 +1,60 @@
+caramos-business (0.3.0) noble; urgency=medium
+
+  * Pairing that a LAN attacker cannot abuse: a random 6-digit code for each
+    pairing window, checked with SPAKE2 so that it never travels; every wrong
+    guess counts, and 20 close the window.
+  * Enrolment files add machines in bulk without a code, also at the first
+    boot of a copied disk ("Chuẩn bị tạo ảnh đĩa", with a host name prefix for
+    each copy). The admin may approve each new machine ("Duyệt từng máy").
+  * Only paired, approved machines read the company's settings and pictures.
+  * "Gỡ khỏi công ty" sends a signed removal notice: the machine puts back
+    everything, the firewall included, and says that the company removed it.
+  * Shared machines: a guest session, and freezing, which undoes every change
+    at reboot, with a weekly maintenance window for updates.
+  * System snapshots with Timeshift, on a schedule and before updates.
+  * Help requests become tickets with statuses, notes and an assignee; the
+    employee sees them under "Yêu cầu của bạn". A monthly XLSX report.
+  * Licence report (free, freeware, commercial, unknown) against the register
+    of bought licences, and a security report, both as XLSX and PDF.
+  * Asset lifecycle: things without a machine, statuses, history, warranties
+    ending, a handover document (Nghị định 30/2020) and the steps for an
+    employee who leaves.
+  * Remote help uses a key for each session, and the viewer's port is closed
+    to the network.
+  * A command a machine already answered is not delivered again.
+  * The employee's "Đã gửi cho bộ phận IT" dialog no longer cuts off its
+    button.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 23 Nov 2026 18:00:00 +0700
+
+caramos-business (0.2.0) noble; urgency=medium
+
+  * Version 0.2: a small device manager for the company's LAN. Every feature
+    is off until the admin turns it on, for the whole company or a department.
+  * Settings: shared drives, browsers (home page, bookmarks, blocked websites
+    by office hours, SafeSearch), printers, Wi-Fi, required and forbidden
+    apps, a shutdown and wake schedule, USB storage, the screen lock, the
+    firewall and an automatic inventory, besides the wallpaper and folders.
+  * Departments with their own settings; settings for one machine.
+  * Instant actions through a long poll: lock, message, log out, restart,
+    shut down, update, USB for a while, inventory, sync.
+  * Machine list with health problems, help requests, an asset list exported
+    as an XLSX stocktaking record or CSV, an audit log, and a backup that
+    another machine can restore.
+  * Remote help over TLS, only after the employee accepts, with a banner.
+  * Every request of a paired machine carries an HMAC from its own key; Wi-Fi
+    passwords are sealed for each machine.
+  * A restart, shutdown, logout, lock, message or remote help sent while a
+    machine was off does not happen when it is turned on again.
+  * A disk cloned from a paired machine does nothing until it is paired
+    again; the admin flags two machines reporting as one.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Sat, 21 Nov 2026 18:00:00 +0700
+
+caramos-business (0.1.0) noble; urgency=medium
+
+  * First version: the company's wallpaper, with pictures for special days and
+    an optional lock, and the employees' Desktop and Documents on the
+    company's server, for employee machines paired with an admin machine.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Sat, 21 Nov 2026 01:00:00 +0700

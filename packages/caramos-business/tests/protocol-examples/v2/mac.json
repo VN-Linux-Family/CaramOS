@@ -1,0 +1,8 @@
+{
+ "method": "POST",
+ "path": "/caramos-business/v1/checkin",
+ "time": 1795200000,
+ "body": "{\"machine\":{\"name\":\"kt-01\"},\"users\":[]}",
+ "message": "POST\n/caramos-business/v1/checkin\n1795200000\n8178eca2a36b61d8138cb4e3f1fd5befd5579648d6f5a9620bd530fdae31d1b9",
+ "mac": "kEik4UY2wqEtnmm9GkTAO7av7nW9+DC7XLal4KTg/EU="
+}

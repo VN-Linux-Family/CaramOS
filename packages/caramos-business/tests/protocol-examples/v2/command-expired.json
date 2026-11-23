@@ -1,0 +1,4 @@
+{
+ "command": "{\n \"seq\": 45,\n \"id\": \"00000000-0000-4000-8000-000000000045\",\n \"targets\": {\n  \"all\": true\n },\n \"action\": \"lock\",\n \"args\": {},\n \"issued\": \"2026-11-21T14:00:00+07:00\",\n \"expires\": \"2026-11-21T14:10:00+07:00\"\n}",
+ "signature": "Io62yRkxacLyPRsQzFbmEOI0uPPboPi0Ec/cRQ0kRHEwnD5L++dDvEbOR7ho7xBeer0NdfndyfCefxft64ZyBg=="
+}

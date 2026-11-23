@@ -1,0 +1,14 @@
+# Automatic updates (caramos_ota.auto_update): caramos-ota-auto-update.service runs as root, outside every session, and
+# writes how the update went to /var/lib/caramos-ota/auto-update.json, which everyone can read. Each user's service
+# manager watches that file and tells the user in their session. The package enables this unit for every user; a user
+# logged in when it arrived gets it from migration 20261123100000_automatic_updates.
+[Unit]
+Description=CaramOS: watch for the end of an automatic update
+# Desktop users only: not the login screen's account or other system accounts.
+ConditionUser=!@system
+
+[Path]
+PathChanged=/var/lib/caramos-ota/auto-update.json
+
+[Install]
+WantedBy=default.target

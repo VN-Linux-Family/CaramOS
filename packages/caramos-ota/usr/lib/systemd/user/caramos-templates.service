@@ -1,7 +1,9 @@
 [Unit]
-Description=Put the Word, Excel and PowerPoint templates of Files > right-click > New into the Templates folder (CaramOS)
+Description=Put the document templates of Files > right-click > New into the Templates folder (CaramOS)
 ConditionUser=!@system
-ConditionPathExists=!%h/.local/state/caramos/templates.json
+# Each set of templates is put in once and recorded (see the script): run while one record is missing.
+ConditionPathExists=|!%h/.local/state/caramos/templates.json
+ConditionPathExists=|!%h/.local/state/caramos/templates-nd30.json
 
 [Service]
 Type=oneshot

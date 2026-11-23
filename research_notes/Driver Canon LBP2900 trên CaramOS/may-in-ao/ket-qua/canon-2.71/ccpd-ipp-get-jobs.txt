@@ -1,0 +1,56 @@
+== recvfrom status 0x0 id=350061
+   [operation] attributes-charset = 'utf-8'
+   [operation] attributes-natural-language = 'vi-vn'
+   [job] job-printer-uri = 'ipp://localhost/printers/CanonLBP2900'
+   [job] job-originating-user-name = 'caram'
+   [job] job-name = 'testprint canon'
+   [job] job-priority = 50
+   [job] time-at-completed = ''
+   [job] time-at-creation = 1794133297
+   [job] time-at-processing = 1794133297
+   [job] job-id = 4
+   [job] job-state = 5
+   [job] job-k-octets = 1
+   [job] document-format = 'application/vnd.cups-pdf-banner'
+== sendto op Get-Jobs id=350062
+   [operation] attributes-charset = 'utf-8'
+   [operation] attributes-natural-language = 'vi-vn'
+   [operation] printer-uri = 'ipp://localhost/printers/CanonLBP2900'
+   [operation] requesting-user-name = 'root'
+   [operation] which-jobs = 'completed'
+   [operation] requested-attributes = 'document-format'
+   [operation] requested-attributes = 'job-id'
+   [operation] requested-attributes = 'job-k-octets'
+   [operation] requested-attributes = 'job-name'
+   [operation] requested-attributes = 'job-originating-user-name'
+   [operation] requested-attributes = 'job-printer-uri'
+   [operation] requested-attributes = 'job-priority'
+   [operation] requested-attributes = 'job-state'
+   [operation] requested-attributes = 'time-at-completed'
+   [operation] requested-attributes = 'time-at-creation'
+   [operation] requested-attributes = 'time-at-processing'
+== recvfrom status 0x0 id=350062
+   [operation] attributes-charset = 'utf-8'
+   [operation] attributes-natural-language = 'vi-vn'
+   [operation] limit = 500
+== sendto op Get-Jobs id=350063
+   [operation] attributes-charset = 'utf-8'
+   [operation] attributes-natural-language = 'vi-vn'
+   [operation] printer-uri = 'ipp://localhost/printers/CanonLBP2900'
+   [operation] requesting-user-name = 'root'
+   [operation] requested-attributes = 'document-format'
+   [operation] requested-attributes = 'job-id'
+   [operation] requested-attributes = 'job-k-octets'
+   [operation] requested-attributes = 'job-name'
+   [operation] requested-attributes = 'job-originating-user-name'
+   [operation] requested-attributes = 'job-printer-uri'
+   [operation] requested-attributes = 'job-priority'
+   [operation] requested-attributes = 'job-state'
+   [operation] requested-attributes = 'time-at-completed'
+   [operation] requested-attributes = 'time-at-creation'
+   [operation] requested-attributes = 'time-at-processing'
+distinct message shapes and counts in 1 s:
+  recvfrom 0x0: 170
+  sendto Get-Jobs: 170
+  sendto Get-Jobs: 170
+  recvfrom 0x0: 168

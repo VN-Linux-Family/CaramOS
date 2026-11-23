@@ -1,0 +1,9 @@
+### BEGIN /etc/grub.d/42_caramos-business-maintenance ###
+menuentry 'CaramOS (bảo trì)' --class gnu-linux --id caramos-business-maintenance {
+	insmod part_gpt
+	insmod ext2
+	search --no-floppy --fs-uuid --set=root 33113ae9-4550-4a48-a3cb-12d57f6ae6ff
+	linux	/boot/vmlinuz-6.14.0-37-generic root=UUID=33113ae9-4550-4a48-a3cb-12d57f6ae6ff ro  quiet splash overlayroot=disabled caramos-business.maintenance=1
+	initrd	/boot/initrd.img-6.14.0-37-generic
+}
+### END /etc/grub.d/42_caramos-business-maintenance ###

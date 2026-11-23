@@ -1,3 +1,31 @@
+caramos-ota (1.5.0-0caramos1) noble; urgency=medium
+
+  * Release CaramOS 1.5.0.
+  * Run all pending timestamp migrations by migration ID ledger.
+  * Automatic updates, on by default: after the daily check a new CaramOS
+    version installs by itself (caramos-ota-auto-update.service), and each
+    logged-in user gets a notification. It waits on a metered connection, on
+    battery below 50%, with little disk space, while apt is busy, on a live
+    USB or an overlay root. Migrations say whether they may run while someone
+    is logged in ("unattended" in the manifest). The Update Center has the
+    switch; "caramos-ota --auto-update off" turns it off.
+  * Moving from Windows: Carlito (Calibri's sizes) on both editions; the
+    Nghị định 30 templates under Files > New > Văn bản hành chính; "Chuyển mã
+    sang Unicode" for TCVN3 and VNI documents; the "Chuyển dữ liệu từ
+    Windows" app; Driver Check saves a report. The Vietnamese Word template
+    uses Times New Roman 13 pt.
+  * The lunar date on the clock and in the calendar of both editions (the
+    Xfce clock is drawn by the Control Center).
+  * Super+V clipboard history (CopyQ), the taskbar centred or on the left,
+    brightness sliders for external monitors (DDC/CI), round Start menu and
+    right-click menus, Windows shortcuts (Super+L, Ctrl+Alt+Del), and Super
+    on Xfce no longer eats Super+key shortcuts.
+  * The Update Center was redesigned. GTK 4 apps use the cairo renderer
+    without a GPU driver or with 4 GB of memory or less (52-79 MB less each).
+  * Driver Check's notifications show their button once on Xfce.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 23 Nov 2026 14:27:28 +0700
+
 caramos-ota (1.4.0-0caramos1) noble; urgency=medium
 
   * Release CaramOS 1.4.0.

@@ -1,0 +1,23 @@
+{
+  "Manufacturer": "Dell Inc.",
+  "Model": "OptiPlex 3020",
+  "WindowsCaption": "Microsoft Windows 10 Pro",
+  "WindowsDisplayVersion": "22H2",
+  "WindowsBuild": 19045,
+  "WindowsUbr": 5737,
+  "Is64BitOs": true,
+  "CpuName": "Intel(R) Core(TM) i5-4590 CPU @ 3.30GHz",
+  "CpuCores": 4,
+  "CpuThreads": 4,
+  "CpuArchitecture": "x64",
+  "Cpu64Bit": true,
+  "RamBytes": 8589934592,
+  "SystemDrive": "C:",
+  "DiskSizeBytes": 256060514304,
+  "DiskFreeBytes": 128849018880,
+  "DiskMediaType": "SSD",
+  "DiskBusType": "SATA",
+  "Firmware": "UEFI",
+  "SecureBoot": "needs-admin",
+  "FailedProbes": []
+}

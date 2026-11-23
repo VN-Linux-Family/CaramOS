@@ -19,6 +19,7 @@ import tempfile
 import textwrap
 import time
 import unittest
+import unittest.mock
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
@@ -164,11 +165,16 @@ class StyleTests(unittest.TestCase):
 class SoundKeyTests(unittest.TestCase):
     """caramos-volume, with wpctl and gdbus replaced by fakes that write down how they were called."""
 
-    def run_volume(self, *args: str, gdbus_fails: bool = False) -> tuple[subprocess.CompletedProcess, list[list[str]]]:
+    def run_volume(self, *args: str, gdbus_fails: bool = False,
+                   step: str | None = None) -> tuple[subprocess.CompletedProcess, list[list[str]]]:
         with tempfile.TemporaryDirectory() as tmp:
             bin_dir = Path(tmp) / "bin"
             bin_dir.mkdir()
             calls = Path(tmp) / "calls.jsonl"
+            # gsettings answers the volume step, or fails like a system without the schema.
+            (bin_dir / "gsettings").write_text(
+                "#!/bin/sh\n" + (f"echo '{step}'\n" if step is not None else "exit 1\n"), encoding="utf-8")
+            (bin_dir / "gsettings").chmod(0o755)
             for tool in ("wpctl", "gdbus"):
                 status = 1 if tool == "gdbus" and gdbus_fails else 0
                 (bin_dir / tool).write_text(
@@ -200,6 +206,14 @@ class SoundKeyTests(unittest.TestCase):
                 result, calls = self.run_volume(arg)
                 self.assertEqual(0, result.returncode, result.stderr)
                 self.assertEqual(wpctl + [self.osd_call(kind)], calls, "the sound first, then the level shown")
+
+    def test_the_volume_step_comes_from_the_control_center(self) -> None:
+        for step, expected in (("2", "2%"), ("10", "10%"), ("abc", "5%"), ("50", "5%"), ("", "5%")):
+            with self.subTest(step):
+                _result, calls = self.run_volume("up", step=step)
+                self.assertEqual(["wpctl", "set-volume", "-l", "1", "@DEFAULT_AUDIO_SINK@", expected + "+"], calls[1])
+                _result, calls = self.run_volume("down", step=step)
+                self.assertEqual(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", expected + "-"], calls[0])
 
     def test_works_without_the_control_center(self) -> None:
         result, calls = self.run_volume("up", gdbus_fails=True)
@@ -389,6 +403,36 @@ class AppearanceTests(unittest.TestCase):
         self.assertEqual(LIGHT_WALLPAPERS[0], wallpaper_for(DARK_WALLPAPER, dark=False))
         self.assertIsNone(wallpaper_for("/home/user/Pictures/cat.jpg", dark=True))
         self.assertIsNone(wallpaper_for(LIGHT_WALLPAPERS[0], dark=False))
+
+    @unittest.skipUnless(HAVE_GI, "PyGObject is unavailable")
+    def test_dark_mode_keeps_icons_the_user_picked(self) -> None:
+        from caramos_xfce_cc.backends import appearance
+
+        class Channel:
+            def __init__(self, values):
+                self.values = dict(values)
+
+            def get_string(self, prop, default):
+                return self.values.get(prop, default)
+
+            def set_string(self, prop, value):
+                self.values[prop] = value
+
+        def switch(icons, dark):
+            backend = appearance.Appearance.__new__(appearance.Appearance)
+            backend.light, backend.dark = appearance.load_styles(str(STYLES))
+            backend.portal = backend.xfwm4 = backend.desktop = None
+            backend.xsettings = Channel({"/Net/ThemeName": "Cinnamon-Delight", "/Net/IconThemeName": icons,
+                                         "/Gtk/CursorThemeName": backend.light.cursor})
+            with unittest.mock.patch.object(appearance, "has_xfwm4_theme", return_value=False):
+                backend.set_dark(dark)
+            return backend.xsettings.values
+
+        caramos = switch("Tela-circle-light", True)
+        self.assertEqual(("Cinnamon-Delight-Dark", "Tela-circle-dark"),
+                         (caramos["/Net/ThemeName"], caramos["/Net/IconThemeName"]))
+        square = switch("Mint-Y", True)
+        self.assertEqual(("Cinnamon-Delight-Dark", "Mint-Y"), (square["/Net/ThemeName"], square["/Net/IconThemeName"]))
 
     def test_accent_colours(self) -> None:
         from caramos_xfce_cc.backends.appearance import accent_for_theme, mix

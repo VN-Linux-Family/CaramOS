@@ -1,0 +1,28 @@
+{
+ "format": 2,
+ "serial": 7,
+ "issued": "2026-11-21T09:00:00+07:00",
+ "admin": "máy-quản-lý",
+ "files": {
+  "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7": {
+   "size": 31,
+   "type": "jpg"
+  }
+ },
+ "wallpaper": {
+  "default": "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7",
+  "periods": [
+   {
+    "name": "Tết",
+    "from": "12-25",
+    "to": "01-05",
+    "image": "a003b925fd02ab1b2d86a43dfd0d3d74a904c23c1ab303d114ad0bf25bb7edc7"
+   }
+  ],
+  "lock": true
+ },
+ "folders": {
+  "share": "smb://nas.congty.local/nhanvien/%u",
+  "tidy": true
+ }
+}

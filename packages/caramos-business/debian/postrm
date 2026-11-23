@@ -1,0 +1,8 @@
+#!/bin/sh
+set -e
+# Purging removes the company's settings and state on this machine; the users' files on the server are not touched.
+if [ "$1" = purge ]; then
+    rm -rf /etc/caramos-business /var/lib/caramos-business /run/caramos-business
+fi
+#DEBHELPER#
+exit 0

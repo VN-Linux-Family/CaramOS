@@ -30,6 +30,10 @@ class MigrationContext:
 
     dry_run: bool = False
     release_values: dict[str, str] = field(default_factory=dict)
+    # An automatic update (caramos-ota --auto-upgrade): nobody watches, and people may be at work on an open desktop.
+    # A migration then leaves out what would change their screen now (reloading an applet, starting Fcitx); what it
+    # changed shows from their next login. See caramos_ota.auto_update and the manifests' "unattended".
+    unattended: bool = False
 
     def log(self, message: str) -> None:
         """Log a migration message."""

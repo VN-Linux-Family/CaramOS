@@ -1,0 +1,26 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["xfce"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Lịch (dưới 1 MB)",
+  "size_en": "Calendar (under 1 MB)",
+  "title": "Âm lịch trong lịch của bản Xfce",
+  "summary": "Bấm vào đồng hồ để xem lịch: mỗi ngày có thêm ngày âm, mùng 1 và rằm tô đỏ, và ngày âm hôm nay ở trên cùng, như bản Cinnamon.",
+  "title_en": "Lunar dates in the Xfce edition's calendar",
+  "summary_en": "Click the clock for the calendar: every day also shows its lunar date, the 1st and the 15th in red, and today's lunar date is at the top, as on the Cinnamon edition.",
+  "release_notes_vi": [
+    "Bấm vào đồng hồ ở đảo bên phải: dưới mỗi ngày có ngày âm, chữ nhỏ và nhạt hơn; ngày mùng 1 ghi cả tháng (ví dụ 1/10), mùng 1 và rằm tô đỏ.",
+    "Đầu lịch ghi ngày hôm nay và ngày âm đầy đủ, ví dụ \"Âm lịch: 12 tháng 10 năm Bính Ngọ\"; rê chuột lên đồng hồ cũng thấy. Mũi tên, con lăn chuột hoặc phím Page Up, Page Down chuyển sang tháng khác.",
+    "Đồng hồ trông vẫn như cũ, giờ nó là một phần của Control Center. Ai đã đặt đồng hồ của Xfce ở thanh khác thì vẫn giữ đồng hồ đó.",
+    "Hiện ra từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "Click the clock in the right island: under every day is its lunar day, smaller and lighter; the 1st of a lunar month shows its month (such as 1/10), the 1st and the 15th are in red.",
+    "Today's full lunar date is at the top, such as \"Lunar calendar: day 12 of month 10, Bính Ngọ year\"; the clock's tooltip shows it too. The arrows, the mouse wheel or Page Up and Page Down show other months.",
+    "The clock looks the same; it is now part of the Control Center. If you put Xfce's clock on another panel, you keep that clock.",
+    "Shows from the next login."
+  ]
+}

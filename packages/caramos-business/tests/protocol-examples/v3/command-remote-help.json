@@ -1,0 +1,4 @@
+{
+ "command": "{\n \"seq\": 61,\n \"id\": \"00000000-0000-4000-8000-000000000061\",\n \"targets\": {\n  \"machines\": [\n   \"7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6\"\n  ]\n },\n \"action\": \"remote_help\",\n \"args\": {\n  \"admin_host\": \"192.168.1.5\",\n  \"port\": 5501,\n  \"mode\": \"control\",\n  \"admin_name\": \"quan-ly\",\n  \"psk\": \"cHFyc3R1dnd4eXp7fSCuaECOTmSZ63TJyQTOgN65c/pDeQBjNP2B3SOyYmoODy3ehlBWdR3CnEydTeJdxlxEjpgwAiEAAN2zlJ3fkKYL6xKH6xpvItgIkm+Q9TQgW5hg1adwTQkpTS52Wyr5dSyFjvOWz3HRX+K6HllCr9Q4ThLeSIZLYYrP\"\n },\n \"issued\": \"2026-11-23T09:00:00+07:00\",\n \"expires\": \"2099-01-01T00:00:00+07:00\"\n}",
+ "signature": "59IZOlc9e7Famb7ZctAbJBsIXFnZrZ0ES9R+QZgYODf6Q1xIBtcDALaIbD3DREs2UOaurUtNDpY0t3WmLciNBA=="
+}

@@ -18,6 +18,13 @@ MIGRATIONS_PACKAGE = "caramos_ota_update.migrations"
 TIMESTAMP_ID_RE = re.compile(r"^\d{14}_[a-z0-9][a-z0-9_]*$")
 LEGACY_ID_RE = re.compile(r"^v\d+(?:_\d+)+(?:_[A-Za-z0-9_]+)?$")
 VERSION_RE = re.compile(r"^\d+(?:\.\d+){1,3}(?:[-+~][A-Za-z0-9.+:~_-]+)?$")
+# When an automatic update (caramos_ota.auto_update) may run a migration, from the manifest's "unattended":
+# ANYTIME, also while people work: nothing it changes shows on an open desktop before the next login, or it leaves out
+# what would (context.unattended); NOBODY_LOGGED_IN, only while nobody has a desktop open: it reloads the panel, the
+# wallpaper or Fcitx, or runs `dconf update`. Without the field, and for every legacy migration: NOBODY_LOGGED_IN.
+ANYTIME = "anytime"
+NOBODY_LOGGED_IN = "nobody-logged-in"
+UNATTENDED_VALUES = (ANYTIME, NOBODY_LOGGED_IN)
 
 
 class MigrationRegistryError(RuntimeError):
@@ -50,6 +57,8 @@ class MigrationDescriptor:
     size_en: str = ""
     # The desktops the migration applies to (desktop.KNOWN); empty: every edition.
     desktops: tuple[str, ...] = ()
+    # When an automatic update may run it: ANYTIME or NOBODY_LOGGED_IN.
+    unattended: str = NOBODY_LOGGED_IN
 
     @property
     def legacy(self) -> bool:
@@ -230,6 +239,9 @@ def _descriptor(directory: Path) -> MigrationDescriptor:
     desktops = raw.get("desktops", [])
     if not (isinstance(desktops, list) and all(item in KNOWN_DESKTOPS for item in desktops)):
         raise MigrationRegistryError(f"desktops in {manifest_path} must be a list of {', '.join(KNOWN_DESKTOPS)}")
+    unattended = raw.get("unattended", NOBODY_LOGGED_IN) if schema == 2 else NOBODY_LOGGED_IN
+    if unattended not in UNATTENDED_VALUES:
+        raise MigrationRegistryError(f"unattended in {manifest_path} must be one of {', '.join(UNATTENDED_VALUES)}")
     return MigrationDescriptor(
         migration_id=migration_id,
         release=release,
@@ -252,6 +264,7 @@ def _descriptor(directory: Path) -> MigrationDescriptor:
         summary_en=str(raw.get("summary_en") or ""),
         size_en=str(raw.get("size_en") or ""),
         desktops=tuple(desktops),
+        unattended=unattended,
     )
 
 

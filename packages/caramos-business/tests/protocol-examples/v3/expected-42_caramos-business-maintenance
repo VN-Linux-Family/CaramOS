@@ -1,0 +1,20 @@
+#!/bin/sh
+# Managed by CaramOS Doanh nghiệp (caramos-business-agent): the one-time maintenance entry of shared-machine mode.
+set -e
+prefix="/usr"
+exec_prefix="/usr"
+datarootdir="/usr/share"
+. "$datarootdir/grub/grub-mkconfig_lib"
+kernel=$(readlink -f /boot/vmlinuz) || exit 0
+initrd=$(readlink -f /boot/initrd.img) || exit 0
+[ -f "$kernel" ] && [ -f "$initrd" ] || exit 0
+if [ "x${GRUB_DEVICE_UUID}" = "x" ] || [ "x${GRUB_DISABLE_LINUX_UUID}" = "xtrue" ]; then
+  root_arg="root=${GRUB_DEVICE}"
+else
+  root_arg="root=UUID=${GRUB_DEVICE_UUID}"
+fi
+echo "menuentry 'CaramOS (bảo trì)' --class gnu-linux --id caramos-business-maintenance {"
+prepare_grub_to_access_device "${GRUB_DEVICE_BOOT}" | sed -e "s/^/\t/"
+printf "\tlinux\t%s %s ro %s %s overlayroot=disabled caramos-business.maintenance=1\n" "$(make_system_path_relative_to_its_root "$kernel")" "$root_arg" "${GRUB_CMDLINE_LINUX}" "${GRUB_CMDLINE_LINUX_DEFAULT}"
+printf "\tinitrd\t%s\n" "$(make_system_path_relative_to_its_root "$initrd")"
+echo "}"

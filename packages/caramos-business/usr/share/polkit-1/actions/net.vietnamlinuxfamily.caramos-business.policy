@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+<policyconfig>
+  <vendor>CaramOS</vendor>
+  <vendor_url>https://caramos.vietnamlinuxfamily.net</vendor_url>
+  <action id="net.vietnamlinuxfamily.caramos-business.helper">
+    <description>Change the company settings of CaramOS Business</description>
+    <description xml:lang="vi">Thay đổi thiết lập công ty của CaramOS Doanh nghiệp</description>
+    <message>Authentication is required to change the company settings</message>
+    <message xml:lang="vi">Cần mật khẩu để thay đổi thiết lập công ty</message>
+    <defaults>
+      <allow_any>auth_admin</allow_any>
+      <allow_inactive>auth_admin</allow_inactive>
+      <allow_active>auth_admin_keep</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/lib/caramos-business/caramos-business-helper</annotate>
+  </action>
+</policyconfig>

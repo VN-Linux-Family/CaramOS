@@ -1,0 +1,7 @@
+/* Loaded on top of style.css when the system uses a dark style: the dark values of DESIGN.md. */
+
+@define-color accent_bg_color #3a855a;
+@define-color accent_fg_color #ffffff;
+@define-color accent_color #8ccfa5;
+@define-color caramos_line_color rgba(255, 255, 255, 0.08);
+@define-color caramos_security_color #f5c04a;

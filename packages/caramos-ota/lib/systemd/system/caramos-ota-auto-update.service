@@ -1,0 +1,30 @@
+# CaramOS automatic updates (caramos_ota.auto_update). caramos-ota-check.service starts this after each successful daily
+# check. With automatic updates on and an update waiting, it installs the update as the Update Center does, without
+# anyone to answer; otherwise it ends at once. Nothing enables it, and package upgrades never start it.
+[Unit]
+Description=CaramOS automatic update
+After=network-online.target caramos-ota-check.service
+Wants=network-online.target
+# APT, dpkg or another CaramOS update busy (exit code 75): tried again 15 minutes later, at most 4 more times; then the
+# next daily check tries again.
+StartLimitIntervalSec=2h
+StartLimitBurst=5
+
+[Service]
+# Not oneshot: systemd allows RestartForceExitStatus only for the other types, and nothing waits for this unit.
+Type=exec
+ExecStart=/usr/bin/caramos-ota --auto-upgrade
+RestartForceExitStatus=75
+RestartSec=15min
+# Long enough for an old computer on a slow connection; an update that hangs longer is stopped.
+RuntimeMaxSec=1h
+# Shutting down while it installs: systemd asks only the main process to stop, which lets the update finish within
+# 15 minutes, since a dpkg killed halfway breaks every later update (a logind lock asks people to wait first).
+KillMode=mixed
+TimeoutStopSec=15min
+# The person at the computer comes first.
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+# No sandbox, as for an update from the Update Center: migrations change users' settings in their home folders, and
+# dpkg runs the triggers of 32-bit packages (Steam, Wine), which SystemCallArchitectures=native would stop.

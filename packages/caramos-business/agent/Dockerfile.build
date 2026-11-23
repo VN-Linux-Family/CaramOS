@@ -1,0 +1,6 @@
+# Build and test environment for caramos-business-agent: Ubuntu 24.04 with the versioned Rust toolchain that the
+# Launchpad PPA build uses (rustc-1.85, cargo-1.85). build.sh builds it once and mounts the sources.
+FROM ubuntu:24.04
+RUN apt-get update \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends cargo-1.85 rustc-1.85 ca-certificates \
+ && rm -rf /var/lib/apt/lists/*

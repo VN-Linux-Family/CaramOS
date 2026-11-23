@@ -1,0 +1,131 @@
+/* CaramOS Doanh nghiệp, after CaramOS's design rules (DESIGN.md in the CaramOS repository): libadwaita's own header
+ * bars, surfaces and lists, and the forest green accent as the only colour of CaramOS's own. The font is the
+ * system's (Be Vietnam Pro): this file only sets sizes and the two weights, 400 and 600.
+ * style-dark.css has the dark values and is loaded on top when the system uses a dark style. */
+
+@define-color accent_bg_color #2b6a44;
+@define-color accent_fg_color #ffffff;
+@define-color accent_color #276140;
+@define-color caramos_line_color rgba(0, 0, 0, 0.09);
+@define-color caramos_security_color #9c6e03;
+
+/* Two weights. libadwaita's titles are 700 to 800 and its buttons bold. */
+.title-1,
+.title-2,
+.title-3,
+.title-4,
+.heading,
+headerbar .title,
+windowtitle .title,
+button {
+  font-weight: 600;
+}
+button.link,
+button.card,
+row button.plain-text {
+  font-weight: inherit;
+}
+
+/* Type scale */
+.page-title {
+  font-size: 1.8em;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.section-title {
+  font-size: 1.15em;
+  font-weight: 600;
+}
+.secondary {
+  font-size: 0.92em;
+}
+.paragraph {
+  line-height: 1.5;
+}
+
+/* Boxed lists: a thin line around and between the rows, no shadow. */
+list.boxed-list {
+  box-shadow: 0 0 0 1px @caramos_line_color;
+}
+list.boxed-list > row,
+list.boxed-list > row.expander row.header,
+row.expander list.nested > row {
+  border-color: @caramos_line_color;
+}
+
+/* Status pages: a 64px icon and the page title size. */
+statuspage > scrolledwindow > viewport > box > clamp > box > .icon {
+  -gtk-icon-size: 64px;
+}
+statuspage > scrolledwindow > viewport > box > clamp > box > .title {
+  font-size: 1.8em;
+  line-height: 1.25;
+}
+
+/* The bar at the bottom while the settings have changes: the hint at the left, the buttons at the right. */
+.save-bar {
+  padding: 10px 24px;
+  border-top: 1px solid @caramos_line_color;
+  background-color: @window_bg_color;
+}
+
+/* A toast while the save bar shows sits above it, so that "Hoàn tác" and "Lưu và gửi" stay clickable. */
+.above-save-bar > toast {
+  margin-bottom: 64px;
+}
+
+/* Numbers on the overview, the pairing code. */
+.count {
+  font-size: 1.15em;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+.pairing-code {
+  font-size: 2.4em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  font-feature-settings: "tnum";
+}
+
+/* Problems and errors use libadwaita's error colour (DESIGN.md's #c01c28 / #ff7b63); the warning colour is only for
+ * security updates. */
+.problem {
+  color: @error_color;
+}
+.security-warning {
+  color: @caramos_security_color;
+}
+
+/* Pictures of the wallpaper page. */
+.thumbnail {
+  border-radius: 6px;
+}
+
+/* Weekday toggles: seven small buttons in a row. */
+.day-toggle {
+  min-width: 40px;
+  padding-left: 0;
+  padding-right: 0;
+}
+.day-toggle:checked {
+  background-color: @accent_bg_color;
+  color: @accent_fg_color;
+}
+
+/* The intro of the overview: the logo beside the title. */
+.intro {
+  margin-bottom: 6px;
+}
+
+/* The prompts on employee machines: small, plain windows. */
+.prompt-body {
+  padding: 4px 24px 24px 24px;
+}
+.prompt-time {
+  font-size: 2em;
+  font-weight: 600;
+  font-feature-settings: "tnum";
+}
+.banner-window {
+  padding: 10px 14px;
+}

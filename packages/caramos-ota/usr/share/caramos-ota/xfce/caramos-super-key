@@ -1,0 +1,44 @@
+#!/bin/sh
+# CaramOS Xfce: the Super key alone opens the Start menu, and Super+<key> shortcuts (Super+E, Super+V,
+# Super+Shift+S...) no longer open it as well.
+#
+# CaramOS 1.4.0 bound Super_L itself to the Start menu (xfce4-popup-whiskermenu). Xfce 4.18 runs that shortcut also
+# when Super is the start of Super+E, so the Start menu opened over Files and took the keyboard from the clipboard
+# history's list (Super+V, ticket H-1182). Now xcape watches the Super keys: pressed and released alone, they send
+# Alt+F1, the Start menu's shortcut (Linux Mint's Alt+F1 ran the applications menu, which CaramOS's panel does not
+# have). At each login (/etc/xdg/autostart/caramos-xfce-super-key.desktop):
+# - Alt+F1 opens the Start menu where it still runs the applications menu or is not set;
+# - a Super_L shortcut that opens the Start menu goes: next to xcape, the menu would open and close at once;
+# - xcape starts.
+# Someone who gave Alt+F1 to something else keeps it, and their Super_L shortcut, without xcape. Before the user's
+# first change of a shortcut Xfce uses the system defaults (commands/default), which CaramOS sets the same way
+# (migration 20261120100000, the ISO's xfce4-keyboard-shortcuts.xml).
+
+MENU=xfce4-popup-whiskermenu
+
+command -v xcape >/dev/null 2>&1 || exit 0
+command -v xfconf-query >/dev/null 2>&1 || exit 0
+
+query() { xfconf-query -c xfce4-keyboard-shortcuts "$@"; }
+
+if [ "$(query -p /commands/custom/override 2>/dev/null)" = true ]; then
+    alt_f1=$(query -p '/commands/custom/<Alt>F1' 2>/dev/null)
+    case "$alt_f1" in
+        "$MENU") ;;
+        ''|xfce4-popup-applicationsmenu) query -p '/commands/custom/<Alt>F1' -n -t string -s "$MENU" || exit 0 ;;
+        *) exit 0 ;;
+    esac
+    if [ "$(query -p /commands/custom/Super_L 2>/dev/null)" = "$MENU" ]; then
+        query -p /commands/custom/Super_L -r || exit 0
+    fi
+else
+    [ "$(query -p '/commands/default/<Alt>F1' 2>/dev/null)" = "$MENU" ] || exit 0
+    [ "$(query -p /commands/default/Super_L 2>/dev/null)" != "$MENU" ] || exit 0
+fi
+
+# One xcape per user: two would send Alt+F1 twice, and the menu would open and close.
+pkill -u "$(id -u)" -x xcape 2>/dev/null
+# -d keeps xcape in the foreground, as a child of the session: forked into the background at login, it was gone
+# after one login in two on the test VM. -d also prints every key event, so its output goes nowhere (the session
+# would write it to ~/.xsession-errors).
+exec xcape -d -e 'Super_L=Alt_L|F1;Super_R=Alt_L|F1' >/dev/null 2>&1

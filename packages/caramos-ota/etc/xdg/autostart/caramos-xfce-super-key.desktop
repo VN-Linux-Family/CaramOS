@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Super key
+Comment=The Super key alone opens the Start menu, and Super+key shortcuts do not open it too
+Exec=/usr/share/caramos-ota/xfce/caramos-super-key
+NoDisplay=true
+OnlyShowIn=XFCE;
+X-GNOME-Autostart-enabled=true

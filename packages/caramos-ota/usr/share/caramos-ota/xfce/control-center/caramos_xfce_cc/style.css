@@ -292,6 +292,28 @@ window.caramos-cc {
   border: 2px solid rgba(0, 0, 0, 0.55);
 }
 
+/* The volume step under the output devices: small buttons, the current one ringed */
+.caramos-cc-step-row {
+  padding: 4px 6px 2px 6px;
+}
+
+.caramos-cc-step {
+  min-height: 0;
+  padding: 2px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  font-size: 0.9em;
+}
+
+.caramos-cc-step:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.caramos-cc-step.selected {
+  border: 1px solid rgba(0, 0, 0, 0.60);
+  font-weight: bold;
+}
+
 /* Restart / shut down / log out: the question and its buttons */
 .caramos-cc-dialog-btn {
   min-height: 34px;
@@ -391,6 +413,18 @@ window.caramos-cc {
   background-color: rgba(255, 255, 255, 0.10);
 }
 
+.dark .caramos-cc-step {
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.dark .caramos-cc-step:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .caramos-cc-step.selected {
+  border: 1px solid rgba(255, 255, 255, 0.75);
+}
+
 .dark .caramos-cc-accent-swatch {
   border: 2px solid rgba(255, 255, 255, 0.10);
 }
@@ -464,4 +498,162 @@ window.caramos-cc {
 
 .dark .caramos-cc-osd-level trough {
   background-color: rgba(255, 255, 255, 0.16);
+}
+
+/* -------- The clock (clock.py) and its calendar (calendar_popup.py), ticket H-1178 -------- */
+/* The font of Xfce's clock in CaramOS 1.4.0 (its digital-time-font). panel-islands.css draws the rest, by the
+   button's name (clock-button), as it drew that clock. */
+.caramos-cc-clock-label {
+  font-family: "Be Vietnam Pro";
+  font-weight: bold;
+  font-size: 10pt;
+}
+
+/* As the calendar of CaramOS Cinnamon: today at the top, then the month, the lunar day under each day. */
+.caramos-cc-calendar {
+  padding: 12px 12px 8px 12px;
+}
+
+.caramos-cc-cal-home {
+  padding: 6px 0;
+  border-radius: 18px;
+}
+
+.caramos-cc-cal-home:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.caramos-cc-cal-weekday {
+  font-size: 1.75em;
+  font-weight: bold;
+}
+
+.caramos-cc-cal-date {
+  font-size: 1.1em;
+  font-weight: bold;
+  padding-top: 2px;
+}
+
+.caramos-cc-cal-lunar {
+  padding-top: 3px;
+  color: rgba(48, 48, 48, 0.72);
+}
+
+.caramos-cc-cal-nav-label {
+  font-weight: bold;
+}
+
+.caramos-cc-cal-arrow {
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 999px;
+}
+
+.caramos-cc-cal-arrow:hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+.caramos-cc-cal-heading {
+  padding: 6px 0 4px 0;
+  font-size: 0.9em;
+  color: rgba(48, 48, 48, 0.85);
+}
+
+.caramos-cc-cal-day {
+  min-width: 36px;
+  min-height: 40px;
+  border-radius: 12px;
+}
+
+.caramos-cc-cal-day:hover {
+  background-color: rgba(0, 0, 0, 0.07);
+}
+
+/* The lunar day: smaller and lighter than the day of the month, and not bold on weekends. */
+.caramos-cc-cal-day-lunar {
+  font-size: 0.72em;
+  font-weight: normal;
+  color: rgba(48, 48, 48, 0.55);
+}
+
+.caramos-cc-cal-weekend {
+  font-weight: bold;
+}
+
+/* Mùng 1 and rằm, as Vietnamese wall calendars mark them. */
+.caramos-cc-cal-mark {
+  color: #d1493f;
+}
+
+.caramos-cc-cal-other-month .caramos-cc-cal-day-number {
+  color: rgba(48, 48, 48, 0.32);
+}
+
+.caramos-cc-cal-other-month .caramos-cc-cal-day-lunar {
+  color: rgba(48, 48, 48, 0.24);
+}
+
+.caramos-cc-cal-today {
+  background-color: @cc_accent;
+}
+
+.caramos-cc-cal-today:hover {
+  background-color: @cc_accent_hover;
+}
+
+.caramos-cc-cal-today .caramos-cc-cal-day-number,
+.caramos-cc-cal-today .caramos-cc-cal-day-lunar {
+  color: #ffffff;
+}
+
+.caramos-cc-cal-footer {
+  padding: 8px 10px;
+  border-radius: 999px;
+}
+
+.caramos-cc-cal-footer:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.caramos-cc-cal-footer-label {
+  font-size: 0.95em;
+}
+
+.dark .caramos-cc-cal-home:hover,
+.dark .caramos-cc-cal-footer:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark .caramos-cc-cal-arrow:hover,
+.dark .caramos-cc-cal-day:hover {
+  background-color: rgba(255, 255, 255, 0.10);
+}
+
+.dark .caramos-cc-cal-lunar {
+  color: rgba(245, 245, 247, 0.72);
+}
+
+.dark .caramos-cc-cal-heading {
+  color: rgba(245, 245, 247, 0.85);
+}
+
+.dark .caramos-cc-cal-day-lunar {
+  color: rgba(245, 245, 247, 0.55);
+}
+
+.dark .caramos-cc-cal-mark {
+  color: #ee6b5a;
+}
+
+.dark .caramos-cc-cal-other-month .caramos-cc-cal-day-number {
+  color: rgba(245, 245, 247, 0.30);
+}
+
+.dark .caramos-cc-cal-other-month .caramos-cc-cal-day-lunar {
+  color: rgba(245, 245, 247, 0.22);
+}
+
+.dark .caramos-cc-cal-today .caramos-cc-cal-day-number,
+.dark .caramos-cc-cal-today .caramos-cc-cal-day-lunar {
+  color: #ffffff;
 }

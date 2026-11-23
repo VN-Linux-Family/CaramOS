@@ -1,5 +1,6 @@
 {
   "schema": 2,
+  "unattended": "anytime",
   "desktops": ["cinnamon"],
   "codename": "noble",
   "channel": "stable",

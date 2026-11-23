@@ -3,14 +3,21 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 from caramos_ota.constants import RELEASE_FILE
 from caramos_ota.i18n import _, localized
 from caramos_ota.manifest import manifest_for_plan, resolve_update_plan
 from caramos_ota.models import ReleaseInfo
+from caramos_ota_update.desktop import applies
 
 from .constants import STATE_FILE
+
+# The daily check names an update that only changes the version number this way (caramos_ota.apt.detect_updates).
+RELEASE_METADATA_NAME = "CaramOS release metadata"
+# Migration IDs, which old state files show instead of a title: 20261018120000_restore_taskbar, v1_0_12.
+TECHNICAL_NAME = re.compile(r"^(\d{14}_[a-z0-9_]+|v\d+_\d+_\d+)$")
 
 
 def read_available_update() -> dict[str, Any] | None:
@@ -43,7 +50,7 @@ def format_value(value: object, fallback: str | None = None) -> str:
 
 def normalize_package(pkg: object) -> dict[str, object]:
     if isinstance(pkg, dict):
-        name = format_value(localized(pkg, "name") or pkg.get("package"), _("Unknown migration"))
+        name = format_value(localized(pkg, "name") or pkg.get("package"), "")
         current = format_value(pkg.get("current_version") or pkg.get("installed_version"))
         available = format_value(
             pkg.get("available_version") or pkg.get("candidate_version") or pkg.get("min_version")
@@ -56,12 +63,63 @@ def normalize_package(pkg: object) -> dict[str, object]:
             "required": pkg.get("required"),
         }
     return {
-        "name": format_value(pkg, _("Unknown migration")),
+        "name": format_value(pkg, ""),
         "current": _("Unknown"),
         "available": _("Unknown"),
         "description": "",
         "required": None,
     }
+
+
+def version_text(value: object) -> str:
+    """A version number from the state, or "" when it is missing."""
+
+    text = format_value(value, "")
+    return "" if text == _("Unknown") else text
+
+
+def update_versions(update_info: dict[str, Any]) -> tuple[str, str]:
+    """(installed version, version after the update); "" for one that is not known."""
+
+    return (
+        version_text(update_info.get("current_version") or update_info.get("from_version")),
+        version_text(update_info.get("release") or update_info.get("to_version")),
+    )
+
+
+def change_rows(update_info: dict[str, Any]) -> list[tuple[str, str]]:
+    """(title, description) of each change the update brings, in this session's language.
+
+    A change named by its migration ID (old state files) shows its description alone, and the daily check's entry
+    for an update that only changes the version number says so in words.
+    """
+
+    _current, target = update_versions(update_info)
+    rows: list[tuple[str, str]] = []
+    for raw in update_info.get("packages") or []:
+        package = normalize_package(raw)
+        title, description = str(package["name"]), str(package["description"])
+        if title == RELEASE_METADATA_NAME:
+            title = _("Version information")
+            description = (_("The system will record that it runs CaramOS %s.") % target) if target else ""
+        elif not title or TECHNICAL_NAME.match(title):
+            title, description = description, ""
+        if description == title:
+            description = ""
+        if title:
+            rows.append((title, description))
+    return rows or [(_("CaramOS update"), "")]
+
+
+def size_parts(size: object) -> list[str]:
+    """The parts of an update's size text, which joins one part per migration with " + ", without repeats."""
+
+    parts: list[str] = []
+    for part in format_value(size, "").split(" + "):
+        part = part.strip()
+        if part and part not in parts:
+            parts.append(part)
+    return parts
 
 
 def _read_release_info() -> ReleaseInfo | None:
@@ -123,6 +181,9 @@ def resolve_available_update_now() -> tuple[dict[str, Any] | None, dict[str, str
         return None, status
 
     status["latest_version"] = plan.target_version
+    # Changes for the other edition (Cinnamon's calendar on the Xfce edition) are not listed: the runner only records
+    # them as done. Whether there is an update at all does not change.
+    shown = [item for item in plan.migrations if applies(item.desktops)] or plan.migrations
     packages = [
         {
             "name": item.title,
@@ -133,7 +194,7 @@ def resolve_available_update_now() -> tuple[dict[str, Any] | None, dict[str, str
             "name_en": item.title_en,
             "description_en": item.summary_en,
         }
-        for item in plan.migrations
+        for item in shown
     ]
     update_info = {
         "detected_at": "manual",

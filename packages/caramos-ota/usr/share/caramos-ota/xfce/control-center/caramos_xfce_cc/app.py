@@ -1,6 +1,7 @@
 """caramos-control-center: the CaramOS Control Center on Xfce.
 
-  caramos-control-center --plug ID   run inside the taskbar (the CaramOS panel plugin starts this with its socket)
+  caramos-control-center --plug ID   run inside the taskbar (the CaramOS panel plugin starts this with its socket):
+                                     the clock, with its calendar (clock.py), and the Control Center's button
   caramos-control-center --toggle    open or close the popup (another way in, e.g. a keyboard shortcut)
 
 One process per session (a GApplication): a second call hands its arguments to the running one and ends. Its "osd"
@@ -37,7 +38,10 @@ class App(Gtk.Application):
         self.add_main_option("toggle", 0, GLib.OptionFlags.NONE, GLib.OptionArg.NONE, "Open or close the popup", None)
         self.backends = None
         self.popup = None
+        self.calendar = None
         self.plug = None
+        self.panel_box = None
+        self.clock = None
         self.indicator = None
         self.osd = None
         self._osd_kind = ""
@@ -94,13 +98,30 @@ class App(Gtk.Application):
         if "plug" in options:
             self.embed(int(options["plug"]))
         if options.get("toggle"):
+            self._hide_calendar()
             self.popup.toggle(self.indicator.anchor() if self.indicator else None)
         return 0
 
-    def embed(self, socket_id: int) -> None:
+    def _panel_box(self) -> Gtk.Box:
+        """What the taskbar shows in the right island, between the tray and Feedback & Help: the clock, which opens
+        the calendar, then the Control Center's button, as on Cinnamon."""
+
+        from .clock import Clock
         from .indicator import Indicator
 
+        box = Gtk.Box()
+        self.clock = Clock(self.backends.panel_clock, self.on_clock)
+        self.indicator = Indicator(self.backends, self.on_indicator)
+        box.pack_start(self.clock, False, False, 0)
+        box.pack_start(self.indicator, False, False, 0)
+        return box
+
+    def embed(self, socket_id: int) -> None:
         old, self.plug = self.plug, None
+        if self.panel_box is None:
+            self.panel_box = self._panel_box()
+        elif self.panel_box.get_parent() is not None:
+            self.panel_box.get_parent().remove(self.panel_box)  # before the old plug goes, which would take it along
         if old is not None:
             old.destroy()
         plug = Gtk.Plug.new(socket_id)
@@ -108,11 +129,7 @@ class App(Gtk.Application):
         visual = plug.get_screen().get_rgba_visual()
         if visual is not None:
             plug.set_visual(visual)
-        if self.indicator is None:
-            self.indicator = Indicator(self.backends, self.on_indicator)
-        else:
-            self.indicator.get_parent().remove(self.indicator)
-        plug.add(self.indicator)
+        plug.add(self.panel_box)
         # The panel went away (it restarts, or the plugin was removed): so does this process.
         plug.connect("destroy", self._on_plug_destroyed)
         plug.connect("notify::embedded", self._on_embedded)
@@ -131,7 +148,25 @@ class App(Gtk.Application):
             self.quit()
 
     def on_indicator(self, indicator: object, event_time: int) -> None:
+        self._hide_calendar()
         self.popup.toggle(indicator.anchor(), event_time)
+
+    def on_clock(self, clock: object, event_time: int) -> None:
+        """The calendar, never together with the Control Center's popup."""
+
+        self.popup.hide_popup()
+        if self.calendar is None:
+            from .calendar_popup import CalendarPopup
+
+            self.calendar = CalendarPopup(self.backends.appearance)
+            self.calendar.set_application(self)
+            self.calendar.connect("show", lambda *_: clock.set_open(True))
+            self.calendar.connect("hide", lambda *_: clock.set_open(False))
+        self.calendar.toggle(clock.anchor(), event_time)
+
+    def _hide_calendar(self) -> None:
+        if self.calendar is not None:
+            self.calendar.hide_popup()
 
     def _on_osd(self, _action: Gio.SimpleAction, parameter: GLib.Variant | None) -> None:
         """A sound key was pressed (it already changed the sound): show the level once the sound server has it."""

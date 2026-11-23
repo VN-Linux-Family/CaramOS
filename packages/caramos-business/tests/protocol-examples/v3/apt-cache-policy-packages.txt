@@ -1,0 +1,41 @@
+hello:
+  Installed: 2.10-3build1
+  Candidate: 2.10-3build1
+  Version table:
+ *** 2.10-3build1 500
+        500 http://archive.ubuntu.com/ubuntu noble/main amd64 Packages
+        100 /var/lib/dpkg/status
+cowsay:
+  Installed: 3.03+dfsg2-8
+  Candidate: 3.03+dfsg2-8
+  Version table:
+ *** 3.03+dfsg2-8 500
+        500 http://archive.ubuntu.com/ubuntu noble/universe amd64 Packages
+        100 /var/lib/dpkg/status
+caramos-local-test:
+  Installed: 1.0
+  Candidate: 1.0
+  Version table:
+ *** 1.0 100
+        100 /var/lib/dpkg/status
+google-chrome-stable:
+  Installed: 158.0.8127.36-1
+  Candidate: 158.0.8127.36-1
+  Version table:
+ *** 158.0.8127.36-1 500
+        500 https://dl.google.com/linux/chrome/deb stable/main amd64 Packages
+        100 /var/lib/dpkg/status
+caramos-ota:
+  Installed: 1.4.0-0caramos1
+  Candidate: 1.4.0-0caramos1
+  Version table:
+ *** 1.4.0-0caramos1 500
+        500 https://ppa.launchpadcontent.net/vietnamlinuxfamily/caram-os/ubuntu noble/main amd64 Packages
+        100 /var/lib/dpkg/status
+mint-common:
+  Installed: 2.5.1
+  Candidate: 2.5.1
+  Version table:
+ *** 2.5.1 500
+        500 http://packages.linuxmint.com zena/main amd64 Packages
+        100 /var/lib/dpkg/status

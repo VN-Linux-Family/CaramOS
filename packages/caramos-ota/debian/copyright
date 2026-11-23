@@ -1,0 +1,27 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: caramos-ota
+Source: https://github.com/VN-Linux-Family/CaramOS
+
+Files: *
+Copyright: 2026 Vietnam Linux Family
+License: GPL-3+
+
+Files: usr/share/themes/Cinnamon-Delight-Dark/*
+Copyright: DrMcC0y (Mint-Relaxed, Cinnamon-Delight)
+           2026 Vietnam Linux Family (the dark re-tint, tools/build-delight-dark-theme.py)
+License: GPL-3+
+Comment: Made from Mint-Relaxed, which is under the GNU GPL version 3; see
+ README.Mint-Relaxed.md in the theme folder.
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify it under
+ the terms of the GNU General Public License as published by the Free Software
+ Foundation, either version 3 of the License, or (at your option) any later
+ version.
+ .
+ This program is distributed in the hope that it will be useful, but WITHOUT ANY
+ WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+ PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ .
+ On Debian systems, the complete text of the GNU General Public License version
+ 3 can be found in /usr/share/common-licenses/GPL-3.

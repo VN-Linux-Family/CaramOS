@@ -80,7 +80,10 @@ compile_sources() {
     usr/bin/caramos-ota-notifier \
     usr/bin/caramos-ota-update \
     usr/share/caramos-ota/driver-check/caramos-driver-check-helper \
-    $(find usr/lib/python3/dist-packages usr/share/caramos-ota/driver-check -name '*.py' | sort)
+    usr/bin/caramos-unicode \
+    usr/bin/caramos-windows-transfer \
+    $(find usr/lib/python3/dist-packages usr/share/caramos-ota/driver-check -name '*.py' | sort) \
+    $(find usr/share/caramos-ota/unicode usr/share/caramos-ota/windows-transfer -name '*.py' | sort)
   rm -rf "${pycache_prefix}"
   trap - RETURN
   echo "[OK] Python compile passed"

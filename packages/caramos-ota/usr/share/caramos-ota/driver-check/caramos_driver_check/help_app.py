@@ -60,6 +60,9 @@ def main(argv: list[str] | None = None) -> int:
         print("caramos-help: no desktop session", file=sys.stderr)
         return 1
 
+    from caramos_ota import gtk_renderer
+
+    gtk_renderer.apply()  # cairo where OpenGL would run on the CPU
     import gi
 
     gi.require_version("Gtk", "4.0")

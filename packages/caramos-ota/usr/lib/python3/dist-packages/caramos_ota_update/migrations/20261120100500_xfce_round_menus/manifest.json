@@ -1,0 +1,22 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["xfce"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Giao diện (dưới 1 MB)",
+  "size_en": "Look (under 1 MB)",
+  "title": "Menu Start bo tròn góc",
+  "summary": "Menu Start bo tròn góc và có nền như bảng Control Center, như các đảo của thanh tác vụ.",
+  "title_en": "Round corners for the Start menu",
+  "summary_en": "The Start menu has round corners and the Control Center's background, like the islands of the taskbar.",
+  "release_notes_vi": [
+    "Menu Start bo tròn góc và có nền như bảng Control Center; mục đang trỏ chuột và ô tìm kiếm cũng bo tròn.",
+    "Hiện ra từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "The Start menu has round corners and the Control Center's background; the item under the pointer and the search box are round too.",
+    "Shows from the next login."
+  ]
+}

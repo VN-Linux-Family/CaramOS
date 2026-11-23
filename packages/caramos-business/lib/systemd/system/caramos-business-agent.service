@@ -1,0 +1,24 @@
+# CaramOS Doanh nghiệp, employee machine: fetches the company's signed settings from the admin machine, applies them
+# and reports back (PROTOCOL.md). Enabled by caramos-business-helper at pairing. It writes the session parts' inboxes
+# in /run/caramos-business/inbox/<uid>, and reads and removes the users' status and outbox files in
+# /run/user/<uid>/caramos-business.
+#
+# From 0.2 it changes system files when the company turns a feature on (/etc/hosts, browser policies,
+# NetworkManager profiles, udev and polkit rules, printers, the firewall) and installs or removes apps through App
+# Center's helper (apt, flatpak), so none of systemd's hardening fits it but PrivateTmp: see PROTOCOL.md part 2,
+# "The service unit".
+[Unit]
+Description=CaramOS Business: takes the company's settings from the admin machine
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/caramos-business/agent.json
+
+[Service]
+ExecStart=/usr/lib/caramos-business/caramos-business-agent daemon
+Restart=on-failure
+RestartSec=30
+StateDirectory=caramos-business
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -189,7 +189,10 @@ class _Analysis:
                  proposals: Sequence[DriverProposal]) -> None:
         self.snapshot = snapshot
         self.fingerprint_support = fingerprint_support
-        self.proposals = {proposal.address: proposal for proposal in proposals if proposal.address}
+        self.proposals = {proposal.address: proposal for proposal in proposals if proposal.address and proposal.usable}
+        # Drivers Ubuntu lists that cannot work with the running kernel (NVIDIA 470 on Linux 6.12+): never offered.
+        self.blocked_proposals = {proposal.address: proposal for proposal in proposals
+                                  if proposal.address and not proposal.usable}
         self.used_proposals: set[str] = set()
         self.findings: list[Finding] = []
         self.areas: dict[str, AreaStatus] = {}
@@ -395,6 +398,18 @@ class _Analysis:
                 "failed": _("The network port does not start"),
                 "no-driver": _("The network port has no driver"),
             }
+            if reason == "failed" and device.address in self.snapshot.ulp_stuck:
+                # Intel's Ultra Low Power mode: no firmware or kernel to update, the port needs power off (H-1174).
+                self._add("ethernet", level, f"ethernet:low-power:{device.key}",
+                          _("The network port is stuck in power saving"), _(
+                              "The network port is stuck in Intel's deepest power-saving mode, which often happens after "
+                              "the computer was shut down from Windows or started without a network cable. Shut the "
+                              "computer down completely, unplug the charger (and the battery if it comes out) for about "
+                              "30 seconds, plug in the network cable and start it again. If Windows is also installed, "
+                              "open Device Manager in Windows, then the Intel network card, Advanced tab, and turn off "
+                              "“Ultra Low Power Mode”; turning off Fast Startup helps too."
+                          ) + self._live_note(), device, (_action(REPORT),), connect_help=level == CRITICAL)
+                continue
             self._add("ethernet", level, f"ethernet:{reason}:{device.key}", titles[reason],
                       self._explain(device, reason, device.driver) + self._live_note(), device,
                       self._actions_for(reason), connect_help=level == CRITICAL and reason != "restart")
@@ -524,6 +539,27 @@ class _Analysis:
             self._add("graphics", INFO, f"graphics:nvidia:{device.key}", _("Install the NVIDIA driver after installing"),
                       why + " " + _("After installing CaramOS, Driver Check helps you install the NVIDIA driver "
                                     "(it needs internet)."), device)
+            return
+        blocked = self.blocked_proposals.get(device.address)
+        if proposal is None and blocked is not None:
+            # Ubuntu's only driver for this card cannot work with this kernel (NVIDIA 470 for Kepler cards such as
+            # the GeForce GT 730 on Linux 6.14): installing it from Driver Manager breaks dpkg (H-1094, H-1177).
+            version = blocked.version or blocked.package
+            kernel = kernel_version(self.snapshot.kernel)
+            if device.driver == "nouveau":
+                self._add("graphics", INFO, f"graphics:nvidia-none:{device.key}",
+                          _("The NVIDIA card runs on the open-source driver"), _(
+                              "NVIDIA %s, the only NVIDIA driver for this card, does not work with Linux %s, so the "
+                              "open-source nouveau driver is the right one for it. Do not install NVIDIA %s from Driver "
+                              "Manager: it would fail and stop other software from installing."
+                          ) % (version, kernel, version), device)
+            else:
+                self._add("graphics", WARNING, f"graphics:nvidia-none:{device.key}",
+                          _("The NVIDIA card has no driver"), _(
+                              "NVIDIA %s, the only NVIDIA driver for this card, does not work with Linux %s, and the "
+                              "open-source nouveau driver did not start either. Ask the community for help with the "
+                              "button below."
+                          ) % (version, kernel), device, (_action(REPORT),))
             return
         if proposal is None:
             self._add("graphics", WARNING, f"graphics:nvidia:{device.key}", _("Install the NVIDIA driver"),

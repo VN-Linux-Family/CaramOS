@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Công cụ chuyển từ Windows, pst-utils (dưới 1 MB)",
+  "size_en": "Windows migration tools, pst-utils (under 1 MB)",
+  "title": "Chuyển từ Windows sang dễ hơn",
+  "summary": "Ứng dụng mới Chuyển dữ liệu từ Windows chép tài liệu, ảnh, dấu trang, thư Outlook và phông chữ từ máy cũ. Văn bản cũ gõ bằng TCVN3 hay VNI: chuột phải vào tệp, chọn Chuyển mã sang Unicode.",
+  "title_en": "Moving from Windows is easier",
+  "summary_en": "The new Windows Data Transfer app copies documents, pictures, bookmarks, Outlook mail and fonts from the old computer. Old documents typed in TCVN3 or VNI: right-click the file and choose Convert to Unicode.",
+  "release_notes_vi": [
+    "Mở menu, tìm Chuyển dữ liệu từ Windows. Chọn ổ Windows trên máy này, ổ cứng của máy cũ cắm qua USB, hay thư mục chia sẻ của máy cũ trên mạng, rồi chọn tài khoản và những gì cần chép. Máy Windows không bị thay đổi gì.",
+    "Màn hình nền, Tài liệu, Ảnh, Tải về, Nhạc, Video và tệp nhận qua Zalo vào đúng thư mục của máy này. Tệp trùng tên được đặt tên mới có “(2)”, không ghi đè tệp nào.",
+    "Dấu trang của Chrome, Edge và Cốc Cốc gom vào một tệp để nhập vào Firefox. Thư Outlook (.pst) thành tệp thư mở được bằng Thunderbird. Phông chữ bạn tự cài được cài lại cho tài khoản này. Cuối cùng chọn kiểu gõ quen dùng: Telex hay VNI.",
+    "Văn bản cũ gõ bằng phông .VnTime hay VNI-Times hiện ra toàn ký tự lạ: bấm chuột phải vào tệp trong Tệp, chọn Chuyển mã sang Unicode. Một tệp mới có “(Unicode)” trong tên hiện ra bên cạnh, dùng phông Times New Roman; tệp cũ giữ nguyên.",
+    "Kiểm tra driver có thêm nút Lưu báo cáo: lưu kết quả kiểm tra thành một trang web, chẳng hạn vào USB khi chạy thử CaramOS trên máy văn phòng."
+  ],
+  "release_notes_en": [
+    "Open the menu and look for Windows Data Transfer. Choose the Windows disk of this computer, the old computer's disk on a USB adapter, or a shared folder of the old computer on the network, then the account and what to copy. Nothing on the Windows side is changed.",
+    "Desktop, Documents, Pictures, Downloads, Music, Videos and the files received in Zalo go into the matching folders here. A file whose name is taken gets “(2)” in its name; nothing is overwritten.",
+    "Bookmarks of Chrome, Edge and Cốc Cốc come together in one file to import into Firefox. Outlook mail (.pst) becomes mail files Thunderbird opens. Fonts you installed are installed again for your account. Last, choose the typing method you know: Telex or VNI.",
+    "Old documents typed in .VnTime or VNI-Times show strange characters: right-click the file in Files and choose Convert to Unicode. A new file with “(Unicode)” in its name appears next to it, in Times New Roman; the old file stays as it was.",
+    "Driver Check has a Save report button: it saves what the check found as a web page, for example onto a USB drive while trying CaramOS on an office computer."
+  ]
+}

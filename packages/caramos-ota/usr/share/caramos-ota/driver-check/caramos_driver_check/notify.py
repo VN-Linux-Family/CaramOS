@@ -79,6 +79,19 @@ def _start(argv: list[str]) -> None:
     subprocess.Popen(argv, start_new_session=True, stdin=subprocess.DEVNULL)
 
 
+
+def draws_default_action(Notify) -> bool:
+    """Whether the notification server shows the "default" action as a button (xfce4-notifyd) instead of opening it
+    on a click on the notification (Cinnamon, GNOME)."""
+
+    try:
+        info = Notify.get_server_info()
+    except Exception:   # noqa: BLE001 - an old libnotify or no server: the Cinnamon way
+        return False
+    name = info[1] if isinstance(info, tuple) and len(info) > 1 else ""
+    return "xfce" in str(name).lower()
+
+
 def _show(app: str, desktop_entry: str, icon: str, title: str, body: str, wait_seconds: int, button: str,
           on_open: Callable[[], Any]) -> int:
     try:
@@ -99,7 +112,10 @@ def _show(app: str, desktop_entry: str, icon: str, title: str, body: str, wait_s
         loop.quit()
 
     if "actions" in (Notify.get_server_caps() or []):
-        note.add_action("default", button, open_app)
+        # Cinnamon opens the "default" action on a click on the notification and shows the others as buttons;
+        # xfce4-notifyd shows every action as a button, so there it would be the same button twice.
+        if not draws_default_action(Notify):
+            note.add_action("default", button, open_app)
         note.add_action("open", button, open_app)
 
     def closed(closed_note) -> None:

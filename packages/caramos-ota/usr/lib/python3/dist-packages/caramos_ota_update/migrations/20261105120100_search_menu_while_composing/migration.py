@@ -13,7 +13,7 @@ Hook 0170 copies Cinnamenu from the spices repository, as it was when the ISO wa
 connects the search entry in one line through `this.appThis`, the one of 1.3.3 over four lines through
 `this.applet`. This patches each version folder whose code has the lines the change goes into, in either
 form, and leaves any other one as it is. Cinnamenu is reloaded in the sessions of logged-in users, so the
-menu works at once.
+menu works at once (after an automatic update, from their next login).
 """
 
 from __future__ import annotations
@@ -125,6 +125,10 @@ def patch_folder(context: MigrationContext, folder: Path) -> bool:
 
 
 def _reload_in_sessions(context: MigrationContext) -> None:
+    if getattr(context, "unattended", False):
+        # An automatic update: a reload would close the menu and flash the panel under someone at work.
+        context.log("automatic update: the Start Menu changes at the next login")
+        return
     reloaded = False
     for user in start_fcitx._desktop_users():
         environment = start_fcitx.session_environment(user.pw_uid)

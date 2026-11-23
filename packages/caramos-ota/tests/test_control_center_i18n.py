@@ -369,6 +369,11 @@ class ControlCenterGettextTests(unittest.TestCase):
     def test_xfce_string_literals_are_not_vietnamese(self) -> None:
         offenders = []
         for path in sorted(XFCE_CC.rglob("*.py")):
+            if path.name == "lunar.py":
+                # The lunar date in words, as the Cinnamon calendar writes it (migration 20261120100200): Vietnamese
+                # by itself ("mùng 5 tháng Giêng"), and the year's name of the sixty-year cycle, a name in every
+                # language. tests/test_xfce_lunar_clock.py checks its words.
+                continue
             for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
                 if isinstance(node, ast.Constant) and isinstance(node.value, str) and VIETNAMESE.search(node.value):
                     offenders.append(f"{path.name}:{node.lineno}: {node.value!r}")

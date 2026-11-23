@@ -1,0 +1,12 @@
+{
+ "method": "GET",
+ "path": "/caramos-business/v1/policy",
+ "time": 1795200000,
+ "body": "",
+ "message": "GET\n/caramos-business/v1/policy\n1795200000\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+ "headers": {
+  "X-Caramos-Machine": "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6",
+  "X-Caramos-Time": "1795200000",
+  "X-Caramos-Mac": "q9RJTQrpN5QSycgN9uIWezvLXXA379NjhzKAiH168DQ="
+ }
+}

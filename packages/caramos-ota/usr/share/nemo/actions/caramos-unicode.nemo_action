@@ -1,0 +1,13 @@
+[Nemo Action]
+# Chuyển mã sang Unicode (caramos-ota): old Vietnamese TCVN3 (ABC) and VNI text to Unicode, into a new file
+# "<name> (Unicode).<ext>" next to the old one. Labels are translated here, as Nemo reads them from this file.
+Name=Convert to Unicode
+Name[vi]=Chuyển mã sang Unicode
+Comment=Convert old Vietnamese text (TCVN3, VNI) into a new Unicode file next to this one
+Comment[vi]=Chuyển chữ tiếng Việt kiểu cũ (TCVN3, VNI) sang Unicode, ghi ra một tệp mới bên cạnh
+Exec=/usr/bin/caramos-unicode --gui %F
+Icon-Name=accessories-character-map
+Selection=notnone
+Extensions=txt;csv;html;htm;rtf;doc;docx;xls;xlsx;pptx;odt;ods;odp;
+Quote=double
+Dependencies=python3;

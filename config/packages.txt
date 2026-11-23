@@ -5,3 +5,11 @@
 # Display Manager: Giữ nguyên LightDM + Slick-Greeter mặc định của Mint
 #5 @dungdinhmanh
 flameshot
+# Lịch sử clipboard (Super+V, ticket H-1182): CopyQ chỉ chạy từ lần bấm Super+V đầu tiên
+copyq
+# Độ sáng màn hình rời trong Control Center (DDC/CI, ticket H-1183)
+ddcutil
+# Bộ chuyển từ Windows: Carlito cùng độ rộng chữ với Calibri, đủ tiếng Việt (migration 20261122100000);
+# readpst chuyển thư Outlook (.pst) cho "Chuyển dữ liệu từ Windows" (migration 20261122100200)
+fonts-crosextra-carlito
+pst-utils

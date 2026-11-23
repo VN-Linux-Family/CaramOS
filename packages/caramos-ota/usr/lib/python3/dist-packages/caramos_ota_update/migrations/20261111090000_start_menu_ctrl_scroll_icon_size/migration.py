@@ -33,7 +33,8 @@ Hook 0170 copies Cinnamenu from the spices repository, as it was when the ISO wa
 ISOs carry Cinnamenu 5.4.14, whose apps view reaches the applet through `this.appThis` and clears itself with
 clearApps(). The ISOs built after 2026-10-30 carry 5.7, with `this.applet` and clearAppsView(). Each version folder
 whose apps view has the lines the change goes into, in either form, is patched, and any other is left as it is.
-Cinnamenu is reloaded in the sessions of logged-in users, so the change works at once.
+Cinnamenu is reloaded in the sessions of logged-in users, so the change works at once (after an
+automatic update, from their next login).
 """
 
 from __future__ import annotations

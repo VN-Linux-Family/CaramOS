@@ -48,6 +48,12 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         help=argparse.SUPPRESS,
     )
+    # An automatic update (caramos-ota --auto-upgrade): migrations leave open desktops as they are (context.py).
+    parser.add_argument(
+        "--unattended",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     return parser
 
 
@@ -85,7 +91,10 @@ def main(argv: list[str] | None = None) -> int:
         context = MigrationContext(
             dry_run=args.dry_run,
             release_values=release_values,
+            unattended=args.unattended,
         )
+        if args.unattended:
+            log_info("Automatic update: open desktops change from their next login")
         runner = MigrationRunner(context=context)
         runner.run(current_version=current_version, target_version=target_version)
     except MigrationRunnerError as exc:

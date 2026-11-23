@@ -1,0 +1,11 @@
+#!/usr/bin/python3 -I
+"""Root side of the Update Center's "Automatic updates" switch, run through pkexec (polkit action
+net.vietnamlinuxfamily.caramos-ota.auto-update, administrators only): caramos-auto-update-helper on|off.
+It writes /etc/caramos-ota/auto-update.conf; see caramos_ota/auto_update.py."""
+
+import sys
+
+from caramos_ota.auto_update import helper_main
+
+if __name__ == "__main__":
+    sys.exit(helper_main(sys.argv[1:]))

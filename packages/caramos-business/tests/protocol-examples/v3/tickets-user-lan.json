@@ -1,0 +1,27 @@
+{
+ "version": 7,
+ "tickets": [
+  {
+   "id": "HT-0007",
+   "user": "lan",
+   "created": "2026-11-23T08:10:00+07:00",
+   "status": "working",
+   "note": "Máy in không in được",
+   "updates": [
+    {
+     "time": "2026-11-23T08:30:00+07:00",
+     "status": "working",
+     "text": "Bên mình đang xem, chiều nay xong."
+    }
+   ]
+  },
+  {
+   "id": "HT-0006",
+   "user": "lan",
+   "created": "2026-11-22T10:00:00+07:00",
+   "status": "new",
+   "note": "Cài giúp phần mềm kế toán",
+   "updates": []
+  }
+ ]
+}

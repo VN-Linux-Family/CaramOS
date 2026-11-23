@@ -4,3 +4,5 @@ nemo
 nemo-fileroller
 # Bản dịch tiếng Việt của Nemo (Mint Xfce không cài sẵn)
 cinnamon-l10n
+# Phím Super bấm riêng mở menu Start, Super+phím khác không mở theo (caramos-super-key)
+xcape

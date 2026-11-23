@@ -1,6 +1,7 @@
 /* CaramOS Xfce: the panels as the three islands of CaramOS Cinnamon, 40 px high and 4 px above the bottom of the
    screen. Left: the CaramOS menu, a circle. Middle: the dock (pinned and open apps). Right: the tray, the clock, the
-   Control Center and Feedback & Help.
+   Control Center and Feedback & Help. At the end: the CaramOS menu, round like them (the right-click menus of both
+   editions are ../gtk/round-menus.css).
 
    The Cinnamon-Delight theme imports this file on the Xfce edition, and Cinnamon-Delight-Dark imports
    panel-islands-dark.css, which is this file with the dark colours (tests/test_xfce_panel_islands.py checks that).
@@ -16,6 +17,11 @@
 @define-color caramos_island_ring rgba(31, 79, 50, 0.16);
 @define-color caramos_island_hover rgba(31, 79, 50, 0.10);
 @define-color caramos_island_fg #3d3833;
+@define-color caramos_menu rgb(240, 238, 237);
+@define-color caramos_menu_ring rgba(0, 0, 0, 0.10);
+@define-color caramos_menu_hover rgba(0, 0, 0, 0.07);
+@define-color caramos_menu_field rgba(255, 255, 255, 0.90);
+@define-color caramos_menu_fg rgba(48, 48, 48, 0.94);
 
 #XfcePanelWindow,
 #XfcePanelWindowWrapper,
@@ -114,7 +120,8 @@
   background-color: @caramos_island_hover;
 }
 
-/* The clock and the help button: their piece of the island, from 4 px to 44 px. */
+/* The clock and the help button: their piece of the island, from 4 px to 44 px. The clock is the Control
+   Center's (it shows the lunar calendar), with the name of Xfce's clock, which drew the same piece. */
 #clock-button,
 #launcher-6 button {
   margin: 4px 0;
@@ -129,8 +136,9 @@
   color: @caramos_island_fg;
 }
 
+/* 1 px at the sides: what xfce4-panel gave its own clock, over this theme's padding (CaramOS 1.4.0). */
 #clock-button {
-  padding: 0 4px 0 6px;
+  padding: 0 1px;
 }
 
 /* Feedback & Help ends the island. Its launcher is a square as wide as the panel is high: the icon sits at the left,
@@ -200,4 +208,69 @@
 #caramos-cc-indicator .caramos-cc-panel-battery {
   font-weight: bold;
   font-size: 0.86em;
+}
+
+/* The CaramOS menu, round like the islands and the Control Center (users asked for it after 1.4.0). */
+
+/* The CaramOS menu (Whisker): a card like the Control Center's popup. Whisker paints its window from these rules, and
+   the corners outside the round ones are clear only when the window has transparency, which Whisker gives it when
+   its menu opacity is under 100: CaramOS sets 99 (menu-opacity in /etc/xdg/caramos-xfce/xfce4/panel/whiskermenu-1.rc),
+   which looks opaque. */
+#whiskermenu-window {
+  border-radius: 20px;
+  background-color: @caramos_menu;
+  color: @caramos_menu_fg;
+}
+
+#whiskermenu-window > frame > border {
+  border: 1px solid @caramos_menu_ring;
+  border-radius: 20px;
+}
+
+/* The list of applications on the card itself, a row lit like the Control Center's tiles. */
+#whiskermenu-window scrolledwindow,
+#whiskermenu-window treeview.view,
+#whiskermenu-window iconview.view {
+  border: none;
+  background-color: transparent;
+  color: @caramos_menu_fg;
+}
+
+#whiskermenu-window treeview.view:selected,
+#whiskermenu-window treeview.view:hover,
+#whiskermenu-window iconview.view:selected {
+  border-radius: 10px;
+  background-color: @caramos_menu_hover;
+  color: @caramos_menu_fg;
+}
+
+/* The categories and the buttons at the top: flat, lit when pointed at or chosen. */
+#whiskermenu-window .categories button,
+#whiskermenu-window .commands-area button {
+  border: none;
+  border-radius: 10px;
+  background-image: none;
+  background-color: transparent;
+  box-shadow: none;
+  color: @caramos_menu_fg;
+}
+
+#whiskermenu-window .commands-area button {
+  border-radius: 999px;
+}
+
+#whiskermenu-window .categories button:hover,
+#whiskermenu-window .categories button:checked,
+#whiskermenu-window .commands-area button:hover,
+#whiskermenu-window .commands-area button:active {
+  background-color: @caramos_menu_hover;
+}
+
+#whiskermenu-window .search-area entry {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid @caramos_menu_ring;
+  background-color: @caramos_menu_field;
+  box-shadow: none;
 }

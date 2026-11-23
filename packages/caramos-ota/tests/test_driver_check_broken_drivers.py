@@ -51,7 +51,11 @@ class ProposalTests(unittest.TestCase):
         self.assertEqual(["nvidia-driver-470"], [p.package for p in drivers.proposals_from(DEVICES, lambda name: False)])
 
     def test_no_usable_driver_means_no_one_click_offer(self) -> None:
-        self.assertEqual([], drivers.proposals_from(DEVICES, lambda name: False, lambda name: not name.startswith("nvidia")))
+        # The driver Ubuntu would pick comes back marked unusable, only so Driver Check can say why there is no offer
+        # (ticket H-1177); the analysis offers usable drivers alone.
+        found = drivers.proposals_from(DEVICES, lambda name: False, lambda name: not name.startswith("nvidia"))
+        self.assertEqual([], [proposal for proposal in found if proposal.usable])
+        self.assertEqual([("nvidia-driver-470", False)], [(proposal.package, proposal.usable) for proposal in found])
 
     def test_a_broken_install_does_not_count_as_installed(self) -> None:
         # find_proposals() treats a half-configured package as missing; one fully installed driver stops the offer.

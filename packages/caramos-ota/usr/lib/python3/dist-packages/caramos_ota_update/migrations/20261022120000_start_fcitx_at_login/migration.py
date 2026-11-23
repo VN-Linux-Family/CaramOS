@@ -12,7 +12,7 @@ the tray and typing gave Telex letters without accents, from CaramOS 1.3.0 on.
 
 The helper now also starts Fcitx when it is not running. The session still runs only one of the two entries,
 so a computer whose org.fcitx.Fcitx5.desktop came first changes nothing. People logged in during the update
-get Fcitx started in their session at once.
+get Fcitx started in their session at once, unless an automatic update runs it: then at their next login.
 """
 
 from __future__ import annotations
@@ -184,5 +184,9 @@ def run(context: MigrationContext) -> None:
         return
     if not SYSTEMD_RUNTIME.is_dir():
         context.log("systemd is not running (ISO build); Fcitx starts at each login")
+        return
+    if getattr(context, "unattended", False):
+        # An automatic update: Fcitx starting in Vietnamese mode would change the letters someone is typing.
+        context.log("automatic update: Fcitx starts at the next login")
         return
     _start_in_sessions(context)

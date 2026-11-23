@@ -26,7 +26,9 @@
 6. Do not select new migrations by product version.
 7. Legacy `v1_0_2..v1_0_12` migrations are compatibility-only and frozen.
 8. Migrations use APT/PPA for package installation. Do not download `.deb` files manually.
-9. The systemd timer only checks/prepares state. It must not apply migrations automatically.
+9. The systemd timer only checks/prepares state. After the check, `caramos-ota-auto-update.service` installs the update
+   when automatic updates are on (the default) and nothing stops it; migrations with
+   `"unattended": "nobody-logged-in"` wait until nobody is logged in. See `caramos_ota/auto_update.py` and `MIGRATIONS.md`.
 10. Local `make compile`, `make validate`, and `make build` do not require `VERSION`. Only `make release VERSION=x.y.z` receives the product version.
 
 ---
@@ -291,7 +293,7 @@ If true rollback is required, each migration needs its own tested `rollback(cont
 - Avoid `shell=True` unless required.
 - Do not download `.deb` files manually from the Internet.
 - Do not auto-add PPAs.
-- Do not auto-install from the systemd timer.
+- The timer only checks; only `caramos-ota-auto-update.service` installs by itself, when automatic updates are on.
 - Log every migration step.
 - Keep migrations rerunnable as much as possible.
 - Package installation must go through APT/PPA.

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Business
+Comment=Applies the company's wallpaper and folders on an employee machine
+Exec=/usr/lib/caramos-business/caramos-business-agent session
+NoDisplay=true
+X-GNOME-Autostart-enabled=true

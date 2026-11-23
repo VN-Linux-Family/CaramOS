@@ -20,7 +20,8 @@ search off. Measured in the test VMs, with the longest stall of Cinnamon's main 
 The search now takes the type of a file from its name (standard::fast-content-type, read with the folder, and
 the icon of that type), and stays on the file system of the folder it starts in, as `find -xdev` does. The
 Cinnamenu version folders whose search has the code the change goes into are patched; any other is left as it
-is. Cinnamenu is reloaded in the sessions of logged-in users.
+is. Cinnamenu is reloaded in the sessions of logged-in users (after an automatic update,
+at their next login).
 """
 
 from __future__ import annotations

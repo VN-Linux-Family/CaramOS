@@ -71,7 +71,8 @@ class Scanner:
             note(f"driver lookup skipped: {found.detail}")
         elif found.outcome == "done":
             peak = resource.getrusage(resource.RUSAGE_CHILDREN).ru_maxrss // 1024
-            names = ", ".join(proposal.package for proposal in found.proposals) or "none"
+            names = ", ".join(proposal.package + ("" if proposal.usable else " (not for this kernel)")
+                              for proposal in found.proposals) or "none"
             note(f"driver lookup for {found.detail}: {found.seconds:.1f} s, peak {peak} MB, proposals: {names} · "
                  f"{system_summary()}")
         elif found.outcome == "timeout":
@@ -105,6 +106,9 @@ def has_display() -> bool:
 
 
 def open_window() -> int:
+    from caramos_ota import gtk_renderer
+
+    gtk_renderer.apply()  # cairo where OpenGL would run on the CPU
     import gi
 
     gi.require_version("Gtk", "4.0")

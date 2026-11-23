@@ -40,8 +40,11 @@ import subprocess
 import sys
 import threading
 from collections.abc import Callable
-from dataclasses import dataclass
 from pathlib import Path
+
+# The free space check, shared with automatic updates (caramos_ota.auto_update); its names stay helper.X as well.
+from caramos_ota.diskspace import (  # noqa: F401
+    BOOT_MARGIN, KERNEL_FILES, MIB, ROOT_MARGIN, Needs, Shortage, mount_point, shortages)
 
 from . import canon_capt
 from .drivers import NVIDIA_DRIVER, ON_INSTALL_MEDIA, one_click
@@ -68,14 +71,6 @@ MEDIA_INFO = Path("/media/mintdrivers/.disk/info")
 # What Driver Manager unloads before loading Broadcom's wl driver, so Wi-Fi works without a restart.
 BROADCOM_CONFLICTS = ("b44", "b43", "b43legacy", "ssb", "brcmsmac", "bcma")
 
-MIB = 1024 * 1024
-# Room kept beyond APT's own figures: the NVIDIA modules are linked while installing and are in no
-# Installed-Size (about 200 MiB for 580), and a nearly full file system (btrfs above all) fails before it
-# reaches zero. Asking for a little too much only means freeing a little more; too little breaks dpkg.
-ROOT_MARGIN = 1024 * MIB
-BOOT_MARGIN = 32 * MIB
-# vmlinuz, System.map and config of one kernel, which sit in /boot next to its initramfs.
-KERNEL_FILES = 64 * MIB
 # The size of an initramfs when the running kernel's cannot be read.
 DEFAULT_INITRAMFS = 128 * MIB
 KERNEL_IMAGE = re.compile(r"^linux-image-(\d\S*)$")
@@ -247,24 +242,6 @@ def kernel_for_modules(packages: list[str], cache) -> list[str]:
     return found
 
 
-@dataclass(frozen=True)
-class Needs:
-    """What an install takes, as APT resolves it: bytes to download, bytes unpacked, and the kernels it adds."""
-
-    download: int
-    installed: int
-    kernels: tuple[str, ...] = ()
-
-
-@dataclass(frozen=True)
-class Shortage:
-    """A file system (by its mount point) without room for the install."""
-
-    path: str
-    need: int
-    free: int
-
-
 def needs(cache, packages: list[str]) -> Needs:
     """Mark packages the way apt-get install does and read the sizes APT would print.
 
@@ -290,52 +267,6 @@ def needs(cache, packages: list[str]) -> Needs:
     kernels = tuple(match.group(1) for package in cache.packages
                     if depcache.marked_install(package) and (match := KERNEL_IMAGE.match(package.name)))
     return Needs(download, depcache.usr_size, kernels)
-
-
-def mount_point(path: str, stat: Callable = os.stat) -> str:
-    """The mount point of the file system path is on: its highest parent on the same device."""
-
-    path = os.path.abspath(path)
-    device = stat(path).st_dev
-    while path != "/":
-        parent = os.path.dirname(path)
-        if stat(parent).st_dev != device:
-            break
-        path = parent
-    return path
-
-
-def shortages(need: Needs, archives: str, initramfs: int, *, stat: Callable = os.stat,
-              statvfs: Callable = os.statvfs) -> list[Shortage]:
-    """The file systems that lack room for the install.
-
-    / takes the unpacked files, the archive cache the download, and /boot an initramfs for each new kernel plus
-    the rebuilt one of the running kernel (the NVIDIA and DKMS packages rebuild it). When they share a file
-    system, their needs add up there.
-    """
-
-    wanted = (
-        ("/", max(need.installed, 0) + ROOT_MARGIN),
-        ("/boot", len(need.kernels) * (initramfs + KERNEL_FILES) + initramfs + BOOT_MARGIN),
-        (archives, need.download),
-    )
-    totals: dict[int, list] = {}
-    for path, size in wanted:
-        try:
-            device = stat(path).st_dev
-        except OSError:
-            continue
-        if device in totals:
-            totals[device][1] += size
-        else:
-            totals[device] = [path, size]
-    found = []
-    for path, size in totals.values():
-        info = statvfs(path)
-        free = info.f_bavail * info.f_frsize
-        if size > free:
-            found.append(Shortage(mount_point(path, stat), size, free))
-    return found
 
 
 def check_space(cache, packages: list[str]) -> list[Shortage]:

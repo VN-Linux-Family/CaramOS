@@ -1,0 +1,27 @@
+{
+ "proof_key_hex": "770696546fb43dff409e08e89da423515108d365eaa4726ebd93bafaea498ea6",
+ "E": "{\"admin_key\":\"A6EHv/POEL4dcN0Y50vAmWfk1jCbpQ1fHdyGZBJVMbg=\",\"kind\":\"caramos-business/3 enroll\",\"machine\":{\"edition\":\"cinnamon\",\"ip\":\"192.168.1.20\",\"mac\":\"52:54:00:12:34:56\",\"name\":\"ke-toan-01\",\"version\":\"1.4.0\"},\"machine_box_key\":\"eaYx7t4b+cmPEgMs3q3Q56B5OY/HhriMyEbsia+FpRo=\",\"time\":1795200000,\"token_id\":\"a1b2c3d4e5f60718\"}",
+ "request": {
+  "token_id": "a1b2c3d4e5f60718",
+  "time": 1795200000,
+  "machine": {
+   "name": "ke-toan-01",
+   "ip": "192.168.1.20",
+   "mac": "52:54:00:12:34:56",
+   "edition": "cinnamon",
+   "version": "1.4.0"
+  },
+  "box_key": "eaYx7t4b+cmPEgMs3q3Q56B5OY/HhriMyEbsia+FpRo=",
+  "proof": "sMlZR7JrN3O5D28vbd4U54ikQUKHdHaOydA0cl665yU="
+ },
+ "answer": {
+  "machine_id": "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6",
+  "state": "pending",
+  "confirm": "dmi3Q72ugC3oF7hs9pxxI3PvU4nPv99f05LAhpbWNbk="
+ },
+ "admin_keeps": {
+  "enroll-keys.json": {
+   "a1b2c3d4e5f60718": "770696546fb43dff409e08e89da423515108d365eaa4726ebd93bafaea498ea6"
+  }
+ }
+}

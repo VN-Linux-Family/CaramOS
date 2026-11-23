@@ -1,0 +1,8 @@
+{
+ "hello": "ubuntu-main",
+ "cowsay": "ubuntu-universe",
+ "caramos-local-test": "local-deb",
+ "google-chrome-stable": "third-party:dl.google.com",
+ "caramos-ota": "caramos-ppa",
+ "mint-common": "mint"
+}

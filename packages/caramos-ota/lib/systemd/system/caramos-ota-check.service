@@ -2,6 +2,10 @@
 Description=CaramOS OTA check for updates
 After=network-online.target
 Wants=network-online.target
+# Automatic updates: when the check succeeds, install what it found unless they are off or something stops them
+# (caramos_ota.auto_update). The update needs the home folders this check cannot write (ProtectHome), so it is a unit
+# of its own.
+OnSuccess=caramos-ota-auto-update.service
 
 [Service]
 Type=oneshot

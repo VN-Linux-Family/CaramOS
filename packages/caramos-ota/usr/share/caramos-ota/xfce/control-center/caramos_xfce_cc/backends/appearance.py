@@ -36,6 +36,10 @@ ACCENT_WORDS = (("aqua", "blue"), ("blue", "blue"), ("teal", "teal"), ("green", 
                 ("orange", "orange"), ("yellow", "orange"), ("sand", "orange"), ("brown", "orange"))
 
 
+# The Variant field each xsettings property comes from.
+KEYS = {"/Net/IconThemeName": "icons", "/Gtk/CursorThemeName": "cursor"}
+
+
 @dataclass
 class Variant:
     name: str
@@ -151,10 +155,13 @@ class Appearance(GObject.Object):
         if self.portal is not None:
             self.portal.set_string("color-scheme", "prefer-dark" if dark else "default")
         self.xsettings.set_string("/Net/ThemeName", variant.gtk)
-        if variant.icons:
-            self.xsettings.set_string("/Net/IconThemeName", variant.icons)
-        if variant.cursor:
-            self.xsettings.set_string("/Gtk/CursorThemeName", variant.cursor)
+        # Icons or a cursor the user picked in Appearance (square Mint-Y icons, say) stay: only CaramOS's own
+        # light and dark sets are swapped for each other.
+        for prop, wanted in (("/Net/IconThemeName", variant.icons), ("/Gtk/CursorThemeName", variant.cursor)):
+            current = self.xsettings.get_string(prop, "")
+            ours = {other for other in (getattr(self.light, KEYS[prop]), getattr(self.dark, KEYS[prop])) if other}
+            if wanted and (not current or current in ours):
+                self.xsettings.set_string(prop, wanted)
         if has_xfwm4_theme(variant.gtk):
             self.xfwm4.set_string("/general/theme", variant.gtk)
         self._switch_wallpaper(dark)
@@ -169,6 +176,21 @@ class Appearance(GObject.Object):
                     self.desktop.set_string(prop, target)
 
     # -- accent ----------------------------------------------------------------------------------------------------
+
+    # The volume step of the volume keys and of scrolling over the indicator (ticket H-1180), in percent.
+    VOLUME_STEPS = (2, 5, 10)
+
+    @property
+    def has_volume_step(self) -> bool:
+        return self.accent_settings is not None and self.accent_settings.props.settings_schema.has_key("volume-step")
+
+    def volume_step(self) -> int:
+        step = self.accent_settings.get_int("volume-step") if self.has_volume_step else 5
+        return max(1, min(20, step or 5))
+
+    def set_volume_step(self, step: int) -> None:
+        if self.has_volume_step:
+            self.accent_settings.set_int("volume-step", step)
 
     def accent_choice(self) -> str:
         return self.accent_settings.get_string("accent-color") if self.accent_settings else "orange"

@@ -549,12 +549,34 @@ class OldOfficeTests(FileTestCase):
             docx(outdir / "document.docx", "<w:p>" + run("Hµ Néi", ".VnTime") + "</w:p>")
             return subprocess.CompletedProcess(command, 0, b"", b"")
 
-        with mock.patch.object(formats.subprocess, "run", side_effect=fake_soffice):
+        with mock.patch.object(formats.subprocess, "run", side_effect=fake_soffice), \
+                mock.patch.dict(os.environ, {"XDG_CACHE_HOME": str(self.dir / "cache")}):
             result = formats.convert_old_office(source, office=lambda: ["soffice"])
         self.assertEqual(self.dir / "cũ (Unicode).docx", result.output)
         self.assertIn(">Hà Nội<", read_zip(result.output)["word/document.xml"])
         self.assertIn("--headless", calls[0])
         self.assertTrue(any(part.startswith("-env:UserInstallation=") for part in calls[0]), "its own profile")
+
+    def test_a_home_that_cannot_be_written_uses_tmp(self) -> None:
+        # Launchpad's builders run with HOME=/sbuild-nonexistent.
+        source = self.dir / "cũ.doc"
+        source.write_bytes(b"\xd0\xcf\x11\xe0 old Word")
+        outdirs = []
+
+        def fake_soffice(command, **_kwargs):
+            outdir = Path(command[command.index("--outdir") + 1])
+            outdirs.append(outdir)
+            docx(outdir / "document.docx", "<w:p>" + run("Hµ Néi", ".VnTime") + "</w:p>")
+            return subprocess.CompletedProcess(command, 0, b"", b"")
+
+        blocked = self.dir / "file-not-folder"
+        blocked.write_text("x", encoding="utf-8")
+        with mock.patch.object(formats.subprocess, "run", side_effect=fake_soffice), \
+                mock.patch.dict(os.environ, {"XDG_CACHE_HOME": str(blocked / "cache")}):
+            result = formats.convert_old_office(source, office=lambda: ["soffice"])
+        self.assertEqual(self.dir / "cũ (Unicode).docx", result.output)
+        self.assertFalse(str(outdirs[0]).startswith(str(blocked)))
+        self.assertIn(">Hà Nội<", read_zip(result.output)["word/document.xml"])
 
     def test_without_libreoffice(self) -> None:
         source = self.dir / "bảng.xls"

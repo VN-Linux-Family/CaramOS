@@ -1417,8 +1417,11 @@ def convert_old_office(path: Path, office: Callable[[], list[str] | None] = libr
             old=path.suffix.lower(), new=target))
     # In the cache (not /tmp) so that LibreOffice from Flathub can reach it; its own profile, so that a LibreOffice
     # window the user has open does not take the job.
-    cache = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
-    cache.mkdir(parents=True, exist_ok=True)
+    cache: Path | None = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
+    try:
+        cache.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        cache = None   # a home that cannot be written: /tmp still works for LibreOffice from Ubuntu
     with tempfile.TemporaryDirectory(prefix="caramos-unicode-", dir=cache) as work:
         work_path = Path(work)
         copy = work_path / f"document{path.suffix.lower()}"

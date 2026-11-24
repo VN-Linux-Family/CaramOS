@@ -1,8 +1,11 @@
 """Office documents and .zip files open in an app that opens them, not in the folder they are in.
 
-The package does most of it: /etc/xdg/mimeapps.list makes the App Center's office suites the default apps of Word,
-Excel, PowerPoint and OpenDocument files, and caramos-open-document the last one, which suggests installing a suite
-when none is installed. That works at once, in the sessions that are open too.
+The package does most of it: the default apps of each edition's desktop,
+/usr/share/applications/<desktop>-mimeapps.list, make the App Center's office suites the default apps of Word, Excel,
+PowerPoint and OpenDocument files, and caramos-open-document the last one, which suggests installing a suite when none
+is installed. That works at once, in the sessions that are open too. (In 1.4.0 and 1.5.0 the list was the
+configuration file /etc/xdg/mimeapps.list, which stopped the update of computers that had such a file already, ticket
+H-1207: see debian/preinst.)
 
 The ISO's /etc/skel/.config/mimeapps.list, which every user's ~/.config/mimeapps.list was copied from, also said
 that .zip and .tar files open with Nemo. Nemo only shows the folder a file is in, so a .zip did not open at all. This

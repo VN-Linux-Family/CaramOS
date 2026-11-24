@@ -22,7 +22,7 @@ gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
 from gi.repository import Adw, Gio, GLib, Gtk  # noqa: E402
 
-from .. import REMOTE_HELP_PORT, VIEWER_PORT, client  # noqa: E402
+from .. import REMOTE_HELP_PORT, VIEWER_PORT, client, summaries  # noqa: E402
 from ..i18n import _  # noqa: E402
 from . import common  # noqa: E402
 
@@ -203,7 +203,7 @@ class RemoteHelp:
             elif state == "refused":
                 self.stop(_("The employee refused"), _("Call them, or try again later."))
             elif state == "done":
-                self.stop(_("Remote help ended"), result.get("detail") or "")
+                self.stop(_("Remote help ended"), summaries.result_detail("remote_help", result.get("detail") or ""))
             else:
                 self.stop(_("Remote help did not start"), result.get("detail") or state or "")
             return False

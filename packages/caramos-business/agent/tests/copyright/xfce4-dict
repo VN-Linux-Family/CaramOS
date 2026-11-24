@@ -1,0 +1,36 @@
+This package was debianized by Yves-Alexis Perez <corsac@corsac.net> on
+Mon, 02 Oct 2006 15:44:27 +0200
+
+It was downloaded from
+https://goodies.xfce.org/projects/applications/xfce4-dict
+
+Author: Enrico Tröger, <enrico.troeger@uvena.de>
+
+Copyright Holders:
+
+lib/* © 2006-2008 Enrico Tröger, <enrico.troeger@uvena.de>
+lib/wraplabel.{c,h}:
+  © 2008 Nick Treleaven <nick.treleaven@btinternet.com>
+  © 2006-2008 Enrico Tröger, <enrico.troeger@uvena.de>
+
+panel-plugin/*: © 2006-2008 Enrico Tröger, <enrico.troeger@uvena.de>
+
+po/* © 2006-2007 Enrico Tröger
+po/de.po: © 2006-2008 Enrico Tröger
+po/gl.po: © 2008 Leandro Regueiro
+po/eu.po: © 2008 Enrico Tröger
+po/ur.po: © 2008 Enrico Tröger
+po/da.po: © 2007 Enrico Tröger
+po/xfce4-dict.pot: © 2008 Enrico Tröger
+
+src/*: © 2006-2008 Enrico Tröger, <enrico.troeger@uvena.de>
+src/popup_plugin.{c,h}:
+  © 2002-2006 Olivier Fourdan <ofourdan@xfce.org>
+  © 2006 Darren Salt
+  © 2006-2008 Enrico Tröger, <enrico.troeger@uvena.de>
+
+
+You are free to distribute this software under the terms of
+the GNU General Public License (version 2 or later).
+On Debian systems, the complete text of the GNU General Public
+License can be found in the file `/usr/share/common-licenses/GPL'

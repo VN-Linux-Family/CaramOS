@@ -1,0 +1,52 @@
+This package was debianized by Devid Antonio Filoni <d.filoni@ubuntu.com> on
+Wed, 27 Aug 2008 12:54:50 +0200.
+
+It was downloaded from https://launchpad.net/gui-ufw
+
+Upstream Author:
+
+    Marcos Alvarez Costales https://costales.github.io
+
+Copyright:
+
+    Copyright © 2008-2023 Marcos Alvarez Costales
+
+License:
+
+    This package is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 3 of the License, or
+    (at your option) any later version.
+
+    This package is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this package; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL-3'.
+
+The Debian packaging is © 2008, Devid Antonio Filoni <d.filoni@ubuntu.com> and
+is licensed under the GPL, see above.
+
+-----------------------------------------------------------------------------
+
+Profiles are © 2013, jhansonxi and are licensed under the GPL v3 or later,
+see above.
+Source:
+ http://jhansonxi.blogspot.it/2013/03/latest-batch-of-ufw-application-profiles.html
+
+-----------------------------------------------------------------------------
+
+All pictures used are licenced by Creative Commons Attribution 3.0 Austria
+(http://creativecommons.org/licenses/by/3.0/at/).
+
+ * Shields:
+    http://www.gimpusers.com/tutorials/create-a-shield-symbol.html
+    Author: Mike (http://michael.spiegel1.at/)
+
+All modified pictures are licenced by the same Creative Commons as original.

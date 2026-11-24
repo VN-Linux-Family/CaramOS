@@ -1,3 +1,134 @@
+caramos-ota (1.5.1-0caramos1) noble; urgency=medium
+
+  * Computers that already had an /etc/xdg/mimeapps.list, made by their user
+    or by another program, could not update to 1.4.0 or 1.5.0 (ticket
+    H-1207). 1.4.0 shipped the office defaults as that configuration file;
+    dpkg asked which one to keep, the update has no terminal, dpkg read
+    end-of-file, caramos-ota stayed unconfigured and the update stopped with
+    "OTA self-update failed", every day again. The self-update runs the
+    installed caramos-ota, so the package itself no longer has that file:
+    the same defaults are /usr/share/applications/x-cinnamon-mimeapps.list
+    and xfce-mimeapps.list, the system's default apps of each edition's
+    desktop. A user's own choice and an administrator's
+    /etc/xdg/mimeapps.list come first, as they should.
+  * Such a computer repairs itself with this version: the next daily check
+    or update installs it without a question, and the update goes on. The
+    user's /etc/xdg/mimeapps.list stays as it is; the copy of the old list
+    dpkg left next to it (mimeapps.list.dpkg-new) is deleted.
+  * On computers with 1.4.0 or 1.5.0, /etc/xdg/mimeapps.list is deleted when
+    it is still the one caramos-ota installed; a file someone changed stays
+    as it is (preinst, postinst and postrm; no rename to .dpkg-bak).
+  * dpkg asks no more questions in updates: the self-update, the repair, the
+    rollback, migrations, Driver Check's Canon driver and Phòng máy run
+    apt-get and dpkg with --force-confdef --force-confold and
+    DEBIAN_FRONTEND=noninteractive, as automatic updates did. A
+    configuration file someone changed stays as it is.
+  * Passwords no longer show while they are typed (ticket H-1200): with
+    Vietnamese typing on, Cinnamon's password boxes (installing updates or
+    software, unlocking) showed what was typed before it turned into dots.
+    A patch tells Fcitx that those boxes are passwords (migration
+    20261123120000_hidden_password_typing; upstream Cinnamon fixed it in
+    6.8).
+  * Copying files on the Xfce desktop and pasting them in Files works
+    (ticket H-1204): xfdesktop ends each line of the copied list with \r\n,
+    and Files looked for names ending in \r. The Xfce Control Center
+    rewrites the clipboard's list without it.
+  * Files' Open in Terminal works on the Xfce edition (ticket H-1185): it
+    started GNOME Terminal, which only the Cinnamon edition has; it now
+    starts xfce4-terminal there (60_caramos-ota.gschema.override).
+  * Desktop shortcuts for Google Drive, network folders and phones (ticket
+    H-1190): Create a desktop shortcut failed on them. The new
+    caramos-desktop-shortcut makes them with the folder's name, also for
+    names with #, and they open after a restart (migration
+    20261123120100_desktop_shortcuts_anywhere).
+  * Show desktop at the end of the taskbar on both editions, as on Windows
+    (tickets H-1189, H-1192, H-1201, H-1202): clicking the right edge after
+    the right island hides every window, and again brings them back.
+    Cinnamon's corner bar applet, and on Xfce the new caramos-show-desktop
+    plugin of xfce4-caramos-plugin 1.1.0 (migration
+    20261124100000_show_desktop_button). Super+D shows the desktop and
+    Super+E opens Files (Nemo) on the Xfce edition too (migration
+    20261124100100_xfce_super_d_super_e).
+  * PrtSc copies the whole screen to the clipboard on both editions, with a
+    short notification, as on Windows 10 (tickets H-1188, H-1193):
+    caramos-print-screen (migration
+    20261124100200_print_screen_to_clipboard). Super+Shift+S still picks a
+    part of the screen.
+  * Xfce edition:
+    - Appearance's Enable event sounds works (ticket H-1206), still off by
+      default (migration 20261124100300_xfce_event_sounds);
+    - the Control Center button shows a USB drive while one is plugged in,
+      and its popup lists it with Safely remove (ticket H-1195);
+    - pointing at the button says what the network icon shows (ticket
+      H-1205);
+    - the names under desktop icons have a dark shadow, which reads on
+      light wallpapers (ticket H-1187).
+  * Cinnamon edition: the same shadow under the names of desktop icons
+    (ticket H-1187, migration 20261124120000_desktop_icon_labels), through a
+    copy of Nemo's own stylesheet that caramos-nemo-menu writes.
+  * fastfetch on both editions (ticket H-1203): migration
+    20261124130000_install_fastfetch installs it from the CaramOS PPA
+    (fastfetch 2.71.0-0caramos1, a backport for noble whose default config
+    shows the CaramOS logo). New ISOs get it from the same migration.
+    neofetch stays.
+  * Tray icons follow Dark mode without logging out (ticket H-1211). After the
+    Dark mode tile, the right island kept some icons in the old theme's
+    colours, nearly invisible, until the next login: Update Manager's shield
+    and System Information's mark (XAppStatusIcons shown as GtkStatusIcons:
+    GTK draws them once in the colour the tray gives, and xfce4-panel's tray
+    sets that colour only when it starts), CopyQ's scissors and Cinnamon's
+    Flameshot flame (pictures drawn from the icon theme at start-up) and
+    Lotus's V (an icon name Lotus picks by colour and looks at again only when
+    a text field gets the focus). Once a theme or icon theme change has
+    settled, the Control Center of each edition runs
+    /usr/share/caramos-ota/control-center/caramos-tray-refresh: on Xfce it
+    gives the tray the island's text colour, then every XAppStatusIcon makes a
+    new icon (a name of XApp's status monitor namespace is owned and
+    released), and after a new icon theme CopyQ (after "copyq exit", which
+    saves its history) and a Flameshot in the old XEmbed tray start again.
+    Migration 20261124170000_tray_icons_follow_theme links each of Lotus's
+    names into Tela-circle-dark and Tela-circle-light with the picture in that
+    theme's colour, so the V follows the icon theme at once.
+  * Tray icons keep their place in Cinnamon's tray (H-1211 follow-up).
+    The tray applet put every new icon first, so the order was the order in
+    which programs started, and each Dark mode switch moved the icons the
+    refresh above makes again (Update Manager's shield, System Information's
+    mark, the Flameshot flame) to the front. Migration
+    20261124180000_tray_icons_keep_their_place gives the applet a fixed
+    order: other programs' icons first, by name, then System Information,
+    Update Manager, CopyQ, the input method and Flameshot next to the clock,
+    the order a CaramOS login shows. A Cinnamon update gets the change again
+    (caramos_ota_update.cinnamon_patches).
+  * The Update Center no longer says CaramOS is up to date without asking.
+    Up to 1.5.0, opened by hand, it only read the updater already installed:
+    where the daily check kept failing, it said "CaramOS is up to date,
+    latest version 1.3.3" while 1.5.0 was out (CaramOS 1.3.3 computers of a
+    company, 2026-11). It now runs that check first, through pkexec without
+    a password (polkit action net.vietnamlinuxfamily.caramos-ota.check, the
+    person at the computer only; /usr/share/caramos-ota/check/
+    caramos-ota-check-helper). It shows what the check found, or why it
+    could not check: the update server could not be reached, another update
+    is running, or an error, with Try again and Ask for help. A check that
+    installs a newer updater opens the window again with that updater's
+    code. Not on a live USB or a frozen system drive.
+  * A check that cannot reach the CaramOS PPA fails. apt-get update ends
+    with 0 and only a warning when a source cannot be reached at all (a
+    firewall, a name that does not resolve), and kept the old list: the
+    check then found nothing new, every day, and said nothing.
+  * A failed daily check runs again an hour later, until one works
+    (caramos-ota-check.service: Restart=on-failure, RestartSec=1h); up to
+    1.5.0 the next try was the next day's.
+  * The Trash is on the desktop on both editions, as on Windows (ticket
+    H-1210). Up to 1.5.0 CaramOS hid it: Cinnamon's first-login script set
+    it off in every account, so migration
+    20261124140000_show_trash_on_desktop turns it on once for each account
+    and in the defaults and that script; on Xfce the default says on, and a
+    user's own choice in Desktop Settings stays. A logged-in desktop shows
+    it at once when the update comes from the Update Center; an automatic
+    update waits until nobody is logged in.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 23 Nov 2026 19:53:45 +0700
+
 caramos-ota (1.5.0-0caramos2) noble; urgency=medium
 
   * The PPA build of 1.5.0-0caramos1 failed in one test: Launchpad's builders

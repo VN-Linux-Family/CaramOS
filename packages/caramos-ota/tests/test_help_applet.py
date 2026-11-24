@@ -293,9 +293,12 @@ class PanelTests(unittest.TestCase):
 
     @unittest.skipUnless((REPO / "config").is_dir(), "ISO tree is not in the source package")
     def test_new_installs_have_it_at_the_right_end(self) -> None:
+        # The last icon: only Show desktop's strip, which shows nothing until pointed at, comes after it
+        # (Cinnamon's corner bar, migration 20261124100000).
+        with_corner_bar = self.WITH_HELP[:-1] + ", 'panel1:right:5:cornerbar@cinnamon.org:9']"
         for path in (PANEL_DEFAULTS, PANEL_HOOK):
             with self.subTest(path=path.name):
-                self.assertIn(f"enabled-applets={self.WITH_HELP}\n", path.read_text(encoding="utf-8"))
+                self.assertIn(f"enabled-applets={with_corner_bar}\n", path.read_text(encoding="utf-8"))
 
     def test_it_goes_at_the_right_end_of_the_stock_panel(self) -> None:
         self.assertEqual(self.WITH_HELP, migration.add_applet(self.STOCK))

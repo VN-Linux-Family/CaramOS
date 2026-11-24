@@ -110,8 +110,10 @@ for f in /etc/casper.conf /etc/live.conf; do
     fi
 done
 
-# --- 6. Neofetch / Fastfetch ---
-echo "[CaramOS] Cấu hình neofetch/fastfetch logo..."
+# --- 6. Neofetch ---
+# fastfetch không cần bước nào ở đây: gói fastfetch của PPA CaramOS tự có logo CaramOS
+# (/etc/xdg/fastfetch/config.jsonc), và migration 20261124130000_install_fastfetch cài nó sau các hook này.
+echo "[CaramOS] Cấu hình neofetch logo..."
 # Logo màu 40x20 được copy từ overlay vào /usr/share/caramos/.
 # Neofetch không xử lý ANSI external logo ổn định với --ascii, nên wrapper sẽ:
 #   1) cat logo màu
@@ -122,9 +124,6 @@ cat > /etc/profile.d/caramos-fetch.sh << 'FETCH_EOF'
 # CaramOS terminal branding
 if [ -x /usr/local/bin/neofetch ]; then
     alias neofetch='/usr/local/bin/neofetch'
-fi
-if [ -x /usr/local/bin/fastfetch ]; then
-    alias fastfetch='/usr/local/bin/fastfetch'
 fi
 FETCH_EOF
 chmod +x /etc/profile.d/caramos-fetch.sh
@@ -183,24 +182,7 @@ NEOFETCH_EOF
     chmod +x /usr/local/bin/neofetch
 fi
 
-if [ -x /usr/bin/fastfetch ]; then
-    cat > /usr/local/bin/fastfetch << 'FASTFETCH_EOF'
-#!/bin/sh
-CARAMOS_COLOR_LOGO="/usr/share/caramos/ascii-logo-color.ansi"
-CARAMOS_ASCII_LOGO="/usr/share/caramos/ascii-logo.txt"
-
-if [ -f "$CARAMOS_COLOR_LOGO" ]; then
-    exec /usr/bin/fastfetch --logo "$CARAMOS_COLOR_LOGO" "$@"
-elif [ -f "$CARAMOS_ASCII_LOGO" ]; then
-    exec /usr/bin/fastfetch --logo "$CARAMOS_ASCII_LOGO" "$@"
-fi
-
-exec /usr/bin/fastfetch "$@"
-FASTFETCH_EOF
-    chmod +x /usr/local/bin/fastfetch
-fi
-
-echo "[OK] neofetch/fastfetch logo config"
+echo "[OK] neofetch logo config"
 
 # --- 7. Issue / Motd ---
 echo "[CaramOS] Đổi login banners..."

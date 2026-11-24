@@ -13,12 +13,16 @@
 //! - the scheduler checks the block hours, the power schedule, a `usb_unlock` and a frozen machine's maintenance
 //!   window every 30 s.
 //!
+//! From 0.3.1 (after the full test pass), a round whose settings turn on what a user at the machine was not told
+//! about starts a session part in each graphical login that has none, and waits (at most 20 s) for the company's
+//! notice to be on their screens before it applies the system sections (logins.rs).
+//!
 //! From 0.3 (PROTOCOL.md part 3): a machine waiting for the admin's approval asks for the policy every minute and does
 //! nothing else; a signed removal notice puts everything back, forgets the pairing and disables the service; a frozen
 //! machine masks the update timers for each boot and restarts into its maintenance entry at the maintenance time; the
 //! maintenance boot updates the disk and restarts frozen; a frozen machine's leave finishes in its next unfrozen boot.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -38,12 +42,13 @@ use crate::fetch::{Admin, Auth, FetchError};
 use crate::health;
 use crate::inventory;
 use crate::logging::{self, Once};
+use crate::logins;
 use crate::machine;
 use crate::policy::{self, Policy};
 use crate::protocol::{
-    CheckIn, CommandResult, Envelope, HelpRequest, Machine, PolicyAnswer, ResultState, SignedNotice, UserStatus,
-    AGENT_BOX_KEY, AGENT_CONFIG, AGENT_STATE, AGENT_UNIT, CAPABILITIES, INBOX_ROOT, MAX_HELP_NOTE, MAX_REQUEST_BODY,
-    MAX_RESULT_DETAIL, RUN_USER,
+    update_detail, update_succeeded, CheckIn, CommandResult, Envelope, HelpRequest, Machine, PolicyAnswer, ResultState,
+    SignedNotice, UpdateStep, UserStatus, AGENT_BOX_KEY, AGENT_CONFIG, AGENT_STATE, AGENT_UNIT, CAPABILITIES, INBOX_ROOT,
+    MAX_HELP_NOTE, MAX_REQUEST_BODY, MAX_RESULT_DETAIL, RUN_USER,
 };
 use crate::relay::{self, InboxEntry, Outgoing, Pending, Purpose};
 use crate::sections::shared::{self, MaintenanceRecord};
@@ -60,11 +65,16 @@ pub const RETRY: Duration = Duration::from_secs(60);
 /// Failed rounds that are retried after RETRY before INTERVAL applies again: 5 minutes of retries.
 pub const RETRIES: u32 = 5;
 const RELAY_EVERY: Duration = Duration::from_secs(2);
+/// How often the long-poll channel looks for a pairing it can use until a round has loaded one. It starts before the
+/// first round: 0.3.1 looked every 30 s, so requests waited up to 30 s after each start of the service and pairing.
+const WAIT_LOOKS_EVERY: Duration = Duration::from_secs(1);
 const SCHEDULE_EVERY: Duration = Duration::from_secs(30);
 const INVENTORY_EVERY: Duration = Duration::from_secs(6 * 3600);
 const RESULT_RETRY: Duration = Duration::from_secs(30);
-/// `du -sm /timeshift` at most this often: half a million files take seconds.
+/// `du -sm /timeshift` at most this often while the newest snapshot stays the same: half a million files take seconds.
 const SNAPSHOT_SPACE_EVERY: Duration = Duration::from_secs(6 * 3600);
+/// An unknown space (no snapshot yet, or `du` failed) is looked at again this soon.
+const SNAPSHOT_SPACE_RETRY: Duration = Duration::from_secs(10 * 60);
 /// How long a cancel entry stays in an inbox for the session part to see it.
 const CANCEL_STAYS: i64 = 20;
 /// A ticket's notification waits this long in the inbox of a user who is not logged in.
@@ -73,6 +83,8 @@ const TOOL_TIMEOUT: Duration = Duration::from_secs(60);
 const UPDATE_TIMEOUT: Duration = Duration::from_secs(3600);
 /// The maintenance boot waits this long for the admin before it goes on with the stored policy.
 const MAINTENANCE_WAITS_FOR_ADMIN: Duration = Duration::from_secs(5 * 60);
+/// New sections wait at most this long for the company's notice to be on the screens of the users at the machine.
+pub const NOTICE_WAIT: Duration = Duration::from_secs(20);
 
 /// The `update` command's answer on a frozen machine.
 pub const FROZEN_UPDATE: &str = "máy đang đóng băng: cập nhật chạy trong giờ bảo trì";
@@ -91,6 +103,8 @@ pub struct Paths {
     pub sessions: PathBuf,
     /// The operating system's machine id, to notice a cloned disk.
     pub os_machine_id: PathBuf,
+    /// The processes, for the environment of a login whose session part the daemon starts.
+    pub proc: PathBuf,
 }
 
 impl Paths {
@@ -103,6 +117,7 @@ impl Paths {
             inbox: INBOX_ROOT.into(),
             sessions: "/run/systemd/sessions".into(),
             os_machine_id: store::OS_MACHINE_ID.into(),
+            proc: "/proc".into(),
         }
     }
 }
@@ -427,6 +442,24 @@ struct Logs {
     maintenance: Once,
 }
 
+/// The space the snapshots took at the last look.
+#[derive(Debug, Clone)]
+struct SnapshotSpace {
+    at: Instant,
+    newest: Option<String>,
+    space_mb: Option<u64>,
+}
+
+impl SnapshotSpace {
+    /// Whether to look again: the newest snapshot is another (one was taken, by an `update` or Timeshift's own
+    /// schedule), or the last look is old, or found nothing. 0.3.1 kept an empty answer for 6 hours, so the space of the
+    /// first snapshot stayed unknown that long.
+    fn stale(&self, newest: Option<&str>) -> bool {
+        let every = if self.space_mb.is_some() { SNAPSHOT_SPACE_EVERY } else { SNAPSHOT_SPACE_RETRY };
+        self.newest.as_deref() != newest || self.at.elapsed() >= every
+    }
+}
+
 /// What the threads share.
 pub struct Daemon {
     pub paths: Paths,
@@ -442,7 +475,8 @@ pub struct Daemon {
     managed: Mutex<Managed>,
     applied: Mutex<BTreeMap<String, String>>,
     health: Mutex<Option<(Instant, Value)>>,
-    snapshot_space: Mutex<Option<(Instant, Option<u64>)>>,
+    /// The last `du -sm /timeshift`: when, the newest snapshot then, and the space.
+    snapshot_space: Mutex<Option<SnapshotSpace>>,
     inventory: Mutex<InventoryState>,
     apps_outcome: Mutex<Option<Result<(), String>>>,
     logs: Mutex<Logs>,
@@ -467,6 +501,10 @@ pub struct Daemon {
     maintenance_running: AtomicBool,
     /// uid → the user's private group, or None (their inbox stays readable by all, PROTOCOL.md part 3).
     private_groups: Mutex<BTreeMap<u32, Option<u32>>>,
+    /// The users the last wait for the notice ended without (machine id, sections, logins): not waited for again.
+    notice_waited: Mutex<Option<String>>,
+    /// NOTICE_WAIT, shorter in tests.
+    notice_wait: Duration,
 }
 
 /// The body of one of the daemon's threads.
@@ -760,6 +798,8 @@ impl Daemon {
             maintenance_day: Mutex::new(shared::MaintenanceDay::default()),
             maintenance_running: AtomicBool::new(false),
             private_groups: Mutex::new(BTreeMap::new()),
+            notice_waited: Mutex::new(None),
+            notice_wait: NOTICE_WAIT,
         }
     }
 
@@ -771,6 +811,11 @@ impl Daemon {
     /// which a test cannot choose).
     pub fn assume_boot_time(&mut self, boot_time: Option<i64>) {
         self.boot_time = boot_time;
+    }
+
+    /// For tests: how long new sections wait for the notice (NOTICE_WAIT otherwise).
+    pub fn wait_for_notice_at_most(&mut self, wait: Duration) {
+        self.notice_wait = wait;
     }
 
     fn main_loop(&self) -> ExitCode {
@@ -936,9 +981,10 @@ impl Daemon {
         let proven = outcome.as_ref().map_or_else(Failure::admin_proven, |_| true);
         let current = Current::load(config, box_key, &self.store);
         *lock(&self.current) = Some(current.clone());
-        match current.effective_file() {
+        let file = current.effective_file();
+        match &file {
             Some(file) => {
-                if let Err(error) = self.store.save_effective(&file) {
+                if let Err(error) = self.store.save_effective(file) {
                     log!("cannot write {}: {error}", self.store.effective_path().display());
                 }
             }
@@ -947,6 +993,9 @@ impl Daemon {
             }
         }
         if current.policy.is_some() {
+            if let Some(file) = &file {
+                self.tell_users_first(file);
+            }
             self.apply_sections(&current);
         }
         if proven {
@@ -994,6 +1043,72 @@ impl Daemon {
             log!("the machine is frozen: the next restart takes the company's settings off its disk");
         }
         Round::Removed
+    }
+
+    /// Before the system sections apply, the users at the machine are told what the company manages (PROTOCOL.md part
+    /// 3, changes of 0.3.1): each graphical login gets a session part where none runs (a machine paired in a running
+    /// session had none until the next login), and the sections wait until each user's notice.json covers every
+    /// section in effect, at most NOTICE_WAIT. Nobody logged in: nothing waits, the notice comes first at login.
+    fn tell_users_first(&self, file: &EffectiveFile) {
+        let sections = crate::session::managed_sections(&file.settings);
+        let not_told = |logins: &[logins::Login]| -> Vec<logins::Login> {
+            logins
+                .iter()
+                .filter(|login| !logins::told(&self.paths.run_user, login.uid).is_some_and(|told| told.covers(&file.machine_id, &sections)))
+                .cloned()
+                .collect()
+        };
+        let mut waiting = not_told(&logins::graphical(&self.paths.sessions));
+        if waiting.is_empty() {
+            *lock(&self.notice_waited) = None;
+            return;
+        }
+        let ids: Vec<&str> = waiting.iter().map(|login| login.id.as_str()).collect();
+        let key = format!("{} {} {}", file.machine_id, sections.join(","), ids.join(","));
+        if lock(&self.notice_waited).as_deref() == Some(key.as_str()) {
+            return; // waited for these logins already, in vain: the settings applied then
+        }
+        *lock(&self.notice_waited) = Some(key);
+        self.start_session_parts(&waiting);
+        let deadline = Instant::now() + self.notice_wait;
+        loop {
+            waiting = not_told(&waiting);
+            if waiting.is_empty() {
+                log!("the company's notice is on the screen of each user at the machine: the settings apply now");
+                return;
+            }
+            if Instant::now() >= deadline {
+                break;
+            }
+            thread::sleep(Duration::from_millis(250));
+        }
+        let users: BTreeSet<&str> = waiting.iter().map(|login| login.user.as_str()).collect();
+        log!("{} did not see the company's notice within {} s: the settings apply anyway", users.into_iter().collect::<Vec<_>>().join(", "), self.notice_wait.as_secs());
+    }
+
+    /// A session part for each of these logins whose user has none, as autostart would have started it. A login
+    /// younger than 30 s is left to autostart.
+    fn start_session_parts(&self, logins: &[logins::Login]) {
+        let mut running: BTreeSet<u32> = relay::sessions(&self.paths.run_user).into_iter().map(|session| session.uid).collect();
+        let now = clock::unix_now();
+        for login in logins {
+            if running.contains(&login.uid) || login.started.is_some_and(|at| now - at < logins::AUTOSTART_GRACE_SECONDS) {
+                continue;
+            }
+            let Some(environment) = logins::environment(&self.paths.proc, login) else {
+                log!("cannot start the session part of {}: no program of their login {} was found", login.user, login.id);
+                continue;
+            };
+            let args = logins::start_command(login, &environment, now);
+            let args: Vec<&str> = args.iter().map(String::as_str).collect();
+            match self.system.check("systemd-run", &args, TOOL_TIMEOUT) {
+                Ok(_) => {
+                    log!("started the session part of {} in their login {}, open since before pairing", login.user, login.id);
+                    running.insert(login.uid);
+                }
+                Err(error) => log!("cannot start the session part of {}: {error}", login.user),
+            }
+        }
     }
 
     /// The user's private group, for their inbox; None (logged once) when they have none.
@@ -1117,6 +1232,7 @@ impl Daemon {
             }
         };
         let record = MaintenanceRecord::load(&self.store.maintenance_path());
+        let last_snapshot = snapshots::last_snapshot(&self.system);
         let security = health::Security {
             screen_lock_on: at_screen.and_then(|uid| reports.iter().find(|report| report.uid == uid)).and_then(|report| report.screen_lock_on),
             usb_storage,
@@ -1124,19 +1240,22 @@ impl Daemon {
             freeze_configured: shared::freeze_configured(&self.system, self.frozen),
             last_maintenance: record.last.clone(),
             maintenance_result: record.result.clone(),
-            last_snapshot: snapshots::last_snapshot(&self.system),
-            snapshot_space_mb: self.snapshot_space(),
+            maintenance_steps: record.steps.clone(),
+            snapshot_space_mb: self.snapshot_space(last_snapshot.as_deref()),
+            last_snapshot,
         };
         health::with_security(health::with_applied(base, &applied), &security)
     }
 
-    /// `du -sm /timeshift`, at most every 6 hours.
-    fn snapshot_space(&self) -> Option<u64> {
+    /// `du -sm /timeshift`: again when the newest snapshot (`newest`) changed, else at most every 6 hours, or every 10
+    /// minutes while it found nothing.
+    fn snapshot_space(&self, newest: Option<&str>) -> Option<u64> {
         let mut cache = lock(&self.snapshot_space);
-        if cache.as_ref().is_none_or(|(at, _)| at.elapsed() >= SNAPSHOT_SPACE_EVERY) {
-            *cache = Some((Instant::now(), snapshots::space_mb(&self.system)));
+        if cache.as_ref().is_none_or(|space| space.stale(newest)) {
+            let space_mb = snapshots::space_mb(&self.system);
+            *cache = Some(SnapshotSpace { at: Instant::now(), newest: newest.map(str::to_string), space_mb });
         }
-        cache.as_ref().and_then(|(_, space)| *space)
+        cache.as_ref().and_then(|space| space.space_mb)
     }
 
     fn check_in(&self, current: &Current) {
@@ -1251,16 +1370,17 @@ impl Daemon {
         }
     }
 
-    /// The long-poll channel: one `/wait` open all the time.
-    fn wait_loop(self: Arc<Self>) {
+    /// The long-poll channel: one `/wait` open all the time, from the second after a round loaded the pairing. Runs
+    /// until the process ends (public for the tests, which start it in a thread).
+    pub fn wait_loop(self: Arc<Self>) {
         let mut tries: u64 = 0;
         loop {
             let Some(current) = self.current() else {
-                thread::sleep(Duration::from_secs(30));
+                thread::sleep(WAIT_LOOKS_EVERY);
                 continue;
             };
             let Some(admin) = current.admin() else {
-                thread::sleep(Duration::from_secs(30));
+                thread::sleep(WAIT_LOOKS_EVERY);
                 continue;
             };
             let after = self.record_for(&current.config.machine_id).last_seq;
@@ -1392,8 +1512,8 @@ impl Daemon {
                     return self.report(&command.id, ResultState::Ignored, FROZEN_UPDATE);
                 }
                 let effective = current.map(|current| current.effective).unwrap_or_default();
-                let outcome = self.update_with_snapshot(&effective);
-                self.report_outcome(&command.id, outcome);
+                let steps = self.update_with_snapshot(&effective);
+                self.report_update(&command.id, steps);
             }
             Action::UsbUnlock { minutes } => {
                 let until = clock::unix_now() + i64::from(minutes) * 60;
@@ -1616,13 +1736,25 @@ impl Daemon {
     }
 
     fn report(&self, id: &str, state: ResultState, detail: &str) {
+        self.report_with_steps(id, state, detail, Vec::new());
+    }
+
+    fn report_with_steps(&self, id: &str, state: ResultState, detail: &str, steps: Vec<UpdateStep>) {
         let result = CommandResult {
             id: id.to_string(),
             state,
             detail: crate::protocol::truncate_chars(detail, MAX_RESULT_DETAIL),
             time: LocalTime::now().iso8601(),
+            steps,
         };
         lock(&self.results).queue.push(result);
+    }
+
+    /// An `update`'s result: done unless its security updates failed; the steps for the admin's words, and the
+    /// detail in 0.3.0's words for older admins.
+    fn report_update(&self, id: &str, steps: Vec<UpdateStep>) {
+        let state = if update_succeeded(&steps) { ResultState::Done } else { ResultState::Failed };
+        self.report_with_steps(id, state, &update_detail(&steps), steps);
     }
 
     fn report_outcome(&self, id: &str, outcome: Result<String, String>) {
@@ -1831,7 +1963,7 @@ impl Daemon {
             shared::Step::Nothing => {}
             shared::Step::Skip => {
                 log!("maintenance window skipped: someone used the machine all through it");
-                self.record_maintenance(&MaintenanceRecord { result: MAINTENANCE_SKIPPED.to_string(), ..record });
+                self.record_maintenance(&MaintenanceRecord { result: MAINTENANCE_SKIPPED.to_string(), steps: None, ..record });
             }
             shared::Step::Restart => self.restart_into_maintenance(record),
         }
@@ -1862,7 +1994,7 @@ impl Daemon {
         if self.system.commands && !disk_or_live("/boot/grub/grub.cfg") {
             log!("no maintenance entry in GRUB's menu on the disk: maintenance skipped");
             lock(&self.maintenance_day).skipped = true;
-            self.record_maintenance(&MaintenanceRecord { result: "lỗi: GRUB chưa có mục bảo trì".to_string(), ..record });
+            self.record_maintenance(&MaintenanceRecord { result: "lỗi: GRUB chưa có mục bảo trì".to_string(), steps: None, ..record });
             return;
         }
         let tried = MaintenanceRecord { tried: Some(LocalTime::now().iso8601()), ..record.clone() };
@@ -1872,7 +2004,7 @@ impl Daemon {
             let why = output.map(|output| output.message()).unwrap_or_else(|error| error);
             log!("overlayroot-chroot grub-reboot did not set the maintenance entry: {why}");
             lock(&self.maintenance_day).skipped = true;
-            self.record_maintenance(&MaintenanceRecord { result: format!("lỗi: grub-reboot: {why}"), ..tried });
+            self.record_maintenance(&MaintenanceRecord { result: format!("lỗi: grub-reboot: {why}"), steps: None, ..tried });
             return;
         }
         log!("maintenance window: restarting into the maintenance entry");
@@ -1894,7 +2026,7 @@ impl Daemon {
         };
         if missed && !record.result.starts_with("lỗi") {
             log!("the last restart into maintenance did not reach the maintenance boot");
-            self.record_maintenance(&MaintenanceRecord { result: "lỗi: máy không khởi động vào chế độ bảo trì".to_string(), ..record });
+            self.record_maintenance(&MaintenanceRecord { result: "lỗi: máy không khởi động vào chế độ bảo trì".to_string(), steps: None, ..record });
         }
     }
 
@@ -1910,7 +2042,13 @@ impl Daemon {
         }
         self.maintenance_running.store(true, Ordering::SeqCst);
         let previous = MaintenanceRecord::load(&self.store.maintenance_path());
-        self.record_maintenance(&MaintenanceRecord { last: Some(started.clone()), finished: None, result: "đang bảo trì".to_string(), tried: previous.tried.clone() });
+        self.record_maintenance(&MaintenanceRecord {
+            last: Some(started.clone()),
+            finished: None,
+            result: "đang bảo trì".to_string(),
+            tried: previous.tried.clone(),
+            steps: None,
+        });
         {
             let daemon = Arc::clone(&self);
             let started = started.clone();
@@ -1941,15 +2079,17 @@ impl Daemon {
                 }
             }
         }
-        match self.update_with_snapshot(&current.effective) {
-            Ok(detail) => parts.push(format!("cập nhật: {detail}")),
-            Err(error) => parts.push(format!("lỗi cập nhật: {error}")),
-        }
+        let mut steps = self.update_with_snapshot(&current.effective);
+        let words = update_detail(&steps);
+        parts.push(if update_succeeded(&steps) { format!("cập nhật: {words}") } else { format!("lỗi cập nhật: {words}") });
         if current.effective.apps.is_some() {
             match lock(&self.apps_outcome).clone() {
-                Some(Ok(())) => parts.push("ứng dụng: xong".to_string()),
-                Some(Err(error)) => parts.push(format!("ứng dụng: {error}")),
+                Some(Ok(())) => steps.push(UpdateStep::done("apps", None)),
+                Some(Err(error)) => steps.push(UpdateStep::failed("apps", &error)),
                 None => {}
+            }
+            if let Some(apps) = steps.last().filter(|step| step.step == "apps") {
+                parts.push(apps.words());
             }
         }
         if !self.maintenance_running.swap(false, Ordering::SeqCst) {
@@ -1957,7 +2097,13 @@ impl Daemon {
         }
         let result: String = parts.join("; ").chars().take(200).collect();
         log!("maintenance done: {result}");
-        self.record_maintenance(&MaintenanceRecord { last: Some(started), finished: Some(LocalTime::now().iso8601()), result, tried: previous.tried });
+        self.record_maintenance(&MaintenanceRecord {
+            last: Some(started),
+            finished: Some(LocalTime::now().iso8601()),
+            result,
+            tried: previous.tried,
+            steps: Some(steps),
+        });
         self.send_results(true);
         if let Err(error) = self.system.check("systemctl", &["reboot"], TOOL_TIMEOUT) {
             log!("systemctl reboot: {error}");
@@ -1973,6 +2119,7 @@ impl Daemon {
             finished: Some(LocalTime::now().iso8601()),
             result: result.to_string(),
             tried: previous.tried,
+            steps: None,
         });
     }
 
@@ -2019,42 +2166,43 @@ impl Daemon {
             finished: Some(LocalTime::now().iso8601()),
             result: "hết giờ bảo trì: khởi động lại khi chưa xong".to_string(),
             tried: previous.tried,
+            steps: None,
         });
         let _ = self.system.check("systemctl", &["reboot"], TOOL_TIMEOUT);
     }
 
     /// The `update` action with `snapshots.before_update`: a Timeshift snapshot first; when it fails, the update still
-    /// runs and the result says why there is no snapshot.
-    fn update_with_snapshot(&self, effective: &Effective) -> Result<String, String> {
-        let mut notes = Vec::new();
+    /// runs and its step says why there is no snapshot.
+    fn update_with_snapshot(&self, effective: &Effective) -> Vec<UpdateStep> {
+        let mut steps = Vec::new();
         if effective.snapshots.as_ref().is_some_and(|snapshots| snapshots.before_update) && !self.frozen {
             match snapshots::create(&self.system) {
-                Ok(()) => notes.push("đã chụp bản lưu hệ thống".to_string()),
-                Err(error) => notes.push(format!("không chụp được bản lưu hệ thống: {error}")),
+                Ok(()) => {
+                    // The next check-in says how much room the snapshots take now.
+                    *lock(&self.snapshot_space) = None;
+                    steps.push(UpdateStep::done("snapshot", None));
+                }
+                Err(error) => steps.push(UpdateStep::failed("snapshot", &error)),
             }
         }
-        let with_notes = |text: String| if notes.is_empty() { text } else { format!("{}; {text}", notes.join("; ")) };
-        let outcome = self.update_system();
+        steps.extend(self.update_system());
         // The next check-in shows the updates as they are now, not as the last collection saw them.
         *lock(&self.health) = None;
-        match outcome {
-            Ok(detail) => Ok(with_notes(detail)),
-            Err(error) => Err(with_notes(error)),
-        }
+        steps
     }
 
     /// The `update` action: the CaramOS update as the daily OTA check runs it, then apt's security updates.
-    fn update_system(&self) -> Result<String, String> {
-        let mut ran = Vec::new();
+    fn update_system(&self) -> Vec<UpdateStep> {
+        let mut steps = Vec::new();
         if self.system.has_any(&["/usr/bin/caramos-ota"]) {
-            match self.system.check("caramos-ota", &["--check"], UPDATE_TIMEOUT) {
-                Ok(_) => ran.push("caramos-ota --check: ok".to_string()),
-                Err(error) => ran.push(format!("caramos-ota --check: {error}")),
-            }
+            steps.push(match self.system.check("caramos-ota", &["--check"], UPDATE_TIMEOUT) {
+                Ok(_) => UpdateStep::done("caramos-ota", None),
+                Err(error) => UpdateStep::failed("caramos-ota", &error),
+            });
         }
         if !self.system.commands {
-            ran.push("no security updates".to_string());
-            return Ok(ran.join("; "));
+            steps.push(UpdateStep::done("security", Some(0)));
+            return steps;
         }
         let apt = |args: &[&str]| -> Result<String, String> {
             let mut command = std::process::Command::new("apt-get");
@@ -2066,18 +2214,22 @@ impl Daemon {
                 Err(format!("apt-get {}: {}", args.last().unwrap_or(&""), output.message()))
             }
         };
-        apt(&["-o", "DPkg::Lock::Timeout=600", "update"])?;
-        let simulation = apt(&["-s", "-o", "Debug::NoLocking=1", "upgrade"])?;
-        let packages = security_packages(&simulation);
-        if packages.is_empty() {
-            ran.push("no security updates".to_string());
-        } else {
-            let mut args = vec!["-y", "-o", "DPkg::Lock::Timeout=600", "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", "install", "--only-upgrade"];
-            args.extend(packages.iter().map(String::as_str));
-            apt(&args)?;
-            ran.push(format!("{} security updates installed", packages.len()));
-        }
-        Ok(ran.join("; "))
+        let security = || -> Result<usize, String> {
+            apt(&["-o", "DPkg::Lock::Timeout=600", "update"])?;
+            let simulation = apt(&["-s", "-o", "Debug::NoLocking=1", "upgrade"])?;
+            let packages = security_packages(&simulation);
+            if !packages.is_empty() {
+                let mut args = vec!["-y", "-o", "DPkg::Lock::Timeout=600", "-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", "install", "--only-upgrade"];
+                args.extend(packages.iter().map(String::as_str));
+                apt(&args)?;
+            }
+            Ok(packages.len())
+        };
+        steps.push(match security() {
+            Ok(count) => UpdateStep::done("security", Some(count as u64)),
+            Err(error) => UpdateStep::failed("security", &error),
+        });
+        steps
     }
 }
 
@@ -2117,6 +2269,59 @@ fn action_name(action: &Action) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::settings::{Schedule, Snapshots};
+    use crate::testutil::TempDir;
+
+    fn test_daemon(root: &Path) -> Daemon {
+        let paths = Paths {
+            config: root.join("etc/agent.json"),
+            box_key: root.join("etc/agent-box.key"),
+            state: root.join("state"),
+            run_user: root.join("run/user"),
+            inbox: root.join("run/caramos-business/inbox"),
+            sessions: root.join("run/systemd/sessions"),
+            os_machine_id: root.join("etc/machine-id"),
+            proc: root.join("proc"),
+        };
+        let (worker, _queued) = mpsc::channel();
+        Daemon::new(paths, System::test(&root.join("system")), worker)
+    }
+
+    #[test]
+    fn an_update_reports_its_steps() {
+        let root = TempDir::new("update-steps");
+        let daemon = test_daemon(root.path());
+        let effective = Effective { snapshots: Some(Snapshots { schedule: Schedule::Weekly, keep: 3, before_update: true }), ..Effective::default() };
+        // The space of no snapshot yet, from the check-in before the update.
+        *lock(&daemon.snapshot_space) = Some(SnapshotSpace { at: Instant::now(), newest: None, space_mb: None });
+        let steps = daemon.update_with_snapshot(&effective);
+        assert_eq!(steps, [UpdateStep::done("snapshot", None), UpdateStep::done("security", Some(0))]);
+        assert!(lock(&daemon.snapshot_space).is_none(), "the next check-in looks at the space of the new snapshot");
+        daemon.report_update("00000000-0000-4000-8000-000000000050", steps);
+        let result = daemon.unsent_results().pop().unwrap();
+        assert_eq!((result.state, result.detail.as_str()), (ResultState::Done, "đã chụp bản lưu hệ thống; no security updates"));
+        assert_eq!(result.steps.len(), 2, "the admin words them in its reader's language");
+        daemon.report_update("00000000-0000-4000-8000-000000000051", vec![UpdateStep::failed("security", "apt-get update: E: x")]);
+        assert_eq!(daemon.unsent_results().pop().unwrap().state, ResultState::Failed);
+        daemon.report("00000000-0000-4000-8000-000000000052", ResultState::Done, "đã gửi");
+        assert!(daemon.unsent_results().pop().unwrap().steps.is_empty());
+    }
+
+    #[test]
+    fn the_snapshot_space_is_looked_at_again() {
+        let newest = Some("2026-11-24T10:18:45+07:00");
+        let fresh = SnapshotSpace { at: Instant::now(), newest: newest.map(str::to_string), space_mb: Some(7156) };
+        assert!(!fresh.stale(newest));
+        assert!(fresh.stale(Some("2026-11-25T03:00:01+07:00")), "Timeshift's schedule took a newer one");
+        assert!(fresh.stale(None), "the snapshots were deleted");
+        let empty = SnapshotSpace { at: Instant::now(), newest: None, space_mb: None };
+        assert!(!empty.stale(None), "no du at every check-in while there is no snapshot");
+        assert!(empty.stale(newest), "the first snapshot: 0.3.1 kept the empty answer for 6 hours");
+        if let Some(earlier) = Instant::now().checked_sub(SNAPSHOT_SPACE_RETRY + Duration::from_secs(1)) {
+            assert!(SnapshotSpace { at: earlier, newest: None, space_mb: None }.stale(None), "an unknown space, 10 minutes on");
+            assert!(!SnapshotSpace { at: earlier, newest: None, space_mb: Some(1) }.stale(None), "a known one waits 6 hours");
+        }
+    }
 
     #[test]
     fn timing() {

@@ -22,10 +22,10 @@ gsettings set org.gnome.desktop.background picture-uri "$WALLPAPER_URI" 2>/dev/n
 
 # Panel layout comes from system dconf defaults. Do not create stale per-user overrides.
 
-# Desktop: ẩn TẤT CẢ icon trên desktop (desktop style)
+# Desktop: ẩn các icon của trình quản lý tệp, trừ Thùng rác (như trên Windows, ticket H-1210)
 gsettings set org.nemo.desktop computer-icon-visible false 2>/dev/null || true
 gsettings set org.nemo.desktop home-icon-visible false 2>/dev/null || true
-gsettings set org.nemo.desktop trash-icon-visible false 2>/dev/null || true
+gsettings set org.nemo.desktop trash-icon-visible true 2>/dev/null || true
 gsettings set org.nemo.desktop network-icon-visible false 2>/dev/null || true
 gsettings set org.nemo.desktop volumes-visible false 2>/dev/null || true
 

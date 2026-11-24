@@ -1,6 +1,6 @@
 # caramos-business-agent
 
-The employee machine's agent of CaramOS Doanh nghiệp, in Rust: one binary, `caramos-business-agent` (0.3.0). It
+The employee machine's agent of CaramOS Doanh nghiệp, in Rust: one binary, `caramos-business-agent` (0.3.1). It
 follows [../PROTOCOL.md](../PROTOCOL.md): part 2 for 0.2, part 3 for 0.3; part 1's and part 2's "Agent" sections say
 how it reads the points left open, and part 3's "Changes during implementation" lists where 0.3 differs from the
 contract as first written.
@@ -20,8 +20,12 @@ contract as first written.
     maintenance boot (policy, updates, apps, then a frozen boot again), and finishes a frozen machine's leave in its
     next unfrozen boot;
   - writes Timeshift's settings for `snapshots` and takes a snapshot before `update`;
-  - unseals the remote help session's key for the session part, and keeps inboxes readable by their user only.
-- `session`: in each user's session. Applies the user's sections (wallpaper, folders, shares, screen_lock), shows
+  - unseals the remote help session's key for the session part, and keeps inboxes readable by their user only;
+  - before new sections apply, starts a session part in each graphical login that has none (a login open at
+    pairing) and waits up to 20 s for the users' `notice.json` to show that the notice is on their screens.
+- `session`: in each user's session. Shows the company's notice in a thread of its own (and writes `notice.json`),
+  reads its inbox in another (requests never wait for a round, which can wait on a share's sign-in window), applies
+  the user's sections (wallpaper, folders, shares, screen_lock), shows
   what the daemon relays (messages, countdowns, the remote help request and banner, through `caramos-business
   --prompt`; ticket updates through `notify-send`), runs remote help (stunnel with the session's pre-shared key),
   shows `--prompt frozen` at each login on a frozen machine, and writes the user's status (with `screen_lock_on`).
@@ -114,6 +118,8 @@ To change a dependency: `./build.sh shell`, move `.cargo/config.toml` aside, `ca
 | `src/remotehelp.rs` | consent, stunnel client, x11vnc, banner |
 | `src/screenlock.rs`, `src/shares.rs` | the session part's `screen_lock` and `shares` |
 | `src/status.rs` | USER_STATUS files, written by the session part, read by the service |
+| `src/logins.rs` | the graphical logins, starting a session part in one that has none, reading `notice.json` |
+| `src/notices.rs` | the session part's notice, in its own thread: opened, replaced, answered, `notice.json` |
 | `src/wallpaper.rs`, `src/folders.rs`, `src/userdirs.rs`, `src/tidy.rs` | part 1's wallpaper and folders |
 | `src/clock.rs`, `src/process.rs`, `src/logging.rs` | Vietnam's time, running tools with time limits, logs |
 
@@ -126,7 +132,8 @@ under (PROTOCOL.md part 2, "The service unit" under "Files"). It logs to the jou
 `/etc/xdg/autostart/caramos-business-session.desktop` runs `caramos-business-agent session` in every session; it
 applies settings only while `/etc/caramos-business/role` says `employee`, agent.json exists and a policy is stored.
 It logs to `~/.xsession-errors`, ends with the login session, and a newer instance for the same user replaces an
-older one.
+older one. In a login that was open when the machine was paired (no autostart then), the service starts it with
+`systemd-run --user --machine=<user>@.host` and the login's own environment; it then logs to the user's journal.
 
 What the agent keeps:
 
@@ -137,8 +144,9 @@ What the agent keeps:
   `/run/caramos-business/inbox/<uid>/` (the relay: root:<group> 0750, entries 0640); `/run/nologin` during a
   maintenance boot.
 - each user: `~/.config/caramos-business/state.json` (wallpaper, launchers copied, bookmarks added, screen lock
-  values before, notice) and `user-dirs.local`; `~/.local/share/caramos-business/server/` (the folder links);
-  `$XDG_RUNTIME_DIR/caramos-business/`: `status.json`, `session.pid`, `taken`, `frozen-told`, `outbox/`,
+  values before), `notice-answered.json` and `user-dirs.local`; `~/.local/share/caramos-business/server/` (the folder links);
+  `$XDG_RUNTIME_DIR/caramos-business/`: `status.json`, `notice.json`, `notice-shown` (written by the notice's window),
+  `session.pid`, `taken`, `frozen-told`, `outbox/`,
   `remote-help/` (stunnel's configuration and the 0600 key file, while it runs).
 
 Tools it runs: `gsettings`, `xfconf-query`, `gio` with GVfs, `notify-send`, `nemo-desktop`/`xfdesktop`,

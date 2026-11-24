@@ -8,3 +8,11 @@ automonitor-seconds=60
 # Nemo's 'local-only' left as plain icons. Someone who changed the setting keeps their choice.
 [org.nemo.preferences]
 show-image-thumbnails='always'
+
+# Files (Nemo) > Open in Terminal starts this terminal. The ISO's 99_caramos override names GNOME Terminal, which only
+# the Cinnamon edition has: on the Xfce edition the menu item did nothing (ticket H-1185). A [schema:XFCE] group is
+# GLib's default for sessions whose XDG_CURRENT_DESKTOP lists XFCE, and it wins over the general default of every
+# override file. exec-arg is what runs a command in xfce4-terminal ("Run in Terminal").
+[org.cinnamon.desktop.default-applications.terminal:XFCE]
+exec='xfce4-terminal'
+exec-arg='-x'

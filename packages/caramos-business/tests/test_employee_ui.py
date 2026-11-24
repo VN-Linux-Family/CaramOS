@@ -4,6 +4,8 @@ what the transparency page lists, and the admin's readable summaries and audit l
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -72,6 +74,24 @@ class PromptContractTests(unittest.TestCase):
             self.assertEqual([], [path.name for path in folder.iterdir() if path.name.startswith(".")])
         self.assertEqual(Path("/run/user/1000/caramos-business/outbox"),
                          prompts.outbox({"XDG_RUNTIME_DIR": "/run/user/1000"}))
+
+
+class NoticeShownTests(unittest.TestCase):
+    """0.3.1's full pass: the firewall, the browser and USB rules applied before the notice showed. The notice's window
+    now says when it is on the screen, and the session part tells the daemon only then."""
+
+    def test_the_marker(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            marker = prompts.shown_marker({"XDG_RUNTIME_DIR": tmp})
+            self.assertEqual(Path(tmp) / "caramos-business" / "notice-shown", marker)
+            prompts.mark_shown(marker)
+            first = marker.stat().st_mtime_ns
+            prompts.mark_shown(marker)
+            self.assertGreaterEqual(marker.stat().st_mtime_ns, first)
+            self.assertEqual(["notice-shown"], sorted(path.name for path in marker.parent.iterdir()), "renamed whole")
+            blocked = Path(tmp) / "a-file"
+            blocked.touch()
+            prompts.mark_shown(blocked / "caramos-business" / "notice-shown")  # its folder cannot be made: no error
 
 
 class DiscoveryTests(unittest.TestCase):
@@ -217,6 +237,10 @@ class SummaryTests(unittest.TestCase):
              "Ticket HT-0001: Finished."),
             ({"action": "asset", "summary": "x", "details": {"name": "Màn hình Dell", "event": "added"}},
              "The asset Màn hình Dell was added."),
+            ({"action": "licences", "summary": "x", "details": {"count": 1}},
+             "The list of bought licences was changed (1 entry)."),
+            ({"action": "licences", "summary": "x", "details": {"count": 3}},
+             "The list of bought licences was changed (3 entries)."),
             ({"action": "unknown", "summary": "written by a later version"}, "written by a later version"),
             ({"action": "settings", "summary": "broken details", "details": {"changes": "nope"}}, "broken details"),
         ]
@@ -224,6 +248,89 @@ class SummaryTests(unittest.TestCase):
             with self.subTest(action=line["action"]):
                 self.assertEqual(expected, summaries.audit_text(line, lambda key: {"kho": "Kho hàng"}.get(key, key),
                                                                 lambda key: key))
+
+    def test_remote_help_results(self) -> None:
+        """The agent words the result in Vietnamese with the mode in English: 0.3.0 showed "Xong: chạy 19 giây
+        (control), người dùng dừng"."""
+
+        self.assertEqual("chạy 19 giây (control), người dùng dừng",
+                         summaries.result_detail("remote_help", "chạy 19 giây (control), người dùng dừng"))
+        self.assertEqual("chạy 3 phút (view only), bên quản lý đã đóng",
+                         summaries.result_detail("remote_help", "chạy 3 phút (view), bên quản lý đã đóng"))
+        self.assertEqual("người dùng từ chối", summaries.result_detail("remote_help", "người dùng từ chối"))
+        self.assertEqual("x (view)", summaries.result_detail("lock", "x (view)"))
+
+    def test_update_results(self) -> None:
+        """0.3.1's full pass: "caramos-ota --check: ok; 321 security updates installed" showed in English in the
+        Vietnamese window. The agent now sends the steps; an older agent's words are read as steps."""
+
+        steps = [{"step": "snapshot", "ok": True}, {"step": "caramos-ota", "ok": True},
+                 {"step": "security", "ok": True, "count": 321}]
+        expected = "system snapshot taken; CaramOS update checked; 321 security updates installed"
+        self.assertEqual(expected, summaries.result_detail("update", "the older words", steps))
+        self.assertEqual(expected, summaries.result_detail(
+            "update", "đã chụp bản lưu hệ thống; caramos-ota --check: ok; 321 security updates installed"))
+        self.assertEqual("CaramOS update checked; 1 security update installed",
+                         summaries.result_detail("update", "caramos-ota --check: ok; 1 security updates installed"))
+        self.assertEqual("no security updates", summaries.result_detail("update", "no security updates"))
+        self.assertEqual("no system snapshot: timeshift: x; the CaramOS update check failed: exit status 1; security "
+                         "updates failed: apt-get update: E: y",
+                         summaries.result_detail("update", "không chụp được bản lưu hệ thống: timeshift: x; caramos-ota "
+                                                           "--check: exit status 1; apt-get update: E: y"))
+        self.assertEqual("something else", summaries.result_detail("update", "something else"), "unknown words stay")
+        self.assertEqual("the machine is frozen: it updates in its maintenance time",
+                         summaries.result_detail("update", summaries.FROZEN_UPDATE))
+
+    def test_maintenance_results(self) -> None:
+        text = summaries.maintenance_text
+        self.assertEqual("CaramOS update checked; no security updates; apps done",
+                         text("cập nhật: caramos-ota --check: ok; no security updates; ứng dụng: xong"))
+        self.assertEqual("security updates failed: apt-get update: E: x", text("lỗi cập nhật: apt-get update: E: x"))
+        self.assertEqual("skipped: someone was using the machine", text("bỏ qua: có người đang dùng"))
+        self.assertEqual("error: grub-reboot: failed", text("lỗi: grub-reboot: failed"))
+        self.assertEqual("CaramOS update checked; apps: flatpak: x",
+                         text("cập nhật: …", [{"step": "caramos-ota", "ok": True},
+                                             {"step": "apps", "ok": False, "error": "flatpak: x"}]))
+        self.assertEqual(("", "lạ"), (text(""), text("lạ")))
+
+    def test_in_vietnamese(self) -> None:
+        """0.3.1's sentences through po/vi.po: the remote help mode, and a scope inside a sentence ("Đã yêu cầu Mọi
+        máy …" in 0.3.0); after the full test pass, an update's and a maintenance's result (English in 0.3.1)."""
+
+        msgfmt = shutil.which("msgfmt")
+        if msgfmt is None:
+            self.skipTest("msgfmt (gettext) is not installed")
+        code = """if True:
+            from caramos_business import summaries
+            from caramos_business.i18n import _
+            print(_("Done: %s") % summaries.result_detail("remote_help", "chạy 19 giây (control), người dùng dừng"))
+            print(summaries.result_detail("remote_help", "chạy 2 phút (view), bên quản lý đã đóng"))
+            print(_("Asked %s to take inventory again.") % summaries.targets_text({"all": True}, str, []))
+            print(_("Sent to %s.") % summaries.targets_text({"departments": ["kt"]}, lambda key: "Kế toán", []))
+            print(_("Locking %s.") % summaries.targets_text({"machines": ["m"]}, str, ["ke-toan-01"]))
+            print(_("Done: %s") % summaries.result_detail(
+                "update", "đã chụp bản lưu hệ thống; caramos-ota --check: ok; 321 security updates installed"))
+            print(summaries.maintenance_text("cập nhật: caramos-ota --check: ok; no security updates; ứng dụng: xong"))
+            print(summaries.audit_text({"action": "licences", "details": {"count": 1}}, str, str))
+        """
+        with tempfile.TemporaryDirectory() as folder:
+            mo = Path(folder) / "vi" / "LC_MESSAGES" / "caramos-business.mo"
+            mo.parent.mkdir(parents=True)
+            subprocess.run([msgfmt, "-o", str(mo), str(ROOT / "po" / "vi.po")], check=True)
+            result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=30,
+                                    env={"PYTHONPATH": str(ROOT / "usr/lib/python3/dist-packages"),
+                                         "CARAMOS_BUSINESS_LOCALEDIR": folder, "LANGUAGE": "vi", "LANG": "C.UTF-8",
+                                         "PYTHONIOENCODING": "utf-8", "PYTHONDONTWRITEBYTECODE": "1",
+                                         "PATH": os.environ.get("PATH", "/usr/bin")})
+        self.assertEqual("", result.stderr)
+        self.assertEqual(["Xong: chạy 19 giây (điều khiển), người dùng dừng",
+                          "chạy 2 phút (chỉ xem), bên quản lý đã đóng",
+                          "Đã yêu cầu mọi máy gửi thông tin kiểm kê.",
+                          "Đã gửi tới phòng Kế toán.",
+                          "Đang khóa ke-toan-01.",
+                          "Xong: đã chụp bản lưu hệ thống; đã kiểm tra bản cập nhật CaramOS; đã cài 321 bản vá bảo mật",
+                          "đã kiểm tra bản cập nhật CaramOS; không có bản vá bảo mật; ứng dụng: xong",
+                          "Đã sửa danh sách bản quyền đã mua (1 mục)."], result.stdout.splitlines())
 
 
 if __name__ == "__main__":

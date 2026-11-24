@@ -1,7 +1,7 @@
 /* CaramOS Xfce: the panels as the three islands of CaramOS Cinnamon, 40 px high and 4 px above the bottom of the
    screen. Left: the CaramOS menu, a circle. Middle: the dock (pinned and open apps). Right: the tray, the clock, the
-   Control Center and Feedback & Help. At the end: the CaramOS menu, round like them (the right-click menus of both
-   editions are ../gtk/round-menus.css).
+   Control Center and Feedback & Help. After them: the CaramOS menu, round like them (the right-click menus of both
+   editions are ../gtk/round-menus.css), then the names under the desktop icons.
 
    The Cinnamon-Delight theme imports this file on the Xfce edition, and Cinnamon-Delight-Dark imports
    panel-islands-dark.css, which is this file with the dark colours (tests/test_xfce_panel_islands.py checks that).
@@ -143,9 +143,9 @@
 
 /* Feedback & Help ends the island. Its launcher is a square as wide as the panel is high: the icon sits at the left,
    next to the Control Center, and the rest is the round right end, 4 px before the edge of the screen like the menu's circle
-   on the left. */
+   on the left. Those 4 px are Show desktop's, below. */
 #launcher-6 button {
-  margin: 4px 4px 4px 0;
+  margin: 4px 0;
   padding: 0 0 0 1px;
   border-radius: 0 20px 20px 0;
   box-shadow: inset 0 1px @caramos_island_ring, inset 0 -1px @caramos_island_ring, inset -1px 0 @caramos_island_ring;
@@ -153,6 +153,30 @@
 
 #launcher-6 button image {
   margin-right: 21px;
+}
+
+/* Show desktop (the CaramOS panel plugin caramos-show-desktop, tickets H-1189 and H-1192): a strip 4 px wide and as
+   high as the panel, after the island, at the edge of the screen. It shows nothing until the pointer is on it, then a
+   thin line, as Windows and CaramOS Cinnamon do, with a little of the island's colour around it so that it shows on
+   any wallpaper; a click shows the desktop. */
+#caramos-show-desktop {
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  min-height: 0;
+  border-style: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+#caramos-show-desktop:hover,
+#caramos-show-desktop:active {
+  background-image: linear-gradient(alpha(@caramos_island_fg, 0.6), alpha(@caramos_island_fg, 0.6)),
+                    linear-gradient(@caramos_island, @caramos_island);
+  background-size: 2px 16px, 4px 20px;
+  background-position: center, center;
+  background-repeat: no-repeat;
 }
 
 /* Pointing at the clock or help lights a round patch behind it, as on Cinnamon. */
@@ -273,4 +297,40 @@
   border: 1px solid @caramos_menu_ring;
   background-color: @caramos_menu_field;
   box-shadow: none;
+}
+
+/* The names under the icons on the desktop (xfdesktop): white with a dark shadow on every side, so they read on light
+   wallpapers too (ticket H-1187). xfdesktop 4.18 styles its icons itself only while the theme never names
+   XfdesktopIconView; this file names it, so these are all of xfdesktop's own rules (its fallback_CSS), with only the
+   names' shadow made stronger. A selected icon keeps its highlight, and its name the small shadow on it. */
+XfdesktopIconView.view {
+  background: transparent;
+  color: @theme_selected_fg_color;
+  border-radius: 3px;
+}
+
+XfdesktopIconView.view:active {
+  background: alpha(@theme_selected_bg_color, 0.5);
+  text-shadow: 0 1px 1px black;
+}
+
+XfdesktopIconView.view.label {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.85), 1px 0 2px rgba(0, 0, 0, 0.85), -1px 0 2px rgba(0, 0, 0, 0.85),
+               0 -1px 2px rgba(0, 0, 0, 0.85), 0 2px 5px black;
+}
+
+XfdesktopIconView.view.label:active,
+XfdesktopIconView.view.label:selected {
+  color: @theme_selected_fg_color;
+  text-shadow: 0 1px 1px black;
+}
+
+XfdesktopIconView .rubberband {
+  background: alpha(@theme_selected_bg_color, 0.2);
+  border: 1px solid @theme_selected_bg_color;
+  border-radius: 0;
+}
+
+XfdesktopIconView:active {
+  color: @theme_selected_bg_color;
 }

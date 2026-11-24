@@ -36,6 +36,9 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
+# dpkg asks nothing about configuration files: the helper has no terminal (ticket H-1207).
+from caramos_ota.constants import APT_NONINTERACTIVE_OPTIONS
+
 # Canon Asia, "CAPT Printer Driver for Linux V2.71" (0100459601; the Vietnamese page serves the same file).
 TERMS_PAGE = "https://vn.canon/vi/support/0100459601"
 TARBALL_URL = "https://gdlp01.c-wss.com/gds/6/0100004596/05/linux-capt-drv-v271-uken.tar.gz"
@@ -501,7 +504,8 @@ def install_driver(emit: Emit, run_apt: Callable[[list[str], int, int], int]) ->
     if _ensure_i386(emit) and run_apt(["update"], 55, 60) != 0:
         emit("log", line="apt-get update reported errors; installing from the lists it has")
     emit("stage", stage="install")
-    code = run_apt(["install", "-y", "--", *(str(deb) for deb in debs), *I386_LIBRARIES], 60, 85)
+    code = run_apt(["install", "-y", *APT_NONINTERACTIVE_OPTIONS, "--", *(str(deb) for deb in debs),
+                    *I386_LIBRARIES], 60, 85)
     if code != 0:
         raise CanonError("apt", "installing Canon's packages failed")
     shutil.rmtree(CACHE_DIR / "canon-capt", ignore_errors=True)
@@ -679,7 +683,7 @@ def remove(emit: Emit, run_apt: Callable[[list[str], int, int], int]) -> tuple[b
             pass   # not there, or someone put another drop-in in it
         _systemctl("unmask", SYSV_UNIT)
         _systemctl("daemon-reload")
-        if run_apt(["purge", "-y", *PACKAGES], 20, 95) != 0:
+        if run_apt(["purge", "-y", *APT_NONINTERACTIVE_OPTIONS, *PACKAGES], 20, 95) != 0:
             raise CanonError("apt", "removing Canon's packages failed")
         _systemctl("daemon-reload")   # forget the unit systemd made of Canon's init script
         shutil.rmtree(STATE_DIR, ignore_errors=True)

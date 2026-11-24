@@ -214,8 +214,18 @@ fn origins_from_apt_cache_policy() {
 
 #[test]
 fn inventory_apps_and_health_keys() {
+    let thunar = |id: &str, name: &str, main: bool| App {
+        id: id.into(),
+        name: name.into(),
+        version: "4.18.8-1build3".into(),
+        source: "deb".into(),
+        package: "thunar".into(),
+        licence: "GPL-2.0".into(),
+        origin: "mint".into(),
+        main,
+    };
     let apps = vec![
-        App { id: "vlc.desktop".into(), name: "VLC".into(), version: "3.0.20-3build6".into(), source: "deb".into(), package: "vlc".into(), licence: "GPL-2+".into(), origin: "ubuntu-universe".into() },
+        App { id: "vlc.desktop".into(), name: "VLC".into(), version: "3.0.20-3build6".into(), source: "deb".into(), package: "vlc".into(), licence: "GPL-2+".into(), origin: "ubuntu-universe".into(), main: true },
         App {
             id: "google-chrome.desktop".into(),
             name: "Google Chrome".into(),
@@ -224,6 +234,7 @@ fn inventory_apps_and_health_keys() {
             package: "google-chrome-stable".into(),
             licence: "unknown".into(),
             origin: "third-party:dl.google.com".into(),
+            main: true,
         },
         App {
             id: "org.libreoffice.LibreOffice".into(),
@@ -233,7 +244,10 @@ fn inventory_apps_and_health_keys() {
             package: "org.libreoffice.LibreOffice".into(),
             licence: "MPL-2.0".into(),
             origin: "flathub".into(),
+            main: true,
         },
+        thunar("thunar-bulk-rename.desktop", "Bulk Rename", false),
+        thunar("thunar.desktop", "Thunar File Manager", true),
     ];
     assert_eq!(json!({"apps": apps}), json("inventory-apps.json"));
 
@@ -251,6 +265,7 @@ fn inventory_apps_and_health_keys() {
         freeze_configured: false,
         last_maintenance: None,
         maintenance_result: String::new(),
+        maintenance_steps: None,
         last_snapshot: Some("2026-11-23T01:02:55+07:00".into()),
         snapshot_space_mb: Some(6780),
     };

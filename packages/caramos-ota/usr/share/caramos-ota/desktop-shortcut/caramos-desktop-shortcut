@@ -1,0 +1,262 @@
+#!/usr/bin/python3
+"""Files (Nemo) > right-click > Create a desktop shortcut, for files and folders wherever they are (ticket H-1190).
+
+The menu item comes from the spice create-desktop-shortcut@anaximeno (cinnamon-spices-actions), which CaramOS installs
+into /usr/share/nemo/actions. Its script takes the selection as paths (%F) and puts a symbolic link on the Desktop.
+That failed:
+- for places that GVfs opens and that are not on a disk of the computer: Google Drive of Online Accounts, a network
+  share (smb://, sftp://), a phone (mtp://). Nemo gives their paths in GVfs's FUSE folder (/run/user/UID/gvfs/...),
+  where Google Drive names a folder by its ID; a link into that folder is named by the ID and breaks once the place is
+  unmounted, after the next restart;
+- for names with a "#": Nemo writes it "\\#" in the paths it passes, and the script only undoes "\\ " and "\\'".
+
+Migration 20261123120100_desktop_shortcuts_anywhere points the action at this script, with the URIs (%U). A file or
+folder on a disk of the computer gets the spice's own symbolic link, as before, from its script with one plain path
+per argument. Anything else gets a launcher "<name>.desktop" on the Desktop (Type=Link, URL=<its URI>), named as Files
+shows it: Nemo's desktop on Cinnamon, and xfdesktop through Thunar's exo-open on Xfce, open the place with it and
+mount it first when it is not mounted. The launcher is executable and trusted (its checksum in the GIO metadata), so
+Xfce opens it without asking; Nemo shows a link launcher as it is.
+"""
+
+from __future__ import annotations
+
+import gettext
+import hashlib
+import os
+import subprocess
+import sys
+import tempfile
+from collections.abc import Iterable, Sequence
+from pathlib import Path
+from urllib.parse import quote
+
+SPICE = "create-desktop-shortcut@anaximeno"
+SPICE_SCRIPT = Path("/usr/share/nemo/actions") / SPICE / "action.py"
+TRUST_KEY = "metadata::xfce-exe-checksum"  # Xfce 4.18: a launcher outside the system folders runs when it matches
+REMOTE_FOLDER_ICON = "folder-remote"
+MAX_NAME_BYTES = 200  # a file name has 255 bytes at most; this leaves room for " (99).desktop"
+
+
+def uris_from_args(args: Iterable[str]) -> list[str]:
+    """The URIs Nemo passed: one per argument, or several in one separated by spaces (a URI has no space)."""
+
+    return [uri for arg in args for uri in arg.split()]
+
+
+def fuse_root(uid: int | None = None) -> Path:
+    return Path(f"/run/user/{os.getuid() if uid is None else uid}/gvfs")
+
+
+def under(path: Path, root: Path) -> bool:
+    return path == root or root in path.parents
+
+
+def gvfs_uri_of_fuse_path(path: Path, mounts: Iterable[tuple[str, str]]) -> str | None:
+    """The GVfs URI of a path in GVfs's FUSE folder, from the mounts' (FUSE root path, root URI)."""
+
+    for root_path, root_uri in mounts:
+        root = Path(root_path)
+        if under(path, root):
+            rest = path.relative_to(root).parts
+            return root_uri.rstrip("/") + "".join("/" + quote(part, safe="!$&'()*+,;=:@") for part in rest)
+    return None
+
+
+def safe_file_name(name: str) -> str:
+    """A launcher's file name from a name as Files shows it: no "/" (Google Drive allows it in names), no
+    line break, not hidden, and short enough for the file system."""
+
+    name = " ".join(name.replace("/", "-").split()).lstrip(".") or "Shortcut"
+    while len(name.encode("utf-8")) > MAX_NAME_BYTES:
+        name = name[:-1]
+    return name
+
+
+def desktop_value(text: str) -> str:
+    """A string value of a .desktop file (Desktop Entry Specification: escapes for \\, newline, tab, CR)."""
+
+    return text.replace("\\", "\\\\").replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r")
+
+
+def launcher_text(name: str, uri: str, icon: str) -> str:
+    return ("[Desktop Entry]\n"
+            "Version=1.0\n"
+            "Type=Link\n"
+            f"Name={desktop_value(name)}\n"
+            f"Icon={desktop_value(icon)}\n"
+            f"URL={uri}\n")
+
+
+def launcher_url(path: Path) -> str | None:
+    """The URL of a link launcher, or None when the file is something else."""
+
+    try:
+        lines = path.read_text(encoding="utf-8").splitlines()
+    except (OSError, UnicodeDecodeError):
+        return None
+    if "Type=Link" not in lines:
+        return None
+    return next((line[4:] for line in lines if line.startswith("URL=")), None)
+
+
+def launcher_path(desktop: Path, name: str, uri: str) -> Path:
+    """Where the launcher goes: "<name>.desktop", or the launcher already there for this URI, or "<name> (2).desktop"
+    and so on when the name is taken by something else."""
+
+    base = safe_file_name(name)
+    for number in range(1, 100):
+        path = desktop / (f"{base}.desktop" if number == 1 else f"{base} ({number}).desktop")
+        if not os.path.lexists(path) or (not path.is_symlink() and launcher_url(path) == uri):
+            return path
+    raise FileExistsError(f"no free name for {name} on {desktop}")
+
+
+def write_launcher(path: Path, text: str) -> None:
+    fd, staging = tempfile.mkstemp(prefix=".caramos-shortcut-", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(text)
+        os.chmod(staging, 0o755)
+        os.replace(staging, path)
+    except BaseException:
+        Path(staging).unlink(missing_ok=True)
+        raise
+
+
+def trust(path: Path) -> None:
+    """Xfce runs a launcher on the Desktop without asking when its SHA-256 is in its GIO metadata."""
+
+    from gi.repository import Gio
+
+    checksum = hashlib.sha256(path.read_bytes()).hexdigest()
+    try:
+        Gio.File.new_for_path(str(path)).set_attribute_string(TRUST_KEY, checksum, Gio.FileQueryInfoFlags.NONE, None)
+    except Exception as exc:  # no metadata service: Xfce asks once, Cinnamon does not care
+        print(f"caramos-desktop-shortcut: {path}: {exc}", file=sys.stderr)
+
+
+def icon_name(info: object) -> str:
+    from gi.repository import Gio
+
+    if info.get_file_type() == Gio.FileType.DIRECTORY:
+        return REMOTE_FOLDER_ICON
+    icon = info.get_icon()
+    if isinstance(icon, Gio.ThemedIcon) and icon.get_names():
+        return icon.get_names()[0]
+    content_type = info.get_content_type()
+    return Gio.content_type_get_generic_icon_name(content_type) if content_type else "text-x-generic"
+
+
+def mounts() -> list[tuple[str, str]]:
+    """(FUSE path, URI) of the root of each GVfs mount."""
+
+    from gi.repository import Gio
+
+    found = []
+    for mount in Gio.VolumeMonitor.get().get_mounts():
+        root = mount.get_root()
+        path = root.get_path()
+        if path and under(Path(path), fuse_root()):
+            found.append((path, root.get_uri()))
+    return found
+
+
+def place(uri: str) -> tuple[str, str]:
+    """("path", local path) for a file of a disk of this computer; ("uri", GVfs URI) for anything else."""
+
+    from gi.repository import Gio
+
+    gfile = Gio.File.new_for_uri(uri)
+    if not gfile.is_native():
+        # GVfs's own URI, also for a file:// URI into its FUSE folder, which GIO maps back to the place
+        return "uri", gfile.get_uri()
+    path = gfile.get_path()
+    if path and not under(Path(path), fuse_root()):
+        return "path", path
+    if path:  # in the FUSE folder without GVfs's client (GIO_USE_VFS=local): the place, from the mounts
+        return "uri", gvfs_uri_of_fuse_path(Path(path), mounts()) or uri
+    return "uri", uri
+
+
+def make_launcher(desktop: Path, uri: str) -> Path:
+    from gi.repository import Gio
+
+    info = Gio.File.new_for_uri(uri).query_info(
+        "standard::display-name,standard::type,standard::icon,standard::content-type",
+        Gio.FileQueryInfoFlags.NONE, None)
+    name = info.get_display_name()
+    path = launcher_path(desktop, name, uri)
+    write_launcher(path, launcher_text(name, uri, icon_name(info)))
+    trust(path)
+    return path
+
+
+def desktop_folder() -> Path | None:
+    from gi.repository import GLib
+
+    special = GLib.get_user_special_dir(GLib.UserDirectory.DIRECTORY_DESKTOP)
+    for candidate in (special, os.path.join(os.path.expanduser("~"), "Desktop")):
+        if candidate and os.path.isdir(candidate) and os.path.realpath(candidate) != os.path.realpath(
+                os.path.expanduser("~")):
+            return Path(candidate)
+    return None
+
+
+def tell_not_created() -> None:
+    """The spice's own message, in its translation (migration 20261117100100 puts it in ~/.local/share/locale)."""
+
+    translation = gettext.translation(SPICE, localedir=os.path.expanduser("~/.local/share/locale"), fallback=True)
+    try:
+        import gi
+
+        gi.require_version("Gtk", "3.0")
+        from gi.repository import Gtk
+
+        dialog = Gtk.MessageDialog(message_type=Gtk.MessageType.WARNING, buttons=Gtk.ButtonsType.OK,
+                                   text=translation.gettext("Couldn't create all shortcuts!"))
+        dialog.set_title(translation.gettext("Create a desktop shortcut"))
+        dialog.set_icon_name("emblem-symbolic-link")
+        dialog.run()
+        dialog.destroy()
+    except Exception as exc:  # no display: the message stays in Nemo's output
+        print(f"caramos-desktop-shortcut: {exc}", file=sys.stderr)
+
+
+def run_spice(paths: Sequence[str]) -> int:
+    """The spice's script makes the links of local items, one plain path per argument."""
+
+    if not SPICE_SCRIPT.is_file():
+        print(f"caramos-desktop-shortcut: {SPICE_SCRIPT} is missing", file=sys.stderr)
+        return 1
+    return subprocess.run([sys.executable, str(SPICE_SCRIPT), *paths], check=False).returncode
+
+
+def main(argv: Sequence[str] | None = None) -> int:
+    uris = uris_from_args(sys.argv[1:] if argv is None else argv)
+    if not uris:
+        print("usage: caramos-desktop-shortcut URI...", file=sys.stderr)
+        return 2
+    desktop = desktop_folder()
+    if desktop is None:
+        print("caramos-desktop-shortcut: no Desktop folder", file=sys.stderr)
+        return 1
+    local: list[str] = []
+    failed = 0
+    for uri in uris:
+        try:
+            kind, where = place(uri)
+            if kind == "path":
+                local.append(where)
+            else:
+                print(f"caramos-desktop-shortcut: {make_launcher(desktop, where)} -> {where}")
+        except Exception as exc:  # one item that cannot be reached must not stop the others
+            print(f"caramos-desktop-shortcut: {uri}: {exc}", file=sys.stderr)
+            failed += 1
+    status = run_spice(local) if local else 0
+    if failed:
+        tell_not_created()
+    return 1 if failed or status else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

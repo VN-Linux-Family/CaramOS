@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Sequence
 
+from caramos_ota.constants import APT_NONINTERACTIVE_OPTIONS, NONINTERACTIVE_ENV
 from caramos_ota.logging_utils import log_info
 
 from .version_metadata import validate_version, version_metadata_files, write_version_metadata
@@ -88,20 +90,29 @@ class MigrationContext:
 
         package_list = self._validate_packages(packages)
         options = [] if recommends else ["--no-install-recommends"]
-        self.run_command(["apt-get", "install", "--yes", *options, "--", *package_list])
+        self._apt_get("install", "--yes", *options, "--", *package_list)
 
     def apt_replace(self, install: Sequence[str], remove: Sequence[str]) -> None:
         """Install and remove packages in one APT transaction."""
 
         install_list = self._validate_packages(install)
         remove_list = [f"{package}-" for package in self._validate_packages(remove)]
-        self.run_command(["apt-get", "install", "--yes", "--", *install_list, *remove_list])
+        self._apt_get("install", "--yes", "--", *install_list, *remove_list)
 
     def apt_remove(self, packages: Sequence[str]) -> None:
         """Remove packages through APT after validating package names."""
 
         package_list = self._validate_packages(packages)
-        self.run_command(["apt-get", "remove", "--yes", "--", *package_list])
+        self._apt_get("remove", "--yes", "--", *package_list)
+
+    def _apt_get(self, *arguments: str) -> None:
+        """apt-get without questions: the update has nobody to answer dpkg or debconf (ticket H-1207).
+
+        A configuration file someone changed stays as it is (caramos_ota.constants).
+        """
+
+        self.run_command(["apt-get", *APT_NONINTERACTIVE_OPTIONS, *arguments],
+                         env={**os.environ, **NONINTERACTIVE_ENV})
 
     def ensure_service_enabled(self, service: str) -> None:
         """Enable a systemd service after validating the unit name."""

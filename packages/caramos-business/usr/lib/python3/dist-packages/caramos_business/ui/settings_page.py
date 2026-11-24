@@ -49,9 +49,13 @@ class SettingsPage(Page):
         self.section_names = section_names
         self.editors = sections.Editors(self)
         self.pending = 0
+        self.built_generation: int | None = None
 
     def refresh(self, force: bool = False) -> None:
-        if force:  # editing stays undisturbed by the timer: settings pages rebuild when shown or changed
+        # Editing stays undisturbed by the timer: settings pages rebuild when shown or changed, and when the draft's
+        # values were replaced since the page was built ("Lưu và gửi", "Hoàn tác", a save from another window): its
+        # editors would go on changing the old values, without a save bar, and the change would be lost.
+        if force or self.built_generation != self.ctx.draft.generation:
             self.rebuild()
 
     def changed(self, rebuild: bool = False) -> None:
@@ -74,6 +78,7 @@ class SettingsPage(Page):
         adjustment = self.view.get_content().get_vadjustment() if hasattr(self.view.get_content(), "get_vadjustment") \
             else None
         position = adjustment.get_value() if adjustment else 0
+        self.built_generation = self.ctx.draft.generation
         self.clear()
         self.body.append(common.label(intro(self.key), "paragraph"))
         self.body.append(self.scope_group())

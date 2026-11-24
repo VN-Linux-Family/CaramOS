@@ -1,0 +1,224 @@
+This package was debianized by CJ van den Berg <cj@vdbonline.com> on
+Wed, 10 Aug 2006 22:16:26 +0200.
+
+It was downloaded from http://0pointer.de/lennart/projects/pavucontrol/
+
+Upstream Author: Lennart Poettering <lennart@poettering.net>
+
+Files: *
+Copyright:
+  Copyright (C) 2006-2008 Lennart Poettering
+  Copyright (C) 2009 Colin Guthrie
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+Copyright: src/pavucontrol.cc
+  Copyright (C) 2006-2008 Lennart Poettering <lennart@poettering.net>
+  Copyright (C) 2008 Sjoerd Simons <sjoerd@luon.net>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/as.po
+Copyright:
+  Copyright (C) 2009 Amitakhya Phukan <aphukan@fedoraproject.org>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/bn_IN.po
+Copyright:
+  Copyright (C) 2009 Runa Bhattacharjee <runab@fedoraproject.org>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/ca.po
+Copyright:
+  Copyright (C) 2009 Xavier Queralt Mateu <xqueralt@gmail.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/cs.po
+Copyright:
+  Copyright (C) 2009 Petr Kovar <pknbe@volny.cz>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/da.po
+Copyright:
+  Copyright (C) 2009 Kris Thomsen <lakristho@gmail.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/de.po
+Copyright:
+  Copyright (C) 2008 Fabian Affolter <fab@fedoraproject.org>
+  Copyright (C) 2008 Florian Steinel <fsteinel@fedoraproject.org>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/el.po
+Copyright:
+  Copyright (C) 2008 Dimitris Glezos <dimitris@glezos.com>
+  Copyright (C) 2008 Florian Steinel <fsteinel@fedoraproject.org>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/fi.po
+Copyright:
+  Copyright (C) Timo Jyrinki <timo.jyrinki@iki.fi>
+  Copyright (C) 2009 Ville-Pekka Vainio <vpivaini@cs.helsinki.fi>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/fr.po
+Copyright:
+  Copyright (C) 2008 Robert-André Mauchin <zebob.m@pengzone.org>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/gu.po
+Copyright:
+  Copyright (C) 2009 Sweta Kothari <swkothar@redhat.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/hu.po
+Copyright:
+  Copyright (C) 2008,2009 Gabor Kelemen <kelemeng@gnome.hu>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/it.po
+Copyright:
+  Copyright (C) 2008 Milo Casagrande <milo@ubuntu.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/kn.po
+Copyright:
+  Copyright (C) 2009 Shankar Prasad <svenkate@redhat.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/mr.po
+Copyright:
+  Copyright (C) 2009 Sandeep Shedmake <sandeep.shedmake@gmail.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/nl.po
+Copyright:
+  Copyright (C) 2008 Reinout van Schouwen <reinouts@gnome.org>
+  Copyright (C) 2009 R.E. van der Luit <nippur@fedoraproject.org>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/or.po
+Copyright:
+  Copyright (C) 2009 Manoj Kumar Giri <mgiri@redhat.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/pa.po
+Copyright:
+  Copyright (C) 2008 Amanpreet Singh Alam <aalam@users.sf.net>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/pl.po
+Copyright:
+  Copyright (C) 2008 Piotr Drąg <piotrdrag@gmail.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/pt.po
+Copyright:
+  Copyright (C) 2008 marcormm <marcormm@fedoraproject.org>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/pt_BR.po
+Copyright:
+  Copyright (C) 2008 Jyulliano Arruda Ferraro Rocha <jyulliano@gmail.com>
+  Copyright (C) 2008 Igor Pires Soares <igor@projetofedora.org>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/sk.po
+Copyright:
+  Copyright (C) 2008,2009 Ondrej Šulek <feonsu@gmail.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/sr.po, po/sr@latin.po
+Copyright:
+  Copyright (C) 2006 Lennart Poettering
+  Copyright (C) 2008 Ferenc Pravda <pravda013@gmail.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/sv.po
+Copyright:
+  Copyright (C) 2008 Daniel Nylander <po@danielnylander.se>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/ta.po
+Copyright:
+  Copyright (C) 2009 I. Felix <ifelix@redhat.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/te.po
+Copyright:
+  Copyright (C) 2009 Krishna Babu K <kkrothap@redhat.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/th.po
+Copyright:
+  Copyright (C) 2009 Manatsawin Hanmongkolchai <manatsawin@gmail.com>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/tr.po
+Copyright:
+  Copyright (C) 2009 Ozan Çağlayan <ozan@pardus.org.tr>
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2
+
+File: po/zh_CN.po
+Copyright:
+  Copyright (C) 2008 甘露 (Gan Lu) <rhythm.gan@gmail.com>
+  Copyright (C) 2009 Leah Liu <lliu@redhat.com>, 2009.
+License: GPL-2+
+ On Debian systems, the complete text of the GPL-2 can be found in
+ /usr/share/common-licenses/GPL-2

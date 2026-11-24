@@ -1,0 +1,22 @@
+CaramOS additions to Debian's fastfetch packaging
+=================================================
+
+caramos.txt   -> /usr/share/fastfetch/logos/caramos.txt
+    The CaramOS logo, a star fruit in an orange circle, 42x18, made from
+    config/includes.chroot/usr/share/caramos/ascii-logo.txt of the CaramOS
+    repository. Colour slots: $1 the circle, $2 the star, $3 its edges.
+
+config.jsonc  -> /etc/xdg/fastfetch/config.jsonc
+    The system-wide default config: the logo above in the CaramOS colours,
+    the title in orange and the keys in CaramOS green. The modules are
+    fastfetch's default list (a config without "modules" shows the logo only).
+
+Without them, fastfetch on CaramOS shows the Ubuntu logo: it has no CaramOS
+logo of its own and falls back to the first word of ID_LIKE in
+/etc/os-release. The OS line needs nothing: fastfetch prints PRETTY_NAME,
+"CaramOS 1.5.0 Xfce x86_64".
+
+fastfetch reads the first fastfetch/config.jsonc it finds in
+$XDG_CONFIG_HOME, ~/.config, ~, $XDG_CONFIG_DIRS, /etc/xdg and /etc, so a
+user's ~/.config/fastfetch/config.jsonc replaces this file. Command-line
+options still apply on top (fastfetch --logo none, -l ubuntu, ...).

@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Menu chuột phải của Tệp (dưới 1 MB)",
+  "size_en": "Files right-click menu (under 1 MB)",
+  "title": "Tạo lối tắt trên màn hình cho cả Google Drive và thư mục mạng",
+  "summary": "Chuột phải vào thư mục trong Google Drive, thư mục chia sẻ trong mạng hay điện thoại, chọn Tạo lối tắt trên màn hình: lối tắt mang đúng tên thư mục và vẫn mở được sau khi khởi động lại máy.",
+  "title_en": "Desktop shortcuts for Google Drive and network folders too",
+  "summary_en": "Right-click a folder in Google Drive, a shared network folder or a phone and choose Create a desktop shortcut: the shortcut has the folder's name and still opens after a restart.",
+  "release_notes_vi": [
+    "Trước đây Tạo lối tắt trên màn hình chỉ làm được với tệp và thư mục trên ổ cứng của máy. Với Google Drive (Tài khoản trực tuyến), thư mục chia sẻ trong mạng hay điện thoại, nó báo lỗi hoặc tạo lối tắt mang một mã số lạ, hỏng ngay khi khởi động lại máy.",
+    "Giờ lối tắt tới những chỗ đó mang tên như trong Tệp. Bấm đúp là mở; nếu chỗ đó chưa kết nối thì máy tự kết nối (thư mục mạng có thể hỏi mật khẩu).",
+    "Cũng sửa lỗi “Không thể tạo tất cả lối tắt!” với tệp và thư mục có dấu # trong tên.",
+    "Áp dụng ngay, không cần đăng nhập lại."
+  ],
+  "release_notes_en": [
+    "Create a desktop shortcut used to work only for files and folders on the computer's own disks. For Google Drive (Online Accounts), shared network folders or a phone it failed, or made a shortcut named by an odd code that broke at the next restart.",
+    "Shortcuts to those places now have the name Files shows. Double-click to open; when the place is not connected yet, the computer connects to it (a network folder may ask for its password).",
+    "Also fixes “Couldn't create all shortcuts!” for files and folders with a # in their name.",
+    "Works right away, without logging in again."
+  ]
+}

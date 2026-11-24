@@ -1,3 +1,51 @@
+caramos-business (0.3.1) noble; urgency=medium
+
+  * Licence report: apps whose copyright file is in the older free-form
+    style (Thunar, xfwm4, the Xfce panel, session, terminal and power
+    manager, pavucontrol, gufw) or has no "Files: *" stanza (onboard,
+    mate-desktop) are no longer "Chưa rõ". The agent recognises the GPL,
+    LGPL, BSD, MIT, Apache and MPL texts and the files they point to in
+    /usr/share/common-licenses, else takes the most common licence of the
+    file, and finds AppStream licences through any menu entry of a package
+    or its name. A file that speaks of proprietary terms stays unknown.
+  * A package is named after its main menu entry, the one named after the
+    package or running its program ("Thunar File Manager", not "Bulk
+    Rename"), else by its own name ("WPS Office", not "WPS Spreadsheets"),
+    in the report and in "Thêm bản quyền". It also takes the licence that
+    any of its entries states.
+  * The result of remote help says its mode in Vietnamese: "điều khiển" or
+    "chỉ xem", not "control".
+  * Actions for many machines no longer put a capital letter inside a
+    sentence: "Đã yêu cầu mọi máy gửi thông tin kiểm kê."
+  * Enter in "Thêm phòng ban" and the other forms of fields presses their
+    button, also while typing Vietnamese.
+  * A machine paired, approved or enrolled while someone is logged in
+    shows the company's notice at once, before the firewall, browser and
+    USB settings apply, and gets its wallpaper and folders without a new
+    login: the service starts the part that runs in the user's session
+    when none runs yet, and the notice comes first in it.
+  * An edit made right after "Lưu và gửi" is no longer lost: the page is
+    built again from what was saved, and the Wi-Fi row no longer says
+    "mới, sẽ gửi khi bạn lưu".
+  * After the company turns freezing off, the employee window says that
+    the machine stays frozen until it restarts.
+  * A cloned disk gives its users their own Desktop and Documents back.
+  * Update results in the reader's language ("đã cài 321 bản vá bảo
+    mật"), on the machine page and for a frozen machine's maintenance.
+  * The space the system snapshots take shows right after the first one.
+  * Freezing together with system snapshots is refused before the
+    password is asked; "Máy đã nhập kho" puts the machine in stock;
+    ticking the steps of an employee who leaves no longer moves the page
+    or closes the history; two apps with the same name in the licence
+    report say their package; "1 mục", not "1 entries".
+  * Lock, message, countdown and remote help requests from the admin
+    reach the employee at once: also while the window that signs in to
+    the company's server is open, where they waited up to 2 minutes for
+    it, and right after pairing or a start of the agent, where they
+    waited up to 30 seconds.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Tue, 24 Nov 2026 14:00:00 +0700
+
 caramos-business (0.3.0) noble; urgency=medium
 
   * Pairing that a LAN attacker cannot abuse: a random 6-digit code for each

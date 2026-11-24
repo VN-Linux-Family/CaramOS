@@ -241,10 +241,9 @@ class EmployeeView(Adw.Bin):
                 "server": _("on the server"), "local": _("on this machine for now"),
                 "failed": _("could not reach the server"), "off": _("on this machine")}.get(status.get("folders"),
                                                                                           _("not yet"))))
-        if (settings.get("shared") or {}).get("freeze"):
-            frozen = any(line.split()[1:3] == ["/", "overlay"] for line in read_lines(Path("/proc/mounts")))
-            self.status_rows.add(common.property_row(_("Freezing"), _("on: changes are undone at restart") if frozen
-                                                     else _("from the next restart")))
+        freezing = freeze_text(bool((settings.get("shared") or {}).get("freeze")), frozen_now())
+        if freezing:
+            self.status_rows.add(common.property_row(_("Freezing"), freezing))
         if status.get("detail"):
             self.status_rows.add(common.property_row(_("Detail"), str(status["detail"])))
 
@@ -559,6 +558,24 @@ def read_lines(path: Path) -> list[str]:
         return path.read_text(encoding="utf-8").splitlines()
     except OSError:
         return []
+
+
+def frozen_now(mounts: Path = Path("/proc/mounts")) -> bool:
+    """Whether / is overlayroot in this boot (the machine is frozen now)."""
+
+    return any(line.split()[1:3] == ["/", "overlay"] for line in read_lines(mounts))
+
+
+def freeze_text(wanted: bool, frozen: bool) -> str | None:
+    """The "Đóng băng" row: on, from the next restart, or still on after the company turned freezing off, since the
+    machine stays frozen until it restarts (PROTOCOL.md part 3, "Freeze": the window says so; 0.3.1 dropped the row
+    then). None when the machine neither is nor will be frozen."""
+
+    if wanted:
+        return _("on: changes are undone at restart") if frozen else _("from the next restart")
+    if frozen:
+        return _("the company turned it off; the machine stays frozen until the next restart")
+    return None
 
 
 def enrolment_sentence(data: dict[str, Any]) -> str:

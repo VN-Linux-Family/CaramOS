@@ -89,6 +89,13 @@ pub fn ran_for(elapsed: Duration) -> String {
     }
 }
 
+/// A finished session's detail: how long it ran, the mode in English in brackets, and how it ended ("chạy 19 giây
+/// (control), người dùng dừng"). The admin shows "(control)" and "(view)" in its reader's language (PROTOCOL.md part 3,
+/// "Changes during implementation", 0.3.1).
+pub fn done_detail(elapsed: Duration, mode: &str, ending: &str) -> String {
+    format!("{} ({mode}), {ending}", ran_for(elapsed))
+}
+
 fn answer(id: &str, state: &str, detail: impl Into<String>, given: &str) -> Answer {
     Answer { id: id.to_string(), state: state.to_string(), detail: detail.into(), answer: given.to_string() }
 }
@@ -190,7 +197,7 @@ pub fn run(id: &str, args: &Value, admin_name: &str, runtime_dir: &Path, cancel:
     let _ = fs::remove_dir_all(&dir);
     let elapsed = started.elapsed();
     if connected {
-        answer(id, "done", format!("{} ({mode}), {ending}", ran_for(elapsed)), &given)
+        answer(id, "done", done_detail(elapsed, mode, ending), &given)
     } else {
         answer(id, "failed", ending, &given)
     }
@@ -218,5 +225,7 @@ mod tests {
         assert!(!x11vnc_args(":0", 40123, true).contains(&"-viewonly".to_string()));
         assert_eq!(ran_for(Duration::from_secs(40)), "chạy 40 giây");
         assert_eq!(ran_for(Duration::from_secs(12 * 60 + 10)), "chạy 12 phút");
+        assert_eq!(done_detail(Duration::from_secs(19), "control", "người dùng dừng"), "chạy 19 giây (control), người dùng dừng");
+        assert_eq!(done_detail(Duration::from_secs(150), "view", "bên quản lý đã đóng"), "chạy 3 phút (view), bên quản lý đã đóng");
     }
 }

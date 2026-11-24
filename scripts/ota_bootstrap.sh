@@ -180,6 +180,9 @@ CHROOT
         || error "Thiếu Docklike (xfce4-docklike-plugin): thanh tác vụ bản Xfce sẽ không có đảo giữa."
     chroot "$WORK_DIR/squashfs" test -f /usr/share/xfce4/panel/plugins/caramos-control-center.desktop \
         || error "Thiếu xfce4-caramos-plugin: thanh tác vụ bản Xfce sẽ không có Control Center."
+    # xfce4-panel.xml của ISO có plugin Hiện màn hình nền (caramos-show-desktop, xfce4-caramos-plugin từ 1.1.0).
+    chroot "$WORK_DIR/squashfs" test -f /usr/share/xfce4/panel/plugins/caramos-show-desktop.desktop \
+        || error "xfce4-caramos-plugin cũ hơn 1.1.0: thanh tác vụ bản Xfce sẽ báo thiếu plugin Hiện màn hình nền."
     ok "Đã cài Docklike và Control Center của CaramOS cho thanh tác vụ."
 }
 

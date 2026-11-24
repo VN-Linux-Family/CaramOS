@@ -8,10 +8,16 @@
 //! `Files: *` stanza), else the AppStream file of its desktop id, and the archive `apt-cache policy` names for the
 //! installed version; for a Flatpak, its AppStream file and its remote.
 //!
+//! From 0.3.1 (part 3, "Changes during implementation"): a package's entries share one licence, found through any of
+//! them or the package's name, then from what its copyright file says without a `Files: *` stanza (the most common
+//! licence of a machine-readable file, a well-known licence in an older one); and `main` marks the entry that names
+//! its package.
+//!
 //! Strings are at most 200 characters, lists at most 500 items, and the body at most 1 MiB.
 
 use std::collections::BTreeMap;
 use std::fs;
+use std::io::Read;
 use std::path::Path;
 use std::time::Duration;
 
@@ -126,6 +132,9 @@ pub struct App {
     /// `ubuntu-<component>`, `mint`, `caramos-ppa`, `third-party:<host>`, `local-deb`, `flathub` or
     /// `flatpak:<remote>`.
     pub origin: String,
+    /// The entry that names its package (0.3.1): its desktop file is named after the package (`thunar.desktop`), or
+    /// its Exec runs the package's program; at most one per package, and every Flatpak app.
+    pub main: bool,
 }
 
 /// Everything but `collected` and `hash`: what the hash covers.
@@ -447,10 +456,21 @@ pub fn parse_ip_addr(json: &str, kind: impl Fn(&str) -> (bool, bool)) -> Vec<Nic
         .collect()
 }
 
-/// A desktop file's Name and whether a user sees it (no NoDisplay=true, no Hidden=true).
-pub fn desktop_entry(text: &str) -> Option<String> {
+/// A desktop file's entry, as the inventory reads it.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct DesktopEntry {
+    /// `Name=`, untranslated.
+    pub name: String,
+    /// The program that `Exec=` runs, without its folder: `thunar` from `thunar %U`, `et` from `/usr/bin/et %F`.
+    pub program: String,
+    /// It has `OnlyShowIn=`: some desktops only (`gnome-system-monitor-kde.desktop`).
+    pub only_show_in: bool,
+}
+
+/// A desktop file's entry when a user sees it (no NoDisplay=true, no Hidden=true).
+pub fn desktop_entry(text: &str) -> Option<DesktopEntry> {
     let mut in_entry = false;
-    let (mut name, mut hidden) = (None, false);
+    let (mut name, mut program, mut hidden, mut only_show_in) = (None, None, false, false);
     for line in text.lines() {
         let line = line.trim();
         if line.starts_with('[') {
@@ -462,11 +482,61 @@ pub fn desktop_entry(text: &str) -> Option<String> {
         }
         if let Some(value) = line.strip_prefix("Name=") {
             name.get_or_insert_with(|| clip(value));
+        } else if let Some(value) = line.strip_prefix("Exec=") {
+            program.get_or_insert_with(|| clip(&exec_program(value)));
+        } else if line.starts_with("OnlyShowIn=") {
+            only_show_in = true;
         } else if line == "NoDisplay=true" || line == "Hidden=true" {
             hidden = true;
         }
     }
-    name.filter(|_| !hidden)
+    let name = name.filter(|_| !hidden)?;
+    Some(DesktopEntry { name, program: program.unwrap_or_default(), only_show_in })
+}
+
+/// The program an `Exec=` line runs, without its folder: past `env` and its `NAME=value` words, and a program in
+/// double quotes taken whole.
+pub fn exec_program(exec: &str) -> String {
+    let mut rest = exec.trim();
+    while !rest.is_empty() {
+        let (word, after) = match rest.strip_prefix('"') {
+            Some(quoted) => quoted.split_once('"').unwrap_or((quoted, "")),
+            None => rest.split_once(char::is_whitespace).unwrap_or((rest, "")),
+        };
+        rest = after.trim_start();
+        let program = word.rsplit('/').next().unwrap_or(word);
+        if program == "env" || (!word.starts_with('/') && word.contains('=')) {
+            continue;
+        }
+        return program.to_string();
+    }
+    String::new()
+}
+
+/// The entry that names a package, by index: the one whose desktop file is named after the package (`thunar.desktop`,
+/// or `org.fcitx.Fcitx5.desktop` for fcitx5), else the one whose Exec runs a program named after the package
+/// (`/usr/bin/fcitx5`). Among equals, an entry for every desktop goes before an `OnlyShowIn=` one, then the first.
+/// None when no entry is named after the package (wps-office: `wps-office-wps.desktop` runs `/usr/bin/wps`).
+pub fn main_entry(package: &str, entries: &[(&str, &DesktopEntry)]) -> Option<usize> {
+    let suffix = format!(".{}", package.to_ascii_lowercase());
+    entries
+        .iter()
+        .enumerate()
+        .filter_map(|(index, (desktop_id, entry))| {
+            let stem = desktop_id.strip_suffix(".desktop").unwrap_or(desktop_id);
+            let rank = if stem == package {
+                0
+            } else if stem.to_ascii_lowercase().ends_with(&suffix) {
+                1
+            } else if !entry.program.is_empty() && entry.program == package {
+                2
+            } else {
+                return None;
+            };
+            Some((rank, entry.only_show_in, index))
+        })
+        .min()
+        .map(|(_, _, index)| index)
 }
 
 /// `dpkg -S` lines: "pkg: path" or "pkg1, pkg2: path", diversions left out.
@@ -497,23 +567,11 @@ fn apps(system: &System) -> Vec<App> {
                 package: clip(id),
                 licence: flatpak_licence(system, id).unwrap_or_else(|| UNKNOWN.to_string()),
                 origin: clip(&flatpak_origin(remote)),
+                main: true,
             });
         }
     }
-    let folder = system.path("/usr/share/applications");
-    // Desktop file path → (desktop id, name).
-    let mut visible: BTreeMap<String, (String, String)> = BTreeMap::new();
-    if let Ok(entries) = fs::read_dir(&folder) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.extension().is_some_and(|extension| extension == "desktop") {
-                if let Some(name) = fs::read_to_string(&path).ok().as_deref().and_then(desktop_entry) {
-                    let desktop_id = entry.file_name().to_string_lossy().into_owned();
-                    visible.insert(format!("/usr/share/applications/{desktop_id}"), (desktop_id, name));
-                }
-            }
-        }
-    }
+    let visible = visible_entries(system);
     if visible.is_empty() || !system.commands {
         return apps;
     }
@@ -521,9 +579,9 @@ fn apps(system: &System) -> Vec<App> {
     let mut args = vec!["-S"];
     args.extend(&paths);
     let owners = parse_dpkg_search(&system.run("dpkg", &args, TOOL_TIMEOUT).map(|output| output.stdout).unwrap_or_default());
-    let packages: std::collections::BTreeSet<&String> = visible.keys().filter_map(|path| owners.get(path)).collect();
+    let names: Vec<&str> = visible.keys().filter_map(|path| owners.get(path)).map(String::as_str).collect::<std::collections::BTreeSet<_>>().into_iter().collect();
     let mut query = vec!["-W", "-f=${Package}\t${Version}\n"];
-    query.extend(packages.iter().map(|package| package.as_str()));
+    query.extend(&names);
     let versions: BTreeMap<String, String> = system
         .run("dpkg-query", &query, TOOL_TIMEOUT)
         .map(|output| output.stdout)
@@ -532,26 +590,74 @@ fn apps(system: &System) -> Vec<App> {
         .filter_map(|line| line.split_once('\t'))
         .map(|(package, version)| (package.split(':').next().unwrap_or(package).to_string(), version.to_string()))
         .collect();
-    let origins = apt_origins(system, &packages.iter().map(|package| package.as_str()).collect::<Vec<_>>());
+    let origins = apt_origins(system, &names);
+    apps.extend(deb_apps(system, &visible, &owners, &versions, &origins));
+    apps
+}
+
+/// The visible /usr/share/applications/*.desktop files: path → (desktop id, entry).
+pub fn visible_entries(system: &System) -> BTreeMap<String, (String, DesktopEntry)> {
+    let mut visible = BTreeMap::new();
+    if let Ok(entries) = fs::read_dir(system.path("/usr/share/applications")) {
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.extension().is_some_and(|extension| extension == "desktop") {
+                if let Some(found) = fs::read_to_string(&path).ok().as_deref().and_then(desktop_entry) {
+                    let desktop_id = entry.file_name().to_string_lossy().into_owned();
+                    visible.insert(format!("/usr/share/applications/{desktop_id}"), (desktop_id, found));
+                }
+            }
+        }
+    }
+    visible
+}
+
+/// The deb apps: one entry per visible desktop file a package owns (`owners`: path → package, from `dpkg -S`), with
+/// the package's version, origin and licence, and `main` on the entry that names the package.
+pub fn deb_apps(system: &System, visible: &BTreeMap<String, (String, DesktopEntry)>, owners: &BTreeMap<String, String>, versions: &BTreeMap<String, String>, origins: &BTreeMap<String, String>) -> Vec<App> {
+    // Each package's visible entries, in the order of their paths.
+    let mut packages: BTreeMap<&str, Vec<(&str, &DesktopEntry)>> = BTreeMap::new();
+    for (path, (desktop_id, entry)) in visible {
+        if let Some(package) = owners.get(path) {
+            packages.entry(package.as_str()).or_default().push((desktop_id.as_str(), entry));
+        }
+    }
     let appstream = appstream_licences(system);
-    let mut copyright: BTreeMap<String, Option<String>> = BTreeMap::new();
-    for (path, (desktop_id, name)) in &visible {
-        let Some(package) = owners.get(path) else {
-            continue;
-        };
-        let stated = copyright.entry(package.clone()).or_insert_with(|| deb_copyright_licence(system, package)).clone();
-        let licence = stated.or_else(|| appstream_for(&appstream, desktop_id)).unwrap_or_else(|| UNKNOWN.to_string());
-        apps.push(App {
-            id: clip(desktop_id),
-            name: name.clone(),
-            version: clip(versions.get(package).map(String::as_str).unwrap_or_default()),
-            source: "deb".into(),
-            package: clip(package),
-            licence: clip(&licence),
-            origin: clip(origins.get(package).map(String::as_str).unwrap_or(UNKNOWN)),
-        });
+    let mut apps = Vec::new();
+    for (package, entries) in &packages {
+        let main = main_entry(package, entries);
+        let licence = deb_licence(system, package, entries, main, &appstream);
+        let version = clip(versions.get(*package).map(String::as_str).unwrap_or_default());
+        let origin = clip(origins.get(*package).map(String::as_str).unwrap_or(UNKNOWN));
+        for (index, (desktop_id, entry)) in entries.iter().enumerate() {
+            apps.push(App {
+                id: clip(desktop_id),
+                name: entry.name.clone(),
+                version: version.clone(),
+                source: "deb".into(),
+                package: clip(package),
+                licence: licence.clone(),
+                origin: origin.clone(),
+                main: main == Some(index),
+            });
+        }
     }
     apps
+}
+
+/// A deb package's licence, the same for each of its entries: what its machine-readable copyright file states for
+/// `Files: *` (or in its header); else the AppStream licence of its main entry, its other entries or the package's
+/// name; else what its copyright file says otherwise (`copyright_inferred`); else "unknown".
+fn deb_licence(system: &System, package: &str, entries: &[(&str, &DesktopEntry)], main: Option<usize>, appstream: &BTreeMap<String, String>) -> String {
+    let text = deb_copyright(system, package);
+    let mut desktop_ids: Vec<&str> = main.map(|index| entries[index].0).into_iter().collect();
+    desktop_ids.extend(entries.iter().map(|(desktop_id, _)| *desktop_id));
+    text.as_deref()
+        .and_then(copyright_licence)
+        .or_else(|| appstream_for_package(appstream, package, &desktop_ids))
+        .or_else(|| text.as_deref().and_then(copyright_inferred))
+        .map(|licence| clip(&licence))
+        .unwrap_or_else(|| UNKNOWN.to_string())
 }
 
 /// What `licence` and `origin` say when nothing tells.
@@ -581,56 +687,293 @@ fn flatpak_licence(system: &System, id: &str) -> Option<String> {
         .and_then(|xml| appstream(&xml).0)
 }
 
-/// The licence of a deb package's machine-readable copyright file, for `Files: *`.
-fn deb_copyright_licence(system: &System, package: &str) -> Option<String> {
+/// The most of a copyright file the inventory reads (libreoffice's is over 1 MiB; the parts it needs come first).
+const MAX_COPYRIGHT: u64 = 2 * 1024 * 1024;
+
+/// A deb package's /usr/share/doc/<package>/copyright, its first 2 MiB; bytes that are not UTF-8 (older files in
+/// Latin-1) do not keep it from being read.
+fn deb_copyright(system: &System, package: &str) -> Option<String> {
     if package.is_empty() || package.contains('/') || package.starts_with('.') {
         return None;
     }
-    let text = fs::read_to_string(system.path(&format!("/usr/share/doc/{package}/copyright"))).ok()?;
-    copyright_licence(&text)
+    let mut data = Vec::new();
+    fs::File::open(system.path(&format!("/usr/share/doc/{package}/copyright"))).ok()?.take(MAX_COPYRIGHT).read_to_end(&mut data).ok()?;
+    Some(String::from_utf8_lossy(&data).into_owned())
 }
 
-/// The first line of the `License:` field of the stanza whose `Files:` is `*`, in a machine-readable copyright file
-/// (its first line starts with `Format:` and holds `copyright-format/1.0`). Field names are case-insensitive.
+/// A field of a copyright file's paragraph: its name in lower case ("" for a line of prose in an older file), the
+/// first line of its value, and the whole value with its continuation lines joined by spaces.
+type Field = (String, String, String);
+
+/// A copyright file's paragraphs (separated by empty lines) and their fields. A field's name has no spaces, so
+/// "Copyright Holders:" or "It was downloaded from http://…" in an older file are prose.
+fn paragraphs(text: &str) -> Vec<Vec<Field>> {
+    let mut found = Vec::new();
+    let mut current: Vec<Field> = Vec::new();
+    for line in text.lines() {
+        if line.trim().is_empty() {
+            if !current.is_empty() {
+                found.push(std::mem::take(&mut current));
+            }
+        } else if line.starts_with(' ') || line.starts_with('\t') {
+            if let Some((_, _, whole)) = current.last_mut() {
+                whole.push(' ');
+                whole.push_str(line.trim());
+            }
+        } else if let Some((name, value)) = line.split_once(':').filter(|(name, _)| !name.is_empty() && !name.contains(char::is_whitespace)) {
+            let value = value.trim().to_string();
+            current.push((name.to_ascii_lowercase(), value.clone(), value));
+        } else {
+            current.push((String::new(), String::new(), line.trim().to_string()));
+        }
+    }
+    if !current.is_empty() {
+        found.push(current);
+    }
+    found
+}
+
+fn field<'a>(paragraph: &'a [Field], name: &str) -> Option<&'a Field> {
+    paragraph.iter().find(|(key, _, _)| key == name)
+}
+
+fn machine_readable(text: &str) -> bool {
+    text.lines().next().is_some_and(|first| first.starts_with("Format:") && first.contains("copyright-format/1.0"))
+}
+
+/// The licence a machine-readable copyright file (its first line starts with `Format:` and holds
+/// `copyright-format/1.0`) states for the whole package: the first line of the `License:` field of the stanza whose
+/// `Files:` is `*`, else of its header paragraph. Field names are case-insensitive, and `Files:` may go on over
+/// continuation lines ("Files:\n *", as in gnome-system-monitor's file).
 pub fn copyright_licence(text: &str) -> Option<String> {
-    let first = text.lines().next()?;
-    if !first.starts_with("Format:") || !first.contains("copyright-format/1.0") {
+    if !machine_readable(text) {
         return None;
     }
-    let mut files: Option<String> = None;
-    let mut licence: Option<String> = None;
-    let mut last_key = String::new();
-    for line in text.lines().chain(std::iter::once("")) {
-        if line.trim().is_empty() {
-            // `Files:` holds whitespace-separated patterns, which may go on continuation lines ("Files:\n *", as in
-            // gnome-system-monitor's file).
-            if files.as_deref().is_some_and(|files| files.split_whitespace().any(|pattern| pattern == "*")) {
-                return licence.filter(|licence| !licence.is_empty()).map(|licence| clip(&licence));
-            }
-            files = None;
-            licence = None;
-            last_key.clear();
+    let paragraphs = paragraphs(text);
+    let catch_all = paragraphs.iter().find(|paragraph| field(paragraph, "files").is_some_and(|(_, _, files)| files.split_whitespace().any(|pattern| pattern == "*")));
+    let header = || paragraphs.first().filter(|paragraph| field(paragraph, "format").is_some() && field(paragraph, "files").is_none());
+    catch_all
+        .or_else(header)
+        .and_then(|paragraph| field(paragraph, "license"))
+        .map(|(_, licence, _)| licence.as_str())
+        .filter(|licence| !licence.is_empty())
+        .map(clip)
+}
+
+/// What a copyright file says of the package's licence when it states none for the whole package (0.3.1). Free
+/// software only: a file that speaks of proprietary terms gives None.
+/// - Machine-readable without `Files: *`: the most common licence of its `Files:` stanzas, the packaging's
+///   (`debian/*`) left out; on a tie, the first (onboard: GPL-3+; mate-desktop: GPL-2+).
+/// - Older files, in this order: a `Files: *` stanza in the same form (pavucontrol); the first statement of a GNU
+///   licence with its version ("the GNU General Public License (version 2 or later)": GPL-2+); the most common
+///   licence of the `License:` fields (xfwm4, xfce4-panel); the first /usr/share/common-licenses file it points to
+///   (thunar: GPL); the text of the Apache 2.0, MIT (Expat), ISC, BSD or MPL 2.0 licence.
+pub fn copyright_inferred(text: &str) -> Option<String> {
+    let paragraphs = paragraphs(text);
+    let stanzas: Vec<(&str, &str)> = paragraphs
+        .iter()
+        .filter_map(|paragraph| {
+            let files = field(paragraph, "files").or_else(|| field(paragraph, "file"))?;
+            let licence = field(paragraph, "license")?;
+            Some((files.2.as_str(), licence.1.as_str()))
+        })
+        .collect();
+    if machine_readable(text) {
+        let licences: Vec<&str> = stanzas
+            .iter()
+            .filter(|(files, licence)| !licence.is_empty() && !files.split_whitespace().all(|pattern| pattern.starts_with("debian/")))
+            .map(|(_, licence)| *licence)
+            .collect();
+        if licences.iter().any(|licence| non_free_name(licence)) {
+            return None;
+        }
+        if let Some(licence) = most_common(&licences) {
+            return Some(clip(licence));
+        }
+    }
+    let flat = flatten(text);
+    if non_free_text(&flat) {
+        return None;
+    }
+    if let Some((_, licence)) = stanzas.iter().find(|(files, licence)| !licence.is_empty() && files.split_whitespace().any(|pattern| pattern == "*")) {
+        return Some(clip(licence));
+    }
+    if let Some(licence) = gnu_statement(&flat) {
+        return Some(licence);
+    }
+    let fields: Vec<&str> = paragraphs.iter().flatten().filter(|(key, value, _)| key == "license" && known_licence_name(value)).map(|(_, value, _)| value.as_str()).collect();
+    if let Some(licence) = most_common(&fields) {
+        return Some(clip(licence));
+    }
+    common_licenses_reference(text).or_else(|| permissive_text(&flat))
+}
+
+/// The item that comes most often; on a tie, the one that came first.
+fn most_common<'a>(items: &[&'a str]) -> Option<&'a str> {
+    let mut counted: Vec<(&str, usize, usize)> = Vec::new();
+    for (index, item) in items.iter().enumerate() {
+        match counted.iter_mut().find(|(seen, _, _)| seen == item) {
+            Some((_, count, _)) => *count += 1,
+            None => counted.push((item, 1, index)),
+        }
+    }
+    counted.into_iter().max_by(|a, b| a.1.cmp(&b.1).then(b.2.cmp(&a.2))).map(|(item, _, _)| item)
+}
+
+/// A text in lower case, its runs of whitespace as single spaces.
+fn flatten(text: &str) -> String {
+    text.split_whitespace().collect::<Vec<_>>().join(" ").to_lowercase()
+}
+
+/// Whether `word` is in `text` as a word of its own (not inside a longer word).
+fn has_word(text: &str, word: &str) -> bool {
+    let is_word_char = |c: char| c.is_alphanumeric();
+    text.match_indices(word).any(|(at, _)| {
+        !text[..at].chars().next_back().is_some_and(is_word_char) && !text[at + word.len()..].chars().next().is_some_and(is_word_char)
+    })
+}
+
+/// A licence name of a machine-readable file that says the files are not free software.
+fn non_free_name(licence: &str) -> bool {
+    let lower = licence.to_ascii_lowercase();
+    ["proprietary", "non-free", "nonfree", "noncommercial", "non-commercial", "eula", "freeware", "shareware", "all-rights-reserved"].iter().any(|word| lower.contains(word))
+}
+
+/// An older copyright file (flattened) that speaks of proprietary terms. The GPL and LGPL texts speak of
+/// "proprietary programs", "proprietary applications" and "non-free programs": those do not count.
+fn non_free_text(flat: &str) -> bool {
+    const WORDS: [&str; 10] = ["end user license agreement", "end-user license agreement", "end user licence agreement", "end-user licence agreement", "eula", "freeware", "shareware", "non-commercial", "noncommercial", "all-rights-reserved"];
+    let stated = |word: &str, harmless: &[&str]| {
+        flat.match_indices(word).any(|(at, _)| {
+            let after = &flat[at + word.len()..];
+            !flat[..at].chars().next_back().is_some_and(char::is_alphanumeric)
+                && !after.chars().next().is_some_and(char::is_alphanumeric)
+                && !harmless.iter().any(|next| after.starts_with(next))
+        })
+    };
+    WORDS.iter().any(|word| has_word(flat, word)) || stated("proprietary", &[" program", " application"]) || stated("non-free", &[" program"]) || stated("nonfree", &[" program"])
+}
+
+/// A `License:` value of an older file that names a licence (and not "see below" or the like).
+fn known_licence_name(value: &str) -> bool {
+    const FAMILIES: [&str; 24] = [
+        "gpl", "lgpl", "agpl", "bsd", "mit", "expat", "apache", "mpl", "artistic", "isc", "zlib", "public-domain", "cc0", "cc-by", "x11", "psf", "python", "ofl", "gfdl", "unlicense", "bsl", "boost", "epl", "wtfpl",
+    ];
+    let lower = value.trim().to_ascii_lowercase();
+    FAMILIES.iter().any(|family| lower.starts_with(family))
+}
+
+/// The first statement of a GNU licence with its version in a flattened text, as a Debian short name: "GPL-2+" from
+/// "the gnu general public license as published by the free software foundation; either version 2 of the license,
+/// or (at your option) any later version", "LGPL-2.1+", "GPL-3". A sentence about the Debian packaging does not
+/// count; nor does a name without a version ("the complete text of the gnu general public license can be found in
+/// /usr/share/common-licenses/gpl-2").
+pub fn gnu_statement(flat: &str) -> Option<String> {
+    const NAMES: [(&str, &str); 4] = [("gnu lesser general public licen", "LGPL"), ("gnu library general public licen", "LGPL"), ("gnu affero general public licen", "AGPL"), ("gnu general public licen", "GPL")];
+    let mut found: Vec<(usize, &str, usize)> = NAMES.iter().flat_map(|(name, family)| flat.match_indices(name).map(move |(at, _)| (at, *family, at + name.len()))).collect();
+    found.sort();
+    for (at, family, end) in found {
+        let start = flat[..at].rfind(". ").map_or(0, |dot| dot + 2);
+        let sentence = sentence_from(&flat[end..]);
+        if flat[start..at].contains("packaging") || sentence.contains("packaging") {
             continue;
         }
-        if line.starts_with(' ') || line.starts_with('\t') {
-            if last_key == "files" {
-                if let Some(files) = files.as_mut() {
-                    files.push(' ');
-                    files.push_str(line.trim());
-                }
-            }
-            continue;
-        }
-        if let Some((key, value)) = line.split_once(':') {
-            last_key = key.trim().to_ascii_lowercase();
-            match last_key.as_str() {
-                "files" => files = Some(value.trim().to_string()),
-                "license" => licence = Some(value.trim().to_string()),
-                _ => {}
-            }
+        if let Some((version, later)) = version_in(sentence) {
+            return Some(format!("{family}-{version}{}", if later { "+" } else { "" }));
         }
     }
     None
+}
+
+/// A flattened text up to the end of its first sentence (a full stop before a space, or the end), at most 300
+/// bytes. "2.1" and "inc.," do not end it.
+fn sentence_from(text: &str) -> &str {
+    let mut end = text.len().min(300);
+    while !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    let text = &text[..end];
+    match text.find(". ") {
+        Some(stop) => &text[..stop],
+        None => text.strip_suffix('.').unwrap_or(text),
+    }
+}
+
+/// The licence version a sentence names after a GNU licence's name, and whether later versions may be used:
+/// "version 2", "(version 2 or later)", "v3 or later", "either version 2.1 of the license, or (at your option) any
+/// later version".
+fn version_in(sentence: &str) -> Option<(&'static str, bool)> {
+    let mut at = 0;
+    for word in sentence.split(' ') {
+        let next = (at + word.len() + 1).min(sentence.len());
+        let bare = word.trim_start_matches(['(', '[']);
+        let number_at = if matches!(bare.trim_end_matches([',', ';', ':']), "version" | "v" | "v.") {
+            Some(next)
+        } else {
+            bare.strip_prefix('v').filter(|rest| rest.starts_with(|c: char| c.is_ascii_digit())).map(|rest| at + word.len() - rest.len())
+        };
+        at = next;
+        let Some(number_at) = number_at else {
+            continue;
+        };
+        let tail = sentence[number_at..].trim_start_matches('(');
+        let digits = tail[..tail.find(|c: char| !c.is_ascii_digit() && c != '.').unwrap_or(tail.len())].trim_end_matches('.');
+        let version = match digits {
+            "1" | "1.0" => "1",
+            "2" | "2.0" => "2",
+            "2.1" => "2.1",
+            "3" | "3.0" => "3",
+            _ => continue,
+        };
+        let after = &tail[digits.len()..];
+        let later = after.starts_with('+') || ["or later", "or any later", "any later version", "or newer", "or above", "or higher", "and later"].iter().any(|phrase| after.contains(phrase));
+        return Some((version, later));
+    }
+    None
+}
+
+/// The licence of the first /usr/share/common-licenses file a text points to (a licence for programs before one for
+/// documentation): "GPL-2" from "can be found in `/usr/share/common-licenses/GPL-2'". Debian's BSD file is the
+/// 3-clause licence.
+pub fn common_licenses_reference(text: &str) -> Option<String> {
+    const KNOWN: [&str; 17] = ["Apache-2.0", "Artistic", "BSD", "CC0-1.0", "GFDL", "GFDL-1.2", "GFDL-1.3", "GPL", "GPL-1", "GPL-2", "GPL-3", "LGPL", "LGPL-2", "LGPL-2.1", "LGPL-3", "MPL-1.1", "MPL-2.0"];
+    const MARKER: &str = "/usr/share/common-licenses/";
+    let found: Vec<&str> = text
+        .match_indices(MARKER)
+        .filter_map(|(at, _)| {
+            let after = &text[at + MARKER.len()..];
+            let name = &after[..after.find(|c: char| !(c.is_ascii_alphanumeric() || c == '.' || c == '-')).unwrap_or(after.len())];
+            let name = name.trim_end_matches('.');
+            KNOWN.iter().find(|known| known.eq_ignore_ascii_case(name)).map(|known| if *known == "BSD" { "BSD-3-clause" } else { *known })
+        })
+        .collect();
+    found.iter().find(|name| !name.starts_with("GFDL") && !name.starts_with("CC0")).or(found.first()).map(|name| name.to_string())
+}
+
+/// The licence whose well-known text a flattened copyright file holds: Apache 2.0, MIT (Debian's Expat), ISC, BSD
+/// (2-, 3- or 4-clause) or MPL 2.0.
+fn permissive_text(flat: &str) -> Option<String> {
+    let any = |phrases: &[&str]| phrases.iter().any(|phrase| flat.contains(phrase));
+    let licence = if any(&["apache license, version 2.0", "apache license version 2.0", "apache license 2.0"]) {
+        "Apache-2.0"
+    } else if any(&["permission is hereby granted, free of charge, to any person obtaining a copy"]) {
+        "Expat"
+    } else if any(&["permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted", "permission to use, copy, modify, and distribute this software for any purpose with or without fee is hereby granted"]) {
+        "ISC"
+    } else if any(&["redistribution and use in source and binary forms, with or without modification, are permitted"]) {
+        if flat.contains("advertising materials") {
+            "BSD-4-clause"
+        } else if flat.contains("neither the name") {
+            "BSD-3-clause"
+        } else {
+            "BSD-2-clause"
+        }
+    } else if any(&["mozilla public license, v. 2.0", "mozilla public license, version 2.0", "mozilla public license version 2.0"]) {
+        "MPL-2.0"
+    } else {
+        return None;
+    };
+    Some(licence.to_string())
 }
 
 /// The text of every `<tag>` (or `<tag attributes>`) element in an XML text, with the five XML entities decoded.
@@ -697,6 +1040,25 @@ fn appstream_licences(system: &System) -> BTreeMap<String, String> {
 /// `.desktop`.
 pub fn appstream_for(licences: &BTreeMap<String, String>, desktop_id: &str) -> Option<String> {
     licences.get(desktop_id).or_else(|| licences.get(desktop_id.trim_end_matches(".desktop"))).cloned()
+}
+
+/// The AppStream licence of a deb package: that of one of its desktop ids, in the order given (its main entry
+/// first), else of a component whose id, without `.desktop`, is the package's name or ends with `.<package>`, in any
+/// case (`xfce4-power-manager.desktop` for xfce4-power-manager, whose entry is `xfce4-power-manager-settings.desktop`;
+/// `org.xfce.Thunar` for thunar).
+pub fn appstream_for_package(licences: &BTreeMap<String, String>, package: &str, desktop_ids: &[&str]) -> Option<String> {
+    desktop_ids.iter().find_map(|desktop_id| appstream_for(licences, desktop_id)).or_else(|| {
+        let wanted = package.to_ascii_lowercase();
+        let suffix = format!(".{wanted}");
+        licences
+            .iter()
+            .find(|(id, _)| {
+                let id = id.to_ascii_lowercase();
+                let id = id.strip_suffix(".desktop").unwrap_or(&id);
+                id == wanted || id.ends_with(&suffix)
+            })
+            .map(|(_, licence)| licence.clone())
+    })
 }
 
 /// An archive of `apt-cache policy`'s "Package files": its `o=` and `c=`, and the host of its `origin` line.
@@ -896,8 +1258,9 @@ mod tests {
         let cards = parse_ip_addr(ip, |name| (name != "docker0", false));
         assert_eq!(cards, [Nic { name: "enp3s0".into(), mac: "aa:bb:cc:dd:ee:ff".into(), ipv4: "192.168.1.20".into(), wired: true }]);
 
-        assert_eq!(desktop_entry("[Desktop Entry]\nName=VLC\nName[vi]=VLC\nExec=vlc\n"), Some("VLC".into()));
+        assert_eq!(desktop_entry("[Desktop Entry]\nName=VLC\nName[vi]=VLC\nExec=vlc --started-from-file %U\n"), Some(DesktopEntry { name: "VLC".into(), program: "vlc".into(), only_show_in: false }));
         assert_eq!(desktop_entry("[Desktop Entry]\nName=Helper\nNoDisplay=true\n"), None);
+        assert!(desktop_entry("[Desktop Entry]\nName=GNOME System Monitor\nExec=gnome-system-monitor\nOnlyShowIn=KDE;\n").unwrap().only_show_in);
         let owners = parse_dpkg_search("vlc-bin: /usr/share/applications/vlc.desktop\ndiversion by x from: /y\nlibreoffice-writer, libreoffice-core: /usr/share/applications/w.desktop\n");
         assert_eq!(owners["/usr/share/applications/vlc.desktop"], "vlc-bin");
         assert_eq!(owners["/usr/share/applications/w.desktop"], "libreoffice-writer");
@@ -931,6 +1294,152 @@ mod tests {
         assert_eq!(flatpak_origin("flathub"), "flathub");
         assert_eq!(flatpak_origin("fedora"), "flatpak:fedora");
         assert!(is_flatpak_id("org.libreoffice.LibreOffice") && !is_flatpak_id("../x") && !is_flatpak_id("Application ID"));
+    }
+
+    #[test]
+    fn the_entry_that_names_a_package() {
+        assert_eq!(exec_program("thunar %U"), "thunar");
+        assert_eq!(exec_program("/usr/bin/et %F"), "et");
+        assert_eq!(exec_program("env WEBKIT_DISABLE_COMPOSITING_MODE=1 cinnamon-settings"), "cinnamon-settings");
+        assert_eq!(exec_program("\"/opt/My App/my-app\" %U"), "my-app");
+        assert_eq!(exec_program("LANG=C xfce4-terminal"), "xfce4-terminal");
+        assert_eq!(exec_program(""), "");
+        let entry = |name: &str, program: &str| DesktopEntry { name: name.into(), program: program.into(), only_show_in: false };
+        // Seen on CaramOS 1.5.0 (Xfce): 0.3.0 named thunar after its first entry, "Bulk Rename".
+        let (bulk, thunar) = (entry("Bulk Rename", "thunar"), entry("Thunar File Manager", "thunar"));
+        assert_eq!(main_entry("thunar", &[("thunar-bulk-rename.desktop", &bulk), ("thunar.desktop", &thunar)]), Some(1));
+        // WPS Office: five entries, none named after wps-office and none running it.
+        let wps: Vec<DesktopEntry> = [("WPS Spreadsheets", "et"), ("WPS PDF", "wpspdf"), ("WPS Office", "wps"), ("WPS Presentation", "wpp"), ("WPS Writer", "wps")].iter().map(|(name, program)| entry(name, program)).collect();
+        let ids = ["wps-office-et.desktop", "wps-office-pdf.desktop", "wps-office-prometheus.desktop", "wps-office-wpp.desktop", "wps-office-wps.desktop"];
+        let wps_entries: Vec<(&str, &DesktopEntry)> = ids.iter().copied().zip(wps.iter()).collect();
+        assert_eq!(main_entry("wps-office", &wps_entries), None);
+        // A reverse-DNS desktop id, in another case; an Exec named after the package.
+        let (configtool, fcitx) = (entry("Fcitx 5 Configuration", "fcitx5-configtool"), entry("Fcitx 5", "fcitx5"));
+        assert_eq!(main_entry("fcitx5", &[("fcitx5-configtool.desktop", &configtool), ("org.fcitx.Fcitx5.desktop", &fcitx)]), Some(1));
+        let (manager, settings) = (entry("Bluetooth Manager", "blueman-manager"), entry("Session and Startup", "xfce4-session-settings"));
+        assert_eq!(main_entry("blueman", &[("blueman-manager.desktop", &manager)]), None);
+        assert_eq!(main_entry("xfce4-session", &[("xfce-session-settings.desktop", &settings)]), None);
+        // Both run gnome-system-monitor: the one for every desktop wins over OnlyShowIn=KDE.
+        let kde = DesktopEntry { only_show_in: true, ..entry("GNOME System Monitor", "gnome-system-monitor") };
+        let monitor = entry("System Monitor", "gnome-system-monitor");
+        assert_eq!(main_entry("gnome-system-monitor", &[("gnome-system-monitor-kde.desktop", &kde), ("org.gnome.SystemMonitor.desktop", &monitor)]), Some(1));
+    }
+
+    #[test]
+    fn licences_of_older_copyright_files() {
+        let inferred = |text: &str| copyright_inferred(text);
+        // A GNU licence stated with its version wins over the files it points to.
+        assert_eq!(inferred("This package was debianized by someone.\n\nYou are free to distribute this software under the terms of\nthe GNU General Public License (version 2 or later).\nOn Debian systems, the complete text of the GNU General Public\nLicense can be found in the file `/usr/share/common-licenses/GPL'\n").as_deref(), Some("GPL-2+"));
+        assert_eq!(inferred("Copyright: 2010 X\n\nThis library is free software; you can redistribute it and/or\nmodify it under the terms of the GNU Lesser General Public\nLicense as published by the Free Software Foundation; either\nversion 2.1 of the License, or (at your option) any later version.\n").as_deref(), Some("LGPL-2.1+"));
+        assert_eq!(inferred("It is licensed under the GNU General Public License v3 or later.\n").as_deref(), Some("GPL-3+"));
+        assert_eq!(inferred("This program is free software: you can redistribute it under the terms of the GNU General Public License, version 3.\n").as_deref(), Some("GPL-3"));
+        assert_eq!(inferred("Licensed under the GNU Library General Public License version 2.\n").as_deref(), Some("LGPL-2"));
+        // Only a pointer to /usr/share/common-licenses; a licence for programs before one for documentation.
+        assert_eq!(inferred("Upstream: x\n\nOn Debian systems, see /usr/share/common-licenses/GPL-2.\n").as_deref(), Some("GPL-2"));
+        assert_eq!(inferred("Docs: /usr/share/common-licenses/GFDL-1.2, code: /usr/share/common-licenses/LGPL-2.1\n").as_deref(), Some("LGPL-2.1"));
+        assert_eq!(inferred("See `/usr/share/common-licenses/BSD'.\n").as_deref(), Some("BSD-3-clause"));
+        assert_eq!(inferred("The manual is in /usr/share/common-licenses/GFDL-1.3.\n").as_deref(), Some("GFDL-1.3"));
+        // A sentence about the Debian packaging does not name the package's licence.
+        assert_eq!(inferred("The Debian packaging is licensed under the GNU General Public License version 2 or later.\n\nPermission is hereby granted, free of charge, to any person obtaining a copy of this software, to deal in the Software without restriction.\n").as_deref(), Some("Expat"));
+        // The permissive licences by their text.
+        let bsd = "Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:\n1. Redistributions of source code must retain the above copyright notice.\n2. Redistributions in binary form must reproduce the above copyright notice.\n";
+        assert_eq!(inferred(bsd).as_deref(), Some("BSD-2-clause"));
+        assert_eq!(inferred(&format!("{bsd}3. Neither the name of the author nor the names of its contributors may be used to endorse products.\n")).as_deref(), Some("BSD-3-clause"));
+        assert_eq!(inferred("Licensed under the Apache License, Version 2.0 (the \"License\");\n").as_deref(), Some("Apache-2.0"));
+        assert_eq!(inferred("Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted.\n").as_deref(), Some("ISC"));
+        assert_eq!(inferred("This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.\n").as_deref(), Some("MPL-2.0"));
+        // Nothing reliable: unknown.
+        assert_eq!(inferred("Copyright 2024 Example Ltd. All rights reserved.\n"), None);
+        assert_eq!(inferred("This package was debianized by someone.\nLicense: see the website\n"), None);
+        assert_eq!(inferred("The GNU General Public License can be found in the source tarball.\n"), None, "a name without a version or a file");
+        assert_eq!(inferred(""), None);
+        // Proprietary terms make it unknown, whatever free licence a bundled part has; the GPL's own words do not.
+        assert_eq!(inferred("Example Viewer is proprietary software of Example Ltd.\nIt includes zlib, see /usr/share/common-licenses/GPL-2.\n"), None);
+        assert_eq!(inferred("Use of this software is governed by the End User License Agreement.\nThe GNU General Public License version 2 applies to the bundled libfoo.\n"), None);
+        assert_eq!(inferred("Distributed as freeware.\n/usr/share/common-licenses/GPL\n"), None);
+        assert_eq!(inferred("Under the GNU General Public License version 2. This General Public License does not permit incorporating your program into proprietary programs.\n").as_deref(), Some("GPL-2"));
+        assert_eq!(inferred("Under the GNU Lesser General Public License version 2.1, which permits linking those libraries into non-free programs.\n").as_deref(), Some("LGPL-2.1"));
+    }
+
+    #[test]
+    fn licences_of_machine_readable_files_without_a_catch_all() {
+        let format = "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/\nUpstream-Name: x\n\n";
+        // The most common licence of the stanzas, the packaging's left out; a tie goes to the first.
+        let text = format!("{format}Files: src/a.c\nLicense: LGPL-2+\n\nFiles: src/b.c\nLicense: GPL-2+\n\nFiles: tools/*\nLicense: GPL-2+\n\nFiles: debian/*\nLicense: Expat\n\nFiles: debian/patches/*\n debian/rules\nLicense: Expat\n\nFiles: po/*\nLicense: LGPL-2+\n\nLicense: GPL-2+\n The text.\n");
+        assert_eq!(copyright_licence(&text), None);
+        assert_eq!(copyright_inferred(&text).as_deref(), Some("LGPL-2+"), "LGPL-2+ and GPL-2+ twice each; LGPL-2+ came first");
+        let more = format!("{format}Files: src/a.c\nLicense: LGPL-2+\n\nFiles: src/b.c\nLicense: GPL-2+\n\nFiles: tools/*\nLicense: GPL-2+\n");
+        assert_eq!(copyright_inferred(&more).as_deref(), Some("GPL-2+"));
+        // A stanza with proprietary files makes the package unknown.
+        let firmware = format!("{format}Files: src/*\nLicense: GPL-2+\n\nFiles: src/more/*\nLicense: GPL-2+\n\nFiles: firmware/*\nLicense: proprietary\n");
+        assert_eq!(copyright_inferred(&firmware), None);
+        // The header paragraph's License is the package's (copyright-format 1.0).
+        let header = "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/\nUpstream-Name: x\nLicense: MPL-2.0\n\nFiles: src/*\nLicense: MPL-2.0\n";
+        assert_eq!(copyright_licence(header).as_deref(), Some("MPL-2.0"));
+        // `Files: *` wins over the header, as in 0.3.0.
+        let both = "Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/\nLicense: GPL-2+\n\nFiles: *\nLicense: GPL-3+\n";
+        assert_eq!(copyright_licence(both).as_deref(), Some("GPL-3+"));
+    }
+
+    #[test]
+    fn the_deb_apps_of_a_package_share_its_licence() {
+        let root = crate::testutil::TempDir::new("deb-apps");
+        let system = System::test(root.path());
+        let write = |path: &str, text: &str| {
+            let path = system.path(path);
+            fs::create_dir_all(path.parent().unwrap()).unwrap();
+            fs::write(path, text).unwrap();
+        };
+        write("/usr/share/applications/thunar.desktop", "[Desktop Entry]\nName=Thunar File Manager\nExec=thunar %U\n");
+        write("/usr/share/applications/thunar-bulk-rename.desktop", "[Desktop Entry]\nName=Bulk Rename\nExec=thunar --bulk-rename %F\n");
+        write("/usr/share/applications/thunar-settings.desktop", "[Desktop Entry]\nName=File Manager Settings\nExec=thunar-settings\nNoDisplay=true\n");
+        // Its AppStream id is org.xfce.Thunar, not the desktop id: found through the package's name.
+        write("/usr/share/metainfo/org.xfce.thunar.appdata.xml", "<component type=\"desktop\"><id type=\"desktop\">org.xfce.Thunar</id><project_license>GPL-2.0</project_license></component>");
+        write("/usr/share/doc/thunar/copyright", "This package was debianized by someone.\n\nOn Debian systems, the complete text of the GNU General Public\nLicense can be found in the file `/usr/share/common-licenses/GPL'\n");
+        write("/usr/share/applications/xfce4-power-manager-settings.desktop", "[Desktop Entry]\nName=Power Manager\nExec=xfce4-power-manager-settings\n");
+        write("/usr/share/doc/xfce4-power-manager/copyright", "This package was debianized by someone.\n\nYou are free to distribute this software under the terms of\nthe GNU General Public License (version 2 or later).\n");
+        // Latin-1 bytes in an older file: read all the same.
+        let mut latin1 = b"Copyright \xa9 2006 Andr\xe9\n\nThe GNU General Public License, version 2 or any later version, applies.\n".to_vec();
+        latin1.extend_from_slice(b"\n");
+        let path = system.path("/usr/share/doc/xfce4-dict/copyright");
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(&path, latin1).unwrap();
+        write("/usr/share/applications/xfce4-dict.desktop", "[Desktop Entry]\nName=Dictionary\nExec=xfce4-dict\n");
+        write("/usr/share/applications/wps-office-wps.desktop", "[Desktop Entry]\nName=WPS Writer\nExec=/usr/bin/wps %U\n");
+        write("/usr/share/applications/wps-office-et.desktop", "[Desktop Entry]\nName=WPS Spreadsheets\nExec=/usr/bin/et %F\n");
+        write("/usr/share/applications/handmade.desktop", "[Desktop Entry]\nName=Made by hand\nExec=handmade\n");
+        let visible = visible_entries(&system);
+        assert_eq!(visible.len(), 7, "thunar-settings.desktop is hidden");
+        let owners: BTreeMap<String, String> = [
+            ("thunar.desktop", "thunar"),
+            ("thunar-bulk-rename.desktop", "thunar"),
+            ("xfce4-power-manager-settings.desktop", "xfce4-power-manager"),
+            ("xfce4-dict.desktop", "xfce4-dict"),
+            ("wps-office-wps.desktop", "wps-office"),
+            ("wps-office-et.desktop", "wps-office"),
+        ]
+        .iter()
+        .map(|(id, package)| (format!("/usr/share/applications/{id}"), package.to_string()))
+        .collect();
+        let versions = BTreeMap::from([("thunar".to_string(), "4.18.8-1".to_string())]);
+        let origins = BTreeMap::from([("wps-office".to_string(), "local-deb".to_string())]);
+        let apps = deb_apps(&system, &visible, &owners, &versions, &origins);
+        let found: Vec<(&str, &str, &str, bool)> = apps.iter().map(|app| (app.id.as_str(), app.package.as_str(), app.licence.as_str(), app.main)).collect();
+        assert_eq!(
+            found,
+            [
+                ("thunar-bulk-rename.desktop", "thunar", "GPL-2.0", false),
+                ("thunar.desktop", "thunar", "GPL-2.0", true),
+                ("wps-office-et.desktop", "wps-office", "unknown", false),
+                ("wps-office-wps.desktop", "wps-office", "unknown", false),
+                ("xfce4-dict.desktop", "xfce4-dict", "GPL-2+", true),
+                ("xfce4-power-manager-settings.desktop", "xfce4-power-manager", "GPL-2+", false),
+            ],
+            "the desktop file that no package owns is left out"
+        );
+        assert_eq!((apps[0].version.as_str(), apps[0].origin.as_str(), apps[2].origin.as_str()), ("4.18.8-1", UNKNOWN, "local-deb"));
+        assert_eq!(appstream_for_package(&BTreeMap::from([("xfce4-power-manager.desktop".to_string(), "GPL-2.0+".to_string())]), "xfce4-power-manager", &["xfce4-power-manager-settings.desktop"]).as_deref(), Some("GPL-2.0+"));
+        assert_eq!(appstream_for_package(&BTreeMap::from([("org.example.xfce4-dict-helper".to_string(), "MIT".to_string())]), "dict", &[]), None, "a dot must come before the package's name");
     }
 
     #[test]

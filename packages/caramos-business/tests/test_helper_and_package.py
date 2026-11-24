@@ -6,9 +6,13 @@ from __future__ import annotations
 import configparser
 import datetime
 import json
+import os
 import re
+import shutil
 import subprocess
+import sys
 import tempfile
+import time
 import unittest
 import xml.etree.ElementTree as ElementTree
 from pathlib import Path
@@ -762,9 +766,13 @@ class PackageTests(unittest.TestCase):
         "Chưa có gì". It is built again after each save, as on the asset's own page."""
 
         page = (ROOT / "usr/lib/python3/dist-packages/caramos_business/ui/machines.py").read_text()
-        self.assertIn("AssetForm(self.ctx, self.machine_id, saved=self.build_asset_form)", page)
+        self.assertIn("AssetForm(self.ctx, self.machine_id, saved=self.build_asset_form, history_open=history_open)",
+                      page)
+        # 0.3.1's full pass: the first leaver step closed the open history and the page jumped by its height.
+        self.assertIn("common.keep_place(self.asset_box)", page)
         assets_page = (ROOT / "usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py").read_text()
         self.assertIn("saved=lambda: self.refresh(force=True)", assets_page)
+        self.assertIn("common.keep_place(self.body)", assets_page)
 
     def test_hostname_unit(self) -> None:
         parser = configparser.ConfigParser(strict=False, interpolation=None)
@@ -802,3 +810,266 @@ class ResultTextTests(unittest.TestCase):
                          state_text("expired", text.BEFORE_THIS_BOOT, "lock"))
         self.assertEqual("It came too late and was not done.", state_text("expired", "the command expired at …", "lock"))
         self.assertEqual("The employee refused.", state_text("refused", "người dùng từ chối", "remote_help"))
+        self.assertEqual("Done: chạy 19 giây (control), người dùng dừng",
+                         state_text("done", "chạy 19 giây (control), người dùng dừng", "remote_help"))
+        self.assertEqual("Done: chạy 3 phút (view only), bên quản lý đã đóng",
+                         state_text("done", "chạy 3 phút (view), bên quản lý đã đóng", "remote_help"))
+        # 0.3.1's full pass: an update's result in English in the Vietnamese window.
+        self.assertEqual("Done: system snapshot taken; 321 security updates installed",
+                         state_text("done", "đã chụp bản lưu hệ thống; 321 security updates installed", "update"))
+        self.assertEqual("Could not do it: security updates failed: apt-get update: E: x",
+                         state_text("failed", "older words", "update",
+                                    [{"step": "security", "ok": False, "error": "apt-get update: E: x"}]))
+
+
+class WindowLogicTests(unittest.TestCase):
+    """0.3.1's fixes after the full test pass that need GTK 4 to import, not a display."""
+
+    def setUp(self) -> None:
+        try:
+            from caramos_business.ui import employee, settings_page
+        except (ImportError, ValueError) as exc:  # no GTK 4 / libadwaita here
+            self.skipTest(f"GTK 4 is not available: {exc}")
+        self.employee, self.settings_page = employee, settings_page
+
+    def test_freezing_row(self) -> None:
+        """Freezing turned off: the machine stays frozen until it restarts, and the window said nothing of it."""
+
+        freeze_text = self.employee.freeze_text
+        self.assertEqual("on: changes are undone at restart", freeze_text(True, True))
+        self.assertEqual("from the next restart", freeze_text(True, False))
+        self.assertEqual("the company turned it off; the machine stays frozen until the next restart",
+                         freeze_text(False, True))
+        self.assertIsNone(freeze_text(False, False))
+        with tempfile.TemporaryDirectory() as folder:
+            mounts = Path(folder) / "mounts"
+            mounts.write_text("/dev/vda3 /media/root-ro ext4 ro 0 0\noverlayroot / overlay rw,lowerdir=/media/root-ro 0 0\n")
+            self.assertTrue(self.employee.frozen_now(mounts))
+            mounts.write_text("/dev/vda3 / ext4 rw,relatime 0 0\n")
+            self.assertFalse(self.employee.frozen_now(mounts))
+
+    def test_a_settings_page_follows_the_saved_draft(self) -> None:
+        """After "Lưu và gửi" the page was not built again: an edit went into the old values, without a save bar."""
+
+        from types import SimpleNamespace
+
+        from caramos_business import draft
+
+        page = self.settings_page.SettingsPage.__new__(self.settings_page.SettingsPage)
+        page.ctx = SimpleNamespace(draft=draft.Draft({"format": 2, "serial": 1}))
+        page.built_generation = None
+        built = []
+
+        def rebuild() -> None:
+            built.append(page.ctx.draft.generation)
+            page.built_generation = page.ctx.draft.generation
+
+        page.rebuild = rebuild
+        page.refresh()  # shown
+        page.refresh()  # the window's timer: editing stays undisturbed
+        page.ctx.draft.load({"format": 2, "serial": 2})  # saved
+        page.refresh()
+        page.refresh(force=True)
+        self.assertEqual([1, 2, 2], built)
+
+
+class NoticeWindowTests(unittest.TestCase):
+    """The notice's window writes notice-shown once it is on the screen (GTK's broadway backend in a private display),
+    which the session part waits for before it tells the daemon that the user was told."""
+
+    def test_the_notice_says_it_is_shown(self) -> None:
+        broadwayd = shutil.which("gtk4-broadwayd")
+        if broadwayd is None:
+            self.skipTest("gtk4-broadwayd is not installed")
+        display = f":{130 + os.getpid() % 100}"
+        with tempfile.TemporaryDirectory() as runtime:
+            server = subprocess.Popen([broadwayd, display], env=dict(os.environ, XDG_RUNTIME_DIR=runtime),
+                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.addCleanup(server.wait, 10)
+            self.addCleanup(server.terminate)
+            socket = Path(runtime) / f"broadway{int(display[1:]) + 1}.socket"
+            for _ in range(50):
+                if socket.exists():
+                    break
+                time.sleep(0.1)
+            marker = Path(runtime) / "caramos-business" / "notice-shown"
+            started = time.time()
+            prompt = subprocess.Popen([sys.executable, str(ROOT / "usr/bin/caramos-business"), "--prompt", "notice"],
+                                      stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+                                      env=dict(os.environ, GDK_BACKEND="broadway", BROADWAY_DISPLAY=display,
+                                               XDG_RUNTIME_DIR=runtime, PYTHONDONTWRITEBYTECODE="1",
+                                               PYTHONPATH=str(ROOT / "usr/lib/python3/dist-packages")))
+            try:
+                for _ in range(200):
+                    if marker.exists() or prompt.poll() is not None:
+                        break
+                    time.sleep(0.1)
+                self.assertTrue(marker.exists(), "the window did not say it was on the screen")
+                self.assertGreaterEqual(marker.stat().st_mtime, started - 1)
+            finally:
+                prompt.terminate()
+                prompt.wait(10)
+                prompt.stdout.close()
+
+
+class KeepPlaceTests(unittest.TestCase):
+    """0.3.1's full pass: the first leaver step closed the open history above it, and the steps jumped up by ~220 px,
+    so that the next click missed. The group in use keeps its place (GTK's broadway backend in a private display)."""
+
+    CHECK = """if True:
+        import gi
+        gi.require_version("Gtk", "4.0")
+        gi.require_version("Adw", "1")
+        from gi.repository import Adw, GLib, Gtk
+        from caramos_business.ui import common
+
+        found = []
+
+        def activate(app):
+            window = Adw.ApplicationWindow(application=app, default_width=500, default_height=400)
+            box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
+            scrolled = Gtk.ScrolledWindow(child=box, vexpand=True)
+            window.set_content(scrolled)
+
+            def fill(history):
+                groups = [Gtk.Box(height_request=history), Gtk.Box(height_request=200), Gtk.Box(height_request=900)]
+                for group in groups:
+                    box.append(group)
+                check = Gtk.CheckButton(label="step")
+                groups[1].append(check)
+                return check
+
+            check = fill(600)
+            window.present()
+
+            def shown_at(group):
+                # Its top in the page, less what is scrolled away: where it is on the screen.
+                return common.top_in(group, box) - scrolled.get_vadjustment().get_value()
+
+            def ticked():
+                scrolled.get_vadjustment().set_value(500)
+                check.grab_focus()
+                GLib.timeout_add(400, rebuilt)
+                return False
+
+            def rebuilt():
+                before = shown_at(box.get_first_child().get_next_sibling())
+                restore = common.keep_place(box)
+                while (child := box.get_first_child()) is not None:
+                    box.remove(child)
+                fill(380)  # the history above closed
+                restore()
+                waited = [0]
+
+                def measured():
+                    steps = box.get_first_child().get_next_sibling()
+                    waited[0] += 1
+                    if (steps.get_height() == 0 or scrolled.get_vadjustment().get_value() == 500) and waited[0] < 50:
+                        return True  # not laid out, or not put in place yet
+                    found.append((round(before), round(shown_at(steps))))
+                    app.quit()
+                    return False
+
+                GLib.timeout_add(100, measured)
+                return False
+
+            GLib.timeout_add(400, ticked)
+
+        application = Adw.Application(application_id="net.vietnamlinuxfamily.CaramOSBusinessPlaceTest")
+        application.connect("activate", activate)
+        application.run([])
+        print(found)
+    """
+
+    def test_the_group_in_use_keeps_its_place(self) -> None:
+        broadwayd = shutil.which("gtk4-broadwayd")
+        if broadwayd is None:
+            self.skipTest("gtk4-broadwayd is not installed")
+        display = f":{110 + os.getpid() % 100}"
+        with tempfile.TemporaryDirectory() as runtime:
+            server = subprocess.Popen([broadwayd, display], env=dict(os.environ, XDG_RUNTIME_DIR=runtime),
+                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.addCleanup(server.wait, 10)
+            self.addCleanup(server.terminate)
+            socket = Path(runtime) / f"broadway{int(display[1:]) + 1}.socket"
+            for _ in range(50):
+                if socket.exists():
+                    break
+                time.sleep(0.1)
+            result = subprocess.run([sys.executable, "-c", self.CHECK], capture_output=True, text=True, timeout=60,
+                                    env=dict(os.environ, GDK_BACKEND="broadway", BROADWAY_DISPLAY=display,
+                                             XDG_RUNTIME_DIR=runtime, PYTHONDONTWRITEBYTECODE="1",
+                                             PYTHONPATH=str(ROOT / "usr/lib/python3/dist-packages")))
+        self.assertEqual(0, result.returncode, result.stderr[-2000:])
+        before, after = eval(result.stdout.strip().splitlines()[-1])[0]  # noqa: S307 - our own printed list
+        self.assertEqual(124, before, "the steps were on the screen, 124 px from its top")
+        self.assertLessEqual(abs(before - after), 1, (before, after))
+
+
+class FormDialogTests(unittest.TestCase):
+    """Enter in a form's text field presses its action ("Thêm phòng ban" did nothing in 0.3.0), drawn by GTK's
+    broadway backend in a private display when gtk4-broadwayd is installed."""
+
+    CHECK = """if True:
+        import sys
+        import gi
+        gi.require_version("Gtk", "4.0")
+        gi.require_version("Adw", "1")
+        from gi.repository import Adw, GLib, Gtk
+        from caramos_business.ui import common
+
+        found = []
+        cases = [("valid", "Kế toán", None), ("empty", "", None), ("extra", "Họp lúc 15:00", Gtk.Label(label="x"))]
+
+        def activate(app):
+            window = Adw.ApplicationWindow(application=app)
+            window.present()
+
+            def run(index):
+                if index == len(cases):
+                    app.quit()
+                    return False
+                case, typed, extra = cases[index]
+                name = common.entry_row("Name, such as Kế toán")
+                done = []
+                dialog = common.form_dialog(window, "Add a department", "", [name], "Add",
+                                            lambda: done.append(name.get_text()), lambda: bool(name.get_text().strip()),
+                                            extra=extra)
+                name.set_text(typed)
+                name.get_delegate().emit("activate")  # what Enter does once an input method has let it through
+                found.append((case, done))
+                dialog.force_close()
+                GLib.timeout_add(100, run, index + 1)
+                return False
+
+            GLib.timeout_add(200, run, 0)
+
+        application = Adw.Application(application_id="net.vietnamlinuxfamily.CaramOSBusinessTest")
+        application.connect("activate", activate)
+        application.run([])
+        print(found)
+    """
+
+    def test_enter_presses_the_action(self) -> None:
+        broadwayd = shutil.which("gtk4-broadwayd")
+        if broadwayd is None:
+            self.skipTest("gtk4-broadwayd is not installed")
+        display = f":{90 + os.getpid() % 100}"
+        with tempfile.TemporaryDirectory() as runtime:
+            server = subprocess.Popen([broadwayd, display], env=dict(os.environ, XDG_RUNTIME_DIR=runtime),
+                                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.addCleanup(server.wait, 10)
+            self.addCleanup(server.terminate)
+            socket = Path(runtime) / f"broadway{int(display[1:]) + 1}.socket"
+            for _ in range(50):
+                if socket.exists():
+                    break
+                time.sleep(0.1)
+            result = subprocess.run([sys.executable, "-c", self.CHECK], capture_output=True, text=True, timeout=60,
+                                    env=dict(os.environ, GDK_BACKEND="broadway", BROADWAY_DISPLAY=display,
+                                             XDG_RUNTIME_DIR=runtime, PYTHONDONTWRITEBYTECODE="1",
+                                             PYTHONPATH=str(ROOT / "usr/lib/python3/dist-packages")))
+        self.assertEqual(0, result.returncode, result.stderr[-2000:])
+        self.assertEqual("[('valid', ['Kế toán']), ('empty', []), ('extra', [])]", result.stdout.strip().splitlines()[-1],
+                         "valid: added; empty: the action is off; a form with more than fields (a message's text): "
+                         "Enter does not send it")

@@ -11,6 +11,7 @@ from __future__ import annotations
 import datetime
 import json
 import re
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -162,13 +163,69 @@ def validate_register(value: Any) -> list[dict[str, Any]]:
     return result
 
 
+def named_after(desktop_id: str, package: str) -> bool:
+    """Whether a desktop file is named after its package: thunar.desktop for thunar, org.fcitx.Fcitx5.desktop for
+    fcitx5 (as the agent's main entry, PROTOCOL.md part 3, changes of 0.3.1)."""
+
+    stem = desktop_id.removesuffix(".desktop")
+    return bool(package) and (stem == package or stem.lower().endswith("." + package.lower()))
+
+
+def package_title(package: str, names: set[str]) -> str:
+    """A package's own name as a title: each word as its apps' names write it ("WPS Office" from wps-office, whose apps
+    are "WPS Writer", "WPS Office" and others), a word of three letters or fewer in capitals ("CaramOS OTA"), any
+    other with a capital ("Xfce4 Session")."""
+
+    written: dict[str, str] = {}
+    for name in sorted(names):
+        for word in re.split(r"\W+", name):
+            if word:
+                written.setdefault(word.lower(), word)
+    words = []
+    for word in re.split(r"[-_.+]+", package):
+        if word.lower() in written:
+            words.append(written[word.lower()])
+        elif word.isalpha() and len(word) <= 3:
+            words.append(word.upper())
+        elif word:
+            words.append(word[0].upper() + word[1:])
+    return " ".join(words) or package
+
+
+def _most_common(values: list[str]) -> str | None:
+    counted = Counter(value for value in values if value)
+    return min(counted, key=lambda value: (-counted[value], value)) if counted else None
+
+
+def app_name(package: str, entries: list[dict[str, Any]], index: dict[str, dict[str, Any]]) -> str:
+    """The name of a package in the report and in the licence form, from its inventory entries (one per desktop file,
+    on every machine): its main entry's (the agent marks it from 0.3.1: the desktop file named after the package, or
+    the one whose Exec runs the package's program); for older agents, the desktop file named after the package; else
+    the name all its entries share; else the App Center's name for the package; else the package's own name as a
+    title. 0.3.0 took the first entry's ("WPS Spreadsheets" for WPS Office, "Bulk Rename" for thunar)."""
+
+    found = (_most_common([app.get("name") or "" for app in entries if app.get("main") is True])
+             or _most_common([app.get("name") or "" for app in entries if named_after(app.get("id") or "", package)]))
+    if found:
+        return found
+    names = {app.get("name") for app in entries if app.get("name")}
+    if len(names) == 1:
+        return names.pop()
+    known = index.get(package)
+    if known and known.get("name") and known["name"] != known.get("id"):
+        return known["name"]
+    return package_title(package, names) if names else package
+
+
 def report(machines: dict[str, Any], inventories: dict[str, dict[str, Any] | None],
            index: dict[str, dict[str, Any]], register: list[dict[str, Any]]) -> dict[str, Any]:
     """The report: {"apps": [{"key", "name", "class", "licence", "origin", "machines": [ids]}], "totals": {class:
     number of apps}, "register": [entry + "used"], "without_inventory": [machine ids]}. Apps are grouped by package
-    (or id); unknown and commercial come first, then by the number of machines."""
+    (or id), named by app_name() (with the package in brackets when two packages have one name); a package takes the
+    licence of its main entry, else of any of its entries that states one (0.3.0 agents read AppStream licences for
+    each desktop file). Unknown and commercial come first, then by the number of machines."""
 
-    apps: dict[str, dict[str, Any]] = {}
+    groups: dict[str, list[tuple[str, dict[str, Any]]]] = {}
     without = []
     for machine_id in machines:
         inventory = inventories.get(machine_id)
@@ -177,14 +234,29 @@ def report(machines: dict[str, Any], inventories: dict[str, dict[str, Any] | Non
             continue
         for app in inventory.get("apps") or []:
             key = app.get("package") or app.get("id") or app.get("name")
-            if not key:
-                continue
-            item = apps.setdefault(key, {"key": key, "name": app.get("name") or key, "class": classify(app, index),
-                                         "licence": app.get("licence") or "", "origin": app.get("origin") or "",
-                                         "ids": set(), "machines": []})
-            item["ids"].update({app.get("id") or "", key})
-            if machine_id not in item["machines"]:
-                item["machines"].append(machine_id)
+            if key:
+                groups.setdefault(key, []).append((machine_id, app))
+    apps: dict[str, dict[str, Any]] = {}
+    for key, members in groups.items():
+        entries = [app for _machine_id, app in members]
+        first = sorted(entries, key=lambda app: (app.get("main") is not True,
+                                                 not named_after(app.get("id") or "", key)))
+        licence = next((app["licence"] for app in first if app.get("licence") not in (None, "", "unknown")),
+                       first[0].get("licence") or "")
+        apps[key] = {"key": key, "name": app_name(key, entries, index),
+                     "class": classify({"package": key, "id": first[0].get("id"), "licence": licence}, index),
+                     "licence": licence, "origin": next((app["origin"] for app in first if app.get("origin")), ""),
+                     "ids": {app.get("id") or "" for app in entries} | {key},
+                     "machines": list(dict.fromkeys(machine_id for machine_id, _app in members))}
+    # Packages with the same name (gnome-screenshot and xfce4-screenshooter are both "Screenshot") each say their
+    # package: "Screenshot (xfce4-screenshooter)". 0.3.1 listed two rows that looked the same.
+    same_name: dict[str, list[str]] = {}
+    for key, item in apps.items():
+        same_name.setdefault(item["name"].casefold(), []).append(key)
+    for keys in same_name.values():
+        if len(keys) > 1:
+            for key in keys:
+                apps[key]["name"] = f"{apps[key]['name']} ({key})"
     order = {"unknown": 0, "commercial": 1, "freeware": 2, "free": 3}
     listed = sorted(apps.values(), key=lambda item: (order[item["class"]], -len(item["machines"]), item["name"]))
     totals = {name: sum(1 for item in listed if item["class"] == name) for name in CLASSES}

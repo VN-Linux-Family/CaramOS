@@ -1,0 +1,31 @@
+This package was debianized by Yves-Alexis Perez <corsac@corsac.net> on
+Sat, 20 Jan 2007 13:20:15 +0100
+
+It was downloaded from
+https://foo-projects.org/~benny/projects/thunar-volman/index.html
+
+Copyright Holders:
+© 2004-2007 The Thunar development team.
+© 2005-2008 Benedikt Meurer <benny@xfce.org>
+© 2010 Jannis Pohlmann <jannis@xfce.org>
+
+Portions of the code are based on code from gnome-volume-manager, written by
+Robert Love <rml@novell.com> and Jeffrey Stedfast <fejj@novell.com> for GNOME.
+
+License: GPL-2+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with this package; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301 USA
+
+On Debian systems, the complete text of the GNU General Public License
+can be found in `/usr/share/common-licenses/GPL-2'.

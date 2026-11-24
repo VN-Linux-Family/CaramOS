@@ -1,4 +1,4 @@
-"""After a failed update: ask VNLF for help with what the update logged.
+"""After a failed update, or a failed check for updates: ask VNLF for help with what the updater logged.
 
 The result page's "Ask for help" saves the updater's output and the end of the day's OTA log to
 ~/.cache/caramos-ota/update-failure.log and opens Feedback & Help with it (caramos-help --log), which takes
@@ -42,37 +42,52 @@ def _ota_log_tail(log_dir: Path) -> tuple[str, str]:
         return "", ""
 
 
-def failure_log_text(detail: str, update_info: dict[str, Any] | None, log_dir: Path = LOG_DIR) -> str:
+def failure_log_text(detail: str, update_info: dict[str, Any] | None, log_dir: Path = LOG_DIR, *,
+                     checking: bool = False) -> str:
+    """checking: the check for new versions failed (the window opened by hand), not an update."""
+
     info = update_info or {}
-    lines = [
-        f"Update Center: the update failed at {datetime.now().astimezone().isoformat(timespec='seconds')}",
-        f"Installed: CaramOS {info.get('current_version') or '?'}; update: {info.get('title_en') or info.get('title') or '?'}",
-        f"Migrations: {', '.join(info.get('migration_ids') or []) or '?'}",
-        "",
-        "== Output of caramos-ota --upgrade ==",
-        detail.strip() or "(nothing)",
-    ]
+    when = datetime.now().astimezone().isoformat(timespec='seconds')
+    if checking:
+        lines = [
+            f"Update Center: checking for updates failed at {when}",
+            "",
+            "== Output of caramos-ota --check ==",
+            detail.strip() or "(nothing)",
+        ]
+    else:
+        lines = [
+            f"Update Center: the update failed at {when}",
+            f"Installed: CaramOS {info.get('current_version') or '?'}; update: {info.get('title_en') or info.get('title') or '?'}",
+            f"Migrations: {', '.join(info.get('migration_ids') or []) or '?'}",
+            "",
+            "== Output of caramos-ota --upgrade ==",
+            detail.strip() or "(nothing)",
+        ]
     name, tail = _ota_log_tail(log_dir)
     if tail:
         lines += ["", f"== End of {log_dir / name} ==", tail.strip()]
     return "\n".join(lines) + "\n"
 
 
-def help_message(update_info: dict[str, Any] | None) -> str:
+def help_message(update_info: dict[str, Any] | None, *, checking: bool = False) -> str:
+    if checking:
+        return _("The Update Center could not check for updates.")
     title = localized(update_info or {}, "title")
     if title:
         return _("The Update Center could not install the update “%s”.") % title
     return _("The Update Center could not install the update.")
 
 
-def ask_for_help(detail: str, update_info: dict[str, Any] | None) -> bool:
+def ask_for_help(detail: str, update_info: dict[str, Any] | None, *, checking: bool = False) -> bool:
     """Save the log and open Feedback & Help with it; False when that did not work."""
 
     path = failure_log_path()
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(failure_log_text(detail, update_info), encoding="utf-8")
-        subprocess.Popen([HELP_COMMAND, "--type", "bug", "--message", help_message(update_info), "--log", str(path)],
+        path.write_text(failure_log_text(detail, update_info, checking=checking), encoding="utf-8")
+        subprocess.Popen([HELP_COMMAND, "--type", "bug", "--message", help_message(update_info, checking=checking),
+                          "--log", str(path)],
                          stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
                          start_new_session=True)
     except OSError:

@@ -1,6 +1,7 @@
-# CaramOS: Print Screen and Super+Shift+S start Flameshot's capture (custom-list is in
-# 99_caramos.gschema.override; Cinnamon's own screenshot keys are emptied there). Custom shortcuts
-# live at relocatable paths, whose defaults gschema overrides cannot set: dconf sets them here.
+# CaramOS: Super+Shift+S starts Flameshot's capture, and Print Screen copies the whole screen to the
+# clipboard (caramos-print-screen). custom-list is in 99_caramos.gschema.override, where Cinnamon's own
+# screenshot keys are emptied. Custom shortcuts live at relocatable paths, whose defaults gschema
+# overrides cannot set: dconf sets them here.
 
 [org/cinnamon/desktop/keybindings/custom-keybindings/custom0]
 name='Flameshot'
@@ -8,6 +9,6 @@ command='flameshot gui'
 binding=['<Super><Shift>s']
 
 [org/cinnamon/desktop/keybindings/custom-keybindings/custom1]
-name='Flameshot Print'
-command='flameshot gui'
+name='Screenshot to clipboard'
+command='caramos-print-screen'
 binding=['Print']

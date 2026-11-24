@@ -1,0 +1,40 @@
+#!/bin/sh
+# Names the new system's root file system "CaramOS" (ticket H-1198), so that GParted, GNOME Disks, `lsblk -f`, the
+# CaramOS live USB or another Linux on the same computer show "CaramOS" instead of "30 GB Volume". fstab and GRUB
+# use UUIDs, so nothing depends on the name. Nemo and Thunar on the installed system still call "/" "File System".
+#
+# Ubiquity runs every executable without a dot in its name in /usr/lib/ubiquity/target-config on the live system,
+# early in the last part of an install (plugininstall.py, run_target_config_hooks), with the new system mounted on
+# /target. It ignores the exit status. It runs hooks through `log-output -t ubiquity --pass-stdout`, so only what goes
+# to stderr reaches the installer's syslog (/var/log/installer/syslog on the new system): the messages go there.
+#
+# - ext4, what the installer makes by default: the file system label, only when it is empty (a label the user gave
+#   in "Something else" stays). Other file systems, btrfs among them, are left as they are.
+# - GPT: the partition name too, only when it is empty and the root file system is on a partition of its own (not
+#   with LVM, encryption or RAID). MBR partition tables have no names.
+
+TARGET=${CARAMOS_TARGET:-/target}
+NAME=CaramOS
+
+# The live image is copied to the new system, this file with it, but no package owns it there.
+rm -f "$TARGET/usr/lib/ubiquity/target-config/50caramos_root_label"
+
+dev=$(findmnt -n -o SOURCE --mountpoint "$TARGET") || exit 0
+case "$dev" in /dev/*) ;; *) exit 0 ;; esac
+
+# -p: read the superblock itself, not blkid's cache, which may still describe the partition before the installer
+# formatted it.
+if [ "$(blkid -p -o value -s TYPE "$dev")" = ext4 ] && [ -z "$(blkid -p -o value -s LABEL "$dev")" ]; then
+    e2label "$dev" "$NAME" && echo "CaramOS: file system label of $dev set to $NAME" >&2
+fi
+
+[ "$(lsblk -dn -o TYPE "$dev")" = part ] || exit 0
+[ "$(lsblk -dn -o PTTYPE "$dev")" = gpt ] || exit 0
+[ -z "$(lsblk -dn -o PARTLABEL "$dev")" ] || exit 0
+disk=$(lsblk -dn -o PKNAME "$dev")
+partn=$(lsblk -dn -o PARTN "$dev")
+[ -n "$disk" ] && [ -n "$partn" ] || exit 0
+# The disk is in use, so the kernel is not asked to read the table again; it sees the name from the next boot.
+sfdisk --no-reread --no-tell-kernel --part-label "/dev/$disk" "$partn" "$NAME" \
+    && echo "CaramOS: name of partition $partn of /dev/$disk set to $NAME" >&2
+exit 0

@@ -14,8 +14,7 @@ use std::os::unix::process::CommandExt;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::mpsc::{self, Receiver};
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::{Duration, Instant, SystemTime};
 
@@ -26,6 +25,7 @@ use crate::clock::LocalTime;
 use crate::folders::{Context, Folders};
 use crate::inbox::{self, Inbox};
 use crate::logging::{self, Once};
+use crate::notices::Notices;
 use crate::policy::FileEntry;
 use crate::process;
 use crate::prompt;
@@ -45,7 +45,7 @@ pub const ROUND: Duration = Duration::from_secs(30);
 /// How often effective.json's mtime, the inbox and the end of the session are looked at.
 const POLL: Duration = Duration::from_secs(2);
 /// The installed program, started again after an upgrade replaced it.
-const AGENT_PROGRAM: &str = "/usr/lib/caramos-business/caramos-business-agent";
+const AGENT_PROGRAM: &str = crate::logins::AGENT_PROGRAM;
 
 /// What the session part remembers between logins: ~/.config/caramos-business/state.json.
 #[derive(Debug, Default, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -63,10 +63,10 @@ pub struct SavedState {
     /// The screen lock keys' values before this part changed them: key id → value.
     #[serde(default)]
     pub screen_lock_before: BTreeMap<String, String>,
-    /// The machine id for which the user saw the notice after pairing.
+    /// What the user answered to the notice in 0.3.1 before the full test pass: kept as it is, and read by the notice
+    /// (notices.rs) while its own notice-answered.json is missing.
     #[serde(default)]
     pub notice_for: Option<String>,
-    /// The sections the company managed when the user saw the notice: it comes back when another one is turned on.
     #[serde(default)]
     pub notice_sections: Vec<String>,
 }
@@ -169,14 +169,6 @@ pub struct SessionPaths {
     pub inbox: PathBuf,
 }
 
-/// The notice on the screen: the machine id and the sections it lists, its answer, and the flag that closes it.
-struct NoticeShown {
-    machine_id: String,
-    sections: Vec<String>,
-    answer: Receiver<bool>,
-    close: Arc<AtomicBool>,
-}
-
 /// The session part of one login.
 pub struct Session {
     ctx: Context,
@@ -187,9 +179,16 @@ pub struct Session {
     saved: SavedState,
     folders: Folders,
     shares: Shares,
-    inbox: Inbox,
-    /// The notice, while it is on the screen.
-    notice: Option<NoticeShown>,
+    /// Read in a thread of its own (`inbox::spawn_reader`): requests from the admin do not wait for a round.
+    inbox: Arc<Mutex<Inbox>>,
+    /// Ends the inbox's thread, which stops every handler.
+    inbox_stop: Arc<AtomicBool>,
+    /// The company's notice is on the screen (its own thread, notices.rs, opens and closes it).
+    notice_open: Arc<AtomicBool>,
+    /// Held by the notice's thread while it opens or closes a window.
+    notice_step: Arc<Mutex<()>>,
+    /// Ends the notice's thread, which closes an open notice.
+    notice_stop: Arc<AtomicBool>,
     /// The frozen machine's notice was asked for in this login.
     frozen_told: bool,
     wallpaper_problems: Once,
@@ -202,7 +201,9 @@ impl Session {
         let pid_file = ctx.runtime_dir.join(RUNTIME_SUBDIR).join("session.pid");
         Session {
             saved: SavedState::load(&state_file),
-            inbox: Inbox::new(&paths.inbox, ctx.uid, &ctx.runtime_dir),
+            inbox: Arc::new(Mutex::new(Inbox::new(&paths.inbox, ctx.uid, &ctx.runtime_dir))),
+            inbox_stop: Arc::new(AtomicBool::new(false)),
+            notice_step: Arc::new(Mutex::new(())),
             ctx,
             store,
             paths,
@@ -210,7 +211,8 @@ impl Session {
             pid_file,
             folders: Folders::new(),
             shares: Shares::default(),
-            notice: None,
+            notice_open: Arc::new(AtomicBool::new(false)),
+            notice_stop: Arc::new(AtomicBool::new(false)),
             frozen_told: false,
             wallpaper_problems: Once::default(),
             status_problems: Once::default(),
@@ -229,18 +231,26 @@ impl Session {
         let mut next_round = Instant::now();
         let mut clone_logged = false;
         let mut restart_tried = false;
+        self.start_threads(session_id.clone(), parent);
         loop {
-            if may_restart(restart_tried, self.inbox.busy(), self.notice.is_some(), process::program_replaced) {
+            if !restart_tried && process::program_replaced() {
                 // A package upgrade replaced the program: the new one takes over this login (same process), once no
-                // prompt or remote help runs, instead of the old code running until the user logs out.
-                restart_tried = true;
-                log!("the agent was updated; the session part starts again with the new program");
-                let error = std::process::Command::new(AGENT_PROGRAM).arg("session").exec();
-                log!("cannot start {AGENT_PROGRAM} session: {error}");
+                // prompt or remote help runs, instead of the old code running until the user logs out. The other
+                // threads' locks are held to the end, so that neither starts a window meanwhile.
+                let _notice = inbox::lock(&self.notice_step);
+                let requests = inbox::lock(&self.inbox);
+                if may_restart(restart_tried, requests.busy(), self.notice_open.load(Ordering::SeqCst), || true) {
+                    restart_tried = true;
+                    log!("the agent was updated; the session part starts again with the new program");
+                    let error = std::process::Command::new(AGENT_PROGRAM).arg("session").exec();
+                    log!("cannot start {AGENT_PROGRAM} session: {error}");
+                }
             }
             if session_ended(parent, session_id.as_deref()) {
                 log!("the login session ended");
-                self.inbox.stop_all();
+                self.inbox_stop.store(true, Ordering::SeqCst);
+                inbox::lock(&self.inbox).stop_all();
+                self.notice_stop.store(true, Ordering::SeqCst);
                 self.folders.end_of_session(&self.ctx);
                 thread::sleep(Duration::from_secs(1));
                 self.release();
@@ -248,35 +258,37 @@ impl Session {
             }
             if !self.still_ours() {
                 log!("a newer session part runs for this user; this one ends");
-                self.inbox.stop_all();
+                self.inbox_stop.store(true, Ordering::SeqCst);
+                inbox::lock(&self.inbox).stop_all();
+                // Its notice too: the newer part shows it while the user has not answered it (not two side by side).
+                self.notice_stop.store(true, Ordering::SeqCst);
+                thread::sleep(Duration::from_secs(1));
                 return ExitCode::SUCCESS;
             }
             if self.store.is_clone() {
-                // The daemon found this disk to be a clone: nothing is applied, and nothing put back either.
+                // The daemon found this disk to be a clone: nothing is applied, and nothing put back either, but the
+                // user's own Desktop and Documents (the server's links lead nowhere on a clone).
                 if !clone_logged {
                     log!("{}", crate::daemon::CLONE_MESSAGE);
                     clone_logged = true;
+                    next_round = Instant::now();
                 }
-                self.inbox.stop_all();
-                self.close_notice();
+                if Instant::now() >= next_round {
+                    self.folders.put_back_local(&self.ctx);
+                    next_round = Instant::now() + ROUND;
+                }
+                // No prompt or remote help goes on: the inbox's thread sees the clone too.
                 thread::sleep(POLL);
                 continue;
             }
+            if clone_logged {
+                next_round = Instant::now(); // paired here again: a round at once
+            }
             clone_logged = false;
-            let effective = self.effective();
-            if effective.is_some() {
-                let context = inbox::Context {
-                    desktop: self.ctx.desktop,
-                    runtime_dir: self.ctx.runtime_dir.clone(),
-                    session_id: session_id.clone(),
-                    vietnamese: self.ctx.vietnamese,
-                };
-                self.inbox.poll(&context);
+            // Requests from the admin and the notice have threads of their own, which stop what they opened once the
+            // machine is no longer the company's (left, removed, leaving, a clone).
+            if self.effective().is_some() {
                 self.tell_frozen(session_id.as_deref());
-            } else {
-                // The machine left the company (or has no policy): no prompt, notice or remote help goes on.
-                self.inbox.stop_all();
-                self.close_notice();
             }
             let mtime = fs::metadata(self.store.effective_path()).and_then(|metadata| metadata.modified()).ok();
             if Instant::now() >= next_round || mtime != last_mtime || self.folders.tidy_finished() {
@@ -286,6 +298,28 @@ impl Session {
             }
             thread::sleep(POLL);
         }
+    }
+
+    /// The threads of the login besides the rounds: the company's notice (notices.rs) and the inbox (inbox.rs), so that
+    /// neither waits for a round, which can wait minutes on a share's sign-in window. Both end by themselves once the
+    /// login is no longer this part's (a newer part's pid file, or the login ended; `parent` as in run()), as the
+    /// main loop would only after its round.
+    fn start_threads(&mut self, session_id: Option<String>, parent: u32) -> (thread::JoinHandle<()>, thread::JoinHandle<()>) {
+        let ours = {
+            let (pid_file, session_id) = (self.pid_file.clone(), session_id.clone());
+            move || names_this_process(&pid_file) && !session_ended(parent, session_id.as_deref())
+        };
+        let notice = Notices::new(&self.ctx.home, &self.ctx.runtime_dir, self.store.clone(), self.paths.clone(), Arc::clone(&self.notice_open))
+            .spawn(Arc::clone(&self.notice_step), Arc::clone(&self.notice_stop), ours.clone());
+        let context = inbox::Context {
+            desktop: self.ctx.desktop,
+            runtime_dir: self.ctx.runtime_dir.clone(),
+            session_id,
+            vietnamese: self.ctx.vietnamese,
+        };
+        let (paths, store) = (self.paths.clone(), self.store.clone());
+        let reader = inbox::spawn_reader(Arc::clone(&self.inbox), context, move || managed_here(&paths, &store), ours, Arc::clone(&self.inbox_stop));
+        (notice, reader)
     }
 
     /// On a frozen machine, each user at each login: `caramos-business --prompt frozen` ("Máy này tự xóa mọi thay đổi khi
@@ -327,7 +361,8 @@ impl Session {
         self.store.load_effective()
     }
 
-    /// One round: the wallpaper, the folders, the shares, the screen lock, the notice, then the status file.
+    /// One round: the wallpaper, the folders, the shares, the screen lock, then the status file. The notice has its own
+    /// thread (notices.rs).
     pub fn round(&mut self) -> UserStatus {
         let file = self.effective();
         let effective = file.as_ref().map(|file| Effective::from_json(&file.settings)).unwrap_or_default();
@@ -356,9 +391,6 @@ impl Session {
                 applied.insert("screen_lock".to_string(), crate::sections::outcome(&result));
             }
         }
-        if let Some(file) = &file {
-            self.notice_round(&file.machine_id, &managed_sections(&file.settings));
-        }
         if self.saved != before {
             if let Err(error) = self.saved.save(&self.state_file) {
                 log!("cannot write {}: {error}", self.state_file.display());
@@ -377,42 +409,6 @@ impl Session {
             Err(error) => self.status_problems.log(&format!("cannot write the status: {error}")),
         }
         status
-    }
-
-    /// The notice: what the company manages and what it never collects. Each user sees it after pairing, and again
-    /// when the company turns on a section they were not told about (staff must know the measures used on their
-    /// machines, PROTOCOL.md part 2 "Transparency").
-    fn notice_round(&mut self, machine_id: &str, sections: &[String]) {
-        if !needs_notice(&self.saved, machine_id, sections) {
-            return;
-        }
-        if let Some(shown) = &self.notice {
-            match shown.answer.try_recv() {
-                Ok(true) => {
-                    self.saved.notice_for = Some(shown.machine_id.clone());
-                    self.saved.notice_sections = shown.sections.clone();
-                    self.notice = None;
-                }
-                Ok(false) | Err(mpsc::TryRecvError::Disconnected) => self.notice = None,
-                Err(mpsc::TryRecvError::Empty) => {}
-            }
-            return;
-        }
-        let (sender, answer) = mpsc::channel();
-        let close = Arc::new(AtomicBool::new(false));
-        let flag = Arc::clone(&close);
-        thread::spawn(move || {
-            let _ = sender.send(prompt::ask("notice", &[], None, &flag).is_ok());
-        });
-        self.notice = Some(NoticeShown { machine_id: machine_id.to_string(), sections: sections.to_vec(), answer, close });
-    }
-
-    /// Closes the notice when the machine is no longer the company's: it is not answered, so it comes back if the
-    /// machine is paired again.
-    fn close_notice(&mut self) {
-        if let Some(shown) = self.notice.take() {
-            shown.close.store(true, Ordering::SeqCst);
-        }
     }
 
     /// Today's company image, applied when the wanted image changed or, with `lock`, when the desktop shows another.
@@ -468,10 +464,7 @@ impl Session {
 
     /// Whether the pid file still names this process (a newer instance writes its own).
     fn still_ours(&self) -> bool {
-        match fs::read_to_string(&self.pid_file) {
-            Ok(text) => text.trim() == std::process::id().to_string(),
-            Err(_) => true,
-        }
+        names_this_process(&self.pid_file)
     }
 
     fn release(&self) {
@@ -479,6 +472,26 @@ impl Session {
             let _ = fs::remove_file(&self.pid_file);
         }
     }
+}
+
+/// Whether `pid_file` names this process, or is missing (a newer session part writes its own).
+fn names_this_process(pid_file: &Path) -> bool {
+    match fs::read_to_string(pid_file) {
+        Ok(text) => text.trim() == std::process::id().to_string(),
+        Err(_) => true,
+    }
+}
+
+/// Whether this is a paired employee machine with effective settings, not leaving and not a clone: the session
+/// part's threads act for the company only then (as `Session::effective`, without reading the settings).
+pub fn managed_here(paths: &SessionPaths, store: &Store) -> bool {
+    let role = fs::read_to_string(&paths.role).unwrap_or_default();
+    role.trim() == "employee"
+        && paths.agent_config.exists()
+        && store.policy_path().exists()
+        && store.effective_path().exists()
+        && !store.leave_pending_path().exists()
+        && !store.is_clone()
 }
 
 /// The sections the effective settings turn on (not null), sorted.
@@ -493,12 +506,6 @@ pub fn managed_sections(settings: &Map<String, Value>) -> Vec<String> {
 /// in the 0.3 end-to-end pass: two "Máy này do công ty quản lý" windows after the agent was updated twice).
 fn may_restart(tried: bool, busy: bool, notice_open: bool, replaced: impl FnOnce() -> bool) -> bool {
     !tried && !busy && !notice_open && replaced()
-}
-
-/// Whether the user is to see the notice: not yet for this pairing, or a section is on that it did not list.
-pub fn needs_notice(saved: &SavedState, machine_id: &str, sections: &[String]) -> bool {
-    saved.notice_for.as_deref() != Some(machine_id)
-        || sections.iter().any(|section| !saved.notice_sections.contains(section))
 }
 
 /// A section's outcome for the health report.
@@ -541,21 +548,104 @@ mod tests {
         assert!(vietnamese(None));
     }
 
-    #[test]
-    fn the_notice_comes_back_for_a_new_section() {
+    /// A session part of a paired machine whose share for Desktop and Documents asks for a password, with the sign-in
+    /// window open for good: a round waits `wait` on it. Its threads run, as run() starts them.
+    fn waiting_on_sign_in(root: &Path, wait: Duration) -> (Session, Context, SessionPaths, (thread::JoinHandle<()>, thread::JoinHandle<()>)) {
+        use crate::folders::Mount;
+        use std::os::unix::fs::PermissionsExt;
+
+        let store = Store::new(root.join("state"));
+        let uid = process::uid().unwrap();
+        let ctx = Context { home: root.join("home"), runtime_dir: root.join("run"), login: "lan".into(), uid, desktop: Desktop::Other, vietnamese: true };
+        let paths = SessionPaths { role: root.join("role"), agent_config: root.join("agent.json"), inbox: root.join("inbox") };
+        fs::write(&paths.role, "employee\n").unwrap();
+        fs::write(&paths.agent_config, "{}").unwrap();
+        store.save("{}").unwrap();
         let id = "7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6";
-        let settings: Map<String, Value> =
-            serde_json::from_value(json!({"usb": {"storage": "block"}, "browser": null, "inventory": {"enabled": true}})).unwrap();
-        let sections = managed_sections(&settings);
-        assert_eq!(sections, ["inventory", "usb"]);
-        let mut saved = SavedState::default();
-        assert!(needs_notice(&saved, id, &sections), "after pairing");
-        saved.notice_for = Some(id.into());
-        saved.notice_sections = vec!["inventory".into(), "usb".into()];
-        assert!(!needs_notice(&saved, id, &sections), "seen");
-        assert!(!needs_notice(&saved, id, &sections[..1]), "a section turned off");
-        assert!(needs_notice(&saved, id, &["browser".to_string(), "usb".to_string()]), "a section turned on");
-        assert!(needs_notice(&saved, "11111111-2222-4333-8444-555555555555", &sections), "paired again");
+        let folders = json!({"folders": {"share": "smb://nas.congty.local/nhanvien/%u", "tidy": false}});
+        let effective = EffectiveFile { serial: 3, machine_id: id.into(), department: None, admin_name: "quan-ly".into(), files: Map::new(), settings: serde_json::from_value(folders).unwrap() };
+        store.save_effective(&effective).unwrap();
+        // The user was told about the folders already: no notice window in these tests.
+        let config = ctx.home.join(".config/caramos-business");
+        fs::create_dir_all(&config).unwrap();
+        fs::write(config.join("notice-answered.json"), format!(r#"{{"notice_for": "{id}", "notice_sections": ["folders"]}}"#)).unwrap();
+        // The share asks for a password, and the sign-in window stays open.
+        let sign_in = root.join("sign-in");
+        fs::write(&sign_in, "#!/bin/sh\nsleep 30\n").unwrap();
+        fs::set_permissions(&sign_in, fs::Permissions::from_mode(0o755)).unwrap();
+        let mut session = Session::new(ctx.clone(), store, paths.clone());
+        session.folders.mounter = |_| Mount::NeedsPassword;
+        session.folders.connect_program = sign_in;
+        session.folders.connect_wait = wait;
+        let threads = session.start_threads(None, std::os::unix::process::parent_id());
+        (session, ctx, paths, threads)
+    }
+
+    /// Stops what waiting_on_sign_in started.
+    fn stop_waiting(mut session: Session) {
+        session.inbox_stop.store(true, Ordering::SeqCst);
+        session.notice_stop.store(true, Ordering::SeqCst);
+        if let Some(mut window) = session.folders.connect.take() {
+            let _ = window.kill();
+            let _ = window.wait();
+        }
+    }
+
+    #[test]
+    fn requests_go_through_while_the_sign_in_window_waits() {
+        // 0.3.1 read the inbox between rounds: while the window that signs in to the company's share was open, a round
+        // waited up to 2 minutes for the share, and a lock, a message or remote help from the admin waited with it.
+        use crate::relay::{Answer, InboxEntry};
+
+        let root = TempDir::new("sign-in-wait");
+        let (mut session, ctx, paths, _threads) = waiting_on_sign_in(root.path(), Duration::from_secs(6));
+        // The admin locks the machine a moment after the round started waiting on the window.
+        let request = "00000000-0000-4000-8000-000000000061";
+        let (inbox_root, uid) = (paths.inbox.clone(), ctx.uid);
+        let admin = thread::spawn(move || {
+            thread::sleep(Duration::from_millis(500));
+            let entry = InboxEntry { id: request.into(), action: "lock".into(), args: json!({}), admin_name: "quan-ly".into(), expires: 0 };
+            crate::relay::deliver(&inbox_root, uid, None, &entry).unwrap();
+        });
+        let started = SystemTime::now();
+        let status = session.round();
+        let round_took = started.elapsed().unwrap();
+        admin.join().unwrap();
+        assert!(round_took >= Duration::from_secs(5), "the round waited on the sign-in window: {round_took:?}");
+        assert_eq!(status.folders, FoldersState::Local, "the window is still open: {}", status.detail);
+        let answer = ctx.runtime_dir.join("caramos-business/outbox").join(format!("{request}.json"));
+        let answered = fs::metadata(&answer).unwrap().modified().unwrap().duration_since(started).unwrap();
+        assert!(answered < Duration::from_secs(3), "the lock was answered after {answered:?}, while the round still waited");
+        let reply: Answer = serde_json::from_slice(&fs::read(&answer).unwrap()).unwrap();
+        assert_eq!(reply.state, "failed", "a test has no desktop to lock: {}", reply.detail);
+        stop_waiting(session);
+    }
+
+    #[test]
+    fn a_newer_part_takes_the_requests_while_this_one_waits() {
+        // A newer session part takes the login over (the user logged in again) while this part's round waits on the
+        // sign-in window: this part's threads end at once and leave the requests to the newer part, not both acting.
+        use crate::relay::InboxEntry;
+
+        let root = TempDir::new("sign-in-takeover");
+        let (mut session, ctx, paths, (notice, reader)) = waiting_on_sign_in(root.path(), Duration::from_secs(5));
+        let request = "00000000-0000-4000-8000-000000000065";
+        let (inbox_root, uid, pid_file) = (paths.inbox.clone(), ctx.uid, session.pid_file.clone());
+        let newer = thread::spawn(move || {
+            thread::sleep(Duration::from_millis(500));
+            fs::create_dir_all(pid_file.parent().unwrap()).unwrap();
+            fs::write(&pid_file, format!("{}\n", std::process::id() + 1)).unwrap();
+            thread::sleep(Duration::from_millis(1500));
+            let entry = InboxEntry { id: request.into(), action: "lock".into(), args: json!({}), admin_name: "quan-ly".into(), expires: 0 };
+            crate::relay::deliver(&inbox_root, uid, None, &entry).unwrap();
+        });
+        let status = session.round();
+        newer.join().unwrap();
+        assert_eq!(status.folders, FoldersState::Local, "the round still waited: {}", status.detail);
+        assert!(notice.is_finished() && reader.is_finished(), "both threads ended while the round waited");
+        let answer = ctx.runtime_dir.join("caramos-business/outbox").join(format!("{request}.json"));
+        assert!(!answer.exists(), "the request delivered after the takeover is the newer part's");
+        stop_waiting(session);
     }
 
     #[test]
@@ -576,9 +666,6 @@ mod tests {
         fs::write(&paths.role, "employee\n").unwrap();
         fs::write(&paths.agent_config, "{}").unwrap();
         let mut session = Session::new(ctx, store.clone(), paths.clone());
-        // The notice is not asked for in this test.
-        session.saved.notice_for = Some("7f0c2e4a-1b3d-4c5e-8f90-a1b2c3d4e5f6".into());
-        session.saved.notice_sections = vec!["wallpaper".into()];
 
         // No policy: nothing to do.
         let status = session.round();

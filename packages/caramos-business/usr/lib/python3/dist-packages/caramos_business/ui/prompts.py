@@ -9,7 +9,11 @@
     caramos-business --prompt frozen                                                    ok
     caramos-business --help-request                  writes $XDG_RUNTIME_DIR/caramos-business/outbox/help-<unix>.json
 
-A prompt prints one JSON line {"answer": "..."} and exits 0. Ended by the agent (SIGTERM) it prints nothing."""
+A prompt prints one JSON line {"answer": "..."} and exits 0. Ended by the agent (SIGTERM) it prints nothing.
+
+The notice also writes $XDG_RUNTIME_DIR/caramos-business/notice-shown once its window is on the screen: the session
+part tells the daemon only then, and the daemon applies new settings after it (PROTOCOL.md part 3, changes of 0.3.1
+after the full test pass)."""
 
 from __future__ import annotations
 
@@ -117,6 +121,25 @@ def outbox(environ: dict[str, str] | None = None) -> Path:
     environ = os.environ if environ is None else environ
     runtime = environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
     return Path(runtime) / "caramos-business" / "outbox"
+
+
+def shown_marker(environ: dict[str, str] | None = None) -> Path:
+    environ = os.environ if environ is None else environ
+    runtime = environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
+    return Path(runtime) / "caramos-business" / "notice-shown"
+
+
+def mark_shown(path: Path | None = None) -> None:
+    """The notice's window is on the screen: notice-shown, written beside and renamed (its time is what counts)."""
+
+    path = path or shown_marker()
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        staging = path.with_name(f".{path.name}.{os.getpid()}")
+        staging.write_text(f"{os.getpid()}\n", encoding="utf-8")
+        os.replace(staging, path)
+    except OSError:
+        pass  # the daemon then applies the settings after its wait
 
 
 def write_help_request(note: str, folder: Path | None = None, now: float | None = None) -> Path:
@@ -317,6 +340,7 @@ def build(kind: str, options: dict[str, Any], application: Any, done: Callable[[
         scroller.set_child(lists)
         body.append(scroller)
         add_button(_("I understand"), "ok", "suggested-action").grab_focus()
+        window.connect("map", lambda _window: mark_shown())
     elif kind == "frozen":
         window.set_title(_("This machine is frozen"))
         body.append(common.label(_("This machine is frozen"), "title-2"))

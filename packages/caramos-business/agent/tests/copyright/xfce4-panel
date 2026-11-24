@@ -1,0 +1,174 @@
+This package was debianized by Martin Loschwitz <madkiss@debian.org> on
+Sat, 19 Jul 2003 20:52:09 +0200.
+
+You can fetch xfce4-panel from the official Xfce4 website which is
+https://www.xfce.org/
+
+Upstream author are:
+Jasper Huijsmans <jasper@xfce.org>
+Nick Schermer <nick@xfce.org>
+clock plugin is written by Jasper Huijsmans and Jannis Pohlmann
+
+Files: common/panel-debug.c
+ common/panel-private.h
+ common/panel-utils.c
+ common/panel-xfconf.c
+ libxfce4panel/xfce-panel-image.c
+ libxfce4panel/xfce-panel-image.h
+ migrate/main.c
+ migrate/migrate-46.c
+ migrate/migrate-46.h
+ migrate/migrate-default.c
+ migrate/migrate-default.h
+ panel/main.c
+ panel/panel-application.c
+ panel/panel-application.h
+ panel/panel-base-window.c
+ panel/panel-base-window.h
+ panel/panel-dbus-client.c
+ panel/panel-dbus-client.h
+ panel/panel-dbus-service.c
+ panel/panel-dbus-service.h
+ panel/panel-dialogs.c
+ panel/panel-dialogs.h
+ panel/panel-item-dialog.c
+ panel/panel-item-dialog.h
+ panel/panel-itembar.c
+ panel/panel-itembar.h
+ panel/panel-module-factory.c
+ panel/panel-module-factory.h
+ panel/panel-module.c
+ panel/panel-module.h
+ panel/panel-plugin-external-46.c
+ panel/panel-plugin-external-46.h
+ panel/panel-plugin-external-wrapper.c
+ panel/panel-plugin-external-wrapper.h
+ panel/panel-plugin-external.c
+ panel/panel-plugin-external.h
+ panel/panel-preferences-dialog.c
+ panel/panel-preferences-dialog.h
+ panel/panel-tic-tac-toe.c
+ panel/panel-tic-tac-toe.h
+ panel/panel-window.c
+ panel/panel-window.h
+ plugins/actions/actions.c
+ plugins/actions/actions.h
+ plugins/applicationsmenu/applicationsmenu.c
+ plugins/applicationsmenu/applicationsmenu.h
+ plugins/applicationsmenu/xfce4-popup-applicationsmenu.sh
+ plugins/clock/clock-analog.c
+ plugins/clock/clock-analog.h
+ plugins/clock/clock-binary.c
+ plugins/clock/clock-binary.h
+ plugins/clock/clock-digital.c
+ plugins/clock/clock-digital.h
+ plugins/clock/clock-fuzzy.c
+ plugins/clock/clock-fuzzy.h
+ plugins/clock/clock-lcd.c
+ plugins/clock/clock-lcd.h
+ plugins/clock/clock.c
+ plugins/clock/clock.h
+ plugins/directorymenu/directorymenu.c
+ plugins/directorymenu/directorymenu.h
+ plugins/directorymenu/xfce4-popup-directorymenu.sh
+ plugins/launcher/launcher-dialog.c
+ plugins/launcher/launcher-dialog.h
+ plugins/launcher/launcher.c
+ plugins/launcher/launcher.h
+ plugins/pager/pager-buttons.c
+ plugins/pager/pager-buttons.h
+ plugins/pager/pager.h
+ plugins/showdesktop/showdesktop.h
+ plugins/systray/systray-box.c
+ plugins/systray/systray-box.h
+ plugins/systray/systray.h
+ plugins/tasklist/tasklist-widget.c
+ plugins/tasklist/tasklist-widget.h
+ plugins/tasklist/tasklist.c
+ plugins/windowmenu/windowmenu.c
+ plugins/windowmenu/windowmenu.h
+ plugins/windowmenu/xfce4-popup-windowmenu.sh
+ wrapper/main.c
+ wrapper/wrapper-module.c
+ wrapper/wrapper-module.h
+ wrapper/wrapper-plug.c
+ wrapper/wrapper-plug.h
+Copyright: 2007-2010, Nick Schermer <nick@xfce.org>
+ 2008-2009, Nick Schermer <nick@xfce.org>
+ 2008-2010, Nick Schermer <nick@xfce.org>
+ 2009, Nick Schermer <nick@xfce.org>
+ 2009-2010, Nick Schermer <nick@xfce.org>
+ 2010, Nick Schermer <nick@xfce.org>
+ 2010-2011, Nick Schermer <nick@xfce.org>
+License: GPL-2+
+
+Files: common/panel-dbus.h
+ common/panel-debug.h
+ common/panel-utils.h
+ common/panel-xfconf.h
+ libxfce4panel/libxfce4panel-config.c
+ libxfce4panel/libxfce4panel.h
+ libxfce4panel/xfce-panel-macros-46.h
+ libxfce4panel/xfce-panel-macros.h
+ libxfce4panel/xfce-panel-plugin-provider.c
+ libxfce4panel/xfce-panel-plugin-provider.h
+ libxfce4panel/xfce-panel-plugin.c
+ libxfce4panel/xfce-panel-plugin.h
+Copyright: 2008-2010, Nick Schermer <nick@xfce.org>
+ 2009-2010, Nick Schermer <nick@xfce.org>
+ 2010, Nick Schermer <nick@xfce.org>
+License: LGPL-2.1+
+
+Files: plugins/pager/pager.c
+ plugins/separator/separator.c
+ plugins/separator/separator.h
+ plugins/showdesktop/showdesktop.c
+ plugins/systray/systray.c
+Copyright: 2005-2007, Jasper Huijsmans <jasper@xfce.org>
+ 2007-2010, Nick Schermer <nick@xfce.org>
+License: GPL-2+
+
+Files: libxfce4panel/libxfce4panel-enums.h
+ libxfce4panel/xfce-arrow-button.c
+ libxfce4panel/xfce-arrow-button.h
+ libxfce4panel/xfce-panel-convenience.c
+ libxfce4panel/xfce-panel-convenience.h
+Copyright: 2006-2007, Jasper Huijsmans <jasper@xfce.org>
+ 2008-2010, Nick Schermer <nick@xfce.org>
+License: LGPL-2.1+
+
+Files: plugins/systray/systray-manager.c
+ plugins/systray/systray-manager.h
+Copyright: 2002, Anders Carlsson <andersca@gnu.org>
+ 2003-2004, Benedikt Meurer <benny@xfce.org>
+ 2003-2004, Olivier Fourdan <fourdan@xfce.org>
+ 2003-2006, Vincent Untz
+ 2007-2010, Nick Schermer <nick@xfce.org>
+License: GPL-2+
+
+Files: plugins/systray/systray-socket.c
+ plugins/systray/systray-socket.h
+Copyright: 2002, Anders Carlsson <andersca@gnu.org>
+ 2003-2006, Vincent Untz
+ 2008, Red Hat, Inc
+ 2009-2010, Nick Schermer <nick@xfce.org>
+License: GPL-2+
+
+Files: libxfce4panel/abicheck.sh
+ libxfce4panel/make-libxfce4panel-alias.pl
+Copyright: 2004, The GLib Development Team
+ 2005, Benedikt Meurer <benny@xfce.org>
+License: LGPL-2.1+
+
+Files: libxfce4panel/xfce-hvbox.c
+ libxfce4panel/xfce-hvbox.h
+Copyright: 2002, Red Hat Inc. based on GtkHBox
+ 2006, Jani Monoses <jani@ubuntu.com>
+ 2006-2007, Jasper Huijsmans <jasper@xfce.org>
+ 2007-2010, Nick Schermer <nick@xfce.org>
+License: LGPL-2.1+
+
+On Debian systems, the complete text of the GNU General
+Public License can be found in `/usr/share/common-licenses/GPL-2'.
+The complete text of the GNU Lesser General Public License can be found in
+`/usr/share/common-licenses/LGPL-2.1'.

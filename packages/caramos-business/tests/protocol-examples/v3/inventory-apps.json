@@ -7,7 +7,8 @@
    "source": "deb",
    "package": "vlc",
    "licence": "GPL-2+",
-   "origin": "ubuntu-universe"
+   "origin": "ubuntu-universe",
+   "main": true
   },
   {
    "id": "google-chrome.desktop",
@@ -16,7 +17,8 @@
    "source": "deb",
    "package": "google-chrome-stable",
    "licence": "unknown",
-   "origin": "third-party:dl.google.com"
+   "origin": "third-party:dl.google.com",
+   "main": true
   },
   {
    "id": "org.libreoffice.LibreOffice",
@@ -25,7 +27,28 @@
    "source": "flatpak",
    "package": "org.libreoffice.LibreOffice",
    "licence": "MPL-2.0",
-   "origin": "flathub"
+   "origin": "flathub",
+   "main": true
+  },
+  {
+   "id": "thunar-bulk-rename.desktop",
+   "name": "Bulk Rename",
+   "version": "4.18.8-1build3",
+   "source": "deb",
+   "package": "thunar",
+   "licence": "GPL-2.0",
+   "origin": "mint",
+   "main": false
+  },
+  {
+   "id": "thunar.desktop",
+   "name": "Thunar File Manager",
+   "version": "4.18.8-1build3",
+   "source": "deb",
+   "package": "thunar",
+   "licence": "GPL-2.0",
+   "origin": "mint",
+   "main": true
   }
  ]
 }

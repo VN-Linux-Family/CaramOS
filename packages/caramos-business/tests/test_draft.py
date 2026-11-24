@@ -122,6 +122,49 @@ class DraftTests(unittest.TestCase):
             current.validate()
         self.assertEqual(("browser", "department:kho"), (caught.exception.section, caught.exception.scope))
 
+    def test_a_save_replaces_the_values_the_editors_hold(self) -> None:
+        """0.3.1's full pass: an edit made right after "Lưu và gửi" went into the values of the draft before the save,
+        so no save bar showed and the edit was lost. The generation tells a settings page to build its editors again."""
+
+        current = draft.Draft(policy())
+        held = current.get(draft.COMPANY, "usb")
+        before = current.generation
+        current.load(policy())  # what the window does after a save
+        self.assertGreater(current.generation, before)
+        held["storage"] = "block"
+        self.assertFalse(current.dirty, "an editor built before the save no longer changes the draft")
+        current.get(draft.COMPANY, "usb")["storage"] = "block"
+        self.assertTrue(current.dirty)
+        before = current.generation
+        current.revert()
+        self.assertGreater(current.generation, before, "Hoàn tác replaces them too")
+
+    def test_freezing_rules_before_the_password(self) -> None:
+        """0.3.1 refused freezing together with snapshots only in the helper, after the password."""
+
+        current = draft.Draft(policy())
+        shared = {"guest": True, "freeze": True, "maintenance": {"days": [7], "time": "02:00", "max_minutes": 60},
+                  "low_memory_ok": True}
+        current.set("department:kho", "shared", shared)
+        current.validate()
+        current.set("department:kho", "snapshots", {"schedule": "weekly", "keep": 3, "before_update": True})
+        with self.assertRaises(protocol.ProtocolError) as caught:
+            current.validate({})
+        self.assertEqual(("shared", "department:kho"), (caught.exception.section, caught.exception.scope))
+        self.assertIn("snapshots", str(caught.exception))
+        current.unset("department:kho", "snapshots")
+        current.set(draft.COMPANY, "snapshots", {"schedule": "weekly", "keep": 3, "before_update": True})
+        with self.assertRaises(protocol.ProtocolError):  # the company's snapshots reach the department's machines
+            current.validate()
+        current.unset(draft.COMPANY, "snapshots")
+        # One machine's own settings count only while it is in the company, as the helper keeps them.
+        current.set(f"machine:{MACHINE}", "folders", {"share": "smb://nas/nhanvien/%u", "tidy": True})
+        current.set(f"machine:{MACHINE}", "shared", shared)
+        current.validate({})
+        with self.assertRaises(protocol.ProtocolError) as caught:
+            current.validate({MACHINE: {"state": "approved"}})
+        self.assertEqual(f"machine:{MACHINE}", caught.exception.scope)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -54,12 +54,19 @@ def leaver_titles() -> list[tuple[str, str]]:
 class AssetForm:
     """The details of one asset, its history, the handover and, for a machine, the steps when its employee leaves."""
 
-    def __init__(self, ctx: Context, asset_id: str, saved: Any = None) -> None:
+    def __init__(self, ctx: Context, asset_id: str, saved: Any = None, history_open: bool = False) -> None:
         self.ctx = ctx
         self.asset_id = asset_id
         self.machine = not asset_id.startswith("asset-")
         self.saved = saved
         self.entry = dict(ctx.assets.get(asset_id) or {})
+        self.opened = history_open
+        self.expander: Adw.ExpanderRow | None = None
+
+    def history_open(self) -> bool:
+        """Whether the history is open, for the form built again after a save."""
+
+        return self.expander.get_expanded() if self.expander is not None else self.opened
 
     def groups(self) -> list[Gtk.Widget]:
         entry = self.entry
@@ -94,9 +101,10 @@ class AssetForm:
         history = [item for item in entry.get("history") or [] if isinstance(item, dict)]
         log = common.group(_("History"))
         if history:
-            expander = Adw.ExpanderRow(title=_("What happened to it"), use_markup=False,
+            expander = Adw.ExpanderRow(title=_("What happened to it"), use_markup=False, expanded=self.opened,
                                        subtitle=text.sentence([event_text(history[-1]),
                                                                text.clock(history[-1].get("time", ""))]))
+            self.expander = expander
             for item in reversed(history):
                 expander.add_row(common.row(event_text(item), text.sentence([
                     text.clock(item.get("time", "")), _("by %s") % item["by"] if item.get("by") else ""])))
@@ -191,7 +199,13 @@ class AssetForm:
             return
         values["leaver"] = steps
         if on:
-            values["add_event"] = {"event": "note", "note": dict(leaver_titles())[key]}
+            title = dict(leaver_titles())[key]
+            if key == "in_stock" and values["status"] != "in_stock":
+                # The machine is back in stock: its status says so, and the history has the change with the step.
+                values["status"] = "in_stock"
+                values["add_event"] = {"event": "returned", "note": title}
+            else:
+                values["add_event"] = {"event": "note", "note": title}
         self.send(values, _("Saved."))
 
 
@@ -332,13 +346,16 @@ class AssetDetail(Page):
     def refresh(self, force: bool = False) -> None:
         if not force:
             return
+        restore = common.keep_place(self.body)  # as on a machine's page: a save does not move the page
+        history_open = self.form.history_open() if getattr(self, "form", None) is not None else False
         self.clear()
         if self.asset_id not in self.ctx.assets:
             self.body.append(common.status_page("drive-multidisk-symbolic", _("This asset is no longer listed")))
             return
-        form = AssetForm(self.ctx, self.asset_id, saved=lambda: self.refresh(force=True))
-        for widget in form.groups():
+        self.form = AssetForm(self.ctx, self.asset_id, saved=lambda: self.refresh(force=True), history_open=history_open)
+        for widget in self.form.groups():
             self.body.append(widget)
+        restore()
 
 
 # -- the handover document ---------------------------------------------------------------------------------------------

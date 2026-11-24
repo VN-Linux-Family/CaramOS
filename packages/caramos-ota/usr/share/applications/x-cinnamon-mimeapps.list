@@ -1,0 +1,40 @@
+# CaramOS: which apps open office documents. The same list is x-cinnamon-mimeapps.list (Cinnamon edition) and
+# xfce-mimeapps.list (Xfce edition), from DEFAULTS in /usr/share/caramos-ota/open-document/caramos_open_document.py
+# (caramos-ota); a test keeps the three the same.
+#
+# CaramOS comes without an office suite: the App Center offers ONLYOFFICE, WPS Office and LibreOffice. Each list
+# names those suites first, so the first one installed opens the file. When none is,
+# caramos-open-document.desktop opens the file with another app that opens it, or suggests the App Center.
+# Without these lists, .docx, .xlsx, .pptx and OpenDocument files, which are zip files, went to the app of
+# application/zip.
+#
+# These are the system's defaults for each desktop (XDG_CURRENT_DESKTOP X-Cinnamon or XFCE), read before Linux
+# Mint's /usr/share/applications/mimeapps.list. A choice made elsewhere comes first: the user's own (Open With, Set
+# as default: ~/.config/mimeapps.list), or an administrator's in /etc/xdg/mimeapps.list. CaramOS 1.4.0 and 1.5.0
+# had this list in /etc/xdg/mimeapps.list, a configuration file of the package: on a computer that already had that
+# file, dpkg asked which one to keep, nobody could answer, and the update stopped (ticket H-1207).
+[Default Applications]
+application/vnd.openxmlformats-officedocument.wordprocessingml.document=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wps.desktop;org.libreoffice.LibreOffice.writer.desktop;libreoffice-writer.desktop;caramos-open-document.desktop;
+application/vnd.openxmlformats-officedocument.wordprocessingml.template=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wps.desktop;org.libreoffice.LibreOffice.writer.desktop;libreoffice-writer.desktop;caramos-open-document.desktop;
+application/vnd.ms-word.document.macroEnabled.12=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wps.desktop;org.libreoffice.LibreOffice.writer.desktop;libreoffice-writer.desktop;caramos-open-document.desktop;
+application/vnd.ms-word.template.macroEnabled.12=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wps.desktop;org.libreoffice.LibreOffice.writer.desktop;libreoffice-writer.desktop;caramos-open-document.desktop;
+application/msword=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wps.desktop;org.libreoffice.LibreOffice.writer.desktop;libreoffice-writer.desktop;caramos-open-document.desktop;
+application/rtf=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wps.desktop;org.libreoffice.LibreOffice.writer.desktop;libreoffice-writer.desktop;caramos-open-document.desktop;
+application/vnd.oasis.opendocument.text=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wps.desktop;org.libreoffice.LibreOffice.writer.desktop;libreoffice-writer.desktop;caramos-open-document.desktop;
+application/vnd.oasis.opendocument.text-template=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wps.desktop;org.libreoffice.LibreOffice.writer.desktop;libreoffice-writer.desktop;caramos-open-document.desktop;
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-et.desktop;org.libreoffice.LibreOffice.calc.desktop;libreoffice-calc.desktop;caramos-open-document.desktop;
+application/vnd.openxmlformats-officedocument.spreadsheetml.template=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-et.desktop;org.libreoffice.LibreOffice.calc.desktop;libreoffice-calc.desktop;caramos-open-document.desktop;
+application/vnd.ms-excel.sheet.macroEnabled.12=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-et.desktop;org.libreoffice.LibreOffice.calc.desktop;libreoffice-calc.desktop;caramos-open-document.desktop;
+application/vnd.ms-excel.sheet.binary.macroEnabled.12=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-et.desktop;org.libreoffice.LibreOffice.calc.desktop;libreoffice-calc.desktop;caramos-open-document.desktop;
+application/vnd.ms-excel.template.macroEnabled.12=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-et.desktop;org.libreoffice.LibreOffice.calc.desktop;libreoffice-calc.desktop;caramos-open-document.desktop;
+application/vnd.ms-excel=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-et.desktop;org.libreoffice.LibreOffice.calc.desktop;libreoffice-calc.desktop;caramos-open-document.desktop;
+application/vnd.oasis.opendocument.spreadsheet=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-et.desktop;org.libreoffice.LibreOffice.calc.desktop;libreoffice-calc.desktop;caramos-open-document.desktop;
+application/vnd.oasis.opendocument.spreadsheet-template=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-et.desktop;org.libreoffice.LibreOffice.calc.desktop;libreoffice-calc.desktop;caramos-open-document.desktop;
+application/vnd.openxmlformats-officedocument.presentationml.presentation=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wpp.desktop;org.libreoffice.LibreOffice.impress.desktop;libreoffice-impress.desktop;caramos-open-document.desktop;
+application/vnd.openxmlformats-officedocument.presentationml.slideshow=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wpp.desktop;org.libreoffice.LibreOffice.impress.desktop;libreoffice-impress.desktop;caramos-open-document.desktop;
+application/vnd.openxmlformats-officedocument.presentationml.template=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wpp.desktop;org.libreoffice.LibreOffice.impress.desktop;libreoffice-impress.desktop;caramos-open-document.desktop;
+application/vnd.ms-powerpoint.presentation.macroEnabled.12=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wpp.desktop;org.libreoffice.LibreOffice.impress.desktop;libreoffice-impress.desktop;caramos-open-document.desktop;
+application/vnd.ms-powerpoint.slideshow.macroEnabled.12=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wpp.desktop;org.libreoffice.LibreOffice.impress.desktop;libreoffice-impress.desktop;caramos-open-document.desktop;
+application/vnd.ms-powerpoint=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wpp.desktop;org.libreoffice.LibreOffice.impress.desktop;libreoffice-impress.desktop;caramos-open-document.desktop;
+application/vnd.oasis.opendocument.presentation=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wpp.desktop;org.libreoffice.LibreOffice.impress.desktop;libreoffice-impress.desktop;caramos-open-document.desktop;
+application/vnd.oasis.opendocument.presentation-template=org.onlyoffice.desktopeditors.desktop;onlyoffice-desktopeditors.desktop;wps-office-wpp.desktop;org.libreoffice.LibreOffice.impress.desktop;libreoffice-impress.desktop;caramos-open-document.desktop;

@@ -19,6 +19,7 @@ from .backends.audio import AudioBackend, volume_icon  # noqa: E402
 from .backends.bluetooth import BluetoothBackend  # noqa: E402
 from .backends.brightness import Brightness  # noqa: E402
 from .backends.ddc import Ddc  # noqa: E402
+from .backends.drives import DrivesBackend  # noqa: E402
 from .backends.network import (NetworkBackend, VpnBackend, connectivity_text, device_state_text,  # noqa: E402
                                wifi_signal_icon)
 from .backends.nightlight import NightLight  # noqa: E402
@@ -28,7 +29,7 @@ from .backends.power import PROFILE_ICONS, BatteryBackend, ProfilesBackend, batt
 from .backends.taskbar import CENTER, LEFT, Taskbar  # noqa: E402
 from .i18n import _, ngettext  # noqa: E402
 from .popupbase import CardPopup  # noqa: E402
-from .util import spawn_named  # noqa: E402
+from .util import notify, spawn, spawn_named  # noqa: E402
 
 LOG = logging.getLogger("caramos-control-center")
 
@@ -62,6 +63,19 @@ class Popup(CardPopup):
             buttons.pack_start(w.round_button(icon_name, tooltip, action), False, False, 0)
         self.header.pack_end(buttons, False, False, 0)
         self.card.pack_start(self.header, False, False, 0)
+
+        # USB drives and memory cards, while one is plugged in (ticket H-1195): open it, or remove it safely.
+        self.drives = w.styled(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=2), "caramos-cc-inline-card",
+                               "caramos-cc-drives")
+        drives_head = Gtk.Box(spacing=8)
+        drives_head.pack_start(w.icon("drive-removable-media-symbolic", 16, "caramos-cc-inline-head-icon"),
+                               False, False, 0)
+        drives_head.pack_start(w.label(_("USB drives and memory cards"), "caramos-cc-inline-title"), True, True, 0)
+        self.drives.pack_start(drives_head, False, False, 0)
+        self.drive_rows = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=1)
+        self.drives.pack_start(self.drive_rows, False, False, 0)
+        self.drive_keys: list[tuple[str, str, bool]] = []
+        self.card.pack_start(self.drives, False, False, 0)
 
         # Sliders.
         self.volume = w.SliderRow("audio-volume-high-symbolic", _("Volume"),
@@ -122,8 +136,11 @@ class Popup(CardPopup):
         self.brightness.hide()
         self.pill.hide()
         for signal_source in (self.b.audio, self.b.network, self.b.vpn, self.b.bluetooth, self.b.battery,
-                              self.b.profiles, self.b.appearance, self.b.notifications, self.b.taskbar):
+                              self.b.profiles, self.b.appearance, self.b.notifications, self.b.taskbar,
+                              self.b.drives):
             signal_source.connect("changed", lambda *_: self.refresh())
+        self.b.drives.connect("removed", self._drive_removed)
+        self.b.drives.connect("writing", self._drive_writing)
         self.refresh()
 
     def _row(self, left: Gtk.Widget, right: Gtk.Widget) -> Gtk.Box:
@@ -208,6 +225,7 @@ class Popup(CardPopup):
     # -- state -------------------------------------------------------------------------------------------------------
 
     def refresh(self) -> None:
+        self._refresh_drives()
         self._refresh_audio()
         self._refresh_network()
         self._refresh_vpn()
@@ -220,6 +238,59 @@ class Popup(CardPopup):
     def _apply_visibility(self) -> None:
         self.pill.set_visible(self.b.battery.battery.present)
         self.brightness.set_visible(self.b.brightness.available)
+        self.drives.set_visible(bool(self.drive_keys))
+
+    def _refresh_drives(self) -> None:
+        drives = self.b.drives.drives
+        keys = [(drive.key, drive.name, drive.busy) for drive in drives]
+        if keys != self.drive_keys:
+            self.drive_keys = keys
+            for child in self.drive_rows.get_children():
+                child.destroy()
+            for drive in drives:
+                self.drive_rows.pack_start(self._drive_row(drive), False, False, 0)
+            self.drive_rows.show_all()
+        self.drives.set_visible(bool(drives) and self.get_visible())
+
+    def _drive_row(self, drive: object) -> Gtk.Box:
+        """The drive's name, which opens it in Files, and the eject button, which removes it safely."""
+
+        row = Gtk.Box(spacing=4)
+        text = _("Safely removing %s…") % drive.name if drive.busy else drive.name
+        opener = w.list_row(drive.icon, text, None, lambda d=drive: self._open_drive(d))
+        opener.set_tooltip_text(_("Open %s in Files") % drive.name)
+        opener.set_sensitive(not drive.busy)
+        row.pack_start(opener, True, True, 0)
+        eject = w.round_button("media-eject-symbolic", _("Safely remove %s") % drive.name,
+                               lambda d=drive: self._remove_drive(d))
+        eject.set_valign(Gtk.Align.CENTER)
+        eject.set_sensitive(not drive.busy)
+        row.pack_end(eject, False, False, 0)
+        return row
+
+    def _open_drive(self, drive: object) -> None:
+        self.hide_popup()
+        self.b.drives.open(drive.key, lambda uri: spawn(("xdg-open", uri)))
+
+    def _remove_drive(self, drive: object) -> None:
+        # As the menu of Windows' Safely Remove: it closes, and a notification tells when to unplug. Closed, the
+        # popup lets go of the keyboard and pointer, which the dialog naming the programs that still use the drive
+        # needs.
+        self.hide_popup()
+        self.b.drives.remove(drive.key)
+
+    def _drive_writing(self, _backend: object, name: str) -> None:
+        notify(_("CaramOS Control Center"), _("Writing the last files to %s") % name, _("Do not unplug it yet."),
+               "drive-removable-media", transient=True)
+
+    def _drive_removed(self, _backend: object, name: str, removed: bool, error: str) -> None:
+        if removed:
+            notify(_("CaramOS Control Center"), _("You can unplug %s now") % name, _("It was removed safely."),
+                   "drive-removable-media")
+        else:
+            notify(_("CaramOS Control Center"), _("%s was not removed") % name,
+                   _("Close the files and windows that use it, then try again.") + (f"\n{error}" if error else ""),
+                   "drive-removable-media")
 
     def _refresh_audio(self) -> None:
         state = self.b.audio.state
@@ -725,4 +796,5 @@ class Backends:
         self.panel_clock = PanelClock()
         self.brightness = Brightness()
         self.ddc = Ddc()
+        self.drives = DrivesBackend()
         self.session_state = session.read_state()

@@ -313,6 +313,12 @@ class FakeSwitchStack:
     def set_visible_child_name(self, name: str) -> None:
         self.visible = name
 
+    def get_child_by_name(self, name: str):
+        return self.children.get(name)
+
+    def remove(self, child) -> None:
+        self.children = {name: page for name, page in self.children.items() if page is not child}
+
 
 class ControllerTests(unittest.TestCase):
     def setUp(self) -> None:

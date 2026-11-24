@@ -7,7 +7,11 @@ CaramOS changes these files of the Mint package cinnamon-common:
 - cinnamon-settings/modules/cs_backgrounds.py: the "CaramOS" wallpaper collection in System Settings >
   Backgrounds (migration 20260804223346_change_default_wallpaper);
 - calendar@cinnamon.org/calendar.js and applet.js: lunar dates in the calendar (migration
-  20261120100200_lunar_calendar).
+  20261120100200_lunar_calendar);
+- js/misc/inputMethod.js: password boxes are passwords for the input method, so Lotus shows nothing in clear there
+  (migration 20261123120000_hidden_password_typing);
+- systray@cinnamon.org/applet.js again: the tray icons in a fixed order (migration
+  20261124180000_tray_icons_keep_their_place).
 An update of Cinnamon installs the original files again: after 6.6.4 -> 6.6.9 the icons in the middle grew
 to 48 px and spilled out of their dock (ticket H-1046). Migration 20261018120000 makes the changes again,
 and the dpkg trigger of this package (debian/triggers) runs this module after each later update:
@@ -38,6 +42,8 @@ from .ledger import MigrationLedgerError, applied_ids, load_ledger
 TASKBAR_MIGRATION = "20260803120000_apply_three_dock_taskbar"
 WALLPAPER_MIGRATION = "20260804223346_change_default_wallpaper"
 LUNAR_MIGRATION = "20261120100200_lunar_calendar"
+PASSWORD_MIGRATION = "20261123120000_hidden_password_typing"
+TRAY_ORDER_MIGRATION = "20261124180000_tray_icons_keep_their_place"
 # Since 6.6.9 Cinnamon itself makes tray buttons as high as the panel, which is what the hover change did.
 NATIVE_FULL_HEIGHT_TRAY = "            button.set_y_align(Clutter.ActorAlign.FILL);\n"
 
@@ -100,6 +106,10 @@ def restore(context: MigrationContext, applied: Collection[str] | None = None) -
         restore_wallpaper_collection_name(context)
     if applied is None or LUNAR_MIGRATION in applied:
         _migration(LUNAR_MIGRATION).restore(context)
+    if applied is None or PASSWORD_MIGRATION in applied:
+        _migration(PASSWORD_MIGRATION).restore(context)
+    if applied is None or TRAY_ORDER_MIGRATION in applied:
+        _migration(TRAY_ORDER_MIGRATION).restore(context)
 
 
 def main() -> int:

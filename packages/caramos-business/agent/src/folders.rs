@@ -315,13 +315,18 @@ struct Tidying {
 pub struct Folders {
     state: State,
     /// The password window started by this part, while it is open.
-    connect: Option<Child>,
+    pub(crate) connect: Option<Child>,
     /// The password window was closed without a mount: it is not opened again in this login.
     password_refused: bool,
     /// The user was told that the folders are local; once per login.
     notified: bool,
     tidying: Option<Tidying>,
     last_tidy: Option<tidy::Report>,
+    /// `gio mount`; tests give another.
+    pub(crate) mounter: fn(&str) -> Mount,
+    /// The sign-in window's program, and how long a round waits for its mount; tests give others.
+    pub(crate) connect_program: PathBuf,
+    pub(crate) connect_wait: Duration,
 }
 
 impl Default for Folders {
@@ -332,7 +337,17 @@ impl Default for Folders {
 
 impl Folders {
     pub fn new() -> Folders {
-        Folders { state: State::Off, connect: None, password_refused: false, notified: false, tidying: None, last_tidy: None }
+        Folders {
+            state: State::Off,
+            connect: None,
+            password_refused: false,
+            notified: false,
+            tidying: None,
+            last_tidy: None,
+            mounter: gio_mount,
+            connect_program: PathBuf::from(CONNECT_PROGRAM),
+            connect_wait: CONNECT_WAIT,
+        }
     }
 
     /// One round: sets the folders up, keeps them, or falls back to the local ones. `launchers_copied` lists the
@@ -461,7 +476,7 @@ impl Folders {
         if let Some(mount) = share.find_mount(&gvfs) {
             return Ok(mount);
         }
-        match gio_mount(share.root_url()) {
+        match (self.mounter)(share.root_url()) {
             Mount::Done => wait_for(|| share.find_mount(&gvfs), Duration::from_secs(10))
                 .ok_or_else(|| MountFailure::Failed(format!("{} is mounted but not in {}", share.root_url(), gvfs.display()))),
             Mount::Failed(error) => Err(MountFailure::Unreachable(error)),
@@ -476,7 +491,7 @@ impl Folders {
             return Err(MountFailure::NoPassword);
         }
         if self.connect.is_none() {
-            let started = Command::new(CONNECT_PROGRAM)
+            let started = Command::new(&self.connect_program)
                 .arg("--connect")
                 .arg(share.root_url())
                 .stdin(Stdio::null())
@@ -486,10 +501,12 @@ impl Folders {
                 .spawn();
             match started {
                 Ok(child) => self.connect = Some(child),
-                Err(error) => return Err(MountFailure::Failed(format!("cannot start {CONNECT_PROGRAM} --connect: {error}"))),
+                Err(error) => {
+                    return Err(MountFailure::Failed(format!("cannot start {} --connect: {error}", self.connect_program.display())))
+                }
             }
         }
-        let deadline = Instant::now() + CONNECT_WAIT;
+        let deadline = Instant::now() + self.connect_wait;
         loop {
             if let Some(mount) = share.find_mount(gvfs) {
                 return Ok(mount);
@@ -532,6 +549,19 @@ impl Folders {
             Ok(false) => {}
             Err(error) => log!("cannot put the local Desktop and Documents back: {error}"),
         }
+    }
+
+    /// On a cloned disk, where nothing else is applied or put back: the user's own Desktop and Documents come back
+    /// where user-dirs.dirs names the server (its links lead nowhere: nothing mounts the share on a clone) or the home
+    /// folder (what xdg-user-dirs-update makes of such a link at login). 0.3.1 left the desktop showing the whole home
+    /// folder there. Whether anything changed.
+    pub fn put_back_local(&self, ctx: &Context) -> bool {
+        if !ctx.user_dirs().needs_restore(&ctx.gvfs_dir()) {
+            return false;
+        }
+        log!("this disk is a clone: Desktop and Documents are the user's own folders again");
+        self.restore_local(ctx);
+        true
     }
 
     /// At the end of the login: the user's own folders back in user-dirs.dirs, so that the next login starts from
@@ -644,6 +674,31 @@ fn notify(ctx: &Context) {
 mod tests {
     use super::*;
     use crate::testutil::TempDir;
+
+    #[test]
+    fn a_clone_gets_the_users_own_folders_back() {
+        let root = TempDir::new("clone-folders");
+        let home = root.path().join("home");
+        fs::create_dir_all(home.join(".config/caramos-business")).unwrap();
+        let ctx = Context { home: home.clone(), runtime_dir: root.path().join("run"), login: "lan".into(), uid: 1000, desktop: Desktop::Other, vietnamese: true };
+        let folders = Folders::new();
+        // Never on the server: nothing to do.
+        assert!(!folders.put_back_local(&ctx));
+        // The disk was copied while Desktop and Documents were on the server; at the clone's first login
+        // xdg-user-dirs-update pointed the dangling Desktop link at the home folder.
+        fs::write(ctx.user_dirs().backup(), "XDG_DESKTOP_DIR=\"$HOME/Màn hình nền\"\nXDG_DOCUMENTS_DIR=\"$HOME/Tài liệu\"\n").unwrap();
+        fs::write(
+            ctx.user_dirs().file(),
+            "XDG_DESKTOP_DIR=\"$HOME/\"\nXDG_DOCUMENTS_DIR=\"$HOME/.local/share/caramos-business/server/Documents\"\nXDG_MUSIC_DIR=\"$HOME/Nhạc\"\n",
+        )
+        .unwrap();
+        assert!(folders.put_back_local(&ctx));
+        assert_eq!(
+            fs::read_to_string(ctx.user_dirs().file()).unwrap(),
+            "XDG_DESKTOP_DIR=\"$HOME/Màn hình nền\"\nXDG_DOCUMENTS_DIR=\"$HOME/Tài liệu\"\nXDG_MUSIC_DIR=\"$HOME/Nhạc\"\n"
+        );
+        assert!(!folders.put_back_local(&ctx), "once");
+    }
 
     #[test]
     fn fuse_path_of_the_example_policy() {

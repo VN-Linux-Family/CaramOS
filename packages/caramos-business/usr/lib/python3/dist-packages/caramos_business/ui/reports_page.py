@@ -424,8 +424,9 @@ def machine_facts(ctx: Context, machine_id: str, values: dict[str, Any]) -> list
         frozen = _("not frozen")
     facts.append((_("Freezing"), frozen))
     if health.freezing(effective) or values.get("last_maintenance"):
-        facts.append((_("Last maintenance"), text.sentence([text.clock(values.get("last_maintenance") or ""),
-                                                            values.get("maintenance_result", "")]) or _("none yet")))
+        result = summaries.maintenance_text(values.get("maintenance_result", ""), values.get("maintenance_steps"))
+        facts.append((_("Last maintenance"), text.sentence([text.clock(values.get("last_maintenance") or ""), result])
+                      or _("none yet")))
     if effective.get("snapshots") or values.get("last_snapshot"):
         facts.append((_("Last system snapshot"), text.join_sentence([
             text.clock(values.get("last_snapshot") or "") or _("none yet"),

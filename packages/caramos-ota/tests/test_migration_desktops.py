@@ -24,11 +24,15 @@ CINNAMON_ONLY = {
     "20261012180000_add_help_applet", "20261016220000_translate_cinnamon_spices",
     "20261018120000_restore_taskbar_after_cinnamon_update", "20261105120100_search_menu_while_composing",
     "20261105120200_start_menu_file_search_without_freeze", "20261111090000_start_menu_ctrl_scroll_icon_size",
-    "20261112100000_screenshot_shortcuts", "20261120100200_lunar_calendar", "v1_0_7", "v1_0_8", "v1_0_10",
+    "20261112100000_screenshot_shortcuts", "20261120100200_lunar_calendar", "20261123120000_hidden_password_typing",
+    "20261124180000_tray_icons_keep_their_place",
+    "20261124120000_desktop_icon_labels",
+    "v1_0_7", "v1_0_8", "v1_0_10",
 }
 XFCE_ONLY = {"20261118090100_xfce_wallpapers", "20261119100200_lighten_xfce_session",
              "20261120100400_xfce_lunar_clock",
-             "20261120100500_xfce_round_menus"}
+             "20261120100500_xfce_round_menus", "20261124100100_xfce_super_d_super_e",
+             "20261124100300_xfce_event_sounds"}
 # Migrations that run on both editions although their code talks about Cinnamon, and why that is right on Xfce.
 SHARED_ON_PURPOSE = {
     "20260808090000_restore_power_profiles_daemon": "power-profiles-daemon is a system service, not part of Cinnamon",
@@ -43,6 +47,16 @@ SHARED_ON_PURPOSE = {
                                   "theme is only read by Cinnamon",
     "20261120100700_windows_shortcuts": "the same Windows keys on both: Cinnamon's in its schema defaults, Xfce's in "
                                         "its shortcuts, each only where that desktop's files are",
+    "20261123120100_desktop_shortcuts_anywhere": "Nemo is the file manager of both editions; its shortcuts open "
+                                                 "from Cinnamon's desktop and from Xfce's alike",
+    "20261124100000_show_desktop_button": "Show desktop on both: Cinnamon's corner bar applet or the CaramOS Xfce "
+                                          "plugin, by the desktop it runs on",
+    "20261124100200_print_screen_to_clipboard": "Print Screen copies the screen on both: a Cinnamon custom shortcut "
+                                                "or an Xfce keyboard shortcut, by the desktop it runs on",
+    "20261124140000_show_trash_on_desktop": "the Trash on the desktop of both: nemo-desktop's setting or xfdesktop's, "
+                                            "by the desktop it runs on",
+    "20261124170000_tray_icons_follow_theme": "Lotus and the Tela icon themes are the same on both editions; each "
+                                              "one's tray draws the icon again when the icon theme changes",
     "v1_0_9": "Fcitx/Lotus setup for both; it only resets old Cinnamon keybinding experiments",
     "v1_0_12": "Fcitx/Lotus setup for both; it only resets old Cinnamon keybinding experiments",
 }

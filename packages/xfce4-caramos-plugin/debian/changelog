@@ -1,3 +1,16 @@
+xfce4-caramos-plugin (1.1.0) noble; urgency=medium
+
+  * Show desktop (caramos-show-desktop): a strip 4 pixels wide, the height of
+    the panel, at the very end of the CaramOS Xfce taskbar, after the right
+    island (tickets H-1189 and H-1192). It shows a thin line when the pointer
+    is on it; a click hides every window and shows the desktop, a second
+    click brings them back (_NET_SHOWING_DESKTOP), as Super+D does. Xfce's
+    own Show Desktop plugin is as wide as the panel is high, which would move
+    the island away from the edge of the screen. An internal plugin: no
+    process of its own.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Tue, 24 Nov 2026 10:00:00 +0700
+
 xfce4-caramos-plugin (1.0.0) noble; urgency=medium
 
   * The CaramOS Control Center button for the Xfce panel: an XEmbed socket in

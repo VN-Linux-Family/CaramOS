@@ -32,6 +32,7 @@ lib/systemd/system/caramos-ota-auto-update.service lib/systemd/system/
 usr/lib/systemd/user/caramos-ota-auto-update-notify.path usr/lib/systemd/user/
 usr/lib/systemd/user/caramos-ota-auto-update-notify.service usr/lib/systemd/user/
 usr/share/caramos-ota/auto-update usr/share/caramos-ota/
+usr/share/caramos-ota/check usr/share/caramos-ota/
 etc/xdg/autostart/caramos-ota-notifier.desktop etc/xdg/autostart/
 etc/xdg/autostart/caramos-driver-check.desktop etc/xdg/autostart/
 etc/xdg/autostart/caramos-xfce-trusted-launchers.desktop etc/xdg/autostart/
@@ -60,6 +61,7 @@ usr/share/caramos-ota/templates usr/share/caramos-ota/
 usr/lib/systemd/user/caramos-templates.service usr/lib/systemd/user/
 usr/lib/systemd/user/caramos-templates.timer usr/lib/systemd/user/
 etc/X11/Xsession.d/85caramos-nemo-menu etc/X11/Xsession.d/
+etc/X11/Xsession.d/85caramos-nemo-desktop-labels etc/X11/Xsession.d/
 usr/bin/caramos-lab usr/bin/
 usr/share/caramos-ota/lab usr/share/caramos-ota/
 usr/share/applications/caramos-lab.desktop usr/share/applications/
@@ -68,11 +70,14 @@ usr/share/caramos-ota/gtk usr/share/caramos-ota/
 usr/share/caramos-ota/open-document usr/share/caramos-ota/
 usr/share/applications/caramos-open-document.desktop usr/share/applications/
 usr/bin/caramos-clipboard usr/bin/
-etc/xdg/mimeapps.list etc/xdg/
+usr/bin/caramos-print-screen usr/bin/
+usr/share/applications/x-cinnamon-mimeapps.list usr/share/applications/
+usr/share/applications/xfce-mimeapps.list usr/share/applications/
 usr/lib/modules-load.d/caramos-ddc.conf usr/lib/modules-load.d/
 usr/bin/caramos-unicode usr/bin/
 usr/share/caramos-ota/unicode usr/share/caramos-ota/
 usr/share/nemo/actions/caramos-unicode.nemo_action usr/share/nemo/actions/
+usr/share/caramos-ota/desktop-shortcut usr/share/caramos-ota/
 usr/bin/caramos-windows-transfer usr/bin/
 usr/share/caramos-ota/windows-transfer usr/share/caramos-ota/
 usr/share/applications/caramos-windows-transfer.desktop usr/share/applications/

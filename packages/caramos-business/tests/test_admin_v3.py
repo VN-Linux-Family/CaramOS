@@ -121,6 +121,25 @@ class AssetTests(StateFixture):
         with self.assertRaises(protocol.ProtocolError):
             assets.validate(self.values(), machine_id=None)  # a thing without a machine needs a name
 
+    def test_a_status_change_written_once(self) -> None:
+        """0.3.1's full pass: the leaver step "Máy đã nhập kho" only added a note, and the machine stayed "Đang dùng".
+        The window now sends the status with the change's own event, which the history keeps once."""
+
+        admin.write_json(self.state / admin.MACHINES, {MACHINE_A: {"machine": {"name": "kt-01"}}})
+        assets.update(self.state, MACHINE_A, self.values(holder="Lan"), "caram", NOW)
+        entry = assets.update(self.state, MACHINE_A, self.values(holder="Lan", status="in_stock", leaver=["in_stock"],
+                                                                 add_event={"event": "returned",
+                                                                            "note": "Máy đã nhập kho"}),
+                              "caram", NOW)
+        self.assertEqual("in_stock", entry["status"])
+        self.assertEqual([("assigned", "Lan"), ("returned", "Máy đã nhập kho")],
+                         [(item["event"], item["note"]) for item in entry["history"]])
+        # A change without its own event is written as before.
+        entry = assets.update(self.state, MACHINE_A, self.values(holder="Lan", status="repair",
+                                                                 add_event={"event": "note", "note": "Hỏng quạt"}),
+                              "caram", NOW)
+        self.assertEqual(["assigned", "returned", "repair", "note"], [item["event"] for item in entry["history"]])
+
     def test_history_is_capped(self) -> None:
         entry: dict = {"history": [{"time": "", "event": "note", "by": "", "note": str(n)} for n in range(200)]}
         assets._event(entry, "note", "caram", "mới", NOW)  # noqa: SLF001
@@ -225,6 +244,86 @@ class LicenceTests(unittest.TestCase):
             self.assertIn("BÁO CÁO PHẦN MỀM", [cell for row in book["kt-02"].iter_rows(values_only=True)
                                                for cell in row if cell])
             book.close()
+
+
+    def test_package_names_and_licences(self) -> None:
+        """Seen on CaramOS 1.5.0 with 0.3.0's agents: WPS Office showed as "WPS Spreadsheets" and thunar as "Bulk
+        Rename" (each package took its first desktop file's name), and thunar was unknown although thunar.desktop
+        could have had a licence."""
+
+        def entry(desktop_id: str, name: str, package: str, licence: str = "unknown", **more: object) -> dict:
+            return dict({"id": desktop_id, "name": name, "package": package, "licence": licence, "origin": "mint"},
+                        **more)
+
+        wps = [entry(f"wps-office-{part}.desktop", name, "wps-office", origin="local-deb")
+               for part, name in (("et", "WPS Spreadsheets"), ("pdf", "WPS PDF"), ("prometheus", "WPS Office"),
+                                  ("wpp", "WPS Presentation"), ("wps", "WPS Writer"))]
+        old = wps + [  # 0.3.0: no `main`, a licence for each desktop file
+            entry("thunar-bulk-rename.desktop", "Bulk Rename", "thunar"),
+            entry("thunar.desktop", "Thunar File Manager", "thunar", "GPL-2.0"),
+            entry("caramos-audit.desktop", "CaramOS Audit", "caramos-ota", "GPL-3+"),
+            entry("caramos-driver-check.desktop", "Driver Check", "caramos-ota", "GPL-3+"),
+            entry("xfce-session-settings.desktop", "Session and Startup", "xfce4-session"),
+            entry("xfce4-session-logout.desktop", "Log Out", "xfce4-session"),
+            entry("mintinstall-kde.desktop", "Software Manager", "mintinstall", "GPL-3+"),
+            entry("mintinstall.desktop", "Software Manager", "mintinstall", "GPL-3+"),
+            entry("xfce4-power-manager-settings.desktop", "Power Manager", "xfce4-power-manager"),
+            entry("gnome-system-monitor-kde.desktop", "GNOME System Monitor", "gnome-system-monitor", "GPL-2+"),
+            entry("org.gnome.SystemMonitor.desktop", "System Monitor", "gnome-system-monitor", "GPL-2+"),
+        ]
+        new = [dict(app, main=False) for app in wps] + [  # 0.3.1: `main`, one licence for each package
+            entry("thunar-bulk-rename.desktop", "Bulk Rename", "thunar", "GPL-2.0", main=False),
+            entry("thunar.desktop", "Thunar File Manager", "thunar", "GPL-2.0", main=True),
+            entry("gnome-system-monitor-kde.desktop", "GNOME System Monitor", "gnome-system-monitor", "GPL-2+",
+                  main=False),
+            entry("org.gnome.SystemMonitor.desktop", "System Monitor", "gnome-system-monitor", "GPL-2+", main=True),
+            entry("xfce4-power-manager-settings.desktop", "Power Manager", "xfce4-power-manager", "GPL-2+",
+                  main=False),
+            entry("xfce-session-settings.desktop", "Session and Startup", "xfce4-session", "GPL-2+", main=False),
+            entry("xfce4-session-logout.desktop", "Log Out", "xfce4-session", "GPL-2+", main=False),
+        ]
+        machines = {MACHINE_A: {}, MACHINE_B: {}}
+        names = lambda report: {app["key"]: app["name"] for app in report["apps"]}  # noqa: E731
+        older = licences.report(machines, {MACHINE_A: {"apps": old}}, {}, [])
+        self.assertEqual({"wps-office": "WPS Office", "thunar": "Thunar File Manager", "caramos-ota": "CaramOS OTA",
+                          "xfce4-session": "Xfce4 Session", "mintinstall": "Software Manager",
+                          "xfce4-power-manager": "Power Manager", "gnome-system-monitor": "GNOME System Monitor"},
+                         names(older))
+        thunar = next(app for app in older["apps"] if app["key"] == "thunar")
+        self.assertEqual(("GPL-2.0", "free"), (thunar["licence"], thunar["class"]),
+                         "the licence that one of its entries states")
+        self.assertEqual(["thunar", "thunar-bulk-rename.desktop", "thunar.desktop"], thunar["ids"])
+        both = licences.report(machines, {MACHINE_A: {"apps": old}, MACHINE_B: {"apps": new}}, {}, [])
+        self.assertEqual("System Monitor", names(both)["gnome-system-monitor"], "the main entry wins")
+        self.assertEqual([MACHINE_A, MACHINE_B], next(app for app in both["apps"]
+                                                      if app["key"] == "thunar")["machines"])
+        self.assertEqual(1, both["totals"]["unknown"], "WPS Office only")
+        # The App Center's name, when its entries tell nothing.
+        catalog = {"wps-office": {"id": "wps-office", "name": "WPS Office", "class": "unknown", "note": {}}}
+        self.assertEqual("WPS Office", names(licences.report(machines, {MACHINE_A: {"apps": wps[:2]}}, catalog,
+                                                             []))["wps-office"])
+        self.assertEqual("WPS Office", licences.package_title("wps-office", {"WPS Writer", "WPS PDF"}))
+        self.assertEqual("WPS Office", licences.package_title("wps-office", set()))
+        self.assertEqual("Xfwm4", licences.package_title("xfwm4", {"Window Manager", "Workspaces"}))
+        self.assertTrue(licences.named_after("org.fcitx.Fcitx5.desktop", "fcitx5"))
+        self.assertFalse(licences.named_after("wps-office-wps.desktop", "wps-office"))
+
+    def test_packages_with_one_name(self) -> None:
+        """0.3.1's full pass: gnome-screenshot (Cinnamon) and xfce4-screenshooter (Xfce) both showed as "Screenshot"."""
+
+        def entry(desktop_id: str, package: str) -> dict:
+            return {"id": desktop_id, "name": "Screenshot", "package": package, "licence": "GPL-2+", "origin": "ubuntu",
+                    "main": True}
+
+        report = licences.report({MACHINE_A: {}, MACHINE_B: {}},
+                                 {MACHINE_A: {"apps": [entry("org.gnome.Screenshot.desktop", "gnome-screenshot")]},
+                                  MACHINE_B: {"apps": [entry("xfce4-screenshooter.desktop", "xfce4-screenshooter")]}},
+                                 {}, [])
+        self.assertEqual(["Screenshot (gnome-screenshot)", "Screenshot (xfce4-screenshooter)"],
+                         sorted(app["name"] for app in report["apps"]))
+        alone = licences.report({MACHINE_A: {}}, {MACHINE_A: {"apps": [entry("org.gnome.Screenshot.desktop",
+                                                                             "gnome-screenshot")]}}, {}, [])
+        self.assertEqual(["Screenshot"], [app["name"] for app in alone["apps"]])
 
 
 class SecurityTests(unittest.TestCase):

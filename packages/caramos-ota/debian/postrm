@@ -24,6 +24,16 @@ case "$1" in
         ;;
 esac
 
+case "$1" in
+    abort-install|abort-upgrade)
+        # The install failed after preinst moved the unchanged /etc/xdg/mimeapps.list aside: put it back.
+        old="$DPKG_ROOT/etc/xdg/mimeapps.list"
+        if [ -f "$old.dpkg-remove" ] && [ ! -e "$old" ] && [ ! -L "$old" ]; then
+            mv -f "$old.dpkg-remove" "$old" || true
+        fi
+        ;;
+esac
+
 #DEBHELPER#
 
 exit 0

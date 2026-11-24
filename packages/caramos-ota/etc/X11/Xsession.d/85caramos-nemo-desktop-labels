@@ -1,0 +1,13 @@
+# This file is sourced by Xsession(5), not executed.
+# CaramOS: the names under the icons of Cinnamon's desktop (nemo-desktop) with a dark shadow on every side, so they read
+# on light wallpapers too, like the Xfce edition's. Nemo styles those names in its own CSS, which it loads above any
+# GTK theme. /var/lib/caramos-ota/nemo-menu/nemo-style-application.css is that CSS from the installed Nemo with only
+# their shadow made stronger (written by /usr/share/caramos-ota/nemo-menu/caramos-nemo-menu, again after every Nemo
+# update); Nemo windows look the same with it. Without the file (a Nemo update changed its CSS), Nemo keeps its own.
+
+CARAMOS_NEMO_STYLE=/var/lib/caramos-ota/nemo-menu/nemo-style-application.css
+if [ -r "$CARAMOS_NEMO_STYLE" ]; then
+  G_RESOURCE_OVERLAYS="/org/nemo/nemo-style-application.css=$CARAMOS_NEMO_STYLE${G_RESOURCE_OVERLAYS:+:$G_RESOURCE_OVERLAYS}"
+  export G_RESOURCE_OVERLAYS
+fi
+unset CARAMOS_NEMO_STYLE

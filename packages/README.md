@@ -632,34 +632,36 @@ Nói ngắn gọn: **CaramOS OTA không còn là package manifest manager; nó l
 
 ---
 
-## 13. Release hiện tại: CaramOS 1.4.0 (`caramos-ota` 1.4.0)
+## 13. Release hiện tại: CaramOS 1.5.1 (`caramos-ota` 1.5.1)
 
 Người release PPA: **dungleviet**.
 
-CaramOS 1.4.0 là bản mới nhất của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0; các bản 1.0.x
+CaramOS 1.5.1 là bản mới nhất của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0; các bản 1.0.x
 trước đó là Open Beta. Từ 1.4.0 có hai bản: Cinnamon và Xfce (bản nhẹ cho máy 2 GB và phòng máy ở trường học).
 
 | Thành phần | Bản phát hành |
 |---|---|
-| ISO | `CaramOS-1.4.0-cinnamon-amd64.iso` và `CaramOS-1.4.0-xfce-amd64.iso`: GitHub Release `v1.4.0`, tệp ISO trên SourceForge (`SHA256SUMS`, `SHA256SUMS-xfce`) |
-| `caramos-ota` | `1.4.0-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
-| `xfce4-docklike-plugin`, `xfce4-caramos-plugin` | `0.4.2-0caramos1` và `1.0.0` trên cùng PPA (lên PPA từ 1.4.0): đảo giữa và chỗ của Control Center trên thanh tác vụ bản Xfce |
+| ISO | `CaramOS-1.5.1-cinnamon-amd64.iso` và `CaramOS-1.5.1-xfce-amd64.iso`: GitHub Release `v1.5.1`, tệp ISO trên SourceForge (`SHA256SUMS`, `SHA256SUMS-xfce`) |
+| `caramos-ota` | `1.5.1-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| `xfce4-docklike-plugin`, `xfce4-caramos-plugin` | `0.4.2-0caramos1` và `1.1.0` trên cùng PPA (lên PPA từ 1.4.0; 1.1.0 từ 1.5.1 có thêm dải Hiện màn hình nền): đảo giữa và chỗ của Control Center trên thanh tác vụ bản Xfce |
+| `fastfetch` | `2.71.0-0caramos1` trên cùng PPA (từ 1.5.1, ticket H-1203): bản backport cho noble, cấu hình mặc định có logo CaramOS; migration `20261124130000_install_fastfetch` cài nó |
+| `caramos-business` | `0.3.1` trên cùng PPA (lên PPA từ 1.5.0): CaramOS Doanh nghiệp, cài từ App Center |
 | `printer-driver-captdriver` | `0.2.1~git20260813.f2d2da8-0caramos1` trên cùng PPA (lên PPA từ 1.3.7, không đổi từ đó); Kiểm tra driver cài nó khi thấy máy in Canon CAPT mà captdriver chạy được |
 | Driver CAPT của Canon | Không có trên PPA (điều khoản của Canon cấm phát tán lại): từ 1.3.9, Kiểm tra driver tải `linux-capt-drv-v271-uken.tar.gz` từ Canon về máy người dùng, sau khi người dùng đồng ý điều khoản, và kiểm tra SHA-256 (`caramos_driver_check/canon_capt.py`) |
-| App Center | `caramos-app-center` 0.2.4, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` |
+| App Center | `caramos-app-center` 0.3.1, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` |
 
 Máy CaramOS cũ không cần cài lại ISO:
 
-- Từ 1.0.2 trở lên: Trung tâm cập nhật tự báo bản 1.4.0, hoặc chạy `sudo caramos-ota --upgrade --yes`.
+- Từ 1.0.2 trở lên: Trung tâm cập nhật tự báo bản 1.5.1, hoặc chạy `sudo caramos-ota --upgrade --yes`.
 - Từ 1.0.1: cài Trung tâm cập nhật một lần bằng
   `curl -fsSL https://caramos.vietnamlinuxfamily.net/install-caramos-ota.sh | sudo bash`.
 
-Chuỗi migration được đóng gói trong `caramos-ota` 1.4.0:
+Chuỗi migration được đóng gói trong `caramos-ota` 1.5.1:
 
 ```text
 1.0.1 → 1.0.2 → … → 1.0.12                         migration legacy v1_0_2 … v1_0_12, đóng băng
 20260715090258_install_control_center → …
-  → 20261119100200_lighten_xfce_session                33 timestamp migration, chạy theo ledger; migration nào
+  → 20261124170000_tray_icons_follow_theme             55 timestamp migration, chạy theo ledger; migration nào
                                                        ghi "desktops" chỉ chạy trên bản đó (cinnamon hoặc xfce)
 ```
 
@@ -668,20 +670,23 @@ submodule, nên App Center được phát hành và trỏ submodule trước khi
 
 ```bash
 # 1. App Center (khi có thay đổi): commit trong submodule rồi tag
-make -C packages/caramos-app-center release VERSION=0.2.4
-git -C packages/caramos-app-center push origin HEAD v0.2.4
+make -C packages/caramos-app-center release VERSION=0.3.1
+git -C packages/caramos-app-center push origin HEAD v0.3.1
 
 # 2. CaramOS: đóng dấu version, commit (kèm con trỏ submodule mới), tag
-# Hai plugin Xfce lên PPA TRƯỚC khi tag (CI dựng ISO Xfce cài chúng từ PPA), khi chúng thay đổi (1.4.0: lần đầu)
+# Plugin Xfce và fastfetch lên PPA TRƯỚC khi tag (CI dựng ISO cài chúng từ PPA), khi chúng thay đổi
+# (plugin: 1.4.0 lần đầu, 1.1.0 ở 1.5.1; fastfetch: 1.5.1 lần đầu)
 make -C packages/xfce4-docklike-plugin source upload
 make -C packages/xfce4-caramos-plugin source upload
-make -C packages/caramos-ota prepare-release VERSION=1.4.0
-git commit -am "[build] Release 1.4.0" && git push origin main
-git tag -a v1.4.0 -m "CaramOS 1.4.0" && git push origin v1.4.0   # CI: ISO hai bản, SourceForge, GitHub Release
+make -C packages/fastfetch source upload
+make -C packages/caramos-ota prepare-release VERSION=1.5.1
+git commit -am "[build] Release 1.5.1" && git push origin main
+git tag -a v1.5.1 -m "CaramOS 1.5.1" && git push origin v1.5.1   # CI: ISO hai bản, SourceForge, GitHub Release
 
-# 3. caramos-ota lên PPA
+# 3. caramos-ota lên PPA, và caramos-business khi gói này thay đổi (1.5.0: lần đầu)
 make -C packages/caramos-ota source
 make -C packages/caramos-ota gpg-unlock upload
+make -C packages/caramos-business source upload
 
 # 4. printer-driver-captdriver, khi gói này thay đổi (1.3.7: lần đầu)
 make -C packages/printer-driver-captdriver source upload
@@ -694,4 +699,4 @@ sudo apt update
 apt-cache policy caramos-ota
 ```
 
-ISO build dùng `CARAMOS_VERSION=1.4.0` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs. Sau đó build dừng nếu Start Menu (Cinnamenu tải từ cinnamon-spices lúc build) thiếu bản vá của CaramOS.
+ISO build dùng `CARAMOS_VERSION=1.5.1` cho tên ISO, và `CARAMOS_MIGRATION_BASE_VERSION=1.0.1` để OTA bootstrap chạy đủ migration chain trong rootfs. Sau đó build dừng nếu Start Menu (Cinnamenu tải từ cinnamon-spices lúc build) thiếu bản vá của CaramOS.

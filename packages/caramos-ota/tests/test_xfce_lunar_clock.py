@@ -323,7 +323,11 @@ class DefaultsTests(unittest.TestCase):
         self.assertNotIn('value="clock"', new)
         self.assertEqual("", migration.defaults_without_clock(new), "once")
         if PANEL_XML.is_file():  # the source package has no config/
-            self.assertEqual(without_comments(PANEL_XML.read_text(encoding="utf-8")), without_comments(new))
+            # Then migration 20261124100000 puts Show desktop at the end of the right island.
+            show_desktop = importlib.import_module(
+                "caramos_ota_update.migrations.20261124100000_show_desktop_button.migration")
+            self.assertEqual(without_comments(PANEL_XML.read_text(encoding="utf-8")),
+                             without_comments(show_desktop.defaults_with_strip(new)))
         self.assertEqual(PANEL_1_4_0.count("<!--"), new.count("<!--"), "the comments stay")
 
     def test_files_not_as_expected_stay(self) -> None:

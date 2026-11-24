@@ -1,0 +1,15 @@
+fastfetch (2.71.0-0caramos1) noble; urgency=medium
+
+  * fastfetch 2.71.0 for CaramOS on Ubuntu 24.04, which has no fastfetch
+    (H-1203: fastfetch in place of neofetch, with the CaramOS logo).
+  * Packaging from Debian's 2.71.0+dfsg-1, with these changes:
+    - the upstream tarball as it is, src/3rdparty included (all MIT or
+      public domain), and the bundled yyjson in place of libyyjson-dev,
+      which noble does not have;
+    - d/caramos: the CaramOS logo (/usr/share/fastfetch/logos/caramos.txt)
+      and a default config (/etc/xdg/fastfetch/config.jsonc) that shows it
+      in the CaramOS colours, in place of the Ubuntu logo;
+    - Maintainer and d/watch for this package, Priority back for noble's
+      dpkg; Vcs-*, gbp.conf and salsa-ci.yml (Debian's salsa) dropped.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Mon, 23 Nov 2026 21:12:14 +0700

@@ -1,0 +1,39 @@
+#!/usr/bin/make -f
+
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+
+%:
+	dh $@ --buildsystem=cmake
+
+# Debian's options, except yyjson: Ubuntu 24.04 has no libyyjson-dev (it starts in 25.04), so fastfetch builds the
+# copy in its own tarball (src/3rdparty/yyjson, MIT) instead of -DENABLE_SYSTEM_YYJSON=ON.
+override_dh_auto_configure:
+	dh_auto_configure -- \
+		-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+		-DSET_TWEAK=OFF \
+		-DBUILD_TESTS=ON \
+		-DENABLE_SYSTEM_YYJSON=OFF \
+		-DINSTALL_LICENSE=OFF \
+		-DBUILD_FLASHFETCH=OFF \
+		-DENABLE_WCWIDTH=OFF \
+		-DPACKAGES_DISABLE_CHOCO=ON \
+		-DPACKAGES_DISABLE_EMERGE=ON \
+		-DPACKAGES_DISABLE_EOPKG=ON \
+		-DPACKAGES_DISABLE_LPKG=ON \
+		-DPACKAGES_DISABLE_LPKGBUILD=ON \
+		-DPACKAGES_DISABLE_MACPORTS=ON \
+		-DPACKAGES_DISABLE_OPKG=ON \
+		-DPACKAGES_DISABLE_PACMAN=ON \
+		-DPACKAGES_DISABLE_PACSTALL=ON \
+		-DPACKAGES_DISABLE_PALUDIS=ON \
+		-DPACKAGES_DISABLE_PISI=ON \
+		-DPACKAGES_DISABLE_PKG=ON \
+		-DPACKAGES_DISABLE_PKGTOOL=ON \
+		-DPACKAGES_DISABLE_SORCERY=ON \
+		-DPACKAGES_DISABLE_XBPS=ON \
+		-DPACKAGES_REMOVE_DISABLED=ON
+
+# CaramOS: the CaramOS logo and the default config that shows it (debian/caramos/README).
+execute_after_dh_auto_install:
+	install -D -m 0644 debian/caramos/config.jsonc debian/fastfetch/etc/xdg/fastfetch/config.jsonc
+	install -D -m 0644 debian/caramos/caramos.txt debian/fastfetch/usr/share/fastfetch/logos/caramos.txt

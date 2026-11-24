@@ -79,9 +79,14 @@ def scope_key(scope: str) -> str:
 
 class Draft:
     def __init__(self, policy: dict[str, Any]) -> None:
+        # Counts the times the draft's values were replaced (load, revert): an editor built before holds values that
+        # are no longer the draft's, so its page is built again (a change made there was lost, without a save bar,
+        # after "Lưu và gửi" in 0.3.1).
+        self.generation = 0
         self.load(policy)
 
     def load(self, policy: dict[str, Any]) -> None:
+        self.generation += 1
         self.serial = int(policy.get("serial", 0) or 0)
         self.saved = admin.draft_from_policy(policy)
         for department in self.saved["departments"].values():  # so that reading a layer never looks like a change
@@ -92,6 +97,7 @@ class Draft:
         self.passphrases: dict[str, str] = {}
 
     def revert(self) -> None:
+        self.generation += 1
         self.data = copy.deepcopy(self.saved)
         self.pictures.clear()
         self.passphrases.clear()
@@ -260,8 +266,9 @@ class Draft:
 
     # - saving -
 
-    def validate(self) -> None:
-        """The checks of the helper that need no root, so that mistakes show before the password is asked."""
+    def validate(self, machines: dict[str, Any] | None = None) -> None:
+        """The checks of the helper that need no root, so that mistakes show before the password is asked. With the
+        machines (the approved ones), the draft is first kept to what the helper saves of it, as the helper does."""
 
         files = {sha: {} for sha in self.files} | {name: {} for name in self.pictures}
         policy = self.as_policy()
@@ -270,6 +277,11 @@ class Draft:
         layers += [(f"machine:{key}", value.get("settings") or {}) for key, value in policy["machines"].items()]
         for scope, settings in layers:
             protocol.validate_settings(settings, files, scope)
+        # Freezing with snapshots, with folders tidy or without a maintenance time, for any machine or department: 0.3.1
+        # refused it only after the password.
+        problem = admin.freeze_problem(admin.clean_draft(policy, machines) if machines is not None else policy)
+        if problem:
+            raise protocol.ProtocolError(problem[1], section="shared", scope=problem[0])
         for ssid, security in admin.wifi_networks(self.data).items():
             if security == "wpa-psk" and self.password_state(ssid) == "missing":
                 raise protocol.ProtocolError(_("Type the password of the Wi-Fi network “%s”.") % ssid, section="wifi")

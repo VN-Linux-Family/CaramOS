@@ -25,6 +25,8 @@ import sys
 import time
 from pathlib import Path
 
+from caramos_ota.constants import APT_NONINTERACTIVE_OPTIONS, NONINTERACTIVE_ENV
+
 from . import BACKENDS, EPOPTES, STATE_DIR, STUDENT, TEACHER, VEYON
 from . import system
 from .pairing import PairingError, Student, pairing_code, parse_registration, valid_hostname, valid_ip, valid_room
@@ -94,8 +96,10 @@ def apt_install(packages: list[str]) -> None:
     if not missing:
         emit("log", text="already installed: " + " ".join(packages))
         return
-    env = {**os.environ, "DEBIAN_FRONTEND": "noninteractive"}
-    command = ["apt-get", "-o", "DPkg::Lock::Timeout=300", "install", "-y", "--no-install-recommends", *missing]
+    # Nobody can answer dpkg here: it asks nothing about configuration files (ticket H-1207).
+    env = {**os.environ, **NONINTERACTIVE_ENV}
+    command = ["apt-get", "-o", "DPkg::Lock::Timeout=300", *APT_NONINTERACTIVE_OPTIONS, "install", "-y",
+               "--no-install-recommends", *missing]
     for attempt in range(2):
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, env=env)
         for line in process.stdout:

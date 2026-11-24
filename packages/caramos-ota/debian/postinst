@@ -22,6 +22,16 @@ case "$1" in
 
         # Files (Nemo): right-click > "Mới" > "Thư mục" from the next login (see the script).
         /usr/share/caramos-ota/nemo-menu/caramos-nemo-menu || true
+
+        # The office defaults of 1.4.0 and 1.5.0 (see preinst): delete the unchanged /etc/xdg/mimeapps.list that
+        # preinst moved aside, and the copy of that list a failed configure left (the .dpkg-new file of ticket H-1207).
+        # The checksum is that list's; any other file stays.
+        rm -f "$DPKG_ROOT/etc/xdg/mimeapps.list.dpkg-remove" || true
+        stale="$DPKG_ROOT/etc/xdg/mimeapps.list.dpkg-new"
+        if [ -f "$stale" ] && [ ! -L "$stale" ] \
+                && [ "$(md5sum < "$stale" 2>/dev/null | cut -d ' ' -f 1)" = 656282d52d81c53509c4b22f05ebdd66 ]; then
+            rm -f "$stale" || true
+        fi
         ;;
     triggered)
         # A Cinnamon update put back its own panel files: make the CaramOS changes again. A failure is

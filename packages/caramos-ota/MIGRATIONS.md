@@ -87,6 +87,18 @@ Thiếu trường này thì coi như `"nobody-logged-in"`, và mọi migration l
 `tests/test_auto_update.py` bắt mọi timestamp migration ghi rõ giá trị, và giữ danh sách các migration
 `nobody-logged-in`.
 
+## Không để dpkg hỏi
+
+Bản cập nhật chạy không có terminal (Trung tâm cập nhật, lần kiểm tra hằng ngày, Tự động cập nhật), và bước tự cập
+nhật chạy bản `caramos-ota` đang cài. Một câu hỏi của dpkg làm bản cập nhật dừng, và máy không cập nhật được nữa
+(ticket H-1207: tệp cấu hình `/etc/xdg/mimeapps.list` của 1.4.0 và 1.5.0, trên máy đã có sẵn tệp cùng tên).
+
+- Migration cài, thay hay gỡ gói bằng `context.apt_install`, `context.apt_replace`, `context.apt_remove`, không gọi
+  `apt-get` trực tiếp. Các hàm này chạy với `--force-confdef --force-confold` và `DEBIAN_FRONTEND=noninteractive`:
+  tệp cấu hình người dùng đã sửa được giữ nguyên.
+- Gói không thêm tệp cấu hình trong `/etc` mang tên mà người dùng hay chương trình khác có thể đã tạo. Thiết lập mặc
+  định của hệ thống để trong `/usr/share` khi chuẩn cho phép, ví dụ `/usr/share/applications/<desktop>-mimeapps.list`.
+
 ## Ledger
 
 Runner dùng ledger để biết timestamp migration nào đã chạy thành công.

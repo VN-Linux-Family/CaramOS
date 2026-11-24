@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -23,7 +24,9 @@ class DriverCheckMigrationTests(unittest.TestCase):
                 mock.patch.object(migration, "COMMAND", Path(temp) / "hw-probe"), \
                 mock.patch.object(context, "run_command") as run:
             migration.run(context)
-        run.assert_called_once_with(["apt-get", "install", "--yes", "--no-install-recommends", "--", "hw-probe"])
+        run.assert_called_once_with(["apt-get", "-o", "Dpkg::Options::=--force-confdef",
+                                     "-o", "Dpkg::Options::=--force-confold", "install", "--yes",
+                                     "--no-install-recommends", "--", "hw-probe"], env=mock.ANY)
 
     def test_nothing_to_do_when_hw_probe_is_installed(self) -> None:
         context = MigrationContext()
@@ -54,7 +57,12 @@ class DriverCheckMigrationTests(unittest.TestCase):
         context = MigrationContext()
         with mock.patch.object(context, "run_command") as run:
             context.apt_install(["earlyoom"])
-        run.assert_called_once_with(["apt-get", "install", "--yes", "--", "earlyoom"])
+        run.assert_called_once_with(["apt-get", "-o", "Dpkg::Options::=--force-confdef",
+                                     "-o", "Dpkg::Options::=--force-confold", "install", "--yes", "--",
+                                     "earlyoom"], env=mock.ANY)
+        env = run.call_args.kwargs["env"]
+        self.assertEqual(("noninteractive", "1"), (env["DEBIAN_FRONTEND"], env["UCF_FORCE_CONFFOLD"]))
+        self.assertEqual(os.environ["PATH"], env["PATH"])
 
     def test_manifest_announces_driver_check_in_both_languages(self) -> None:
         manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))

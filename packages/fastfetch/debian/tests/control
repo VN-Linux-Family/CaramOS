@@ -1,0 +1,1 @@
+Test-Command: fastfetch | grep "OS:"

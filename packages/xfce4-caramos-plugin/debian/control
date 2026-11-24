@@ -4,6 +4,7 @@ Priority: optional
 Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
 Build-Depends: debhelper-compat (= 13),
                libgtk-3-dev,
+               libx11-dev,
                libxfce4panel-2.0-dev,
                pkgconf
 Rules-Requires-Root: no
@@ -14,9 +15,13 @@ Package: xfce4-caramos-plugin
 Architecture: any
 Multi-Arch: same
 Depends: ${misc:Depends}, ${shlibs:Depends}, caramos-ota, xfce4-panel
-Description: CaramOS Control Center button for the Xfce panel
+Description: CaramOS Control Center button and Show desktop strip for the Xfce panel
  The CaramOS Xfce taskbar shows the Control Center in its right island, as
  CaramOS Cinnamon does: the network, the volume and the battery, and a popup
  with sound, Wi-Fi, Bluetooth, VPN, power mode, dark mode, Night Light and the
  accent colour. The Control Center comes with caramos-ota; this plugin gives
  it its place in the panel.
+ .
+ Show desktop is a thin strip at the very end of the taskbar, after the right
+ island: a click hides every window and shows the desktop, a second click
+ brings them back, as on Windows and in Linux Mint.

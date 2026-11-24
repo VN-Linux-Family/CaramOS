@@ -196,6 +196,63 @@ pub struct CommandResult {
     pub state: ResultState,
     pub detail: String,
     pub time: String,
+    /// What an `update` did, step by step (from 0.3.1, after the full test pass): the admin words them in its reader's
+    /// language; `detail` keeps the older words, for older admins. Absent for other commands.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub steps: Vec<UpdateStep>,
+}
+
+/// One step of an `update`, and of a frozen machine's maintenance boot: `snapshot` (Timeshift, with
+/// `snapshots.before_update`), `caramos-ota` (`caramos-ota --check`), `security` (apt's security updates; `count`
+/// installed) and, in maintenance, `apps`. `error` (at most 200 characters) says why a step failed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+pub struct UpdateStep {
+    pub step: String,
+    pub ok: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub count: Option<u64>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub error: String,
+}
+
+impl UpdateStep {
+    pub fn done(step: &str, count: Option<u64>) -> UpdateStep {
+        UpdateStep { step: step.to_string(), ok: true, count, error: String::new() }
+    }
+
+    pub fn failed(step: &str, error: &str) -> UpdateStep {
+        UpdateStep { step: step.to_string(), ok: false, count: None, error: truncate_chars(error, MAX_DETAIL_CHARS) }
+    }
+
+    /// The step in the words of 0.3.0, which older admins show as they are: "đã chụp bản lưu hệ thống",
+    /// "caramos-ota --check: ok", "321 security updates installed", "ứng dụng: xong".
+    pub fn words(&self) -> String {
+        match (self.step.as_str(), self.ok) {
+            ("snapshot", true) => "đã chụp bản lưu hệ thống".to_string(),
+            ("snapshot", false) => format!("không chụp được bản lưu hệ thống: {}", self.error),
+            ("caramos-ota", true) => "caramos-ota --check: ok".to_string(),
+            ("caramos-ota", false) => format!("caramos-ota --check: {}", self.error),
+            ("security", true) => match self.count.unwrap_or(0) {
+                0 => "no security updates".to_string(),
+                count => format!("{count} security updates installed"),
+            },
+            ("apps", true) => "ứng dụng: xong".to_string(),
+            ("apps", false) => format!("ứng dụng: {}", self.error),
+            (_, true) => self.step.clone(),
+            (_, false) => self.error.clone(),
+        }
+    }
+}
+
+/// The steps in the words of 0.3.0, one after another: an `update`'s `detail`.
+pub fn update_detail(steps: &[UpdateStep]) -> String {
+    steps.iter().map(UpdateStep::words).collect::<Vec<_>>().join("; ")
+}
+
+/// Whether the update went through: its security updates did (a snapshot or `caramos-ota --check` that failed is
+/// only said, as in 0.3.0).
+pub fn update_succeeded(steps: &[UpdateStep]) -> bool {
+    steps.iter().filter(|step| step.step == "security").all(|step| step.ok)
 }
 
 /// `POST /help`.
@@ -260,6 +317,32 @@ pub fn truncate_chars(text: &str, max: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn update_steps_and_their_older_words() {
+        let steps = [UpdateStep::done("snapshot", None), UpdateStep::done("caramos-ota", None), UpdateStep::done("security", Some(321))];
+        // What 0.3.0 and 0.3.1 said, kept for older admins: the window of 0.3.1 (after the full test pass) words the steps.
+        assert_eq!(update_detail(&steps), "đã chụp bản lưu hệ thống; caramos-ota --check: ok; 321 security updates installed");
+        assert!(update_succeeded(&steps));
+        let failed = [UpdateStep::failed("snapshot", "timeshift: no room"), UpdateStep::failed("caramos-ota", "exit status 1"), UpdateStep::failed("security", "apt-get update: E: no network")];
+        assert_eq!(
+            update_detail(&failed),
+            "không chụp được bản lưu hệ thống: timeshift: no room; caramos-ota --check: exit status 1; apt-get update: E: no network"
+        );
+        assert!(!update_succeeded(&failed));
+        assert!(update_succeeded(&failed[..2]), "a failed snapshot or OTA check is only said, as before");
+        assert_eq!(update_detail(&[UpdateStep::done("security", Some(0)), UpdateStep::done("apps", None)]), "no security updates; ứng dụng: xong");
+        assert_eq!(UpdateStep::failed("apps", "flatpak: x").words(), "ứng dụng: flatpak: x");
+        assert_eq!(UpdateStep::failed("security", &"é".repeat(300)).error.chars().count(), 200);
+
+        let result = CommandResult { id: "x".into(), state: ResultState::Done, detail: "d".into(), time: "t".into(), steps: steps.to_vec() };
+        let sent = serde_json::to_value(&result).unwrap();
+        assert_eq!(sent["steps"], serde_json::json!([{"step": "snapshot", "ok": true}, {"step": "caramos-ota", "ok": true}, {"step": "security", "ok": true, "count": 321}]));
+        let other = CommandResult { steps: Vec::new(), ..result };
+        assert!(serde_json::to_value(&other).unwrap().get("steps").is_none(), "other results as in 0.3.0");
+        let error = serde_json::to_value(&failed[0]).unwrap();
+        assert_eq!(error, serde_json::json!({"step": "snapshot", "ok": false, "error": "timeshift: no room"}));
+    }
 
     #[test]
     fn discover_datagram_text() {

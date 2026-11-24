@@ -84,13 +84,35 @@ class AptUpdateTests(unittest.TestCase):
         self.assertIn("the CaramOS update goes on", out.getvalue())
 
     def test_a_failed_caramos_ppa_still_stops_the_update(self) -> None:
-        for results in ([done(100, PPA_FAILURE)], [done(100, GITHUB_IO_FAILURE), done(100, PPA_FAILURE)],
+        for results in ([done(100, GITHUB_IO_FAILURE), done(100, PPA_FAILURE)],
                         [done(100, "E: Could not get lock /var/lib/apt/lists/lock\n")]):
             self.calls = []
             with mock.patch.object(apt, "_apt_get_update", side_effect=self.fake_update(results)), \
                     redirect_stdout(io.StringIO()) as out, self.assertRaises(SystemExit):
                 apt.apt_update()
             self.assertIn("Failed to update package index", out.getvalue())
+
+    def test_an_unreachable_caramos_ppa_fails_the_check_even_when_apt_get_says_it_worked(self) -> None:
+        """apt-get update ends with 0 and a warning when it cannot reach a source at all, and keeps the old list: up to
+        1.5.0 the daily check then found nothing new, every day, and the Update Center said CaramOS was up to date."""
+
+        warning = PPA_FAILURE.replace("E: ", "W: ", 1) + (
+            "W: Some index files failed to download. They have been ignored, or old ones used instead.\n")
+        for result in (done(0, warning), done(100, PPA_FAILURE)):
+            self.calls = []
+            with mock.patch.object(apt, "_apt_get_update", side_effect=self.fake_update([result])), \
+                    redirect_stdout(io.StringIO()) as out, self.assertRaises(SystemExit) as stopped:
+                apt.apt_update()
+            self.assertEqual(apt.EXIT_APT, stopped.exception.code)
+            self.assertEqual([[]], self.calls)   # the PPA alone is not tried again: it is the one that failed
+            self.assertIn("Could not reach the CaramOS update server", out.getvalue())
+
+    def test_another_source_warning_with_success_goes_on(self) -> None:
+        warning = "W: Failed to fetch http://archive.example.org/ubuntu/dists/noble/InRelease  Could not resolve\n"
+        with mock.patch.object(apt, "_apt_get_update", side_effect=self.fake_update([done(0, warning)])), \
+                redirect_stdout(io.StringIO()):
+            apt.apt_update()
+        self.assertEqual([[]], self.calls)
 
     def test_a_clean_update_runs_once(self) -> None:
         with mock.patch.object(apt, "_apt_get_update", side_effect=self.fake_update([done(0)])), \

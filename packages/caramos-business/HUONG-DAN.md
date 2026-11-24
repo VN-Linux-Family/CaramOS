@@ -65,7 +65,7 @@ Không cần làm gì trên từng máy. Nếu đã bật **Duyệt từng máy 
 Theo Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15, điều 25, người lao động phải được biết các biện pháp công ty dùng trên máy của họ.
 
 - Hãy **báo cho nhân viên bằng văn bản** những tính năng bạn bật, ví dụ ghi vào nội quy lao động hoặc gửi thông báo nội bộ. Trang **Báo cáo an toàn** có sẵn một đoạn văn liệt kê đúng những biện pháp bạn đã bật, để dán vào nội quy lao động (mục 12).
-- Trên mỗi máy nhân viên, sau khi ghép máy, mỗi người dùng thấy một thông báo nói công ty quản lý những gì. Trong cửa sổ CaramOS Doanh nghiệp luôn có trang **Máy này do công ty quản lý**, liệt kê đúng những tính năng đang bật trên máy đó.
+- Trên mỗi máy nhân viên, sau khi ghép máy, mỗi người dùng thấy một thông báo nói công ty quản lý những gì. Người đang dùng máy lúc ghép thấy thông báo ngay, trước khi các thiết lập của công ty có hiệu lực; người khác thấy nó khi đăng nhập. Khi bạn bật thêm một tính năng, thông báo hiện lại. Trong cửa sổ CaramOS Doanh nghiệp luôn có trang **Máy này do công ty quản lý**, liệt kê đúng những tính năng đang bật trên máy đó.
 - Công ty **không xem được**: màn hình (trừ khi nhân viên đồng ý cho hỗ trợ từ xa), những gì nhân viên gõ, các trang web họ vào, tin nhắn của họ, và tệp nằm ngoài thư mục của công ty. CaramOS Doanh nghiệp chặn, không theo dõi.
 
 ## 6. Phòng ban
@@ -151,7 +151,7 @@ Trang **Tài sản** liệt kê mọi máy của công ty và cả những tài 
 - **Lịch sử**: mỗi lần đổi trạng thái hay người dùng đều được ghi lại, kèm người làm và giờ; bạn có thể thêm ghi chú vào lịch sử.
 - Trang **Tổng quan** nhắc các tài sản **sắp hết bảo hành** (trong 30 ngày) và các tài sản **đang sửa**.
 - **In biên bản bàn giao…**: ở một tài sản, hoặc đánh dấu nhiều tài sản trong danh sách rồi bấm nút ở trên. Điền tên công ty, số biên bản, địa điểm, người giao, người nhận, chức vụ và lý do, rồi chọn nơi lưu. Bạn nhận tệp Word theo mẫu Nghị định 30/2020, và tệp PDF nếu máy có LibreOffice. Ô nào để trống thành dòng chấm để điền tay; cột tình trạng để trống, ghi lúc bàn giao. Việc in biên bản được ghi vào lịch sử của tài sản.
-- **Nhân viên nghỉ việc** (ở trang của máy): đánh dấu từng việc khi làm xong: thu lại máy, lưu trữ thư mục của họ trên máy chủ (làm trên NAS), đưa họ ra khỏi phòng ban, nhập kho máy.
+- **Nhân viên nghỉ việc** (ở trang của máy): đánh dấu từng việc khi làm xong: thu lại máy, lưu trữ thư mục của họ trên máy chủ (làm trên NAS), đưa họ ra khỏi phòng ban, nhập kho máy (tình trạng của máy chuyển thành **Trong kho**).
 - Ở trang **Máy nhân viên**, **Xuất danh sách tài sản** cho tệp Excel theo mẫu biên bản kiểm kê, hoặc CSV. Bật **Kiểm kê tự động** để có cả cấu hình và số serial.
 
 ## 12. Báo cáo
@@ -190,7 +190,7 @@ Trang **Báo cáo an toàn** cho biết, theo lần báo gần nhất của từ
 - **Trên máy quản lý**: ở trang của máy, bấm **Gỡ khỏi công ty**. Máy nhận một thông báo có chữ ký của máy quản lý, tự trả lại mọi thứ như trước khi ghép (kể cả tường lửa), rồi thôi nhận thiết lập. Cửa sổ trên máy đó ghi: "Công ty đã gỡ máy này khỏi máy quản lý … lúc … ngày …". Máy đang tắt sẽ nhận thông báo khi bật lên (trong vòng một năm).
 - **Trên máy nhân viên**: bấm **Rời máy quản lý của công ty**. Desktop và Tài liệu trở về máy, tệp trên máy chủ vẫn ở đó.
 - **Máy đang đóng băng**: khi rời hay bị gỡ, máy cần **khởi động lại một lần** để gỡ hẳn thiết lập của công ty; cửa sổ sẽ nhắc.
-- **Máy được sao ổ đĩa từ một máy đã ghép** (nhân bản, không qua **Chuẩn bị tạo ảnh đĩa**): máy mới không làm gì cho công ty, và cửa sổ CaramOS Doanh nghiệp trên đó báo là bản sao, với nút **Ghép lại**: bấm rồi ghép như một máy mới. Nếu bản sao giống hệt đến từng byte, máy nhân viên không tự nhận ra được, nhưng máy quản lý báo **có thể là máy nhân bản**: gỡ máy đó khỏi công ty, rồi trên từng máy bấm **Rời máy quản lý của công ty** và ghép lại. Lần sau, hãy nhân ổ đĩa theo mục 4.
+- **Máy được sao ổ đĩa từ một máy đã ghép** (nhân bản, không qua **Chuẩn bị tạo ảnh đĩa**): máy mới không làm gì cho công ty (Desktop và Tài liệu của người dùng trở về thư mục trên máy), và cửa sổ CaramOS Doanh nghiệp trên đó báo là bản sao, với nút **Ghép lại**: bấm rồi ghép như một máy mới. Nếu bản sao giống hệt đến từng byte, máy nhân viên không tự nhận ra được, nhưng máy quản lý báo **có thể là máy nhân bản**: gỡ máy đó khỏi công ty, rồi trên từng máy bấm **Rời máy quản lý của công ty** và ghép lại. Lần sau, hãy nhân ổ đĩa theo mục 4.
 
 ## 15. An toàn
 

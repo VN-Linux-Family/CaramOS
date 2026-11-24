@@ -1,0 +1,57 @@
+// fastfetch on CaramOS: the CaramOS logo in the CaramOS colours. The OS line already reads PRETTY_NAME from
+// /etc/os-release ("CaramOS 1.5.0 Xfce x86_64"). Without this file fastfetch shows the Ubuntu logo: it has no
+// CaramOS logo of its own and falls back to the first word of ID_LIKE.
+//
+// The modules are fastfetch's default list (a config without "modules" shows the logo only).
+//
+// This is the system-wide default. To change it for yourself, copy it to ~/.config/fastfetch/config.jsonc and edit
+// the copy; a file there replaces this one. `fastfetch --gen-config` writes a plain default there instead.
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": {
+    // $1 the orange circle, $2 the white star fruit, $3 its light-orange edges
+    "source": "/usr/share/fastfetch/logos/caramos.txt",
+    "color": {
+      "1": "#f9a825",
+      "2": "#ffffff",
+      "3": "#fbd38d"
+    }
+  },
+  "display": {
+    "color": {
+      "title": "#f9a825",
+      "keys": "#3a855a"
+    }
+  },
+  "modules": [
+    "title",
+    "separator",
+    "os",
+    "host",
+    "kernel",
+    "uptime",
+    "packages",
+    "shell",
+    "display",
+    "de",
+    "wm",
+    "wmtheme",
+    "theme",
+    "icons",
+    "font",
+    "cursor",
+    "terminal",
+    "terminalfont",
+    "cpu",
+    "gpu",
+    "memory",
+    "swap",
+    "disk",
+    "localip",
+    "battery",
+    "poweradapter",
+    "locale",
+    "break",
+    "colors"
+  ]
+}

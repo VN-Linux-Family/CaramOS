@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "fastfetch (khoảng 0,7 MB)",
+  "size_en": "fastfetch (about 0.7 MB)",
+  "title": "Xem nhanh thông tin máy bằng lệnh fastfetch",
+  "summary": "Gõ fastfetch trong Terminal: logo CaramOS hiện bên cạnh phiên bản CaramOS, bộ xử lý, card màn hình, bộ nhớ và ổ đĩa của máy. Lệnh neofetch vẫn dùng được như trước.",
+  "title_en": "See the details of your computer with the fastfetch command",
+  "summary_en": "Type fastfetch in the Terminal: the CaramOS logo shows next to the CaramOS version, the processor, graphics card, memory and disks of the computer. The neofetch command still works as before.",
+  "release_notes_vi": [
+    "Mở Terminal (Ctrl+Alt+T), gõ fastfetch rồi bấm Enter. Bên trái là logo CaramOS; bên phải là phiên bản CaramOS, bộ xử lý, card màn hình, bộ nhớ, ổ đĩa, màn hình, và pin nếu là máy xách tay.",
+    "Khi nhờ hỗ trợ, gửi kèm ảnh chụp kết quả fastfetch: người giúp biết ngay máy bạn có phần cứng gì và đang dùng bản CaramOS nào.",
+    "fastfetch thay cho neofetch, vốn đã ngừng phát triển từ năm 2024, và chạy nhanh hơn nhiều. neofetch vẫn còn trên máy và dùng như trước.",
+    "Muốn đổi những dòng hiện ra: chép tệp /etc/xdg/fastfetch/config.jsonc thành ~/.config/fastfetch/config.jsonc rồi sửa bản chép."
+  ],
+  "release_notes_en": [
+    "Open the Terminal (Ctrl+Alt+T), type fastfetch and press Enter. The CaramOS logo is on the left; on the right are the CaramOS version, the processor, graphics card, memory, disks, screen, and the battery on a laptop.",
+    "When you ask for help, send a screenshot of fastfetch along: helpers see at once what hardware your computer has and which CaramOS version it runs.",
+    "fastfetch takes over from neofetch, which has not been developed since 2024, and is much faster. neofetch stays on the computer and works as before.",
+    "To change the lines it shows, copy /etc/xdg/fastfetch/config.jsonc to ~/.config/fastfetch/config.jsonc and edit the copy."
+  ]
+}

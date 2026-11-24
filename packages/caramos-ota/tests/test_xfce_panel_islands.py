@@ -131,9 +131,11 @@ class PanelLayoutTests(unittest.TestCase):
 
     def test_right_island_in_the_order_of_cinnamon(self) -> None:
         right = self.panel(3)
-        tray, _control_center, help_id = right["ids"]
+        tray, _control_center, help_id, strip = right["ids"]
         names = [self.plugin(i) for i in right["ids"]]
-        self.assertEqual(["systray", "caramos-control-center", "launcher"], names)
+        # Feedback & Help ends the island; Show desktop's strip is after it, at the edge of the screen.
+        self.assertEqual(["systray", "caramos-control-center", "launcher", "caramos-show-desktop"], names)
+        self.assertGreater(strip, 14, "Linux Mint's own panel defaults number their plugins up to 14")
         used = [self.plugin(i) for number in (1, 2, 3) for i in self.panel(number)["ids"]]
         for gone in ("clock", "pulseaudio", "power-manager-plugin"):
             self.assertNotIn(gone, used, "the Control Center shows the clock, the sound and the battery")

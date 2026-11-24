@@ -87,7 +87,7 @@ secondary-color='#20120a'
 [org.nemo.desktop]
 computer-icon-visible=false
 home-icon-visible=false
-trash-icon-visible=false
+trash-icon-visible=true
 network-icon-visible=false
 volumes-visible=true
 font='Be Vietnam Pro 10'
@@ -122,9 +122,10 @@ font-time='Be Vietnam Pro 64'
 [org.cinnamon.desktop.default-applications.terminal]
 exec='gnome-terminal'
 
-# Print Screen and Super+Shift+S start Flameshot's capture, not Cinnamon's screenshots: two custom shortcuts,
-# custom0 and custom1. Their keys and command are in /etc/dconf/db/local.d/02-caramos-screenshot-keys: custom
-# shortcuts live at relocatable paths, which an override cannot reach (GLib reads [schema:X] as a desktop name X).
+# Super+Shift+S starts Flameshot's capture and Print Screen copies the whole screen to the clipboard
+# (caramos-print-screen), not Cinnamon's screenshots: two custom shortcuts, custom0 and custom1. Their keys and
+# commands are in /etc/dconf/db/local.d/02-caramos-screenshot-keys: custom shortcuts live at relocatable paths, which
+# an override cannot reach (GLib reads [schema:X] as a desktop name X).
 [org.cinnamon.desktop.keybindings.media-keys]
 screenshot=@as []
 screenshot-clip=@as []

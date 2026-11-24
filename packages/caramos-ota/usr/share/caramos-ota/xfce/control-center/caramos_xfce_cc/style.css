@@ -215,6 +215,12 @@ window.caramos-cc {
   border: 1px solid rgba(0, 0, 0, 0.08);
 }
 
+/* USB drives and memory cards: an inline card at the top while one is plugged in, its rows a little in from the
+   card's sides, as the lists of the other inline cards. */
+.caramos-cc-drives {
+  padding: 8px 8px 6px 12px;
+}
+
 .caramos-cc-inline-head-icon {
   color: @cc_accent;
 }

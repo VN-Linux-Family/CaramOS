@@ -258,6 +258,34 @@ class NoticeAndTicketTests(unittest.TestCase):
                          "a ticket closed more than 30 days ago leaves the list")
 
 
+class UpdateStepTests(unittest.TestCase):
+    """The steps of an update and of a maintenance (part 3, changes of 0.3.1 after the full test pass): the window
+    words them in its reader's language; what an agent says that this admin does not know never refuses the result."""
+
+    STEPS = [{"step": "snapshot", "ok": True}, {"step": "caramos-ota", "ok": True},
+             {"step": "security", "ok": True, "count": 321}]
+
+    def test_results_carry_them(self) -> None:
+        result = {"id": "00000000-0000-4000-8000-000000000050", "state": "done", "detail": "x",
+                  "time": "2026-11-24T09:53:00+07:00"}
+        self.assertNotIn("steps", protocol.validate_result(result), "other commands, and older agents")
+        self.assertEqual(self.STEPS, protocol.validate_result(dict(result, steps=self.STEPS))["steps"])
+        later = self.STEPS + [{"step": "firmware", "ok": True}]
+        self.assertEqual(self.STEPS, protocol.validate_result(dict(result, steps=later))["steps"], "a later kind")
+        for bad in ([{"step": "security", "ok": "yes"}], [{"step": "security", "ok": True, "count": -1}],
+                    [{"step": "security", "ok": False, "error": "x" * 201}], "steps", [1]):
+            with self.subTest(bad=bad):
+                self.assertNotIn("steps", protocol.validate_result(dict(result, steps=bad)))
+
+    def test_maintenance_steps_in_the_health(self) -> None:
+        data = vector("health.json")
+        self.assertNotIn("maintenance_steps", protocol.validate_health(data["health"]))
+        steps = [{"step": "caramos-ota", "ok": True}, {"step": "security", "ok": True, "count": 0},
+                 {"step": "apps", "ok": False, "error": "flatpak: no network"}]
+        health = dict(data["health"], maintenance_result="cập nhật: …", maintenance_steps=steps)
+        self.assertEqual(steps, protocol.validate_health(health)["maintenance_steps"])
+
+
 class ReportVectorTests(unittest.TestCase):
     def test_health_and_capabilities(self) -> None:
         data = vector("health.json")
@@ -276,8 +304,17 @@ class ReportVectorTests(unittest.TestCase):
         index = {"google-chrome-stable": {"id": "chrome", "name": "Google Chrome", "class": "freeware", "note": {}},
                  "org.libreoffice.LibreOffice": {"id": "libreoffice", "name": "LibreOffice", "class": "free",
                                                  "note": {}}}
-        self.assertEqual(["free", "freeware", "free"], [licences.classify(app, index) for app in apps])
+        self.assertEqual(["free", "freeware", "free", "free", "free"], [licences.classify(app, index) for app in apps])
         self.assertEqual("unknown", licences.classify(apps[1], {}), "unknown without the catalog's word")
+        # 0.3.1: `main` names the package (thunar's two entries make one row), and an agent before 0.3.1 sends none.
+        report = licences.report({MACHINE_ID: {}}, {MACHINE_ID: cleaned}, index, [])
+        self.assertEqual(["Google Chrome", "LibreOffice", "Thunar File Manager", "VLC"],
+                         sorted(app["name"] for app in report["apps"]))
+        older = protocol.validate_inventory({"apps": [{key: value for key, value in app.items() if key != "main"}
+                                                      for app in apps]})
+        self.assertEqual([None] * 5, [app["main"] for app in older["apps"]])
+        with self.assertRaises(protocol.ProtocolError):
+            protocol.validate_inventory({"apps": [dict(apps[0], main="yes")]})
 
 
 if __name__ == "__main__":

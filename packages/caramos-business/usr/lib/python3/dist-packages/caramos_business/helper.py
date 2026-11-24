@@ -56,7 +56,7 @@ from . import (ADMIN, ADMIN_BOX_KEY, ADMIN_KEY, ADMIN_STATE, AGENT, AGENT_BOX_KE
                REMOTE_HELP_PORT,
                REMOTE_HELP_PSK, REMOTE_HELP_UNIT, ROLE_FILE, RUN, SERVER_UNIT, VIEWER_PORT, admin, assets, backup, client,
                health, licences, pairing as pairing_module, protocol, role, summaries, text, tickets)
-from .i18n import _
+from .i18n import _, ngettext
 from .store import locked, write_atomic, write_json
 
 PUBLIC_AGENT_INFO = AGENT_STATE / "admin.json"  # who this machine is paired with, readable by the window
@@ -272,8 +272,9 @@ def licences_command(stdin: str) -> dict[str, Any]:
     entries = licences.validate_register(value)
     with locked(ADMIN_STATE):
         licences.write_register(ADMIN_STATE, entries)
-        audit("licences", _("The list of bought licences was changed (%d entries).") % len(entries),
-              count=len(entries))
+        audit("licences", ngettext("The list of bought licences was changed (%d entry).",
+                                   "The list of bought licences was changed (%d entries).", len(entries))
+              % len(entries), count=len(entries))
     return {"count": len(entries)}
 
 

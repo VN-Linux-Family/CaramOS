@@ -10,6 +10,13 @@ OnSuccess=caramos-ota-auto-update.service
 [Service]
 Type=oneshot
 ExecStart=/usr/bin/caramos-ota --check
+# A check that fails (no network yet when the computer starts, Launchpad down, a firewall, another program installing
+# software) runs again an hour later, until one works. Up to 1.5.0 the next try was the next day's timer: a computer
+# that is only on during office hours could miss every check, and its Update Center still said it was up to date.
+# Not for exit codes 2 and 3 (not run as root, not CaramOS), which another try does not change.
+Restart=on-failure
+RestartSec=1h
+RestartPreventExitStatus=2 3
 PrivateTmp=true
 ProtectHome=true
 LockPersonality=true

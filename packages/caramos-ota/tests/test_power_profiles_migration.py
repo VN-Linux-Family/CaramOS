@@ -5,7 +5,7 @@ from __future__ import annotations
 import importlib.util
 import unittest
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import ANY, MagicMock, call, patch
 
 from caramos_ota_update.context import MigrationContext
 
@@ -61,14 +61,20 @@ class PowerProfilesMigrationTests(unittest.TestCase):
         run_command.assert_called_once_with(
             [
                 "apt-get",
+                "-o",
+                "Dpkg::Options::=--force-confdef",
+                "-o",
+                "Dpkg::Options::=--force-confold",
                 "install",
                 "--yes",
                 "--",
                 "power-profiles-daemon",
                 "tlp-",
                 "tlp-rdw-",
-            ]
+            ],
+            env=ANY,
         )
+        self.assertEqual("noninteractive", run_command.call_args.kwargs["env"]["DEBIAN_FRONTEND"])
 
     def test_dry_run_does_not_execute_subprocesses(self) -> None:
         context = MigrationContext(dry_run=True)

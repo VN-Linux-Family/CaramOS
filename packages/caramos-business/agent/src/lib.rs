@@ -5,9 +5,10 @@
 //! - `daemon` runs as root under systemd. It fetches the admin's signed policy, checks it against the admin key
 //!   pinned at pairing, applies the system sections, runs the signed commands, and reports back (check-in, health,
 //!   inventory, results, help requests), its requests authenticated with the machine's box key.
-//! - `session` runs as the logged-in user, from /etc/xdg/autostart. It applies the user's sections (wallpaper,
-//!   folders, shares, screen_lock), shows the messages, countdowns and remote help the daemon relays, and writes the
-//!   user's status for the check-in.
+//! - `session` runs as the logged-in user, from /etc/xdg/autostart (or started by the daemon in a login that was open
+//!   when the machine was paired). It shows the company's notice, applies the user's sections (wallpaper, folders,
+//!   shares, screen_lock), shows the messages, countdowns and remote help the daemon relays, and writes the user's
+//!   status for the check-in.
 //!
 //! And `leave` (root), which the helper runs when the machine leaves the company: everything the agent changed goes
 //! back (daemon.rs).
@@ -31,7 +32,9 @@ pub mod health;
 pub mod inbox;
 pub mod inventory;
 pub mod logging;
+pub mod logins;
 pub mod machine;
+pub mod notices;
 pub mod policy;
 pub mod process;
 pub mod prompt;

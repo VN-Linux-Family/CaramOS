@@ -80,7 +80,12 @@ class DefaultsTests(unittest.TestCase):
 
     @unittest.skipUnless((REPO / "config").is_dir(), "ISO tree is not in the source package")
     def test_new_installs_get_the_same_defaults(self) -> None:
-        self.assertEqual(migration.dconf_defaults(), ISO_DEFAULTS.read_text(encoding="utf-8"))
+        # Since migration 20261124100200, Print Screen copies the screen to the clipboard (caramos-print-screen):
+        # the ISO has that migration's file, which takes the place of this one's.
+        print_screen = importlib.import_module(
+            "caramos_ota_update.migrations.20261124100200_print_screen_to_clipboard.migration")
+        self.assertEqual(print_screen.dconf_defaults(), ISO_DEFAULTS.read_text(encoding="utf-8"))
+        self.assertEqual(migration.dconf_defaults().count("binding="), print_screen.dconf_defaults().count("binding="))
 
     @unittest.skipUnless((REPO / "config").is_dir(), "ISO tree is not in the source package")
     def test_the_override_keeps_cinnamons_screenshots_off_and_sets_no_path(self) -> None:

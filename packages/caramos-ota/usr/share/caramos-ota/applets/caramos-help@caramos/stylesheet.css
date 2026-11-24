@@ -8,6 +8,25 @@
   margin-right: 8px;
 }
 
+/* Show desktop (Cinnamon's corner bar, migration 20261124100000) comes after it and takes those 8 px, so the icon
+   stays where it was. Nothing shows there until the pointer is on it, then a thin line inside the round end, as on
+   Windows; a click shows the desktop. */
+.panel-top .panelRight > .applet-cornerbar-box,
+.panel-bottom .panelRight > .applet-cornerbar-box {
+  padding: 12px 4px 12px 3px;
+}
+
+.panel-top .panelRight > .applet-cornerbar-box > .applet-cornerbar,
+.panel-bottom .panelRight > .applet-cornerbar-box > .applet-cornerbar {
+  width: 1px;
+  background-color: transparent;
+}
+
+.panel-top .panelRight > .applet-cornerbar-box:hover > .applet-cornerbar,
+.panel-bottom .panelRight > .applet-cornerbar-box:hover > .applet-cornerbar {
+  background-color: rgba(128, 128, 128, 0.75);
+}
+
 /* The menu: rounded like the Control Center's popup and the panel, on every side (the theme squares the
    side towards the panel, which floats here). The items' highlight is a rounded band inside it. */
 .menu.caramos-help-popup,

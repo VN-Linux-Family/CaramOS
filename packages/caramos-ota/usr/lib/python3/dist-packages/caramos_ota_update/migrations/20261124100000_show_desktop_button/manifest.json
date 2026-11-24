@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "unattended": "nobody-logged-in",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Thanh tác vụ (dưới 1 MB)",
+  "size_en": "Taskbar (under 1 MB)",
+  "title": "Hiện màn hình nền ở cuối thanh tác vụ",
+  "summary": "Như Windows: bấm vào mép phải của thanh tác vụ, sau đảo phải, để ẩn mọi cửa sổ và xem màn hình nền; bấm lần nữa để các cửa sổ hiện lại.",
+  "title_en": "Show desktop at the end of the taskbar",
+  "summary_en": "As on Windows: click the right edge of the taskbar, after the right island, to hide every window and see the desktop; click again to bring the windows back.",
+  "release_notes_vi": [
+    "Đưa chuột vào mép phải của thanh tác vụ, sau nút Góp ý & hỗ trợ: một vạch mỏng hiện ra. Bấm vào đó để ẩn mọi cửa sổ và xem màn hình nền, bấm lần nữa để các cửa sổ hiện lại, như nút Show desktop của Windows và Linux Mint.",
+    "Không cần nhắm: đẩy chuột hẳn vào mép phải màn hình, ngang thanh tác vụ, rồi bấm.",
+    "Nút Góp ý & hỗ trợ vẫn là biểu tượng cuối cùng của đảo phải; thanh tác vụ trông như cũ khi không chỉ chuột vào.",
+    "Bàn phím: Super+D cũng ẩn và hiện lại các cửa sổ.",
+    "Bản Cinnamon có ngay; bản Xfce có từ lần đăng nhập sau. Không muốn dùng: bấm chuột phải vào vạch đó rồi gỡ nó khỏi thanh tác vụ."
+  ],
+  "release_notes_en": [
+    "Move the pointer to the right edge of the taskbar, after Feedback & Help: a thin line shows. Click it to hide every window and see the desktop, and again to bring the windows back, as Show desktop does on Windows and Linux Mint.",
+    "No need to aim: push the pointer against the right edge of the screen, level with the taskbar, and click.",
+    "Feedback & Help stays the last icon of the right island; the taskbar looks as before until you point there.",
+    "Keyboard: Super+D hides and brings back the windows too.",
+    "On the Cinnamon edition it is there at once; on the Xfce edition from the next login. Don't want it: right-click the line and remove it from the taskbar."
+  ]
+}

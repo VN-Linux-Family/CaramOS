@@ -1,0 +1,234 @@
+This package was debianized by Martin Loschwitz <madkiss@madkiss.org> on
+Fri, 11 Oct 2002 13:08:04 +0200.
+
+You can fetch xfwm4 from http://www.xfce.org/
+
+Upstream Author is Olivier Fourdan <fourdan@xfce.org>, but different
+portions of code are based on the work of the following projects:
+
+   Oroborus: Ken Lynch <kenlynch@blueyonder.co.uk>
+   Metacity: Havoc Pennington <hp@redhat.com>
+   Sawfish:  John Harper <jsh@unfactored.org>
+
+The "kindaker" theme is based on a KDE theme called "Keramik" by:
+
+   Keramik style:
+   --------------
+   Malte Starostik (malte@kde.org)
+
+   Keramik decorations:
+   --------------------
+   Fredrik Hoglund (fredrik@kde.org)
+
+
+Files: src/client.c
+ src/client.h
+ src/cycle.c
+ src/cycle.h
+ src/events.c
+ src/events.h
+ src/focus.c
+ src/frame.c
+ src/frame.h
+ src/keyboard.c
+ src/keyboard.h
+ src/main.c
+ src/misc.c
+ src/misc.h
+ src/moveresize.c
+ src/moveresize.h
+ src/mypixmap.h
+ src/mywindow.h
+ src/parserc.c
+ src/parserc.h
+ src/screen.h
+ src/settings.c
+ src/settings.h
+ src/workspaces.c
+ src/workspaces.h
+ src/xsync.h
+Copyright: 2001, Ken Lynch
+ 2002-2011, Olivier Fourdan
+License: GPL
+
+Files: helper-dialog/helper-dialog.c
+ src/display.c
+ src/display.h
+ src/event_filter.c
+ src/event_filter.h
+ src/focus.h
+ src/mywindow.c
+ src/netwm.c
+ src/netwm.h
+ src/placement.c
+ src/placement.h
+ src/poswin.c
+ src/poswin.h
+ src/screen.c
+ src/session.c
+ src/session.h
+ src/stacking.c
+ src/stacking.h
+ src/tabwin.c
+ src/tabwin.h
+ src/transients.c
+ src/transients.h
+ src/ui_style.c
+ src/ui_style.h
+ src/xsync.c
+Copyright: 2002-2008, Olivier Fourdan
+ 2002-2011, Olivier Fourdan
+License: GPL
+
+Files: src/gen-color-table.pl
+Copyright: 2005 Owen Taylor <otaylor@redhat.com>
+License: LGPL
+Comment: Taken from pango, see http://git.gnome.org/browse/pango/commit/?id=b7934ca5b93621b540c9b5e956dc35d4b0700e4f
+
+Files: src/icons.c
+ src/icons.h
+ src/menu.c
+ src/menu.h
+ src/startup_notification.c
+ src/startup_notification.h
+ src/terminate.c
+ src/terminate.h
+Copyright: 2001, Havoc Pennington
+ 2001-2002, Havoc Pennington
+ 2002-2011, Olivier Fourdan
+ 2003, Havoc Pennington
+License: GPL-2+
+
+Files: src/stock_icons.c
+ src/stock_icons.h
+Copyright: 2002, Havoc Pennington
+ 2002, Jorn Baayen <jorn@nl.linux.org>
+ 2002-2011, Olivier Fourdan
+License: GPL-2+
+
+Files: src/hints.c
+ src/hints.h
+Copyright: 2001, Havoc Pennington
+ 2001, Ken Lynch
+ 2002-2011, Olivier Fourdan
+License: GPL-2+
+
+Files: src/spinning_cursor.c
+ src/spinning_cursor.h
+Copyright: 1998, mozilla.org
+ 2002-2011, Olivier Fourdan
+License: GPL-2+
+
+Files: settings-dialogs/xfwm4-settings.h
+Copyright: 2008, Jannis Pohlmann <jannis@xfce.org>
+ 2009, Jannis Pohlmann <jannis@xfce.org>
+License: GPL-2+
+
+Files: src/wireframe.c
+Copyright: 2001, Anders Carlsson, Havoc Pennington
+ 2002-2011, Olivier Fourdan
+License: GPL-2+
+
+Files: src/wireframe.h
+Copyright: 2001, Anders Carlsson, Havoc Pennington
+ 2002-2011, Olivier Fourdan
+License: GPL-2+
+
+Files: settings-dialogs/tweaks-settings.c
+Copyright: 2008, Jannis Pohlmann <jannis@xfce.org>
+ 2008, Olivier Fourdan <olivier@xfce.org>
+ 2008, Stephan Arts <stephan@xfce.org>
+License: GPL-2+
+
+Files: src/compositor.h
+Copyright: 2003, Keith Packard
+ 2005-2011, Olivier Fourdan
+License: GPL-2+
+
+Files: src/compositor.c
+Copyright: 2003, Keith Packard
+ 2003-2004, Red Hat, Inc
+ 2005-2011, Olivier Fourdan
+License: GPL-2+
+
+Files: src/mypixmap.c
+Copyright: 1999, Mark Crichton
+ 1999, The Free Software Foundation
+ 2001, Ken Lynch
+ 2002-2011, Olivier Fourdan
+License: GPL-2+
+
+Files: settings-dialogs/workspace-settings.c
+Copyright: 2008, Brian Tarricone <bjt23@cornell.edu>
+ 2008, Jannis Pohlmann <jannis@xfce.org>
+ 2008, Mike Massonnet <mmassonnet@xfce.org>
+ 2008, Olivier Fourdan <olivier@xfce.org>
+ 2008, Stephan Arts <stephan@xfce.org>
+License: GPL-2+
+
+Files: settings-dialogs/xfwm4-settings.c
+Copyright: 2008, Jannis Pohlmann <jannis@xfce.org>
+ 2008, Stephan Arts <stephan@xfce.org>
+License: GPL-2+
+
+Files: src/*.png
+	icons/*.png
+  settings-dialogs/monitor-icon.png
+Copyright: 2003-2008 Olivier Fourdan <fourdan@xfce.org>
+License: GPL-2+
+
+Files: themes/Daloa/*
+Copyright: © 2006 Mike Massonnet <mmassonnet@gmail.com>
+	© 2006 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/default-4.0/*
+Copyright: © 2003 Olivier Fourdan <fourdan.olivier@wanadoo.fr>
+License: GPL
+
+Files: themes/default-4.2/*
+Copyright: © 2004 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/default-4.4/*
+Copyright: © 2006 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/default-4.6/*
+Copyright: © 2006-2008 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/kokodi/*
+Copyright: © 2006 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/moheli/*
+Copyright: © 2004-2006 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/sassandra/*
+Copyright: © 2005-2006 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/stoneage/*
+Copyright: © 2005 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/therapy/*
+Copyright: © 2004-2006 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/tyrex/*
+Copyright: © 2004 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+Files: themes/wallis/*
+Copyright: © 2005-2006 Olivier Fourdan <fourdan@xfce.org>
+License: GPL
+
+
+
+
+
+On Debian systems, the complete text of the GNU General Public
+License can be found in `/usr/share/common-licenses/GPL'.

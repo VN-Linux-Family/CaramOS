@@ -17,6 +17,22 @@
     <annotate key="org.freedesktop.policykit.exec.path">/usr/bin/caramos-ota</annotate>
     <annotate key="org.freedesktop.policykit.exec.allow_gui">true</annotate>
   </action>
+  <!-- The Update Center checks for new versions when someone opens it: the daily check, started now
+       (caramos-ota-check-helper). Like every check it refreshes the CaramOS package list and installs the newest
+       updater, never the update itself, so the person at the computer needs no password. -->
+  <action id="net.vietnamlinuxfamily.caramos-ota.check">
+    <description>Check for CaramOS updates</description>
+    <description xml:lang="vi">Kiểm tra bản cập nhật CaramOS</description>
+    <message>Authentication is required to check for CaramOS updates</message>
+    <message xml:lang="vi">Cần xác thực để kiểm tra bản cập nhật CaramOS</message>
+    <icon_name>system-software-update</icon_name>
+    <defaults>
+      <allow_any>no</allow_any>
+      <allow_inactive>no</allow_inactive>
+      <allow_active>yes</allow_active>
+    </defaults>
+    <annotate key="org.freedesktop.policykit.exec.path">/usr/share/caramos-ota/check/caramos-ota-check-helper</annotate>
+  </action>
   <!-- The Update Center's "Automatic updates" switch (caramos_ota.auto_update): only an administrator turns it on or off.
        _keep so turning it back at once does not ask again. -->
   <action id="net.vietnamlinuxfamily.caramos-ota.auto-update">

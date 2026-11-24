@@ -44,6 +44,9 @@ class App(Gtk.Application):
         self.clock = None
         self.indicator = None
         self.osd = None
+        self.copied_files = None
+        self.event_sounds = None
+        self.tray_icons = None
         self._osd_kind = ""
         self._osd_until = 0
         self.provider = Gtk.CssProvider()
@@ -74,6 +77,27 @@ class App(Gtk.Application):
         self.backends.audio.connect("changed", lambda *_: self._follow_osd())
         self.backends.night_light.apply()
         screen.connect("monitors-changed", lambda *_: self.backends.night_light.apply())
+        # Files copied on the Desktop (xfdesktop) paste in Files (Nemo): backends/copied_files.py, ticket H-1204.
+        try:
+            from .backends.copied_files import CopiedFilesFix
+
+            self.copied_files = CopiedFilesFix()
+        except Exception:  # never at the cost of the Control Center
+            LOG.exception("copied files: not watched")
+        # Appearance's "Enable event sounds" loads GTK's sound module, as on Cinnamon: backends/event_sounds.py.
+        try:
+            from .backends.event_sounds import EventSounds
+
+            self.event_sounds = EventSounds()
+        except Exception:  # never at the cost of the Control Center
+            LOG.exception("event sounds: not watched")
+        # Tray icons that their programs drew in the old theme's colours follow a new one: tray_icons.py, H-1211.
+        try:
+            from .tray_icons import TrayIcons, widget_colour
+
+            self.tray_icons = TrayIcons(lambda: widget_colour(self.indicator.volume if self.indicator else None))
+        except Exception:  # never at the cost of the Control Center
+            LOG.exception("tray icons: not watched")
         self.hold()  # stay for the session, with or without the popup open
 
     def load_style(self) -> None:

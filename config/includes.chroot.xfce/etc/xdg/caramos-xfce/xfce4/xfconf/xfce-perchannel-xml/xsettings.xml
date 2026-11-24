@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- CaramOS Xfce: Mint's xsettings.xml with the CaramOS theme, Tela Circle icons and the Be Vietnam Pro font -->
+<!-- CaramOS Xfce: Mint's xsettings.xml with the CaramOS theme, Tela Circle icons and the Be Vietnam Pro font. Event
+     sounds are off, as in Xfce's own defaults; Appearance > Settings turns them on, and the CaramOS Control Center
+     then loads GTK's sound module into applications (Gtk/Modules), as Cinnamon does. -->
 
 <channel name="xsettings" version="1.0">
   <property name="Net" type="empty">
@@ -10,9 +12,9 @@
     <property name="DndDragThreshold" type="empty"/>
     <property name="CursorBlink" type="empty"/>
     <property name="CursorBlinkTime" type="empty"/>
-    <property name="SoundThemeName" type="empty"/>
-    <property name="EnableEventSounds" type="empty"/>
-    <property name="EnableInputFeedbackSounds" type="empty"/>
+    <property name="SoundThemeName" type="string" value="freedesktop"/>
+    <property name="EnableEventSounds" type="bool" value="false"/>
+    <property name="EnableInputFeedbackSounds" type="bool" value="false"/>
   </property>
   <property name="Xft" type="empty">
     <property name="DPI" type="empty"/>

@@ -18,7 +18,7 @@ Người dùng cài gói từ App Center, mục "Doanh nghiệp". Gói nằm tr�
 | `caramos-business-server.service` | Python | máy quản lý: trả lời máy nhân viên trong mạng LAN (ghép máy SPAKE2, tệp ghép máy, thiết lập, phiếu hỗ trợ), giữ kết nối chờ thao tác, gửi Wake-on-LAN (cả giờ bảo trì) |
 | `caramos-business-enroll.service` | Python (helper) | bản sao ổ đĩa của phòng máy: tự ghép khi khởi động lần đầu; tắt sẵn, `prepare-image` mới bật |
 | `caramos-business-agent.service` | Rust (`agent/`) | máy nhân viên: lấy thiết lập đã ký, áp dụng, báo về máy quản lý |
-| `caramos-business-agent session` (autostart) | Rust | máy nhân viên, trong phiên của từng người |
+| `caramos-business-agent session` (autostart; trong phiên đã mở lúc ghép máy thì dịch vụ khởi động nó) | Rust | máy nhân viên, trong phiên của từng người: thông báo của công ty trước, rồi hình nền, thư mục |
 
 Hai bên nói chuyện theo `PROTOCOL.md` (phần 2 là bản 0.2, phần 3 là bản 0.3):
 - Máy quản lý ký thiết lập và thao tác bằng khóa Ed25519; máy nhân viên ghi nhớ khóa đó lúc ghép máy (mã 6 số qua SPAKE2 với `python3-spake2`, hoặc tệp ghép máy).

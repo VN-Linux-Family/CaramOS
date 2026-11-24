@@ -1,0 +1,508 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Onboard
+Upstream-Contact: Onboard devel team (https://launchpad.net/~onboard)
+Source: https://launchpad.net/onboard
+
+Files: Onboard/Appearance.py
+ Onboard/AtspiStateTracker.py
+ Onboard/AutoHide.py
+ Onboard/AutoShow.py
+ Onboard/ConfigUtils.py
+ Onboard/GlobalKeyListener.py
+ Onboard/HardwareSensorTracker.py
+ Onboard/KeyboardPopups.py
+ Onboard/LanguageSupport.py
+ Onboard/LayoutView.py
+ Onboard/SpellChecker.py
+ Onboard/TextChanges.py
+ Onboard/TextContext.py
+ Onboard/TextDomain.py
+ Onboard/Timer.py
+ Onboard/TouchHandles.py
+ Onboard/TouchInput.py
+ Onboard/UDevTracker.py
+ Onboard/Version.py
+ Onboard/WPEngine.py
+ Onboard/WindowUtils.py
+ Onboard/WordSuggestions.py
+ Onboard/XInput.py
+ Onboard/__init__.py
+ Onboard/canonical_equivalents.py
+ Onboard/definitions.py
+ Onboard/osk/osk_hunspell.c
+ Onboard/osk/osk_udev.c
+ Onboard/osk/osk_uinput.c
+ Onboard/osk/osk_uinput.h
+ Onboard/osk/osk_virtkey.h
+ Onboard/osk/osk_virtkey_wayland.c
+ Onboard/osk/osk_virtkey_wayland.h
+ Onboard/osk/osk_virtkey_x.h
+ Onboard/pypredict/__init__.py
+ Onboard/pypredict/attic/multilevel
+ Onboard/pypredict/attic/prune.py
+ Onboard/pypredict/attic/randbench
+ Onboard/pypredict/attic/setup.py
+ Onboard/pypredict/attic/test-client
+ Onboard/pypredict/lm/accent_transform.h
+ Onboard/pypredict/lm/lm.cpp
+ Onboard/pypredict/lm/lm.h
+ Onboard/pypredict/lm/lm_dynamic.cpp
+ Onboard/pypredict/lm/lm_dynamic.h
+ Onboard/pypredict/lm/lm_dynamic_cached.h
+ Onboard/pypredict/lm/lm_dynamic_impl.h
+ Onboard/pypredict/lm/lm_dynamic_kn.h
+ Onboard/pypredict/lm/lm_merged.cpp
+ Onboard/pypredict/lm/lm_merged.h
+ Onboard/pypredict/lm/lm_python.cpp
+ Onboard/pypredict/lm/lm_unigram.cpp
+ Onboard/pypredict/lm/lm_unigram.h
+ Onboard/pypredict/lm/pool_allocator.cpp
+ Onboard/pypredict/lm_wrapper.py
+ Onboard/pypredict/test/test_checkmodels.py
+ Onboard/pypredict/test/test_pypredict.py
+ Onboard/pypredict/tools/pypredict.py
+ Onboard/test/test_LayoutLoaderSVG.py
+ Onboard/test/test_dbus_service.py
+ Onboard/test/test_gui.py
+ Onboard/test/test_migration.py
+ Onboard/test/test_translations.py
+ gnome/Onboard_Indicator@onboard.org/prefs.js
+ gnome/Onboard_Indicator@onboard.org/schemas/org.gnome.shell.extensions.onboard-indicator.gschema.xml
+Copyright: 2009, 2012 marmuta <marmvta@gmail.com>
+  2009-2010, 2012 marmuta <marmvta@gmail.com>
+  2009-2010, 2012-2013, marmuta <marmvta@gmail.com>
+  2009-2010, 2012-2014, marmuta <marmvta@gmail.com>
+  2009-2010, 2012-2016, marmuta <marmvta@gmail.com>
+  2009-2010, 2013-2014, marmuta <marmvta@gmail.com>
+  2010, 2012-2013, 2016 marmuta <marmvta@gmail.com>
+  2010, 2012-2014, marmuta <marmvta@gmail.com>
+  2011-2012, marmuta <marmvta@gmail.com>
+  2011-2014, 2016 marmuta <marmvta@gmail.com>
+  2012, 2016 marmuta <marmvta@gmail.com>
+  2012, marmuta <marmvta@gmail.com>
+  2012-2013, 2015-2016, marmuta <marmvta@gmail.com>
+  2012-2013, 2016 marmuta <marmvta@gmail.com>
+  2012-2014, 2016 marmuta <marmvta@gmail.com>
+  2012-2014, marmuta <marmvta@gmail.com>
+  2012-2016, marmuta <marmvta@gmail.com>
+  2013, marmuta <marmvta@gmail.com>
+  2013-2014, marmuta <marmvta@gmail.com>
+  2013-2016, marmuta <marmvta@gmail.com>
+  2014, 2016 marmuta <marmvta@gmail.com>
+  2014, marmuta <marmvta@gmail.com>
+  2015-2016, marmuta <marmvta@gmail.com>
+  2016, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: Onboard/ClickSimulator.py
+ Onboard/DBusUtils.py
+ Onboard/Layout.py
+ Onboard/Scanner.py
+ Onboard/Sound.py
+ Onboard/osk/osk_audio.c
+ Onboard/osk/osk_click_mapper.c
+ Onboard/osk/osk_dconf.c
+ Onboard/osk/osk_devices.c
+ Onboard/osk/osk_module.c
+ Onboard/osk/osk_module.h
+ Onboard/osk/osk_struts.c
+ Onboard/osk/osk_util.c
+Copyright: 2011, 2013 Gerd Kohlberger <lowfi@chello.at>
+  2011, Gerd Kohlberger <lowfi@chello.at>
+  2011-2012, Gerd Kohlberger <lowfi@chello.at>
+  2011-2013, 2016 marmuta <marmvta@gmail.com>
+  2011-2013, Gerd Kohlberger <lowfi@chello.at>
+  2011-2014, 2016 marmuta <marmvta@gmail.com>
+  2011-2014, marmuta <marmvta@gmail.com>
+  2011-2015, marmuta <marmvta@gmail.com>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+  2012-2013, marmuta <marmvta@gmail.com>
+  2012-2014, 2016 marmuta <marmvta@gmail.com>
+  2012-2014, marmuta <marmvta@gmail.com>
+  2013, 2016 marmuta <marmvta@gmail.com>
+  2013, Gerd Kohlberger <lowfi@chello.at>
+  2013-2016, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: Onboard/Config.py
+ Onboard/IconPalette.py
+ Onboard/KbdWindow.py
+ Onboard/settings.py
+ Onboard/utils.py
+Copyright: 2006-2007, 2009 Chris Jones <tortoise@tortuga>
+  2007-2009, Chris Jones <tortoise@tortuga>
+  2008, 2010 Francesco Fumanti <francesco.fumanti@gmx.net>
+  2008, Chris Jones <tortoise@tortuga>
+  2008-2009, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2008-2010, Chris Jones <tortoise@tortuga>
+  2008-2010, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2008-2011, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2009, 2011-2016, marmuta <marmvta@gmail.com>
+  2009, Chris Jones <tortoise@tortuga>
+  2009-2011, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2010-2016, marmuta <marmvta@gmail.com>
+  2011, Gerd Kohlberger <lowfi@chello.at>
+  2011-2012, Gerd Kohlberger <lowfi@chello.at>
+  2011-2016, marmuta <marmvta@gmail.com>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+License: GPL-3+
+
+Files: Onboard/Exceptions.py
+ Onboard/Indicator.py
+ Onboard/LayoutLoaderSVG.py
+ data/layoutstrings.py
+Copyright: 2008-2009, Chris Jones <tortoise@tortuga>
+  2008-2010, Chris Jones <tortoise@tortuga>
+  2010, Chris Jones <tortoise@tortuga>
+  2010, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2011, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2011-2014, marmuta <marmvta@gmail.com>
+  2011-2016, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: Onboard/KeyboardWidget.py
+ Onboard/osk/osk_virtkey.c
+ Onboard/osk/osk_virtkey_x.c
+Copyright: 2006-2008, Chris Jones <tortoise@tortuga>
+  2009, 2011-2016, marmuta <marmvta@gmail.com>
+  2009, Chris Jones <tortoise@tortuga>
+  2010, 2013, 2015-2016, marmuta <marmvta@gmail.com>
+  2010, 2016 marmuta <marmvta@gmail.com>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+  2013, Gerd Kohlberger <lowfi@chello.at>
+License: GPL-3+
+
+Files: Onboard/Keyboard.py
+ Onboard/OnboardGtk.py
+Copyright: 2007, Martin Böhme <martin.bohm@kubuntu.org>
+  2007-2009, Chris Jones <tortoise@tortuga>
+  2007-2010, Chris Jones <tortoise@tortuga>
+  2008-2010, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2009, 2011-2016, marmuta <marmvta@gmail.com>
+  2010, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2010-2016, marmuta <marmvta@gmail.com>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+  2012-2013, Gerd Kohlberger <lowfi@chello.at>
+License: GPL-3+
+
+Files: Onboard/SnippetView.py
+ scripts/sokSettings.py
+Copyright: 2009, Chris Jones <tortoise@tortuga>
+  2011-2012, 2014, 2016, marmuta <marmvta@gmail.com>
+  2012-2013, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: Onboard/pypredict/test/__init__.py
+ Onboard/test/__init__.py
+ gnome/Onboard_Indicator@onboard.org/schemas/gschemas.compiled
+ onboard-default-settings.gschema.override.example
+Copyright: *No copyright*
+License: GPL-3+
+Comment:
+ Applying license as found in COPYING.GPL3 file.
+ 
+Files: Onboard/KeyGtk.py
+Copyright: 2007, Martin Böhme <martin.bohm@kubuntu.org>
+  2009, Chris Jones <tortoise@tortuga>
+  2009-2014, 2016 marmuta <marmvta@gmail.com>
+  2010, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2011, Alan Bell <alanbell@ubuntu.com>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+License: GPL-3+
+
+Files: Onboard/KeyCommon.py
+Copyright: 2007, Martin Böhme <martin.bohm@kubuntu.org>
+  2008-2009, Chris Jones <tortoise@tortuga>
+  2009, 2011-2016, marmuta <marmvta@gmail.com>
+  2010, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: gnome/Onboard_Indicator@onboard.org/extension.js
+Copyright: 2016, Simon Schumann
+  2016, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: gnome/Onboard_Indicator@onboard.org/convenience.js
+Copyright: 2011-2012, Giovanni Campagna <scampa.giovanni@gmail.com>
+License: BSD-3-clause
+
+Files: Onboard/pypredict/lm/lm.h
+Copyright: 2009-2010, 2012-2014, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: Onboard/pypredict/README
+Copyright: Michael Djavidan
+License: GPL-3+
+Comment:
+ This copyright holder (and license) probably applies to various
+ files in the Onboard/pypredict folder (and subfolders). However,
+ that name does not appear in any of the code files' headers.
+
+Files: Onboard/pypredict/tools/*
+Copyright: 2014, marmuta
+           2013, marmuta
+           2012, marmuta <marmvta@gmail.com>
+           2012, marmuta
+License: GPL-3+
+
+Files: help/C/*
+Copyright: 2016, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: help/C/introduction.page
+Copyright: 2016, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2016, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: help/C/overview.page
+  help/C/figures/*.png
+Copyright: 2016, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: Onboard/pypredict/attic/ngram-test
+Copyright: 2009, 2011-2014, marmuta <marmvta@gmail.com>
+  2010, 2013, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: data/*
+Copyright: 2011-2015, marmuta <marmvta@gmail.com>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+License: GPL-3+
+
+Files: data/onboard-autostart.desktop.in
+Copyright: 2012, 2015, marmuta <marmvta@gmail.com>
+  2015, Martin Wimpress <martin@flexion.org>
+  2011, Luke Yelavitch <luke.yelavich@canonical.com>
+License: GPL-3+
+
+Files: data/onboard.desktop.in
+  data/onboard-settings.desktop.in
+Copyright: 2012, 2015, marmuta <marmvta@gmail.com>
+  2010-2011, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2011, Gerd Kohlberger <lowfi@chello.at>
+  2008, Luke Yelavitch <luke.yelavich@canonical.com>
+  2007-2010, Chris Jones <tortoise@tortuga>
+License: GPL-3+
+
+Files: icons/*
+Copyright: 2016, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+License: GPL-3+
+
+Files: layouts/*
+Copyright: 2009, 2011-2014, 2016, marmuta <marmvta@gmail.com>
+  2010, 2013, 2016, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: layouts/Full?Keyboard.onboard
+  layouts/Grid.onboard
+  layouts/word_suggestions.xml
+Copyright: 2009-2015, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: layouts/Whiteboard.onboard
+  layouts/Whiteboard_wide.onboard
+Copyright: 2014, Johannes Almer
+License: GPL-3+
+
+Files: layouts/Whiteboard-*.svg
+  layouts/Whiteboard_wide-*.svg
+Copyright: 2014, Johannes Almer
+  2016, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: layouts/key_defs.xml
+Copyright: 2011-2014, marmuta <marmvta@gmail.com>
+  2011, 2012, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: man/onboard.1
+Copyright: 2015, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+  2011-2014, marmuta <marmvta@gmail.com>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+  2008, Chris Jones <tortoise@tortuga>
+License: GPL-3+
+
+Files: man/onboard-settings.1
+Copyright: 2015, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+License: GPL-3+
+
+Files: models/*
+Copyright: 2013, 2014, marmuta <marmvta@gmail.com>
+  2011, 2012, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: onboard
+Copyright: 2012, marmuta <marmvta@gmail.com>
+  2009, Chris Jones <tortoise@tortuga>
+  2007, Martin Böhme <martin.bohm@kubuntu.org>
+License: GPL-3+
+
+Files: onboard-defaults.conf.example
+Copyright: 2011-2014, marmuta <marmvta@gmail.com>
+  2011, 2012, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: onboard-settings
+Copyright: 2012, marmuta <marmvta@gmail.com>
+  2007, Martin Böhme <martin.bohm@kubuntu.org>
+License: GPL-3+
+
+Files: po/*
+Copyright: 2007-2015, Rosetta Contributors
+License: BSD-3-clause
+Comment:
+ The BSD-3-clause license applies to the translation strings,
+ while the original strings remain under the license of the file they
+ were extracted from.
+
+Files: setup.py
+Copyright: 2011-2016, marmuta <marmvta@gmail.com>
+  2009-2016, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2012, 2013, Gerd Kohlberger <lowfi@chello.at>
+  2015, Reiner Herrmann <reiner@reiner-h.de>
+  2007, Martin Böhme <martin.bohm@kubuntu.org>
+License: GPL-3+
+
+Files: settings.ui
+Copyright: 2011-2014, 2016, marmuta <marmvta@gmail.com>
+  2010-2012, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2011-2012, Gerd Kohlberger <lowfi@chello.at>
+  2009, Chris Jones <tortoise@tortuga>
+License: GPL-3+
+
+Files: settings_scanner_dialog.ui
+Copyright: 2014, marmuta <marmvta@gmail.com>
+  2012, Gerd Kohlberger <lowfi@chello.at>
+License: GPL-3+
+
+Files: settings_docking_dialog.ui
+  settings_theme_dialog.ui
+Copyright: 2012-2016, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: sounds/onboard-key-feedback.oga
+Copyright: 2013, Gerd Kohlberger <lowfi@chello.at>
+License: GPL-3+
+
+Files: themes/Aubergine.colors
+  themes/ModelM.colors
+  themes/Typist.colors
+Copyright: 2011-2014, marmuta <marmvta@gmail.com>
+  2011, Alan Bell <alanbell@ubuntu.com>
+License: GPL-3+
+
+Files: themes/Ambiance.theme
+ themes/Blackboard.theme
+ themes/Black.colors
+ themes/Charcoal.colors
+ themes/Classic?Onboard.colors
+ themes/Classic?Onboard.theme
+ themes/DarkRoom.colors
+ themes/DarkRoom.theme
+ themes/Droid.theme
+ themes/Granite.colors
+ themes/HighContrast.colors
+ themes/HighContrastInverseBlack.colors
+ themes/HighContrastInverseBlue.colors
+ themes/HighContrastInverse.theme
+ themes/HighContrast.theme
+ themes/LowContrast.colors
+ themes/LowContrast.theme
+ themes/ModelM.theme
+ themes/Nightshade.theme
+ themes/Typist.theme
+Copyright: 2011-2013, marmuta <marmvta@gmail.com>
+  2011, 2013, marmuta <marmvta@gmail.com>
+  2012-2013, marmuta <marmvta@gmail.com>
+  2011-2014, marmuta <marmvta@gmail.com>
+  2011, 2013-2014, marmuta <marmvta@gmail.com>
+License: GPL-3+
+
+Files: AUTHORS
+Copyright: 2010-2011, 2015, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2008-2009, Chris Jones <tortoise@tortuga>
+License: GPL-3+
+
+Files: CHANGELOG
+Copyright: 2014, Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+Files: HACKING
+Copyright: 2016, marmuta <marmvta@gmail.com>
+  2009, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2009, Chris Jones <tortoise@tortuga>
+License: GPL-3+
+
+Files: NEWS
+Copyright: 2010-2016, Francesco Fumanti <francesco.fumanti@gmx.net>
+  2014-2015, marmuta <marmvta@gmail.com>
+  2009, Chris Jones <tortoise@tortuga>
+License: GPL-3+
+
+Files: README
+Copyright: 2012-2014, marmuta <marmvta@gmail.com>
+  2009-2013, 2015-2016 Francesco Fumanti <francesco.fumanti@gmx.net>
+License: GPL-3+
+
+
+Files: 
+ Onboard/pypredict/attic/Makefile
+ Onboard/pypredict/attic/multilevel
+ Onboard/pypredict/attic/randbench
+ Onboard/pypredict/attic/test-client
+ Onboard/pypredict/lm/gen_accent_transform
+ PKG-INFO
+ gnome/Onboard_Indicator@onboard.org/metadata.json
+ gnome/Onboard_Indicator@onboard.org/stylesheet.css
+ setup.cfg
+Copyright: *No copyright*
+License: GPL-3+
+Comment:
+ Assuming License as found in COPYING.GPL3 file.
+
+Files: debian/*
+Copyright: 2012-2015, Francesco Fumanti <francesco.fumanti@gmx.net>
+           2015, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+License: GPL-3+
+
+License: GPL-3+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License
+ along with the Onboard package.  If not, please have a look at
+ /usr/share/common-licenses or <http://www.gnu.org/licenses/>.
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+ .
+   1. Redistributions of source code must retain the above copyright
+      notice, this list of conditions and the following disclaimer.
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
+      documentation and/or other materials provided with the distribution.
+   3. Neither the name of the University nor the names of its contributors
+      may be used to endorse or promote products derived from this software
+      without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+ FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+ SUCH DAMAGE.

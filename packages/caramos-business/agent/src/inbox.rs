@@ -1,14 +1,18 @@
-//! The session part's side of the relay (see relay.rs): every 2 s it reads its inbox, acts on each entry once (a
+//! The session part's side of the relay (see relay.rs): every second it reads its inbox, acts on each entry once (a
 //! prompt, in a thread of its own), and writes its answer to its outbox, where the daemon finds it. A cancel entry
 //! closes the prompt of the command it names. The ids taken are remembered in the runtime folder, so that a restart
 //! of the session part does not act twice.
+//!
+//! The inbox is read in a thread of its own (`spawn_reader`), apart from the session part's rounds: a round can wait
+//! minutes (2 on the window that signs in to a share, 90 s on a server that does not answer), and 0.3.1 read the inbox
+//! only between rounds, so a lock, a message or remote help waited that long.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, MutexGuard};
 use std::thread;
 use std::time::Duration;
 
@@ -23,6 +27,8 @@ use crate::wallpaper::Desktop;
 
 /// A countdown's prompt gets this long beyond its seconds before the session part gives up on it.
 const COUNTDOWN_SLACK: Duration = Duration::from_secs(30);
+/// How often the inbox is read.
+pub const READ_EVERY: Duration = Duration::from_secs(1);
 const TOOL_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// What the handlers need from the session.
@@ -151,7 +157,48 @@ impl Inbox {
             flag.store(true, Ordering::SeqCst);
         }
     }
+}
 
+/// A lock that a panicked thread does not poison for the others.
+pub fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
+    mutex.lock().unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
+/// Reads `inbox` every second in a thread of its own while `managed()` says the machine is the company's, and stops
+/// every handler while it is not (it left, it is leaving, it is a clone). It ends, stopping them too, at `stop` or
+/// once `ours()` says the login is no longer this session part's (a newer part took it over, or the login ended),
+/// also while the part's round still waits: two parts never take the same request. Whoever holds the inbox's lock
+/// keeps it from starting anything (the session part, before it starts again with an upgraded program).
+pub fn spawn_reader(
+    inbox: Arc<Mutex<Inbox>>,
+    context: Context,
+    managed: impl Fn() -> bool + Send + 'static,
+    ours: impl Fn() -> bool + Send + 'static,
+    stop: Arc<AtomicBool>,
+) -> thread::JoinHandle<()> {
+    thread::Builder::new()
+        .name("inbox".into())
+        .spawn(move || {
+            while !stop.load(Ordering::SeqCst) {
+                {
+                    let mut inbox = lock(&inbox);
+                    if !ours() {
+                        break;
+                    }
+                    if managed() {
+                        inbox.poll(&context);
+                    } else {
+                        inbox.stop_all();
+                    }
+                }
+                thread::sleep(READ_EVERY);
+            }
+            lock(&inbox).stop_all();
+        })
+        .expect("a thread")
+}
+
+impl Inbox {
     fn start(&self, entry: InboxEntry, context: Context) {
         let cancel = Arc::new(AtomicBool::new(false));
         self.running.lock().unwrap_or_else(|p| p.into_inner()).insert(entry.id.clone(), Arc::clone(&cancel));
@@ -313,6 +360,85 @@ mod tests {
         assert_eq!(ticket_notification(&args, false).unwrap().0, "Ticket HT-0007: In progress");
         assert_eq!(ticket_notification(&json!({"ticket": "rm -rf", "status": "done"}), true), None);
         assert_eq!(status_label("waiting", true), "Chờ bạn trả lời");
+    }
+
+    #[test]
+    fn the_reader_acts_on_its_own_and_stops_what_it_started() {
+        let root = crate::testutil::TempDir::new("inbox-reader");
+        let uid = crate::process::uid().unwrap();
+        let runtime = root.path().join("run");
+        let inbox = Arc::new(Mutex::new(Inbox::new(&root.path().join("inbox"), uid, &runtime)));
+        let context = Context { desktop: Desktop::Other, runtime_dir: runtime.clone(), session_id: None, vietnamese: true };
+        let managed = Arc::new(AtomicBool::new(true));
+        let stop = Arc::new(AtomicBool::new(false));
+        let flag = Arc::clone(&managed);
+        let reader = spawn_reader(Arc::clone(&inbox), context, move || flag.load(Ordering::SeqCst), || true, Arc::clone(&stop));
+        // A shutdown countdown: without its window (no caramos-business here) it still runs out, cancellably.
+        let id = "00000000-0000-4000-8000-000000000062";
+        let entry = InboxEntry { id: id.into(), action: "countdown".into(), args: json!({"action": "shutdown", "seconds": 60}), admin_name: "IT".into(), expires: 0 };
+        relay::deliver(&root.path().join("inbox"), uid, None, &entry).unwrap();
+        let busy = (0..40).any(|_| {
+            thread::sleep(Duration::from_millis(100));
+            lock(&inbox).busy()
+        });
+        assert!(busy, "taken within the reader's second, by itself");
+        // The machine leaves the company: what the reader started stops.
+        managed.store(false, Ordering::SeqCst);
+        let answer = runtime.join("caramos-business/outbox").join(format!("{id}.json"));
+        let answered = (0..40).any(|_| {
+            thread::sleep(Duration::from_millis(100));
+            answer.exists()
+        });
+        assert!(answered);
+        let written: Answer = serde_json::from_slice(&fs::read(&answer).unwrap()).unwrap();
+        assert_eq!((written.state.as_str(), written.answer.as_str()), ("done", "cancelled"));
+        stop.store(true, Ordering::SeqCst);
+        reader.join().unwrap();
+    }
+
+    #[test]
+    fn the_reader_ends_when_the_login_is_no_longer_its() {
+        // A newer session part took the login over (or the login ended) while this part's round still waits: this
+        // reader stops what it started and takes nothing more, so that two parts never act on the same request.
+        let root = crate::testutil::TempDir::new("inbox-takeover");
+        let uid = crate::process::uid().unwrap();
+        let runtime = root.path().join("run");
+        let inbox = Arc::new(Mutex::new(Inbox::new(&root.path().join("inbox"), uid, &runtime)));
+        let context = Context { desktop: Desktop::Other, runtime_dir: runtime.clone(), session_id: None, vietnamese: true };
+        let ours = Arc::new(AtomicBool::new(true));
+        let flag = Arc::clone(&ours);
+        let reader = spawn_reader(Arc::clone(&inbox), context, || true, move || flag.load(Ordering::SeqCst), Arc::new(AtomicBool::new(false)));
+        let first = "00000000-0000-4000-8000-000000000063";
+        let entry = InboxEntry { id: first.into(), action: "countdown".into(), args: json!({"action": "shutdown", "seconds": 60}), admin_name: "IT".into(), expires: 0 };
+        relay::deliver(&root.path().join("inbox"), uid, None, &entry).unwrap();
+        let busy = (0..40).any(|_| {
+            thread::sleep(Duration::from_millis(100));
+            lock(&inbox).busy()
+        });
+        assert!(busy);
+        ours.store(false, Ordering::SeqCst);
+        let ended = (0..40).any(|_| {
+            thread::sleep(Duration::from_millis(100));
+            reader.is_finished()
+        });
+        assert!(ended, "the reader ends within its second");
+        let outbox = runtime.join("caramos-business/outbox");
+        let answer = outbox.join(format!("{first}.json"));
+        let answered = (0..40).any(|_| {
+            thread::sleep(Duration::from_millis(100));
+            answer.exists()
+        });
+        assert!(answered, "what it started stops");
+        let written: Answer = serde_json::from_slice(&fs::read(&answer).unwrap()).unwrap();
+        assert_eq!((written.state.as_str(), written.answer.as_str()), ("done", "cancelled"));
+        // A request after the takeover is the newer part's.
+        let second = "00000000-0000-4000-8000-000000000064";
+        let entry = InboxEntry { id: second.into(), action: "lock".into(), args: json!({}), admin_name: "IT".into(), expires: 0 };
+        relay::deliver(&root.path().join("inbox"), uid, None, &entry).unwrap();
+        thread::sleep(READ_EVERY + Duration::from_millis(500));
+        assert!(!outbox.join(format!("{second}.json")).exists());
+        assert!(!lock(&inbox).taken.contains(second));
+        reader.join().unwrap();
     }
 
     #[test]

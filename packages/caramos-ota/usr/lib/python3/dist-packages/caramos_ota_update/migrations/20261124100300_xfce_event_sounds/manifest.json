@@ -1,0 +1,26 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["xfce"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Âm thanh sự kiện (dưới 1 MB)",
+  "size_en": "Event sounds (under 1 MB)",
+  "title": "Bật được âm thanh sự kiện trên bản Xfce",
+  "summary": "Công tắc Enable event sounds trong Appearance giờ có tác dụng: các ứng dụng phát tiếng khi hiện cảnh báo hay câu hỏi. Mặc định vẫn tắt, để phòng máy yên tĩnh.",
+  "title_en": "Event sounds can be turned on in the Xfce edition",
+  "summary_en": "The Enable event sounds switch in Appearance now works: applications play a sound when they show a warning or a question. It stays off by default, so computer labs stay quiet.",
+  "release_notes_vi": [
+    "Muốn có âm thanh sự kiện: mở Settings Manager > Appearance, thẻ Settings, bật Enable event sounds. Bật thêm Enable input feedback sounds nếu muốn nghe cả tiếng khi bấm nút.",
+    "Âm thanh có ngay trong các ứng dụng đang mở; tắt công tắc là hết tiếng.",
+    "Mặc định vẫn tắt. Trước đây bật công tắc này cũng không có tiếng vì thiếu phần phát âm thanh của GTK.",
+    "Có từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "For event sounds: open Settings Manager > Appearance, the Settings tab, and turn on Enable event sounds. Turn on Enable input feedback sounds too to hear buttons as well.",
+    "The sounds start at once in the applications that are open; turning the switch off silences them.",
+    "They stay off by default. Before, the switch did nothing because GTK's sound part was not loaded.",
+    "From the next login."
+  ]
+}

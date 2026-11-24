@@ -1,9 +1,10 @@
 """Open office documents with an office suite, or say how to get one.
 
 CaramOS comes without an office suite: the first page of the App Center offers ONLYOFFICE, WPS Office and
-LibreOffice. /etc/xdg/mimeapps.list (written from DEFAULTS below, a test keeps the two the same) makes those suites
-the default apps of Word, Excel, PowerPoint and OpenDocument files, and this program the last one of each list, so
-GIO picks it only when none of the suites is installed. It then opens the files with another installed app that
+LibreOffice. /usr/share/applications/x-cinnamon-mimeapps.list and xfce-mimeapps.list, the default apps of each
+desktop (written from DEFAULTS below, a test keeps them the same), make those suites the default apps of Word,
+Excel, PowerPoint and OpenDocument files, and this program the last one of each list, so GIO picks it only when
+none of the suites is installed. It then opens the files with another installed app that
 says it opens them (Gnumeric, a suite installed some other way, an app chosen with Open With), or shows a dialog:
 no app on this computer opens the file yet, with buttons for the App Center and for the list of all apps.
 

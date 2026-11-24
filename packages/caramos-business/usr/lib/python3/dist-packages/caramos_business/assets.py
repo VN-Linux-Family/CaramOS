@@ -72,8 +72,10 @@ def update(state: Path, asset_id: str, values: Any, by: str, now: datetime.datet
     event = new.pop("add_event", None)
     new["history"] = list(old.get("history") or [])
     if old and old.get("status", new["status"]) != new["status"]:
-        kinds = {"repair": "repair", "disposed": "disposed", "in_stock": "returned", "in_use": "assigned"}
-        _event(new, kinds[new["status"]], by, "", now)
+        kind = {"repair": "repair", "disposed": "disposed", "in_stock": "returned", "in_use": "assigned"}[new["status"]]
+        # Written once: the window may send the change's own event with a note (the leaver's "Máy đã nhập kho").
+        if not (event and event["event"] == kind):
+            _event(new, kind, by, "", now)
     if old.get("holder", "") != new["holder"] and new["holder"]:
         if not new["holder_since"] or new["holder_since"] == old.get("holder_since"):
             new["holder_since"] = (now or datetime.datetime.now().astimezone()).date().isoformat()

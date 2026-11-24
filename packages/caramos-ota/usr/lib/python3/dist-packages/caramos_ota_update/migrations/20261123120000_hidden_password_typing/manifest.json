@@ -1,0 +1,26 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["cinnamon"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "security",
+  "size": "Ô mật khẩu (dưới 1 MB)",
+  "size_en": "Password boxes (under 1 MB)",
+  "title": "Mật khẩu không còn hiện ra khi đang gõ",
+  "summary": "Khi bộ gõ tiếng Việt đang bật, chữ gõ vào ô mật khẩu của Cinnamon (lúc cài cập nhật, cài phần mềm, mở khóa) từng hiện rõ trước khi thành dấu chấm. Giờ ô mật khẩu chỉ hiện dấu chấm.",
+  "title_en": "Passwords no longer show while you type them",
+  "summary_en": "With Vietnamese typing on, what you typed into Cinnamon's password boxes (installing updates or software, unlocking) showed in clear before it turned into dots. Now the box only shows dots.",
+  "release_notes_vi": [
+    "Trước đây, khi bộ gõ tiếng Việt đang bật (chữ V ở khay hệ thống), hộp hỏi mật khẩu để cài cập nhật hay cài phần mềm hiện rõ chữ đang gõ trước khi chúng thành dấu chấm, và kiểu gõ Telex còn đổi chữ trong mật khẩu (gõ \"bans\" thành \"bán\"), nên mật khẩu đúng vẫn có thể bị báo sai.",
+    "Giờ trong ô mật khẩu luôn gõ chữ không dấu và chỉ hiện dấu chấm. Ra khỏi ô mật khẩu thì vẫn gõ tiếng Việt như cũ.",
+    "Áp dụng cho các hộp mật khẩu của Cinnamon: hỏi mật khẩu quản trị, mở khóa kho mật khẩu, mật khẩu Wi-Fi và VPN.",
+    "Có hiệu lực từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "With Vietnamese typing on (the V in the tray), the box that asks for your password before updates or software are installed showed the letters being typed before they turned into dots, and Telex even changed the letters of the password (\"bans\" became \"bán\"), so a right password could be refused.",
+    "Password boxes now always take plain letters and only show dots. Everywhere else Vietnamese typing works as before.",
+    "This covers Cinnamon's own password boxes: the administrator password, unlocking the keyring, Wi-Fi and VPN passwords.",
+    "Works from the next login."
+  ]
+}

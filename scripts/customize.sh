@@ -83,6 +83,10 @@ step_customize() {
         # Driver Check runs at the first login; its hardware reports need hw-probe (OTA migration).
         test -f /etc/xdg/autostart/caramos-driver-check.desktop
         command -v hw-probe
+        # fastfetch comes from the CaramOS PPA (migration 20261124130000_install_fastfetch). A migration that cannot
+        # install it only logs that and is recorded as done, so without this check an ISO built before fastfetch is
+        # on the PPA would ship without it, and its installs would never get it.
+        command -v fastfetch
         if [ "$MINT_EDITION" = xfce ]; then
             # Bản Xfce: panel CaramOS (Whisker menu, Góp ý & hỗ trợ) và Nemo làm trình quản lý tệp.
             test -f /etc/xdg/caramos-xfce/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml

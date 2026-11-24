@@ -3,6 +3,7 @@ machine has in effect and where from, and the department list. Apart from GTK so
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 from typing import Any
 
@@ -108,6 +109,111 @@ def action_title(action: str) -> str:
             "remote_help": _("Remote help"), "usb_unlock": _("Allow USB for a while")}.get(action, action)
 
 
+def result_detail(action: str, detail: str, steps: list[dict[str, Any]] | None = None) -> str:
+    """A command result's detail for the reader (PROTOCOL.md part 3, changes of 0.3.1):
+    - the agent words a remote help session's result in Vietnamese with its mode in English in brackets, "chạy 19 giây
+      (control), người dùng dừng": the mode is said in the reader's language;
+    - an `update` says what it did step by step (`steps`, from the full test pass on), each step in the reader's
+      language; an older agent's words ("caramos-ota --check: ok; 321 security updates installed") are read as steps."""
+
+    if action == "update":
+        if detail == FROZEN_UPDATE:
+            return _("the machine is frozen: it updates in its maintenance time")
+        found = steps or steps_from_text(detail)
+        return update_text(found) if found else detail
+    if action != "remote_help":
+        return detail
+    # Translators: the mode of a remote help session that has ended, in brackets after how long it ran.
+    control = _("control")
+    # Translators: the mode of a remote help session that has ended, in brackets after how long it ran.
+    view = _("view only")
+    return detail.replace("(control)", f"({control})").replace("(view)", f"({view})")
+
+
+# What the agent says, in Vietnamese, of a frozen machine's `update` (agent/src/daemon.rs FROZEN_UPDATE).
+FROZEN_UPDATE = "máy đang đóng băng: cập nhật chạy trong giờ bảo trì"
+
+
+def step_text(step: dict[str, Any]) -> str:
+    """One step of an update or a maintenance, in the reader's language."""
+
+    kind, ok, error = step.get("step"), step.get("ok"), step.get("error", "")
+    if kind == "snapshot":
+        return _("system snapshot taken") if ok else _("no system snapshot: %s") % error
+    if kind == "caramos-ota":
+        return _("CaramOS update checked") if ok else _("the CaramOS update check failed: %s") % error
+    if kind == "security":
+        if not ok:
+            return _("security updates failed: %s") % error
+        count = step.get("count") or 0
+        return ngettext("%d security update installed", "%d security updates installed", count) % count if count \
+            else _("no security updates")
+    if kind == "apps":
+        return _("apps done") if ok else _("apps: %s") % error
+    return error or str(kind)
+
+
+def update_text(steps: list[dict[str, Any]]) -> str:
+    return "; ".join(step_text(step) for step in steps)
+
+
+SECURITY_INSTALLED = re.compile(r"(\d+) security updates installed")
+
+
+def steps_from_text(detail: str) -> list[dict[str, Any]] | None:
+    """The steps in the words of a 0.3.0 or 0.3.1 agent ("đã chụp bản lưu hệ thống; caramos-ota --check: ok; 321
+    security updates installed"; "ứng dụng: xong" in a maintenance); None when a part is not theirs."""
+
+    steps: list[dict[str, Any]] = []
+    for part in (detail or "").split("; "):
+        if part == "đã chụp bản lưu hệ thống":
+            steps.append({"step": "snapshot", "ok": True})
+        elif part.startswith("không chụp được bản lưu hệ thống: "):
+            steps.append({"step": "snapshot", "ok": False, "error": part.split(": ", 1)[1]})
+        elif part == "caramos-ota --check: ok":
+            steps.append({"step": "caramos-ota", "ok": True})
+        elif part.startswith("caramos-ota --check: "):
+            steps.append({"step": "caramos-ota", "ok": False, "error": part.split(": ", 1)[1]})
+        elif part == "no security updates":
+            steps.append({"step": "security", "ok": True, "count": 0})
+        elif match := SECURITY_INSTALLED.fullmatch(part):
+            steps.append({"step": "security", "ok": True, "count": int(match.group(1))})
+        elif part.startswith("apt-get"):
+            steps.append({"step": "security", "ok": False, "error": part})
+        elif part == "ứng dụng: xong":
+            steps.append({"step": "apps", "ok": True})
+        elif part.startswith("ứng dụng: "):
+            steps.append({"step": "apps", "ok": False, "error": part.split(": ", 1)[1]})
+        else:
+            return None
+    return steps or None
+
+
+def maintenance_text(result: str, steps: list[dict[str, Any]] | None = None) -> str:
+    """A frozen machine's last maintenance (the health's `maintenance_result`, PROTOCOL.md part 3 "Maintenance window",
+    and `maintenance_steps` from 0.3.1) in the reader's language; a text this window does not know stays as it is."""
+
+    if steps:
+        return update_text(steps)
+    fixed = {"đang bảo trì": _("in maintenance now"),
+             "bỏ qua: có người đang dùng": _("skipped: someone was using the machine"),
+             "hết giờ bảo trì: khởi động lại khi chưa xong": _("out of time: it restarted before it finished"),
+             "đã thôi đóng băng": _("not frozen any more"),
+             "lỗi: máy không khởi động vào chế độ bảo trì": _("error: the machine did not start into maintenance"),
+             "lỗi: GRUB chưa có mục bảo trì": _("error: GRUB has no maintenance entry"),
+             "không có thiết lập": _("no settings yet")}
+    if result in fixed:
+        return fixed[result]
+    if result.startswith("lỗi: grub-reboot: "):
+        return _("error: grub-reboot: %s") % result.removeprefix("lỗi: grub-reboot: ")
+    for prefix in ("cập nhật: ", "lỗi cập nhật: "):
+        if result.startswith(prefix):
+            found = steps_from_text(result.removeprefix(prefix))
+            if found:
+                return update_text(found)
+    return result
+
+
 def targets_text(targets: dict[str, Any], department_name: Callable[[str], str], machine_names: list[str]) -> str:
     if targets.get("all"):
         return _("all machines")
@@ -154,7 +260,9 @@ def audit_text(line: dict[str, Any], department_name: Callable[[str], str],
                 return _("An enrolment file was turned off after too many wrong requests.")
             return _("An enrolment file was withdrawn.")
         if action == "licences":
-            return _("The list of bought licences was changed (%d entries).") % details["count"]
+            count = details["count"]
+            return ngettext("The list of bought licences was changed (%d entry).",
+                            "The list of bought licences was changed (%d entries).", count) % count
         if action == "ticket":
             ticket = details["ticket"]
             if details.get("note") == "public":

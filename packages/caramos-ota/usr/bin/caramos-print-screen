@@ -1,0 +1,83 @@
+#!/usr/bin/python3
+"""Print Screen: the whole screen goes to the clipboard, with a short notification, as on Windows 10 (tickets H-1188
+and H-1193). Ctrl+V then pastes it into Zalo, Messenger, Word, a web page... Super+Shift+S still opens Flameshot to
+pick a part of the screen, edit it or save it.
+
+The picture is offered as PNG and handed to the session's clipboard manager (xfsettingsd on Xfce, csd-clipboard on
+Cinnamon), which keeps it once this program has ended: nothing stays running, and a paste never waits for a program
+that is gone or busy. Without a clipboard manager, this program keeps the clipboard itself until something else is
+copied.
+
+Cinnamon's custom shortcut and Xfce's keyboard shortcut for Print run this (ISO defaults, migration
+20261124100200).
+"""
+
+from __future__ import annotations
+
+import gettext
+import os
+import sys
+
+import gi
+
+gi.require_version("Gdk", "3.0")
+gi.require_version("Gtk", "3.0")
+from gi.repository import Gdk, Gio, GLib, Gtk  # noqa: E402
+
+_ = gettext.translation("caramos-ota", localedir=os.environ.get("CARAMOS_OTA_LOCALEDIR", "/usr/share/locale"),
+                        fallback=True).gettext
+
+PNG = "image/png"
+ICON = "applets-screenshooter"
+SHOWN_MS = 3000  # a short notification
+
+
+def capture() -> object | None:
+    """The whole screen (every monitor), or None."""
+
+    root = Gdk.get_default_root_window()
+    if root is None:
+        return None
+    return Gdk.pixbuf_get_from_window(root, 0, 0, root.get_width(), root.get_height())
+
+
+def notify(summary: str, body: str) -> None:
+    """A notification that does not stay in the list of notifications."""
+
+    try:
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+        bus.call_sync("org.freedesktop.Notifications", "/org/freedesktop/Notifications",
+                      "org.freedesktop.Notifications", "Notify",
+                      GLib.Variant("(susssasa{sv}i)", (_("Screenshot"), 0, ICON, summary, body, [],
+                                                         {"transient": GLib.Variant("b", True)}, SHOWN_MS)),
+                      None, Gio.DBusCallFlags.NONE, 5000, None)
+    except GLib.Error:
+        pass  # no notification service: the picture is in the clipboard all the same
+
+
+def main() -> int:
+    display = Gdk.Display.get_default()
+    if display is None:
+        print("caramos-print-screen: no display", file=sys.stderr)
+        return 1
+    picture = capture()
+    if picture is None:
+        notify(_("Could not take a screenshot"), _("Try again, or press Super+Shift+S."))
+        return 1
+    clipboard = Gtk.Clipboard.get(Gdk.SELECTION_CLIPBOARD)
+    clipboard.set_image(picture)
+    # Only PNG goes to the clipboard manager: one copy of a few megabytes, which every program pastes.
+    clipboard.set_can_store([Gtk.TargetEntry.new(PNG, 0, 0)])
+    clipboard.store()
+    notify(_("Screenshot copied to the clipboard"), _("Press Ctrl+V to paste it."))
+    if display.supports_clipboard_persistence():
+        return 0
+    # Nobody keeps the clipboard after this program: keep it until another program owns it (the event's owner is
+    # a window of this program only for the picture set above).
+    clipboard.connect("owner-change", lambda _clipboard, event: Gtk.main_quit() if event.owner is None else None)
+    Gtk.main()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

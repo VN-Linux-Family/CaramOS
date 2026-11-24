@@ -22,12 +22,13 @@ from typing import Any
 from caramos_ota import auto_update as system_auto_update
 from caramos_ota.i18n import _, localized, ngettext
 
-from .constants import BUSY, CANCELLED, DONE, FAILED
+from .constants import BUSY, CANCELLED, DONE, FAILED, OFFLINE
 from .state import RELEASE_METADATA_NAME, change_rows, format_value, size_parts, update_versions, version_text
 
 CARAMOS_ICON = Path("/usr/share/pixmaps/caramos-logo.png")
 LOGO_SIZE = 48
 STATUS_ICON_SIZE = 64
+SPINNER_SIZE = 32
 # GTK measures a label by Be Vietnam Pro's widest digit, about 1.45 times an average letter of Vietnamese text: 48 such
 # "characters" let a line hold about 70 letters, the longest line DESIGN.md allows.
 LINE_CHARS = 48
@@ -79,7 +80,7 @@ window.caramos-ota .uc-list { background-color: %(list)s; border: 1px solid %(li
 window.caramos-ota .uc-row { padding: 12px 14px; }
 window.caramos-ota .uc-row:not(:first-child) { border-top: 1px solid %(line)s; }
 
-window.caramos-ota image.uc-status-icon { color: %(dim)s; }
+window.caramos-ota image.uc-status-icon, window.caramos-ota spinner.uc-status-icon { color: %(dim)s; }
 
 window.caramos-ota .uc-actions { border-top: 1px solid %(line)s; padding: 12px 24px; }
 
@@ -307,6 +308,34 @@ def auto_updated_texts(result: dict[str, Any]) -> tuple[str, str, str]:
 
     hint = _("Restart to finish.") if result.get("restart") else _("Some changes show after you log in again.")
     return done_title(result.get("update") or {}), _("CaramOS installed this update by itself."), hint
+
+
+def check_failed_texts(outcome: str, *, can_ask_for_help: bool) -> tuple[str, str]:
+    """Title and text of the page shown when the check for new versions did not work, one sentence a line.
+
+    Up to 1.5.0 the Update Center said CaramOS was up to date instead: it never asked the CaramOS PPA itself.
+    """
+
+    if outcome == BUSY:
+        return _("Another update is running"), "\n".join((
+            _("CaramOS is already checking or updating, in another window or in the background."),
+            _("Wait a moment, then click Try again."),
+        ))
+    if outcome == OFFLINE:
+        return _("Could not check for updates"), "\n".join((
+            _("The computer could not reach the CaramOS update server."),
+            _("Check the internet connection, then click Try again."),
+            _("On a company network, ask its administrator to allow the CaramOS update server: its address is "
+              "under Details."),
+        ))
+    if outcome == CANCELLED:
+        return _("Could not check for updates"), "\n".join((
+            _("This account may not check for updates on this computer."),
+            _("Ask the computer's administrator to open the Update Center."),
+        ))
+    advice = (_("Click Ask for help to ask VNLF, with the check's log attached.") if can_ask_for_help
+              else _("Open the Update Center again later to try once more."))
+    return _("Could not check for updates"), "\n".join((_("Checking stopped because of an error."), advice))
 
 
 def no_update_text(status: dict[str, str] | None) -> str:
@@ -570,17 +599,29 @@ def _auto_update_list(Gtk, model: AutoUpdateSwitch):
 def _status_page(Gtk, icon_name: str, title: str, text: str, buttons: list, detail: str = "", extra=None):
     """A centred status: a 64 px symbolic icon, the title, a sentence or two, then the buttons right under them, so
     they are on screen at the smallest window size; the details sit at the bottom. extra: a widget under the buttons
-    (the switch of the page that says CaramOS is up to date), where it does not push them off a small window."""
+    (the switch of the page that says CaramOS is up to date), where it does not push them off a small window.
+    icon_name "": a spinner instead of the icon, while the window waits for something."""
 
     page = _box(Gtk, True, 0, "uc-page")
     scroll, body = _scrolled_body(Gtk)
     status = _box(Gtk, True, 0)
     status.set_valign(Gtk.Align.CENTER)
     status.set_vexpand(True)
-    icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DIALOG)
-    icon.set_pixel_size(STATUS_ICON_SIZE)
+    if icon_name:
+        icon = Gtk.Image.new_from_icon_name(icon_name, Gtk.IconSize.DIALOG)
+        icon.set_pixel_size(STATUS_ICON_SIZE)
+        icon.set_margin_bottom(24)
+    else:
+        # The theme's spinner is a filled disc: at the icons' 64 px it looked heavy. Smaller, in the same space, so the
+        # title does not move when the result replaces it.
+        icon = Gtk.Spinner()
+        icon.set_size_request(SPINNER_SIZE, SPINNER_SIZE)
+        icon.set_halign(Gtk.Align.CENTER)
+        margin = (STATUS_ICON_SIZE - SPINNER_SIZE) // 2
+        icon.set_margin_top(margin)
+        icon.set_margin_bottom(24 + margin)
+        icon.start()
     icon.get_style_context().add_class("uc-status-icon")
-    icon.set_margin_bottom(24)
     status.pack_start(icon, False, False, 0)
     status.pack_start(_label(Gtk, title, "uc-title", center=True), False, False, 0)
     sentence = _label(Gtk, text, center=True, paragraph=True)
@@ -713,6 +754,30 @@ def build_result_page(outcome: str, detail: str, on_close, on_help=None, on_retr
         buttons.append(_button(Gtk, _("Try again"), on_retry, suggested=True, pill=True))
     return _status_page(Gtk, STATUS_ICONS.get(outcome, STATUS_ICONS[FAILED]), title, text, buttons,
                         detail="" if outcome == DONE else detail or "")
+
+
+def build_checking_page(on_close):
+    """Build the page shown while the Update Center checks for new versions, a few seconds to a minute."""
+
+    Gtk, _gdk, _glib = import_gtk()
+    return _status_page(Gtk, "", _("Checking for updates…"),
+                        _("The Update Center is asking the CaramOS update server for new versions."),
+                        [_button(Gtk, _("Close"), on_close, pill=True)])
+
+
+def build_check_failed_page(outcome: str, detail: str, on_close, on_help=None, on_retry=None):
+    """Build the page shown when the check for new versions did not work (outcome: OFFLINE, BUSY, CANCELLED or
+    FAILED), with the check's output under Details."""
+
+    Gtk, _gdk, _glib = import_gtk()
+    title, text = check_failed_texts(outcome, can_ask_for_help=on_help is not None)
+    buttons = [_button(Gtk, _("Close"), on_close, pill=True)]
+    if on_help is not None:
+        buttons.append(_button(Gtk, _("Ask for help"), on_help, pill=True))
+    if on_retry is not None:
+        buttons.append(_button(Gtk, _("Try again"), on_retry, suggested=True, pill=True))
+    icon = STATUS_ICONS[BUSY] if outcome == BUSY else STATUS_ICONS[FAILED]
+    return _status_page(Gtk, icon, title, text, buttons, detail=detail or "")
 
 
 def build_no_update_page(status: dict[str, str] | None, on_close, auto_update: AutoUpdateSwitch | None = None):

@@ -1,6 +1,7 @@
-# Builds the panel plugin. Used by debian/rules (make -C src, make -C src install DESTDIR=...).
+# Builds the panel plugins. Used by debian/rules (make -C src, make -C src install DESTDIR=...).
 PKG_CONFIG ?= pkg-config
-PACKAGES := libxfce4panel-2.0 gtk+-3.0
+PACKAGES := libxfce4panel-2.0 gtk+-3.0 x11
+PLUGINS := caramos-control-center caramos-show-desktop
 MULTIARCH ?= $(shell dpkg-architecture -qDEB_HOST_MULTIARCH 2>/dev/null || $(CC) -print-multiarch)
 PLUGINDIR := /usr/lib/$(MULTIARCH)/xfce4/panel/plugins
 DESKTOPDIR := /usr/share/xfce4/panel/plugins
@@ -9,16 +10,18 @@ CFLAGS ?= -O2 -g
 override CFLAGS += -Wall -Wextra -Wno-unused-parameter -fPIC $(shell $(PKG_CONFIG) --cflags $(PACKAGES))
 override LDLIBS += $(shell $(PKG_CONFIG) --libs $(PACKAGES))
 
-all: libcaramos-control-center.so
+all: $(PLUGINS:%=lib%.so)
 
-libcaramos-control-center.so: caramos-control-center.c
+lib%.so: %.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -shared -o $@ $< $(LDFLAGS) $(LDLIBS)
 
 install: all
-	install -D -m644 libcaramos-control-center.so $(DESTDIR)$(PLUGINDIR)/libcaramos-control-center.so
-	install -D -m644 caramos-control-center.desktop $(DESTDIR)$(DESKTOPDIR)/caramos-control-center.desktop
+	for plugin in $(PLUGINS); do \
+	  install -D -m644 lib$$plugin.so $(DESTDIR)$(PLUGINDIR)/lib$$plugin.so && \
+	  install -D -m644 $$plugin.desktop $(DESTDIR)$(DESKTOPDIR)/$$plugin.desktop || exit 1; \
+	done
 
 clean:
-	rm -f libcaramos-control-center.so
+	rm -f $(PLUGINS:%=lib%.so)
 
 .PHONY: all install clean

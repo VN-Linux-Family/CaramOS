@@ -1,0 +1,403 @@
+#!/usr/bin/python3
+"""Tray icons in the colours of a new theme, without logging out (ticket H-1211).
+
+    caramos-tray-refresh [--tray-colour '#rrggbb'] [--theme] [--icons]
+
+The Control Center of each edition runs this in the session once the theme (--theme) or the icon theme (--icons) has
+changed: its Dark mode tile, or the theme settings. The Xfce one also gives the island's text colour (--tray-colour).
+Some tray icons are pictures that their programs drew once, in the colours of the theme of that moment, and they drew
+them again only at the next login: dark icons on the dark island, light ones on the light island.
+
+- Mint's tray icons (Update Manager's shield, System Information's mark...) are XAppStatusIcons. With no XApp
+  status applet in the panel they show as GtkStatusIcons, which GTK draws into a picture once, in the colour the tray
+  gives (_NET_SYSTEM_TRAY_COLORS of the tray's manager window), and draws again only for a new icon or size.
+  xfce4-panel's tray sets that colour when it starts and never again; Cinnamon sets it at each theme change.
+  --tray-colour sets it on Xfce. Then a name in XApp's status monitor namespace is owned and given up again: every
+  XAppStatusIcon looks for status monitors again, finds none, and makes a new icon, drawn in the colour of now.
+- CopyQ draws its scissors from the icon theme when it starts and keeps the picture (it caches it by size only): with
+  --icons it starts again, after saving its history (copyq exit), which the new one loads.
+- Flameshot keeps its flame too where the tray is the old XEmbed one (Cinnamon); on Xfce the panel draws it by name.
+  With --icons a Flameshot that waits in the background starts again, as it was started.
+- Lotus's V needs nothing here: its icons follow the icon theme (migration 20261124170000_tray_icons_follow_theme).
+
+Programs that are not running are not started. Only one of these runs at a time.
+"""
+
+from __future__ import annotations
+
+import argparse
+import ctypes
+import ctypes.util
+import fcntl
+import logging
+import os
+import re
+import signal
+import subprocess
+import sys
+import time
+from collections.abc import Callable
+from dataclasses import dataclass
+from pathlib import Path
+
+LOG = logging.getLogger("caramos-tray-refresh")
+
+# Every XAppStatusIcon watches NameOwnerChanged for this namespace (libxapp, xapp-status-icon.c).
+MONITOR_NAMESPACE = "org.x.StatusIconMonitor"
+POKE_NAME = f"{MONITOR_NAMESPACE}.caramos_tray_refresh"
+SNI_WATCHER = "org.kde.StatusNotifierWatcher"
+COLOUR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
+STOP_TIMEOUT = 10.0  # seconds a program gets to save and stop
+LOCK_TIMEOUT = 30.0
+QUIET = {"stdin": subprocess.DEVNULL, "stdout": subprocess.DEVNULL, "stderr": subprocess.DEVNULL}
+
+
+# -- the tray's colours ----------------------------------------------------------------------------------------------
+
+def tray_colours(colour: str) -> list[int]:
+    """_NET_SYSTEM_TRAY_COLORS for one colour: the foreground, error, warning and success colours, 16 bits a channel,
+    all four the same, as xfce4-panel's tray sets them (systray_plugin_orientation_changed)."""
+
+    if not COLOUR_RE.match(colour):
+        raise ValueError(f"not a #rrggbb colour: {colour!r}")
+    channels = [int(colour[i:i + 2], 16) * 257 for i in (1, 3, 5)]
+    return channels * 4
+
+
+class Xlib:
+    """The little of libX11 this needs, without GTK."""
+
+    XA_CARDINAL = 6
+    PROP_MODE_REPLACE = 0
+
+    def __init__(self) -> None:
+        name = ctypes.util.find_library("X11") or "libX11.so.6"
+        lib = ctypes.CDLL(name)
+        c = ctypes
+        lib.XOpenDisplay.restype = c.c_void_p
+        lib.XOpenDisplay.argtypes = [c.c_char_p]
+        lib.XCloseDisplay.argtypes = [c.c_void_p]
+        lib.XDefaultScreen.argtypes = [c.c_void_p]
+        lib.XInternAtom.restype = c.c_ulong
+        lib.XInternAtom.argtypes = [c.c_void_p, c.c_char_p, c.c_int]
+        lib.XGetSelectionOwner.restype = c.c_ulong
+        lib.XGetSelectionOwner.argtypes = [c.c_void_p, c.c_ulong]
+        lib.XGetWindowProperty.argtypes = [c.c_void_p, c.c_ulong, c.c_ulong, c.c_long, c.c_long, c.c_int, c.c_ulong,
+                                           c.POINTER(c.c_ulong), c.POINTER(c.c_int), c.POINTER(c.c_ulong),
+                                           c.POINTER(c.c_ulong), c.POINTER(c.c_void_p)]
+        lib.XChangeProperty.argtypes = [c.c_void_p, c.c_ulong, c.c_ulong, c.c_ulong, c.c_int, c.c_int, c.c_void_p,
+                                        c.c_int]
+        lib.XFree.argtypes = [c.c_void_p]
+        lib.XSync.argtypes = [c.c_void_p, c.c_int]
+        # The tray's window can go away between two calls (the panel restarts): Xlib's default handler would end the
+        # process for that.
+        self._handler = c.CFUNCTYPE(c.c_int, c.c_void_p, c.c_void_p)(lambda _display, _error: 0)
+        lib.XSetErrorHandler(self._handler)
+        self.lib = lib
+        self.display = lib.XOpenDisplay(None)
+        if not self.display:
+            raise OSError("cannot open the X display")
+
+    def close(self) -> None:
+        self.lib.XCloseDisplay(self.display)
+
+    def atom(self, name: str) -> int:
+        return self.lib.XInternAtom(self.display, name.encode(), 0)
+
+    def tray_manager(self) -> int:
+        screen = self.lib.XDefaultScreen(self.display)
+        return self.lib.XGetSelectionOwner(self.display, self.atom(f"_NET_SYSTEM_TRAY_S{screen}"))
+
+    def cardinals(self, window: int, prop: str) -> list[int]:
+        kind, form, count, rest = ctypes.c_ulong(), ctypes.c_int(), ctypes.c_ulong(), ctypes.c_ulong()
+        data = ctypes.c_void_p()
+        status = self.lib.XGetWindowProperty(self.display, window, self.atom(prop), 0, 64, 0, self.XA_CARDINAL,
+                                             ctypes.byref(kind), ctypes.byref(form), ctypes.byref(count),
+                                             ctypes.byref(rest), ctypes.byref(data))
+        if status != 0 or not data.value:
+            return []
+        try:
+            if kind.value != self.XA_CARDINAL or form.value != 32:
+                return []
+            # Format 32 comes as C longs.
+            return list(ctypes.cast(data, ctypes.POINTER(ctypes.c_ulong))[:count.value])
+        finally:
+            self.lib.XFree(data)
+
+    def set_cardinals(self, window: int, prop: str, values: list[int]) -> None:
+        array = (ctypes.c_ulong * len(values))(*values)
+        self.lib.XChangeProperty(self.display, window, self.atom(prop), self.XA_CARDINAL, 32, self.PROP_MODE_REPLACE,
+                                 array, len(values))
+        self.lib.XSync(self.display, 0)
+
+
+def set_tray_colour(colour: str, xlib_factory: Callable[[], Xlib] = Xlib) -> bool:
+    """Gives the tray this colour for symbolic icons; whether that changed anything."""
+
+    wanted = tray_colours(colour)
+    try:
+        xlib = xlib_factory()
+    except OSError as exc:
+        LOG.info("no X display: %s", exc)
+        return False
+    try:
+        manager = xlib.tray_manager()
+        if not manager:
+            LOG.info("no tray on this screen")
+            return False
+        if xlib.cardinals(manager, "_NET_SYSTEM_TRAY_COLORS") == wanted:
+            return False
+        LOG.info("tray colour %s", colour)
+        xlib.set_cardinals(manager, "_NET_SYSTEM_TRAY_COLORS", wanted)
+        return True
+    finally:
+        xlib.close()
+
+
+# -- XAppStatusIcons ---------------------------------------------------------------------------------------------------
+
+def session_bus():  # noqa: ANN201 - Gio is imported here so that the tests of the rest need no gi
+    from gi.repository import Gio
+
+    return Gio.bus_get_sync(Gio.BusType.SESSION, None)
+
+
+def bus_call(bus: object, method: str, args: object, reply: str) -> tuple:
+    from gi.repository import Gio, GLib
+
+    result = bus.call_sync("org.freedesktop.DBus", "/org/freedesktop/DBus", "org.freedesktop.DBus", method,
+                           GLib.Variant(*args) if args else None, GLib.VariantType(reply), Gio.DBusCallFlags.NONE,
+                           5000, None)
+    return result.unpack()
+
+
+def has_owner(bus: object, name: str) -> bool:
+    try:
+        return bool(bus_call(bus, "NameHasOwner", ("(s)", (name,)), "(b)")[0])
+    except Exception as exc:  # noqa: BLE001 - a bus error only means "do not know"
+        LOG.info("NameHasOwner %s: %s", name, exc)
+        return False
+
+
+def redraw_status_icons(bus: object) -> bool:
+    """Owns a name of XApp's status monitor namespace and gives it up at once: every XAppStatusIcon then looks for
+    status monitors again, and one that shows as a GtkStatusIcon makes a new one."""
+
+    try:
+        if bus_call(bus, "RequestName", ("(su)", (POKE_NAME, 4)), "(u)")[0] != 1:  # 4: do not queue; 1: owner now
+            return False
+        bus_call(bus, "ReleaseName", ("(s)", (POKE_NAME,)), "(u)")
+        LOG.info("XApp status icons drawn again")
+        return True
+    except Exception as exc:  # noqa: BLE001
+        LOG.warning("XApp status icons: %s", exc)
+        return False
+
+
+# -- programs that start again ----------------------------------------------------------------------------------------
+
+@dataclass
+class Process:
+    pid: int
+    argv: list[str]
+
+
+def own_processes(name: str, proc: Path = Path("/proc"), uid: int | None = None) -> list[Process]:
+    """This user's processes called NAME."""
+
+    uid = os.getuid() if uid is None else uid
+    found = []
+    for entry in proc.iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            if entry.stat().st_uid != uid or (entry / "comm").read_text().strip() != name:
+                continue
+            argv = [part.decode(errors="replace") for part in (entry / "cmdline").read_bytes().split(b"\0")[:-1]]
+        except OSError:
+            continue
+        found.append(Process(int(entry.name), argv))
+    return sorted(found, key=lambda process: process.pid)
+
+
+def wait_gone(pids: list[int], timeout: float, alive: Callable[[int], bool] | None = None) -> bool:
+    alive = alive or pid_alive
+    deadline = time.monotonic() + timeout
+    while any(alive(pid) for pid in pids):
+        if time.monotonic() > deadline:
+            return False
+        time.sleep(0.1)
+    return True
+
+
+def pid_alive(pid: int) -> bool:
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    # A zombie (an ended child not yet reaped) counts as gone.
+    try:
+        return Path(f"/proc/{pid}/stat").read_text().split(") ", 1)[1][:1] != "Z"
+    except (OSError, IndexError):
+        return False
+
+
+def copyq(*args: str) -> tuple[bool, str]:
+    try:
+        result = subprocess.run(["copyq", *args], check=False, text=True, timeout=STOP_TIMEOUT,
+                                stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+    except (OSError, subprocess.TimeoutExpired):
+        return False, ""
+    return result.returncode == 0, result.stdout
+
+
+@dataclass
+class Restart:
+    """A program stopped to start again: which processes to wait for, and how to start it."""
+
+    pids: list[int]
+    start: Callable[[], object]
+
+
+def stop_copyq(processes: Callable[[str], list[Process]] = own_processes,
+               run: Callable[..., tuple[bool, str]] = copyq,
+               start: Callable[[list[str]], object] | None = None) -> Restart | str:
+    """Stops CopyQ, when it runs and shows its tray icon, to start it again with its history; else what it did."""
+
+    running = processes("copyq")
+    if not running:
+        return "not running"
+    ok, hidden = run("config", "disable_tray")
+    if ok and hidden.strip() == "true":
+        return "no tray icon"
+    # "exit" saves the history and ends the server and its helpers (the clipboard monitor); the new server loads it.
+    if not run("exit")[0]:
+        return "could not stop"
+    return Restart([process.pid for process in running], lambda: (start or spawn)(["copyq", "--start-server"]))
+
+
+def spawn(argv: list[str], env: dict[str, str] | None = None, cwd: str | None = None) -> None:
+    subprocess.Popen(argv, env=env, cwd=cwd or os.path.expanduser("~"), start_new_session=True, **QUIET)
+
+
+def read_environ(pid: int, proc: Path = Path("/proc")) -> dict[str, str] | None:
+    try:
+        raw = (proc / str(pid) / "environ").read_bytes()
+    except OSError:
+        return None
+    env = {}
+    for item in raw.split(b"\0"):
+        key, sep, value = item.partition(b"=")
+        if sep and key:
+            env[key.decode(errors="replace")] = value.decode(errors="replace")
+    return env
+
+
+def stop_flameshot(drawn_by_panel: bool,
+                   processes: Callable[[str], list[Process]] = own_processes,
+                   environ: Callable[[int], dict[str, str] | None] = read_environ,
+                   stop: Callable[[int], None] | None = None,
+                   start: Callable[..., object] = spawn) -> Restart | str:
+    """Stops a Flameshot that waits in the background, where its tray icon is its own picture, to start it again as it
+    was started (CaramOS starts it with QT_XCB_GL_INTEGRATION=none); else what it did."""
+
+    if drawn_by_panel:
+        return "drawn by the panel"
+    running = processes("flameshot")
+    if not running:
+        return "not running"
+    # The one in the background has no command; another one is a capture or a command, left alone.
+    if len(running) != 1 or len(running[0].argv) != 1:
+        return "busy"
+    daemon = running[0]
+    env = environ(daemon.pid)
+    if env is None:
+        return "unknown environment"
+    (stop or (lambda pid: os.kill(pid, signal.SIGTERM)))(daemon.pid)
+    return Restart([daemon.pid], lambda: start(daemon.argv, env=env))
+
+
+# -- the whole ---------------------------------------------------------------------------------------------------------
+
+def lock() -> object | None:
+    """Only one at a time: a second one (two switches in a row) waits for the first."""
+
+    directory = os.environ.get("XDG_RUNTIME_DIR") or f"/run/user/{os.getuid()}"
+    try:
+        handle = open(os.path.join(directory, "caramos-tray-refresh.lock"), "w", encoding="utf-8")  # noqa: SIM115
+    except OSError:
+        return None
+    deadline = time.monotonic() + LOCK_TIMEOUT
+    while True:
+        try:
+            fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            return handle
+        except BlockingIOError:
+            if time.monotonic() > deadline:
+                return handle  # a stuck one: go on anyway
+            time.sleep(0.2)
+
+
+def refresh(tray_colour: str | None, theme: bool, icons: bool,
+            set_colour: Callable[[str], bool] = set_tray_colour,
+            bus_factory: Callable[[], object] = session_bus,
+            redraw: Callable[[object], bool] = redraw_status_icons,
+            copyq_stop: Callable[[], Restart | str] = stop_copyq,
+            flameshot_stop: Callable[[bool], Restart | str] = stop_flameshot,
+            wait: Callable[[list[int], float], bool] = wait_gone) -> dict[str, object]:
+    """Does what the change needs; returns what it did, for the log and the tests. The icons go away and come back
+    together: the programs are stopped, Mint's icons made again, then the programs started again."""
+
+    done: dict[str, object] = {}
+    colour_changed = bool(tray_colour) and set_colour(tray_colour)
+    done["tray colour"] = colour_changed
+    try:
+        bus = bus_factory()
+    except Exception as exc:  # noqa: BLE001
+        LOG.warning("no session bus: %s", exc)
+        bus = None
+    restarts: dict[str, Restart] = {}
+    if icons:
+        for name, result in (("copyq", copyq_stop()),
+                             ("flameshot", flameshot_stop(bus is not None and has_owner(bus, SNI_WATCHER)))):
+            if isinstance(result, Restart):
+                restarts[name] = result
+            else:
+                done[name] = result
+    # Without --tray-colour the desktop sets the tray's colours itself (Cinnamon), at each theme change.
+    if bus is not None and (icons or colour_changed or theme and not tray_colour):
+        done["status icons"] = redraw(bus)
+    for name, restart in restarts.items():
+        if wait(restart.pids, STOP_TIMEOUT):
+            restart.start()
+            done[name] = "started again"
+        else:
+            done[name] = "did not stop"
+    return done
+
+
+def main(argv: list[str] | None = None) -> int:
+    logging.basicConfig(level=logging.INFO, format="caramos-tray-refresh: %(message)s")
+    parser = argparse.ArgumentParser(description="Tray icons in the colours of a new theme (ticket H-1211).")
+    parser.add_argument("--tray-colour", help="the panel's text colour, #rrggbb, for the tray's symbolic icons (Xfce)")
+    parser.add_argument("--theme", action="store_true", help="the theme changed")
+    parser.add_argument("--icons", action="store_true", help="the icon theme changed")
+    options = parser.parse_args(argv)
+    if options.tray_colour and not COLOUR_RE.match(options.tray_colour):
+        parser.error(f"not a #rrggbb colour: {options.tray_colour}")
+    if not (options.theme or options.icons or options.tray_colour):
+        return 0
+    handle = lock()
+    try:
+        done = refresh(options.tray_colour, options.theme, options.icons)
+    finally:
+        if handle is not None:
+            handle.close()
+    LOG.info("%s", ", ".join(f"{key}: {value}" for key, value in done.items()))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

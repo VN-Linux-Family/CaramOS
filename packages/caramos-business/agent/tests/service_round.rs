@@ -2,8 +2,9 @@
 //! request's MAC with the admin's side of the test keys, GETs included as from 0.3: the signed format 2 policy fetched
 //! and checked, its file downloaded, this machine's effective settings written for the session parts, the system
 //! sections applied (to a test folder, without commands), the check-in with health and capabilities; the commands from
-//! `/wait`; the policies that must not be stored; and 0.3's approval, removal notice and tickets. The failing cases
-//! call `update` rather than a round, which would broadcast a discovery on the LAN.
+//! `/wait`, open from the round that loaded the pairing; the policies that must not be stored; and 0.3's approval,
+//! removal notice and tickets. The failing cases call `update` rather than a round, which would broadcast a discovery
+//! on the LAN.
 
 use std::collections::HashMap;
 use std::fs;
@@ -208,6 +209,7 @@ fn pair(dir: &Path, admin: &FakeAdmin) -> (Paths, AgentConfig) {
         inbox: dir.join("run/caramos-business/inbox"),
         sessions: dir.join("run/systemd/sessions"),
         os_machine_id: dir.join("etc/machine-id"),
+        proc: dir.join("proc"),
     };
     fs::create_dir_all(dir.join("etc")).unwrap();
     let agent = json!({
@@ -351,6 +353,91 @@ fn leave_puts_everything_back() {
     fs::write(runtime.join("status.json"), status(json!({"shares": "ok"}))).unwrap();
     let left = daemon::leave(&paths, &system, std::time::Duration::from_millis(300));
     assert_eq!((left.users_done.len(), left.users_late.len()), (0, 1));
+}
+
+/// A desktop open since before pairing, for the current user: its login in logind's files and a program of it in
+/// /proc; no session part runs for it.
+fn open_desktop(paths: &Paths) -> PathBuf {
+    let uid = caramos_business_agent::process::uid().unwrap();
+    fs::create_dir_all(&paths.sessions).unwrap();
+    let login = format!("UID={uid}\nUSER=lan\nACTIVE=1\nSTATE=active\nTYPE=x11\nCLASS=user\nSEAT=seat0\nDESKTOP=cinnamon\nREALTIME=1795447874366476\n");
+    fs::write(paths.sessions.join("c1"), login).unwrap();
+    fs::create_dir_all(paths.proc.join("1437")).unwrap();
+    fs::write(paths.proc.join("1437/environ"), "XDG_SESSION_ID=c1\0DISPLAY=:0\0XDG_CURRENT_DESKTOP=X-Cinnamon\0").unwrap();
+    fs::write(paths.proc.join("1437/stat"), "1437 (caramos-evoluti) S 975 1 1 0").unwrap();
+    paths.run_user.join(uid.to_string()).join("caramos-business")
+}
+
+#[test]
+fn the_notice_comes_before_the_system_sections() {
+    let dir = TempDir::new("notice-first");
+    let admin = FakeAdmin::start();
+    admin.answer("/policy", example("v2/signed-policy.json"));
+    admin.answer(&format!("/files/{SHA}"), example(&format!("file-{SHA}")));
+    let (paths, _) = pair(&dir.0, &admin);
+    let system = system_root(&dir.0);
+    let runtime = open_desktop(&paths);
+    // The session part the daemon starts (systemd-run, which the test system only pretends to run): once effective.json
+    // is written it shows the notice and says so in notice.json. The daemon's own sections must not be on before.
+    let session_part = {
+        let (effective, runtime, hosts) = (paths.state.join("effective.json"), runtime.clone(), system.path("/etc/hosts"));
+        thread::spawn(move || {
+            while !effective.exists() {
+                thread::sleep(std::time::Duration::from_millis(20));
+            }
+            thread::sleep(std::time::Duration::from_millis(500));
+            let hosts_then = fs::read_to_string(&hosts).unwrap();
+            let settings: Value = serde_json::from_slice(&fs::read(&effective).unwrap()).unwrap();
+            let mut sections: Vec<&String> = settings["settings"].as_object().unwrap().iter().filter(|(_, value)| !value.is_null()).map(|(key, _)| key).collect();
+            sections.sort();
+            fs::create_dir_all(&runtime).unwrap();
+            fs::write(runtime.join("notice.json"), json!({"machine_id": MACHINE_ID, "sections": sections}).to_string()).unwrap();
+            hosts_then
+        })
+    };
+    let (worker, _queued) = mpsc::channel();
+    let daemon = Daemon::new(paths.clone(), system.clone(), worker);
+    let started = std::time::Instant::now();
+    daemon.round_now().unwrap().unwrap();
+    let hosts_before_the_notice = session_part.join().unwrap();
+    assert!(!hosts_before_the_notice.contains("caramos-business"), "the websites were blocked before the notice showed");
+    assert!(fs::read_to_string(system.path("/etc/hosts")).unwrap().contains("# BEGIN caramos-business"));
+    assert!(started.elapsed() < std::time::Duration::from_secs(10), "it waited for the notice only");
+
+    // Everything in effect was told: the next round does not wait.
+    let started = std::time::Instant::now();
+    daemon.round_now().unwrap().unwrap();
+    assert!(started.elapsed() < std::time::Duration::from_secs(5));
+}
+
+#[test]
+fn a_user_who_never_sees_the_notice_holds_the_settings_back_once() {
+    let dir = TempDir::new("notice-late");
+    let admin = FakeAdmin::start();
+    admin.answer("/policy", example("v2/signed-policy.json"));
+    admin.answer(&format!("/files/{SHA}"), example(&format!("file-{SHA}")));
+    let (paths, _) = pair(&dir.0, &admin);
+    let system = system_root(&dir.0);
+    let runtime = open_desktop(&paths);
+    // An earlier pairing's notice does not count.
+    fs::create_dir_all(&runtime).unwrap();
+    fs::write(runtime.join("notice.json"), r#"{"machine_id": "11111111-2222-4333-8444-555555555555", "sections": ["usb"]}"#).unwrap();
+    let (worker, _queued) = mpsc::channel();
+    let mut daemon = Daemon::new(paths.clone(), system.clone(), worker);
+    daemon.wait_for_notice_at_most(std::time::Duration::from_millis(800));
+    let started = std::time::Instant::now();
+    daemon.round_now().unwrap().unwrap();
+    assert!(started.elapsed() >= std::time::Duration::from_millis(800), "it waited");
+    assert!(fs::read_to_string(system.path("/etc/hosts")).unwrap().contains("# BEGIN caramos-business"), "then applied");
+    // The same login, still not told: the next rounds do not wait again.
+    let started = std::time::Instant::now();
+    daemon.round_now().unwrap().unwrap();
+    assert!(started.elapsed() < std::time::Duration::from_millis(700));
+    // Nobody at the machine: nothing waits.
+    fs::remove_file(paths.sessions.join("c1")).unwrap();
+    let started = std::time::Instant::now();
+    daemon.round_now().unwrap().unwrap();
+    assert!(started.elapsed() < std::time::Duration::from_millis(700));
 }
 
 #[test]
@@ -581,6 +668,29 @@ fn commands_from_wait_and_their_results() {
     daemon.receive(vec![serde_json::from_value(v3("command-remote-help.json")).unwrap()]);
     let run: Vec<Action> = queued.try_iter().map(|command| command.action).collect();
     assert!(matches!(&run[..], [Action::RemoteHelp { mode: caramos_business_agent::commands::Mode::Control, .. }]), "{run:?}");
+}
+
+#[test]
+fn the_long_poll_opens_once_a_round_loaded_the_pairing() {
+    // The long-poll channel starts with the service, before the first round loads the pairing. 0.3.1 then looked
+    // again only after 30 s: after each start of the service and each pairing, the admin's requests waited that long.
+    let dir = TempDir::new("wait-starts");
+    let admin = FakeAdmin::start();
+    admin.answer("/policy", example("v2/signed-policy.json"));
+    admin.answer(&format!("/files/{SHA}"), example(&format!("file-{SHA}")));
+    let (paths, _) = pair(&dir.0, &admin);
+    let (worker, _queued) = mpsc::channel();
+    let daemon = Arc::new(Daemon::new(paths, system_root(&dir.0), worker));
+    let channel = Arc::clone(&daemon);
+    thread::spawn(move || channel.wait_loop());
+    thread::sleep(std::time::Duration::from_millis(1500));
+    assert!(admin.requests("/wait").is_empty(), "no pairing loaded yet");
+    daemon.round_now().unwrap();
+    let opened = (0..30).any(|_| {
+        thread::sleep(std::time::Duration::from_millis(100));
+        !admin.requests("/wait").is_empty()
+    });
+    assert!(opened, "the long-poll opened within 3 s of the round that loaded the pairing");
 }
 
 #[test]

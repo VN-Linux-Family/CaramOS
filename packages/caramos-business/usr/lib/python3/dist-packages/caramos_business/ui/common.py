@@ -14,7 +14,8 @@ import gi
 
 gi.require_version("Gtk", "4.0")
 gi.require_version("Adw", "1")
-from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk, Pango  # noqa: E402
+gi.require_version("Graphene", "1.0")
+from gi.repository import Adw, Gdk, Gio, GLib, GObject, Graphene, Gtk, Pango  # noqa: E402
 
 from .. import DATA  # noqa: E402
 from ..i18n import _  # noqa: E402
@@ -214,7 +215,12 @@ def confirm(parent: Gtk.Widget, heading: str, body: str, action: str, callback: 
 def form_dialog(parent: Gtk.Widget, heading: str, body: str, rows: list[Gtk.Widget], action: str,
                 callback: Callable[[], Any], valid: Callable[[], bool] | None = None,
                 extra: Gtk.Widget | None = None) -> Adw.AlertDialog:
-    """A dialog with a boxed list of fields. valid() is checked after every change and enables the action."""
+    """A dialog with a boxed list of fields. valid() is checked after every change and enables the action.
+
+    In a dialog of fields only (no `extra`, such as a message's text), Enter in a text field presses the action button
+    once it is enabled. It goes by the field's "entry-activated", which comes after an input method (Vietnamese
+    typing) has committed what was typed. libadwaita 1.5 does not pass an AdwDialog's default widget to the window it
+    is shown in, so "activates-default" would do nothing."""
 
     dialog = Adw.AlertDialog(heading=heading, body=body)
     box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=12)
@@ -236,10 +242,17 @@ def form_dialog(parent: Gtk.Widget, heading: str, body: str, rows: list[Gtk.Widg
     def check(*_args: Any) -> None:
         dialog.set_response_enabled("ok", valid() if valid else True)
 
+    def submit(_row: Adw.EntryRow) -> None:
+        button = dialog.get_default_widget()  # the button of the default response, "ok"
+        if isinstance(button, Gtk.Button) and dialog.get_response_enabled("ok"):
+            button.emit("clicked")
+
     for item in rows:
         for signal in ("changed", "notify::selected", "notify::active"):
             if GObject_has_signal(item, signal):
                 item.connect(signal, check)
+        if extra is None and isinstance(item, Adw.EntryRow):
+            item.connect("entry-activated", submit)
     check()
     dialog.connect("response", lambda _dialog, answer: callback() if answer == "ok" else None)
     dialog.present(parent)
@@ -332,3 +345,72 @@ def page_box() -> Gtk.Box:
 
     return Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24, margin_top=24, margin_bottom=24,
                    margin_start=24, margin_end=24)
+
+
+def children(widget: Gtk.Widget) -> list[Gtk.Widget]:
+    found = []
+    child = widget.get_first_child()
+    while child is not None:
+        found.append(child)
+        child = child.get_next_sibling()
+    return found
+
+
+def top_in(widget: Gtk.Widget, ancestor: Gtk.Widget) -> float | None:
+    """Where the top of widget is in ancestor's coordinates, once laid out."""
+
+    ok, point = widget.compute_point(ancestor, Graphene.Point().init(0, 0))
+    return point.y if ok else None
+
+
+def keep_place(box: Gtk.Widget) -> Callable[[], None]:
+    """Called before the children of box (in a scrolled page) are built again; returns what to call once they are, so
+    that the page does not move: the child that holds the focus (the group of a leaver step just ticked, of a note
+    just added) shows where it showed; without one, the scroll position stays. 0.3.1 kept only the scroll position,
+    and the page jumped when a group above the one in use changed height.
+
+    Places are taken in the content's own coordinates (what the scrolled window moves as a whole) and the scroll
+    position from the adjustment, so neither depends on when the view last moved; the new place is read after the
+    layout that follows the rebuild (the adjustment changes then), or after a moment when nothing changed size."""
+
+    scrolled = box.get_ancestor(Gtk.ScrolledWindow)
+    if scrolled is None:
+        return lambda: None
+    adjustment = scrolled.get_vadjustment()
+    viewport = scrolled.get_child()
+    content = viewport.get_child() if isinstance(viewport, Gtk.Viewport) else viewport
+    value = adjustment.get_value()
+    root = box.get_root()
+    focus = root.get_focus() if root is not None else None
+    anchor: tuple[int, float] | None = None
+    for index, child in enumerate(children(box)):
+        if focus is not None and (focus is child or focus.is_ancestor(child)):
+            top = top_in(child, content) if content is not None else None
+            if top is not None:
+                anchor = (index, top - value)  # where it shows: its top, less the part scrolled away
+            break
+
+    def restore() -> None:
+        state = {"done": False, "handler": 0, "tries": 0}
+
+        def apply() -> bool:
+            if state["done"]:
+                return GLib.SOURCE_REMOVE
+            found = children(box)
+            target = found[anchor[0]] if anchor is not None and anchor[0] < len(found) else None
+            if target is not None and target.get_height() == 0 and state["tries"] < 30:
+                state["tries"] += 1
+                return GLib.SOURCE_CONTINUE  # not laid out yet: the timer looks again
+            state["done"] = True
+            if state["handler"]:
+                adjustment.disconnect(state["handler"])
+            top = top_in(target, content) if target is not None and content is not None else None
+            adjustment.set_value(top - anchor[1] if top is not None and anchor is not None else value)
+            return GLib.SOURCE_REMOVE
+
+        # The layout of the new children changes the adjustment (the page's height); the places are final once that
+        # layout is over, at the next idle moment. Without a change of height, the timer does it.
+        state["handler"] = adjustment.connect("changed", lambda _adjustment: GLib.idle_add(lambda: apply() and False))
+        GLib.timeout_add(100, apply)
+
+    return restore

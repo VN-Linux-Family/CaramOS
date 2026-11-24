@@ -1,0 +1,298 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: MATE Desktop
+Upstream-Contact: Martin Wimpress <martin@mate-desktop.org>
+Source: https://git.mate-desktop.org/mate-desktop/
+
+Files: libmate-desktop/mate-bg-crossfade.c
+       libmate-desktop/mate-bg-crossfade.h
+       libmate-desktop/mate-rr-config.c
+       libmate-desktop/mate-rr-config.h
+       libmate-desktop/mate-rr.c
+       libmate-desktop/mate-rr.h
+Copyright: 2002, Red Hat, Inc.
+           2007-2008, Red Hat, Inc.
+License: LGPL-2+
+
+Files: libmate-desktop/mate-hsv.c
+       libmate-desktop/mate-hsv.h
+Copyright: Simon Budig <Simon.Budig@unix-ag.org>
+           Federico Mena-Quintero <federico@gimp.org>
+           Jonathan Blandford <jrb@redhat.com>
+           2019, Pablo Barciela
+License: LGPL-2+
+
+Files: libmate-desktop/mate-bg.c
+       libmate-desktop/mate-bg.h
+Copyright: 2000 Eazel, Inc.
+           2007-2008, Red Hat, Inc.
+           2012, Jasmine Hassan <jasmine.aura@gmail.com>
+License: LGPL-2+
+
+Files: libmate-desktop/mate-dconf.c
+       libmate-desktop/mate-dconf.h
+Copyright: 2011, Novell, Inc.
+           2013, Stefano Karapetsas <stefano@karapetsas.com>
+License: GPL-2+
+
+Files: libmate-desktop/mate-desktop.h
+       libmate-desktop/test.c
+Copyright: 2013, Stefano Karapetsas <stefano@karapetsas.com>
+License: GPL-2+
+
+Files: libmate-desktop/mate-desktop-item.c
+       libmate-desktop/mate-desktop-item.h
+Copyright: 1999-2000, Red Hat, Inc.
+           2001, Sid Vicious
+License: LGPL-2+
+
+Files: libmate-desktop/test-desktop-thumbnail.c
+       libmate-desktop/test-languages.c
+Copyright: 2012-2017, Red Hat, Inc.
+           2012, Bastien Nocera <hadess@hadess.net>
+License: LGPL-2+
+
+Files: libmate-desktop/mate-desktop-thumbnail.c
+Copyright: 2002, Red Hat, Inc.
+           2010, Carlos Garcia Campos <carlosgc@gnome.org>
+License: LGPL-2+
+
+Files: libmate-desktop/mate-desktop-thumbnail.h
+Copyright: 2002, Red Hat, Inc.
+License: LGPL-2+
+
+Files: libmate-desktop/mate-desktop-utils.*
+Copyright: 1998, Tom Tromey
+License: LGPL-2+
+
+Files: libmate-desktop/mate-gsettings.c
+       libmate-desktop/mate-gsettings.h
+Copyright: 2013, Stefano Karapetsas <stefano@karapetsas.com>
+License: GPL-2+
+
+Files: libmate-desktop/mate-colorbutton.c
+       libmate-desktop/mate-colorbutton.h
+Copyright: 2001. CodeFactory AB
+           2001, 2002 Anders Carlsson
+           2003, 2004 Matthias Clasen <mclasen@redhat.com>
+           2014 Stefano Karapetsas <stefano@karapetsas.com>
+License: GPL-2+
+
+Files: libmate-desktop/mate-colorsel.c
+       libmate-desktop/mate-colorsel.h
+       libmate-desktop/mate-colorseldialog.c
+       libmate-desktop/mate-colorseldialog.h
+Copyright: 2000 Red Hat, Inc.
+           1995-1997 Peter Mattis, Spencer Kimball and Josh MacDonald
+License: GPL-2+
+
+Files: libmate-desktop/mate-rr-output-info.c
+Copyright: 2010 Giovanni Campagna
+License: GPL-2+
+
+Files: libmate-desktop/mate-rr-labeler.c
+       libmate-desktop/mate-rr-labeler.h
+       libmate-desktop/private.h
+Copyright: 2008, Novell, Inc.
+           2009, Novell, Inc.
+License: LGPL-2+
+
+Files: libmate-desktop/display-name.c
+       libmate-desktop/edid-parse.c
+Copyright: 2007, Red Hat, Inc.
+License: Expat
+
+Files: libmate-desktop/edid.h
+Copyright: 2007-2008, Red Hat, Inc.
+License: LGPL-2+
+
+Files: mate-about/*.c
+       mate-about/*.h.in
+Copyright: 2011, Perberos <perberos@gmail.com>
+License: GPL-2+
+
+Files: man/mate-about.1
+Copyright: 2010, Vincent Untz <vuntz@gnome.org>
+License: GPL-2+
+Comment:
+ Using license as found in COPYING file.
+
+Files: tools/mate-color-select.c
+Copyright: 2014, Stefano Karapetsas <stefano@karapetsas.com>
+License: GPL-2+
+
+Files: man/mate-color-select.1
+Copyright: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+License: GPL-2+
+Comment:
+ Assuming license as found in COPYING file.
+
+Files: libmate-desktop/test-ditem.c
+       tools/mate-color-select.desktop.in
+Copyright: *No copyright*
+License: GPL-2+
+
+Files: mate-desktop.pot
+       po/*.po
+       po/gnome-copyrights.txt
+Copyright: 1999-2004, Jesús Bravo Álvarez
+           2003-2004, Sharif FarsiWeb, Inc.
+           2003-2005, Dafydd Harries and Gareth Bowker
+           2003, Jitendra Shah
+           2004-2005, Miloslav Trmac <mitr@volny.cz>.
+           2004, Adam Weinberger and the MATE Foundation
+           2004, Gurban Mühemmet Tewekgeli
+           2004-2007, Zuza Software Foundation
+           2005, Canonical Ltd.
+           2006, The GNOME Foundation
+           2007-2010 The GNOME Project.
+           1999-2010, Free Software Foundation, Inc.
+           2010, HZ
+           2006, Gnome i18n Project for Latvian.
+           2009, GNOME i18n Project for Vietnamese
+           2007, Rosetta Contributors and Canonical Ltd
+           Croatian team
+           THE PACKAGE'S COPYRIGHT HOLDER
+License: GPL-2+ or LGPL-2+
+Comment:
+ Appropriately assume either license found in COPYING or license found in
+ COPYING.LIB file.
+
+Files: .build.yml
+       .travis.yml
+       .tx/config
+       .github/issue_template.md
+       .github/FUNDING.yml
+       abi-check
+       config.meson.h
+       docs/Makefile.am
+       docs/reference/Makefile.am
+       docs/reference/mate-desktop/meson.build
+       docs/reference/mate-desktop/Makefile.am
+       docs/reference/mate-desktop/mate-desktop-docs.sgml
+       docs/reference/mate-desktop/mate-desktop-overrides.txt
+       docs/reference/mate-desktop/mate-desktop-sections.txt
+       docs/reference/mate-desktop/mate-desktop.types
+       icons/Makefile.am
+       icons/meson.build
+       icons/128x128/apps/mate-desktop.png
+       icons/16x16/apps/mate-desktop.png
+       icons/22x22/apps/mate-desktop.png
+       icons/24x24/apps/mate-desktop.png
+       icons/32x32/apps/mate-desktop.png
+       icons/48x48/apps/mate-desktop.png
+       icons/scalable/apps/mate-desktop-symbolic.svg
+       icons/scalable/apps/mate-desktop.svg
+       libmate-desktop/Makefile.am
+       libmate-desktop/meson.build
+       libmate-desktop/mate-desktop.abi
+       libmate-desktop/mate-desktop.map
+       libmate-desktop/mate-desktop-2.0-uninstalled.pc.in
+       libmate-desktop/mate-desktop-2.0.pc.in
+       libmate-desktop/mate-languages.c
+       libmate-desktop/mate-languages.h
+       libmate-desktop/mate-rr-private.h
+       libmate-desktop/pnp.ids
+       makepot
+       man/Makefile.am
+       man/meson.build
+       mate-about/Makefile.am
+       mate-about/meson.build
+       mate-about/mate-about.desktop.in
+       mate-about/mate-version.xml.in
+       po/LINGUAS
+       po/POTFILES.*
+       po/Makevars
+       po/meson.build
+       schemas/org.mate.*.xml
+       schemas/org.mate.*.xml.in
+       schemas/Makefile.am
+       schemas/meson.build
+       tools/Makefile.am
+       tools/meson.build
+       utils/post_install.py
+       xdg-portal/Makefile.am
+       xdg-portal/mate-portals.conf
+       xdg-portal/meson.build
+       AUTHORS
+       ChangeLog
+       Makefile.am
+       meson.build
+       meson_options.txt
+       NEWS
+       README
+       autogen.sh
+       configure.ac
+Copyright: *No copyright*
+License: GPL-2+ or LGPL-2+
+Comment:
+ Appropriately assume either license found in COPYING or license found in
+ COPYING.LIB file.
+
+Files: git.mk
+Copyright: 2009, Red Hat, Inc.
+  2010,2011,2012,2013, Behdad Esfahbod
+License: public-domain
+
+Files: debian/*
+Copyright: 2011-2013, Stefano Karapetsas <stefano@karapetsas.com>
+           2013-2023, Mike Gabriel <sunweaver@debian.org>
+License: GPL-2+ or LGPL-2+ or Expat
+
+License: GPL-2+
+ This package is free software; you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation; either version 2 of the License, or
+ (at your option) any later version.
+ .
+ This package is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ GNU Genaral Public License for more details.
+ .
+ You should have received a copy og the GNU General Public License
+ along with this program. If not, see <http://www.gnu.org/licenses/>
+ .
+ On Debian systems, the complete text of the GNU General
+ Public License version 2 can be found in "/usr/share/common-licenses/GPL-2".
+
+License: LGPL-2+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Library General Public
+ License as published by the Free Software Foundation; either
+ version 2 of the License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Library General Public License for more details.
+ .
+ You should have received a copy of the GNU Library General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
+ .
+ On Debian systems, the complete text of the GNU Library General
+ Public License version 2 can be found in "/usr/share/common-licenses/LGPL-2".
+
+License: Expat
+ Permission is hereby granted, free of charge, to any person obtaining a
+ copy of this software and associated documentation files (the "Software"),
+ to deal in the Software without restriction, including without limitation
+ on the rights to use, copy, modify, merge, publish, distribute, sub
+ license, and/or sell copies of the Software, and to permit persons to whom
+ the Software is furnished to do so, subject to the following conditions:
+ .
+ The above copyright notice and this permission notice (including the next
+ paragraph) shall be included in all copies or substantial portions of the
+ Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT.  IN NO EVENT SHALL
+ THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+License: public-domain
+ Copying and distribution of this file, with or without modification,
+ is permitted in any medium without royalty provided the copyright
+ notice and this notice are preserved.

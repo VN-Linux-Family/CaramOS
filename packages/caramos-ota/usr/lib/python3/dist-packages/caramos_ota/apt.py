@@ -10,7 +10,8 @@ import tempfile
 from pathlib import Path
 from typing import Any
 
-from .constants import EXIT_APT, PPA_PATTERN
+from .constants import (APT_NONINTERACTIVE_OPTIONS, DPKG_NONINTERACTIVE_OPTIONS, EXIT_APT, NONINTERACTIVE_ENV,
+                        PPA_PATTERN)
 from .errors import OtaError
 from .logging_utils import current_log_file, log_error, log_info, log_warn, now_iso, print_fail, print_ok
 from .manifest import manifest_for_plan, resolve_update_plan
@@ -168,18 +169,35 @@ def update_caramos_sources() -> bool:
     return result.returncode == 0
 
 
+def unreachable_ppa() -> None:
+    """The CaramOS PPA could not be fetched: stop, so the check counts as failed. systemd tries it again an hour later,
+    and the Update Center says it could not check (UNREACHABLE in caramos_ota_notifier.app)."""
+
+    print("Error: Could not reach the CaramOS update server (ppa.launchpadcontent.net).")
+    print("Check the internet connection; on a company network, that address must be allowed.")
+    print(f"Log: {current_log_file()}")
+    log_error("apt-get update could not fetch the CaramOS PPA")
+    raise SystemExit(EXIT_APT)
+
+
 def apt_update() -> None:
     print_ok("Updating package index...")
     disable_cdrom_sources()
     result = _apt_get_update([])
-    if result.returncode == 0:
+    failed = failed_sources(result.stderr or "")
+    ppa_failed = any(PPA_PATTERN in uri for uri in failed)
+    if result.returncode == 0 and not ppa_failed:
         log_info("apt-get update completed")
         return
+    if ppa_failed:
+        # apt-get update ends with 0 when a source cannot be reached at all (no network, a name that does not
+        # resolve, a firewall), with only a warning; it then keeps the old CaramOS list. Up to 1.5.0 the check
+        # went on with that list and found nothing new, every day.
+        unreachable_ppa()
     # A source added by hand or by another program that no longer works (a moved repository, a typo, a
     # captive portal) fails apt-get update as a whole, though the other lists are fresh. The CaramOS update
     # only needs the CaramOS PPA: refresh it alone and go on.
-    failed = failed_sources(result.stderr or "")
-    if failed and not any(PPA_PATTERN in uri for uri in failed) and update_caramos_sources():
+    if failed and update_caramos_sources():
         for uri in failed:
             files = source_files_mentioning(uri)
             where = f" (in {', '.join(files)})" if files else ""
@@ -338,28 +356,44 @@ def detect_updates(
     return manifest, updates
 
 
+def noninteractive_environment() -> dict[str, str]:
+    """This environment, with debconf and ucf asking nothing (constants.NONINTERACTIVE_ENV)."""
+
+    return {**os.environ, **NONINTERACTIVE_ENV}
+
+
+def apt_get(*arguments: str) -> list[str]:
+    """An apt-get command whose dpkg asks nothing about configuration files (ticket H-1207, constants)."""
+
+    return ["apt-get", *APT_NONINTERACTIVE_OPTIONS, *arguments]
+
+
 def install_packages(packages: list[str]) -> bool:
     try:
-        run_command(["apt-get", "install", "--yes", "--", *packages])
+        run_command(apt_get("install", "--yes", "--", *packages), env=noninteractive_environment())
         return True
     except subprocess.CalledProcessError:
         return False
 
 
 def remove_package(package: str) -> bool:
-    return run_command(["apt-get", "remove", "--yes", "--", package], allow_fail=True).returncode == 0
+    return run_command(apt_get("remove", "--yes", "--", package), allow_fail=True,
+                       env=noninteractive_environment()).returncode == 0
 
 
 def downgrade_package(package: str, old_version: str) -> bool:
-    return run_command(["apt-get", "install", "--yes", "--allow-downgrades", "--", f"{package}={old_version}"], allow_fail=True).returncode == 0
+    return run_command(apt_get("install", "--yes", "--allow-downgrades", "--", f"{package}={old_version}"),
+                       allow_fail=True, env=noninteractive_environment()).returncode == 0
 
 
 def repair_dpkg() -> bool:
-    return run_command(["dpkg", "--configure", "-a"], allow_fail=True).returncode == 0
+    return run_command(["dpkg", "--configure", "-a", *DPKG_NONINTERACTIVE_OPTIONS], allow_fail=True,
+                       env=noninteractive_environment()).returncode == 0
 
 
 def repair_apt() -> bool:
-    return run_command(["apt-get", "--fix-broken", "install", "--yes"], allow_fail=True).returncode == 0
+    return run_command(apt_get("--fix-broken", "install", "--yes"), allow_fail=True,
+                       env=noninteractive_environment()).returncode == 0
 
 
 def print_repair_result(ok: bool, success_message: str, failure_message: str) -> None:

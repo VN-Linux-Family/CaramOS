@@ -1,0 +1,23 @@
+{
+  "schema": 2,
+  "unattended": "nobody-logged-in",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Màn hình nền (dưới 1 MB)",
+  "size_en": "Desktop (under 1 MB)",
+  "title": "Thùng rác nằm sẵn trên màn hình nền",
+  "summary": "Như trên Windows: mở Thùng rác ngay trên màn hình nền để xem lại, khôi phục hoặc dọn các tệp đã xoá.",
+  "title_en": "The Trash is on the desktop",
+  "summary_en": "As on Windows: open the Trash right on the desktop to look at, restore or empty deleted files.",
+  "release_notes_vi": [
+    "Biểu tượng Thùng rác nằm trên màn hình nền, trên cả bản Cinnamon lẫn bản Xfce.",
+    "Không cần thì tắt được. Bản Cinnamon: Cài đặt Hệ thống > Màn hình chính, bỏ chọn Sọt rác. Bản Xfce: bấm chuột phải lên màn hình nền > Desktop Settings > Icons, bỏ chọn Trash.",
+    "Cập nhật từ Trung tâm cập nhật thì hiện ngay; trên bản Xfce, máy chưa đăng nhập thì hiện từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "The Trash icon is on the desktop, in both the Cinnamon and the Xfce edition.",
+    "It can be turned off. Cinnamon edition: System Settings > Desktop, untick Trash. Xfce edition: right-click the desktop > Desktop Settings > Icons, untick Trash.",
+    "Updating from the Update Center shows it at once; on the Xfce edition, an account that is not logged in sees it from its next login."
+  ]
+}

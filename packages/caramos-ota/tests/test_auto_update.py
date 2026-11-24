@@ -540,6 +540,8 @@ class ClassificationTests(unittest.TestCase):
         "20261012180000_add_help_applet",
         "20261018120000_restore_taskbar_after_cinnamon_update",
         "20261105120000_keep_lotus_settings",
+        "20261124100000_show_desktop_button",
+        "20261124140000_show_trash_on_desktop",
     }
 
     def test_every_timestamp_migration_says_when_it_may_run(self) -> None:

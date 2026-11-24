@@ -13,15 +13,15 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.5.0"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.5.1"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.5.0</strong></a> ·
-  <a href="https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-xfce-amd64.iso/download">Xfce edition</a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.5.1</strong></a> ·
+  <a href="https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download">Xfce edition</a> ·
   <a href="https://caramos.vietnamlinuxfamily.net/?lang=en">Website</a> ·
   <a href="README.md">Tiếng Việt</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -41,15 +41,15 @@ Vietnamese out of the box, typing that just works, a friendly desktop, and every
 away. Since 1.4.0 there is also a lighter **Xfce edition** for 2 GB computers and school computer labs.
 
 > [!IMPORTANT]
-> **CaramOS 1.5.0 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
+> **CaramOS 1.5.1 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
 > Open Beta releases.
 >
-> - **New install:** [download the 1.5.0 ISO](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-cinnamon-amd64.iso/download)
->   (2.9 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS) ·
+> - **New install:** [download the 1.5.1 ISO](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)
+>   (2.9 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) ·
 >   [release notes](https://caramos.vietnamlinuxfamily.net/?lang=en#release-notes)
-> - **2 GB computers, school labs:** [download the 1.5.0 Xfce edition](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-xfce-amd64.iso/download)
->   (2.7 GB) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS-xfce)
-> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.5.0; click
+> - **2 GB computers, school labs:** [download the 1.5.1 Xfce edition](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)
+>   (2.7 GB) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce)
+> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.5.1; click
 >   **Update now**. See [Upgrading from an earlier release](#upgrading-from-an-earlier-release).
 
 ## Highlights
@@ -260,11 +260,11 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
 
 ### 1. Download the ISO
 
-- [CaramOS-1.5.0-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-cinnamon-amd64.iso/download)
+- [CaramOS-1.5.1-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)
   (2.9 GB, on SourceForge because GitHub limits the size of each release file).
-- The Xfce edition for 2 GB computers and school labs: [CaramOS-1.5.0-xfce-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.0/CaramOS-1.5.0-xfce-amd64.iso/download)
-  (2.7 GB), checked with [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS-xfce).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.0/SHA256SUMS) to check
+- The Xfce edition for 2 GB computers and school labs: [CaramOS-1.5.1-xfce-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)
+  (2.7 GB), checked with [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce).
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) to check
   the download:
 
 ```bash
@@ -277,7 +277,7 @@ Use [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net) o
 Linux you can use `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.5.0-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.5.1-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Try it and install
@@ -292,7 +292,7 @@ sudo dd if=CaramOS-1.5.0-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress of
 
 Machines with CaramOS installed do not need the ISO again.
 
-- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.5.0; click **Update
+- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.5.1; click **Update
   now**. To upgrade right away, open a terminal and run:
 
   ```bash
@@ -375,24 +375,27 @@ own repository, [VN-Linux-Family/caramos-landing](https://github.com/VN-Linux-Fa
 The product version lives in the source tree, in [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.5.0"
+CARAMOS_VERSION="1.5.1"
 ```
 
 `make release VERSION=x.y.z` stamps it into `scripts/config.sh`, the release metadata and the
-`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.5.0` is tag
-`v1.5.0`, or GitHub Actions stops before building.
+`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.5.1` is tag
+`v1.5.1`, or GitHub Actions stops before building.
 
 ### OTA updates
 
 ```text
-systemd timer
+systemd timer (daily; a failed check runs again an hour later)
   └── caramos-ota --check
       ├── updates the caramos-ota package when the PPA has a newer build
       ├── updates the App Center from its signed GitHub release
       ├── resolves the migrations not applied yet, using the ledger
-      └── writes /var/lib/caramos-ota/state.json
+      ├── writes /var/lib/caramos-ota/state.json
+      └── on success: caramos-ota-auto-update.service (Automatic updates, on by default)
+          └── caramos-ota --auto-upgrade, when each migration's manifest allows it now
 
-Update Center
+Update Center (opened by hand)
+  ├── runs the same check first (pkexec, no password), and says so when it could not
   └── user confirms the update
       └── pkexec caramos-ota --upgrade --yes
           └── caramos-ota-update runs each migration
@@ -400,8 +403,9 @@ Update Center
 
 Important rules:
 
-- The timer checks/prepares state; it does not open the GUI or apply migrations.
-- Migrations run only after user confirmation or an explicit admin CLI command.
+- The check prepares state; it does not open the GUI.
+- Migrations run after user confirmation, an explicit admin CLI command, or Automatic updates (which the user can
+  turn off in the Update Center; a migration that changes open desktops waits until nobody is logged in).
 - System-changing logic lives in `packages/caramos-ota`, not in build hooks.
 - Post-release changes are timestamp migrations (`YYYYMMDDHHMMSS_slug/`), not tied to a version.
 - ISO builds use the same migration chain to bring the rootfs to latest.
@@ -452,11 +456,11 @@ writes `SHA256SUMS`, uploads the ISO to SourceForge and creates the GitHub Relea
 link.
 
 ```bash
-make -C packages/caramos-ota prepare-release VERSION=1.5.0
-git commit -am "[build] Release 1.5.0"
+make -C packages/caramos-ota prepare-release VERSION=1.5.1
+git commit -am "[build] Release 1.5.1"
 git push origin main
-git tag -a v1.5.0 -m "CaramOS 1.5.0"
-git push origin v1.5.0
+git tag -a v1.5.1 -m "CaramOS 1.5.1"
+git push origin v1.5.1
 make -C packages/caramos-ota source
 make -C packages/caramos-ota gpg-unlock upload   # caramos-ota to the PPA, with the release GPG key
 ```

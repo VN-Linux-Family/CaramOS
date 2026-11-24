@@ -175,7 +175,7 @@ class Context:
 
     def save(self) -> None:
         try:
-            self.draft.validate()
+            self.draft.validate(self.machines)
         except protocol.ProtocolError as exc:
             self.show_error(exc)
             return
@@ -191,6 +191,8 @@ class Context:
             self.saved_policy = admin.read_policy()
             self.draft.load(self.saved_policy)
             self.view.update_save_bar()
+            # A settings page is built again from the saved draft (Draft.generation): later edits show the save bar,
+            # and the rows say what was saved (a Wi-Fi password "sent", not "new").
             self.view.refresh_current()
             self.toast(_("Sent. Machines that are on take it within seconds; the others when they start."), 6)
 

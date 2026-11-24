@@ -1,7 +1,8 @@
 [Desktop Entry]
-# The last default app of Word, Excel, PowerPoint and OpenDocument files in /etc/xdg/mimeapps.list, after the office
-# suites of the App Center: it runs only when none of them is installed, and then opens the file with another app
-# that opens it, or suggests the App Center. It is not in the menu and does not claim any file type itself.
+# The last default app of Word, Excel, PowerPoint and OpenDocument files in x-cinnamon-mimeapps.list and
+# xfce-mimeapps.list (next to this file), after the office suites of the App Center: it runs only when none of them
+# is installed, and then opens the file with another app that opens it, or suggests the App Center. It is not in the
+# menu and does not claim any file type itself.
 Type=Application
 Name=Office Suite
 Name[vi]=Bộ ứng dụng văn phòng

@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Phím tắt (dưới 1 MB)",
+  "size_en": "Shortcuts (under 1 MB)",
+  "title": "Bấm PrtSc là chép cả màn hình vào bộ nhớ tạm",
+  "summary": "Như Windows 10: PrtSc chụp cả màn hình và chép vào bộ nhớ tạm, kèm một thông báo ngắn; bấm Ctrl+V để dán vào Zalo, Messenger, Word hay trình duyệt. Muốn chọn một vùng thì bấm Super+Shift+S như trước.",
+  "title_en": "PrtSc copies the whole screen to the clipboard",
+  "summary_en": "As on Windows 10: PrtSc takes the whole screen and copies it to the clipboard, with a short notification; press Ctrl+V to paste it into Zalo, Messenger, Word or a web page. To pick a part of the screen, press Super+Shift+S as before.",
+  "release_notes_vi": [
+    "Bấm PrtSc: cả màn hình được chép vào bộ nhớ tạm, và một thông báo ngắn báo “Đã chụp màn hình và chép vào bộ nhớ tạm”. Bấm Ctrl+V để dán ảnh vào Zalo, Messenger, Word, LibreOffice hay trang web.",
+    "Ảnh chỉ nằm trong bộ nhớ tạm, không lưu thành tệp. Muốn chọn một vùng, vẽ lên ảnh hay lưu thành tệp: bấm Super+Shift+S để mở Flameshot như trước.",
+    "Có nhiều màn hình thì ảnh gồm tất cả các màn hình, như Windows.",
+    "Ai đã tự gán PrtSc cho việc khác thì vẫn giữ phím tắt của mình. Có tác dụng ngay, trên cả hai bản."
+  ],
+  "release_notes_en": [
+    "Press PrtSc: the whole screen is copied to the clipboard, and a short notification says “Screenshot copied to the clipboard”. Press Ctrl+V to paste the picture into Zalo, Messenger, Word, LibreOffice or a web page.",
+    "The picture only goes to the clipboard, not to a file. To pick a part of the screen, draw on the picture or save it to a file: press Super+Shift+S to open Flameshot as before.",
+    "With several monitors, the picture has all of them, as on Windows.",
+    "If you set PrtSc to something else yourself, you keep your shortcut. Works right away, on both editions."
+  ]
+}

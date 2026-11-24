@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- CaramOS Xfce: the three islands of CaramOS Cinnamon, one panel each, at the bottom of the screen.
+     Left: the CaramOS menu (Whisker). Middle: pinned and open apps (Docklike, its pins in panel/docklike.rc).
+     Right: the tray, the clock and the Control Center (network, volume, battery; its popup has the rest), then
+     Feedback & Help (the question mark), in the order of CaramOS Cinnamon. The clock is the Control Center's own,
+     whose calendar shows lunar dates, so there is no Xfce clock plugin (caramos-ota's control-center/clock.py;
+     migration 20261120100400 takes it out of installed systems).
+     The island look is caramos-ota's /usr/share/caramos-ota/xfce/panel-islands.css, imported by the theme. It needs
+     this layout: three clear panels (background style 1, alpha 0) 48 px high, and the plugin ids below, which the CSS
+     names (tests/test_xfce_panel_islands.py checks both).
+     The Control Center is caramos-ota's /usr/share/caramos-ota/xfce/caramos-control-center; the plugin that gives it
+     its place here is CaramOS's xfce4-caramos-plugin (packages/xfce4-caramos-plugin). With it, the panel has no
+     sound or battery plugin, and nm-applet shows no icon (its dconf default), as on Cinnamon.
+     Mint's xapp-status plugin is left out: Mint's icons then show in the tray, as small as the other tray icons. -->
+<channel name="xfce4-panel" version="1.0">
+  <property name="configver" type="int" value="2"/>
+  <property name="panels" type="array">
+    <value type="int" value="1"/>
+    <value type="int" value="2"/>
+    <value type="int" value="3"/>
+    <property name="dark-mode" type="bool" value="false"/>
+    <property name="panel-1" type="empty">
+      <property name="position" type="string" value="p=8;x=0;y=0"/>
+      <property name="length" type="uint" value="1"/>
+      <property name="length-adjust" type="bool" value="true"/>
+      <property name="position-locked" type="bool" value="true"/>
+      <property name="size" type="uint" value="48"/>
+      <property name="icon-size" type="uint" value="32"/>
+      <property name="background-style" type="uint" value="1"/>
+      <property name="background-rgba" type="array">
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+      </property>
+      <property name="plugin-ids" type="array">
+        <value type="int" value="1"/>
+      </property>
+    </property>
+    <property name="panel-2" type="empty">
+      <property name="position" type="string" value="p=10;x=0;y=0"/>
+      <property name="length" type="uint" value="1"/>
+      <property name="length-adjust" type="bool" value="true"/>
+      <property name="position-locked" type="bool" value="true"/>
+      <property name="size" type="uint" value="48"/>
+      <property name="icon-size" type="uint" value="32"/>
+      <property name="background-style" type="uint" value="1"/>
+      <property name="background-rgba" type="array">
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+      </property>
+      <property name="plugin-ids" type="array">
+        <value type="int" value="2"/>
+      </property>
+    </property>
+    <property name="panel-3" type="empty">
+      <property name="position" type="string" value="p=4;x=0;y=0"/>
+      <property name="length" type="uint" value="1"/>
+      <property name="length-adjust" type="bool" value="true"/>
+      <property name="position-locked" type="bool" value="true"/>
+      <property name="size" type="uint" value="48"/>
+      <property name="icon-size" type="uint" value="16"/>
+      <property name="background-style" type="uint" value="1"/>
+      <property name="background-rgba" type="array">
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+        <value type="double" value="0.000000"/>
+      </property>
+      <property name="plugin-ids" type="array">
+        <value type="int" value="3"/>
+        <value type="int" value="5"/>
+        <value type="int" value="6"/>
+      </property>
+    </property>
+  </property>
+  <property name="plugins" type="empty">
+    <property name="plugin-1" type="string" value="whiskermenu"/>
+    <property name="plugin-2" type="string" value="docklike"/>
+    <!-- 20 px cells: the XEmbed icons (Mint's, the network) draw 16 px icons in them, 22 px apart. -->
+    <property name="plugin-3" type="string" value="systray">
+      <property name="icon-size" type="int" value="20"/>
+      <property name="symbolic-icons" type="bool" value="true"/>
+      <property name="square-icons" type="bool" value="false"/>
+      <property name="single-row" type="bool" value="true"/>
+      <property name="names-visible" type="array">
+        <value type="string" value="networkmanager applet"/>
+      </property>
+      <property name="show-frame" type="bool" value="false"/>
+    </property>
+    <property name="plugin-5" type="string" value="caramos-control-center"/>
+    <property name="plugin-6" type="string" value="launcher">
+      <property name="items" type="array">
+        <value type="string" value="/usr/share/caramos-ota/xfce/caramos-help-panel.desktop"/>
+      </property>
+    </property>
+  </property>
+</channel>

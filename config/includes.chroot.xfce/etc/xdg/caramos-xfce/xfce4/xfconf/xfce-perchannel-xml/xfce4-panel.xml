@@ -2,7 +2,9 @@
 <!-- CaramOS Xfce: the three islands of CaramOS Cinnamon, one panel each, at the bottom of the screen.
      Left: the CaramOS menu (Whisker). Middle: pinned and open apps (Docklike, its pins in panel/docklike.rc).
      Right: the tray, the clock and the Control Center (network, volume, battery; its popup has the rest), then
-     Feedback & Help (the question mark), in the order of CaramOS Cinnamon. The clock is the Control Center's own,
+     Feedback & Help (the question mark), in the order of CaramOS Cinnamon. After the island, at the very edge of the
+     screen: Show desktop, a strip 4 px wide (caramos-show-desktop, also from xfce4-caramos-plugin; Linux Mint's
+     plugins number up to 14, so it is plugin-15). The clock is the Control Center's own,
      whose calendar shows lunar dates, so there is no Xfce clock plugin (caramos-ota's control-center/clock.py;
      migration 20261120100400 takes it out of installed systems).
      The island look is caramos-ota's /usr/share/caramos-ota/xfce/panel-islands.css, imported by the theme. It needs
@@ -73,6 +75,7 @@
         <value type="int" value="3"/>
         <value type="int" value="5"/>
         <value type="int" value="6"/>
+        <value type="int" value="15"/>
       </property>
     </property>
   </property>
@@ -96,5 +99,6 @@
         <value type="string" value="/usr/share/caramos-ota/xfce/caramos-help-panel.desktop"/>
       </property>
     </property>
+    <property name="plugin-15" type="string" value="caramos-show-desktop"/>
   </property>
 </channel>

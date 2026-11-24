@@ -1,0 +1,26 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["cinnamon"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Màn hình nền (dưới 1 MB)",
+  "size_en": "Desktop (under 1 MB)",
+  "title": "Tên dưới các biểu tượng trên màn hình nền dễ đọc hơn",
+  "summary": "Tên tệp, thư mục và ứng dụng trên màn hình nền có bóng tối mờ bao quanh chữ, đọc rõ cả trên hình nền sáng, như bản Xfce.",
+  "title_en": "Easier to read names under the desktop icons",
+  "summary_en": "The names of the files, folders and applications on the desktop have a soft dark shadow around the letters, so they read well on light wallpapers too, as on the Xfce edition.",
+  "release_notes_vi": [
+    "Tên dưới các biểu tượng trên màn hình nền (tệp, thư mục, ứng dụng) có bóng tối mờ bao quanh chữ ở mọi phía, nên đọc rõ cả trên hình nền sáng như hình nền mặc định, giống bản Xfce.",
+    "Biểu tượng đang chọn vẫn được tô nền màu như trước, biểu tượng đang trỏ chuột vẫn có nền tối như trước.",
+    "Chủ đề sáng và chủ đề tối đều như vậy.",
+    "Hiện ra từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "The names under the icons on the desktop (files, folders, applications) have a soft dark shadow on every side of the letters, so they read well on light wallpapers too, such as the default one, as on the Xfce edition.",
+    "A selected icon keeps its coloured highlight, and the icon under the pointer its dark one, as before.",
+    "The same in the light and the dark theme.",
+    "Shows from the next login."
+  ]
+}

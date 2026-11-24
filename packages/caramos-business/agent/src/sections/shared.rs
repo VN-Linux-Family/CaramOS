@@ -399,6 +399,10 @@ pub struct MaintenanceRecord {
     pub result: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub tried: Option<String>,
+    /// What the maintenance's update did, step by step, when `result` is its outcome (from 0.3.1, after the full test
+    /// pass): the admin words them in its reader's language. Any other `result` comes without steps.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub steps: Option<Vec<crate::protocol::UpdateStep>>,
 }
 
 impl MaintenanceRecord {

@@ -72,3 +72,17 @@ def run_async(argv: Sequence[str], on_done: Callable[[bool, str, str], None]) ->
 
 def first_line(text: str) -> str:
     return next((line.strip() for line in text.splitlines() if line.strip()), "")
+
+
+def notify(app_name: str, summary: str, body: str, icon: str, transient: bool = False) -> None:
+    """A desktop notification (org.freedesktop.Notifications), sent without waiting for an answer."""
+
+    try:
+        bus = Gio.bus_get_sync(Gio.BusType.SESSION, None)
+    except GLib.Error as exc:
+        LOG.warning("notification: %s", exc.message)
+        return
+    hints = {"transient": GLib.Variant("b", True)} if transient else {}
+    bus.call("org.freedesktop.Notifications", "/org/freedesktop/Notifications", "org.freedesktop.Notifications",
+             "Notify", GLib.Variant("(susssasa{sv}i)", (app_name, 0, icon, summary, body, [], hints, -1)),
+             None, Gio.DBusCallFlags.NONE, -1, None, None)

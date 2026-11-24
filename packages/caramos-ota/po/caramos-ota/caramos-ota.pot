@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 14:28+0700\n"
+"POT-Creation-Date: 2026-11-24 18:15+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,227 +18,277 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:210
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:211
 #, python-format
 msgid "You are using %s."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:213
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:214
 #, python-format
 msgid "This update has %d change for the version you have."
 msgid_plural "This update has %d changes for the version you have."
 msgstr[0] ""
 msgstr[1] ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:218
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:219
 #, python-format
 msgid "An update for CaramOS %s"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:219
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:220
 msgid "A new CaramOS update is available"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:235
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:236
 msgid "Size"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:238
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:239
 msgid "Update channel"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:245
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:246
 #, python-format
 msgid "Updating to CaramOS %s"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:246
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:247
 msgid "Updating CaramOS"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:252
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:253
 #, python-format
 msgid "Updated to CaramOS %s"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:253
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:254
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/auto_update.py:192
 msgid "CaramOS was updated"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:263
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:308
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:264
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:309
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/auto_update.py:193
 msgid "Some changes show after you log in again."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:265
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:266
 msgid "Not updated yet"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:266
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:267
 msgid "Updating needs the password of an administrator account."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:267
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:268
 msgid "Click Try again and type it when asked."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:270
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:271
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:320
 msgid "Another update is running"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:271
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:272
 msgid ""
 "CaramOS is already updating, in another Update Center window or in the "
 "background."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:272
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:273
 msgid "Wait until it finishes, then click Try again."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:274
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:275
 msgid "Click Ask for help to ask VNLF, with this update's log attached."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:275
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:276
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:337
 msgid "Open the Update Center again later to try once more."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:276
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:277
 msgid "Could not update"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:276
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:277
 msgid "The update stopped because of an error."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:282
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:283
 msgid "Automatic updates"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:282
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:283
 msgid ""
 "New versions of CaramOS install by themselves, and you are told when they "
 "are done."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:289
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:290
 msgid "It did not update by itself this time: the connection is metered."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:290
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:291
 msgid ""
 "It did not update by itself this time: the battery is low and the charger is "
 "not plugged in."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:292
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:293
 msgid "It did not update by itself this time: the disk is almost full."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:293
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:294
 msgid ""
 "It did not update by itself this time: another program was installing "
 "software."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:295
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:296
 msgid "It did not update by itself this time: another update was running."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:296
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:297
 msgid ""
 "This update changes the desktop, so it does not install by itself while "
 "someone is logged in."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:298
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:299
 msgid "The last automatic try did not work. Click Update to try again."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:299
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:300
 msgid "The computer runs from a USB stick, so it does not update by itself."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:300
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:301
 msgid "The system drive is frozen, so the computer does not update by itself."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:308
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:309
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/auto_update.py:193
 msgid "Restart to finish."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:309
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:310
 msgid "CaramOS installed this update by itself."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:314
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:321
+msgid ""
+"CaramOS is already checking or updating, in another window or in the "
+"background."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:322
+msgid "Wait a moment, then click Try again."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:325
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:332
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:338
+msgid "Could not check for updates"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:326
+msgid "The computer could not reach the CaramOS update server."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:327
+msgid "Check the internet connection, then click Try again."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:328
+msgid ""
+"On a company network, ask its administrator to allow the CaramOS update "
+"server: its address is under Details."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:333
+msgid "This account may not check for updates on this computer."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:334
+msgid "Ask the computer's administrator to open the Update Center."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:336
+msgid "Click Ask for help to ask VNLF, with the check's log attached."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:338
+msgid "Checking stopped because of an error."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:343
 #, python-format
 msgid "You are using the latest version, %s."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:314
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:343
 msgid "You are using the latest version."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:315
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:344
 msgid "The computer checks for new versions every day."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:419
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:443
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:448
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:472
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:239
 #: usr/share/caramos-ota/lab/caramos_lab/app.py:188
 msgid "Details"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:621
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:623
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:662
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:664
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/auto_update.py:248
 msgid "Update Center"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:645
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:686
 msgid "Security update"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:645
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:686
 msgid "It fixes a security problem. Update soon."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:647
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:735
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:688
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:800
 msgid "What's new"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:653
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:694
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:173
 msgid "Later"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:654
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:695
 msgid "Update"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:658
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:699
 msgid "You can keep using the computer while it updates."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:681
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:232
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:722
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:384
 msgid "Getting ready…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:689
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:730
 msgid "Do not turn off the computer until it finishes."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:709
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:724
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:738
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:750
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:765
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:774
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:789
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:803
 #: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:97
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:92
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:95
@@ -246,7 +296,8 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:711
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:752
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:776
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:172
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:81
@@ -257,7 +308,8 @@ msgstr ""
 msgid "Ask for help"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:713
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:754
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:778
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:559
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:585
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:656
@@ -266,65 +318,78 @@ msgstr ""
 msgid "Try again"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:723
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:763
+msgid "Checking for updates…"
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:764
+msgid "The Update Center is asking the CaramOS update server for new versions."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:788
 msgid "CaramOS is up to date"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:52
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:73
 msgid "Downloading the list of software…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:54
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:75
 msgid "Checking the update source…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:56
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:77
 msgid "Preparing the changes…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:58
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:79
 msgid "Applying the changes…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:60
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:81
 msgid "Saving the new version number…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:62
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:83
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:20
 msgid "Finishing…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:64
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:85
 msgid "The update ran into an error."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:65
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:86
 msgid "Updating…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:115
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:120
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:136
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:141
 msgid "The update timed out (10 minutes)."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:122
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:143
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:178
 msgid "The pkexec command was not found."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:319
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:176
+msgid "Checking for updates took too long."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:471
 msgid "Updated."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:319
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:471
 msgid "Not updated."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:319
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:471
 msgid "Another update is running."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:320
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:472
 msgid "Could not update."
 msgstr ""
 
@@ -350,12 +415,16 @@ msgstr ""
 msgid "CaramOS update"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/problem.py:64
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/problem.py:75
+msgid "The Update Center could not check for updates."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/problem.py:78
 #, python-format
 msgid "The Update Center could not install the update “%s”."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/problem.py:65
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/problem.py:79
 msgid "The Update Center could not install the update."
 msgstr ""
 
@@ -1449,6 +1518,7 @@ msgid "Remove"
 msgstr ""
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/attachments.py:287
+#: usr/bin/caramos-print-screen:51
 msgid "Screenshot"
 msgstr ""
 
@@ -1553,7 +1623,7 @@ msgstr ""
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/canon.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/canon.py:116
 #: usr/share/caramos-ota/lab/caramos_lab/app.py:168
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:200
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:201
 msgid "Cancel"
 msgstr ""
 
@@ -2804,84 +2874,84 @@ msgid ""
 "page open on the teacher's computer and pair again."
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:114
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:115
 msgid "No app on this computer can open this file yet"
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:117
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:118
 #, python-format
 msgid "“%s” is a spreadsheet."
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:119
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:120
 #, python-format
 msgid "“%s” is a presentation."
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:121
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:122
 #, python-format
 msgid "“%s” is a text document."
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:123
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:124
 #, python-format
 msgid "“%s” is an office document."
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:124
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:125
 msgid ""
 "To open and edit it, install a free office suite from the App Center: "
 "ONLYOFFICE, WPS Office or LibreOffice."
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:127
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:128
 msgid "No app on this computer can open these files yet"
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:128
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:129
 #, python-format
 msgid "“%(name)s” and %(count)d other file are office documents."
 msgid_plural "“%(name)s” and %(count)d other files are office documents."
 msgstr[0] ""
 msgstr[1] ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:131
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:132
 msgid ""
 "To open and edit them, install a free office suite from the App Center: "
 "ONLYOFFICE, WPS Office or LibreOffice."
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:198
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:199
 msgid "Choose an App"
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:201
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:202
 msgid "Open"
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:205
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:206
 #, python-format
 msgid "Open “%s” with:"
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:256
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:296
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:257
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:297
 msgid "Office Suite"
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:259
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:260
 msgid "Choose Another App…"
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:261
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:262
 msgid "Open App Center"
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:269
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:270
 msgid "Could not open the App Center."
 msgstr ""
 
-#: usr/share/caramos-ota/open-document/caramos_open_document.py:276
+#: usr/share/caramos-ota/open-document/caramos_open_document.py:277
 #, python-format
 msgid "Could not open “%(file)s” with %(app)s."
 msgstr ""
@@ -2911,6 +2981,22 @@ msgstr ""
 
 #: usr/bin/caramos-clipboard:101
 msgid "Copy some text or a picture (Ctrl+C), then press Super+V again."
+msgstr ""
+
+#: usr/bin/caramos-print-screen:65
+msgid "Could not take a screenshot"
+msgstr ""
+
+#: usr/bin/caramos-print-screen:65
+msgid "Try again, or press Super+Shift+S."
+msgstr ""
+
+#: usr/bin/caramos-print-screen:72
+msgid "Screenshot copied to the clipboard"
+msgstr ""
+
+#: usr/bin/caramos-print-screen:72
+msgid "Press Ctrl+V to paste it."
 msgstr ""
 
 #: usr/share/caramos-ota/unicode/caramos_unicode/app.py:28
@@ -3064,17 +3150,17 @@ msgid ""
 "Center."
 msgstr ""
 
-#: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1431
 #: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1434
+#: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1437
 msgid "LibreOffice could not open this file."
 msgstr ""
 
-#: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1443
-#: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1468
+#: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1446
+#: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1471
 msgid "This kind of file cannot be converted."
 msgstr ""
 
-#: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1457
+#: usr/share/caramos-ota/unicode/caramos_unicode/formats.py:1460
 msgid "The file is no longer there."
 msgstr ""
 

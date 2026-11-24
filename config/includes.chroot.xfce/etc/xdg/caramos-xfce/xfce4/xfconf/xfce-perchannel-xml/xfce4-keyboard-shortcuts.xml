@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- CaramOS Xfce: Mint's shortcuts; Print Screen and Super+Shift+S start Flameshot, as on CaramOS Cinnamon. The
+<!-- CaramOS Xfce: Mint's shortcuts, with those of Windows, as on CaramOS Cinnamon. Print Screen copies the whole
+     screen to the clipboard (caramos-print-screen), and Super+Shift+S starts Flameshot to pick a part of it. The
      sound keys run caramos-volume: PipeWire changes the sound (no more than 100 %, by the Control Center's volume
      step), then the CaramOS Control Center shows the new level for a moment, as Cinnamon does. Super+V shows the
-     clipboard history (caramos-clipboard, with CopyQ), as Win+V does on Windows. Alt+F1 opens the Start menu, and so
-     does Super pressed alone: xcape sends Alt+F1 then (caramos-super-key). A Super_L shortcut would also run at the
-     start of every Super+<key> shortcut. -->
+     clipboard history (caramos-clipboard, with CopyQ), as Win+V does on Windows. Super+E opens the file manager of
+     Default Applications (Files), not Thunar, and Super+D shows the desktop (the window manager's, beside
+     Ctrl+Alt+D). Alt+F1 opens the Start menu, and so does Super pressed alone: xcape sends Alt+F1 then
+     (caramos-super-key). A Super_L shortcut would also run at the start of every Super+<key> shortcut. -->
 
 <channel name="xfce4-keyboard-shortcuts" version="1.0">
   <property name="commands" type="empty">
@@ -18,7 +20,7 @@
       <property name="XF86WWW" type="string" value="exo-open --launch WebBrowser"/>
       <property name="&lt;Super&gt;p" type="string" value="xfce4-display-settings --minimal"/>
       <property name="&lt;Primary&gt;Escape" type="string" value="xfdesktop --menu"/>
-      <property name="Print" type="string" value="flameshot gui"/>
+      <property name="Print" type="string" value="caramos-print-screen"/>
       <property name="&lt;Shift&gt;&lt;Super&gt;s" type="string" value="flameshot gui"/>
       <property name="XF86AudioRaiseVolume" type="string" value="/usr/share/caramos-ota/xfce/caramos-volume up"/>
       <property name="XF86AudioLowerVolume" type="string" value="/usr/share/caramos-ota/xfce/caramos-volume down"/>
@@ -28,6 +30,7 @@
       <property name="&lt;Super&gt;v" type="string" value="caramos-clipboard"/>
       <property name="&lt;Super&gt;l" type="string" value="xflock4"/>
       <property name="&lt;Primary&gt;&lt;Alt&gt;l" type="string" value="xflock4"/>
+      <property name="&lt;Super&gt;e" type="string" value="exo-open --launch FileManager"/>
     </property>
   </property>
   <property name="xfwm4" type="empty">
@@ -84,6 +87,7 @@
       <property name="&lt;Control&gt;F2" type="string" value="workspace_2_key"/>
       <property name="&lt;Control&gt;F1" type="string" value="workspace_1_key"/>
       <property name="&lt;Control&gt;F11" type="string" value="workspace_11_key"/>
+      <property name="&lt;Super&gt;d" type="string" value="show_desktop_key"/>
     </property>
   </property>
   <property name="providers" type="array">

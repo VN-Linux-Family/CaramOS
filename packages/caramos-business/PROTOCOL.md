@@ -1788,3 +1788,136 @@ The joint end-to-end pass with the 0.3.0 .deb, 2026-11-23. Bugs found on the VMs
   with that serial + 1, with an audit line `settings` (`changes` empty, `reason: "catch-up"`, `serial`, `behind`). The
   machines take it at their next `/wait`. The restored admin's settings are the backup's: what was saved after the
   backup is gone, as the guide says.
+
+Version 0.3.1, 2026-11-24: the licence report and the window, after the first demo on CaramOS 1.5.0. Only the first
+entry changes what the agent sends; an admin of 0.3.1 also reads 0.3.0's inventories.
+
+- **Inventory `apps[]` gains `main`** (boolean): true on the entry that names its package, at most one per package,
+  and on every Flatpak app. It is the entry whose desktop file is named after the package (`thunar.desktop`), or whose
+  name ends with `.<package>.desktop` in any case (`org.fcitx.Fcitx5.desktop` for fcitx5), else the one whose `Exec`
+  runs a program named after the package (past `env` and `NAME=value` words). Among equals an entry without
+  `OnlyShowIn` goes first (`org.gnome.SystemMonitor.desktop` before `gnome-system-monitor-kde.desktop`, which both run
+  gnome-system-monitor). `v3/inventory-apps.json` (regenerated; every other v3 file came out byte-identical) has it and
+  two entries of thunar. **Admin:** the check keeps `main` (null from a 0.3.0 agent). 0.3.0 named a package after its
+  first entry: "WPS Spreadsheets" for WPS Office and "Bulk Rename" for thunar, in the report and in "Thêm bản quyền".
+  Now a package is named by its main entry's name; for a 0.3.0 agent, by the entry whose desktop file is named after
+  the package; else by the name all its entries share (mintinstall's two "Software Manager"); else by the App Center
+  catalog's name for the package; else by the package's own name, each word written as in its entries' names, a word
+  of three letters or fewer in capitals, others with a capital ("WPS Office", "CaramOS OTA", "Xfce4 Session").
+- **`licence` is the package's, the same on each of its entries.** 13 apps showed as "Chưa rõ" in the 1.5.0 demo (a
+  Cinnamon and an Xfce machine): eight packages with an older copyright file (thunar, xfwm4, xfce4-panel,
+  xfce4-session, xfce4-terminal, xfce4-power-manager, pavucontrol, gufw), onboard and mate-desktop, machine-readable
+  without a `Files: *` stanza, and xfce4-dict and thunar-volman (older files); WPS Office, which has no copyright file
+  and is `unknown` in the catalog, is the only one left. The agent now reads, in this order:
+  1. the machine-readable file's `Files: *` stanza, as in 0.3.0, else its header paragraph's `License:`;
+  2. AppStream: the licence of any of the package's desktop ids (its main entry first), else of a component whose id,
+     without `.desktop`, is the package's name or ends with `.<package>` in any case (`org.xfce.Thunar` for thunar,
+     `xfce4-power-manager.desktop` for xfce4-power-manager, whose entry is `xfce4-power-manager-settings.desktop`);
+  3. what the copyright file says otherwise, free software only:
+     - machine-readable: the most common `License:` of the `Files:` stanzas, those of the packaging (every pattern
+       under `debian/`) left out, the first on a tie (onboard: GPL-3+; mate-desktop: GPL-2+); none when a stanza's
+       licence says proprietary, non-free, noncommercial, EULA, freeware, shareware or all-rights-reserved;
+     - an older file, none when it speaks of an end user licence agreement, EULA, freeware, shareware,
+       non-commercial use, all-rights-reserved, or "proprietary" or "non-free" (but not the GPL's and LGPL's own
+       "proprietary programs", "proprietary applications" and "non-free programs"); else a `Files: *` stanza in the
+       same form (pavucontrol); else the first statement of a GNU licence with its version ("the GNU General Public
+       License (version 2 or later)": GPL-2+; "version 2.1 of the License, or (at your option) any later version" of
+       the Lesser GPL: LGPL-2.1+), not counting a sentence about the Debian packaging; else the most common
+       `License:` value that names a licence (xfwm4: GPL; xfce4-panel: GPL-2+); else the first file of
+       `/usr/share/common-licenses` it points to, a licence for programs before one for documentation (thunar: GPL;
+       Debian's `BSD` is BSD-3-clause); else the text of the Apache 2.0, MIT (Expat), ISC, BSD (2-, 3- or 4-clause)
+       or MPL 2.0 licence.
+
+  The file is read up to 2 MiB, and bytes that are not UTF-8 (older files in Latin-1) no longer make it unreadable.
+  Tests: the copyright files of the 1.5.0 VMs in `agent/tests/copyright/`. **Admin:** a package takes the licence of
+  its main entry, else of any of its entries that states one (a 0.3.0 agent read AppStream for each desktop file);
+  `free` still needs every licence id in the admin's list.
+- **The result of `remote_help`** keeps part 2's wording, "chạy 19 giây (control), người dùng dừng" (`done_detail` in
+  the agent, now tested), and the admin shows the mode in brackets in its reader's language: "(điều khiển)" or "(chỉ
+  xem)", on the machine page and in the remote help window.
+- **The window:** an action for many machines names them inside its sentences with part 2's audit words ("Đã yêu
+  cầu mọi máy gửi thông tin kiểm kê.", "Đã gửi tới phòng Kế toán."), not the drop-down's "Mọi máy". Enter in a text
+  field of a form of fields only presses the form's button once it is enabled, on the field's `entry-activated`,
+  which comes after an input method has committed the word being typed; libadwaita 1.5 does not pass an AdwDialog's
+  default widget to the window it is shown in, so `activates-default` did nothing. A form with more than fields (a
+  message's text, a picture) keeps Enter to itself.
+
+Version 0.3.1, after the full test pass on CaramOS 1.5.0 (2026-11-24). The first three entries change what the agent
+does in the users' sessions; the fourth adds keys that the agent sends and an older admin ignores.
+
+- **A session part for logins open at pairing.** The session part starts from /etc/xdg/autostart at login, so a
+  machine paired, approved or enrolled while someone was logged in (the package installed without logging out) had
+  none until the next login: no notice, wallpaper or folders, while the daemon already applied the firewall, the
+  browser and USB rules. At a round whose effective settings turn on a section that a user at the machine was not
+  told about (next entry), the daemon lists the open graphical logins in logind's session files (`TYPE` x11 or
+  wayland, `CLASS` user, `STATE` active or online, any seat) and starts a session part for each login whose user has
+  none (no live `session.pid`) and that is older than 30 s (younger ones are autostart's):
+  `systemd-run --user --machine=<user>@.host --quiet --collect --unit=caramos-business-session-<login>-<unix>
+  --setenv=<NAME>=<value>… /usr/lib/caramos-business/caramos-business-agent session`. The environment is that of a
+  program of the login (`/proc/<pid>/environ` holding the login's `XDG_SESSION_ID` and a display; best one that the
+  session manager started, as autostart starts the session part: cinnamon-session's own environment lacks
+  `XDG_CURRENT_DESKTOP`, which then comes from the session file's `DESKTOP`), without the service manager's variables
+  (`INVOCATION_ID`, `JOURNAL_STREAM`, …). The part runs as the user under the user's systemd: a restart of the service
+  does not stop it, and it ends with the login as an autostarted one does (`XDG_SESSION_ID`). Verified on caram1.5.0b:
+  `systemd-run --user --machine=caram@.host` from root runs as caram, child of `systemd --user`.
+- **The notice comes before the first measures** (Law 91/2025/QH15, article 25). The session part keeps the notice in
+  a thread of its own, apart from its rounds, which can wait minutes on a share's sign-in window (verified on
+  caram1.5.0b: with folders on a share, a round waited 2 minutes on the window and the notice with it). Twice a second
+  it looks at effective.json; it opens the notice when the user was not told about every section in effect (the
+  non-null sections), closes an open notice that no longer lists everything and opens one that does (0.3.1 kept the
+  old one until it was answered), and keeps the answer in `~/.config/caramos-business/notice-answered.json` (read from
+  state.json's `notice_for` and `notice_sections` while it is missing). It writes
+  `$XDG_RUNTIME_DIR/caramos-business/notice.json` (0644, in its 0700 folder) `{"machine_id", "sections"}`: what the
+  notice told the user, on the screen now or answered; no file while the machine is not managed, leaving, or a clone.
+  The notice's window writes `notice-shown` in the same folder when it maps (`caramos-business --prompt notice`; its
+  one answer line is unchanged), and an open notice counts only once that file is newer than the window's start (with
+  50 ms for the file clock): a window takes a second or two to show after it starts. The daemon reads notice.json as
+  it reads status.json (the user's own regular file, no symlink, at most 4 KiB). Before it applies the system sections,
+  it waits until the user of each open graphical login was told about every section in effect, at most 20 s; then it
+  applies them anyway and logs who did not see the notice. A wait that ended so is not repeated for the same logins,
+  machine id and sections. With nobody logged in nothing waits: the notice is the first thing at the next login. A
+  newer session part that takes over closes the older one's notice, and shows its own while it is not answered.
+- **Requests do not wait for a round.** The session part reads its inbox (part 2's relay) in a thread of its own,
+  every second, apart from its rounds: lock, message, countdown, cancel, remote help and ticket notifications start at
+  once, whatever a round is doing. 0.3.1 read the inbox between rounds, every 2 s, and a round can wait 2 minutes on
+  the window that signs in to a share (90 s on a server that does not answer): the requests waited with it (verified
+  on caramxfce1.5.0). The thread stops every handler while the machine is not the company's (left, removed, leaving, a
+  clone), as before. It and the notice's thread end by themselves, closing what they opened, once a newer session part
+  takes the login over (its pid file) or the login ends, also while a round still waits: two parts never act on the
+  same request or show the notice side by side. The session part starts again with an upgraded program only while
+  holding the inbox's and the notice's locks, so that neither starts a window meanwhile. On the daemon's side, the
+  `/wait` long-poll opens within a second of the round that loaded the pairing: it starts before the first round, and
+  0.3.1 looked for the pairing again only every 30 s, so requests waited up to 30 s after each start and pairing.
+- **Cloned disks:** the session part of a clone puts back the user's own Desktop and Documents (part 2's leave rule:
+  where user-dirs.dirs names the server's links or the home folder), at once and every 30 s, and nothing else. The
+  links lead nowhere on a clone (nothing mounts the share there), and xdg-user-dirs-update at its first login pointed
+  them at `$HOME/`: 0.3.1 showed the whole home folder on the desktop.
+- **The steps of an `update`.** Its result gains `steps`: `[{"step": "snapshot" | "caramos-ota" | "security", "ok":
+  bool, "count": <security updates installed, with "security">, "error": "<why, at most 200 characters>"}]` (`count`
+  and `error` only when they apply). `detail` keeps 0.3.0's words for older admins ("đã chụp bản lưu hệ thống;
+  caramos-ota --check: ok; 321 security updates installed"), and the state is `failed` only when the security updates
+  failed, as before. A maintenance boot's `maintenance.json` gains `steps` (the same, and `apps`) when `result` is its
+  outcome; any other result comes without steps. The health carries them as `maintenance_steps`, only after such a
+  maintenance. **Admin:** it words the steps in its reader's language ("đã cài 321 bản vá bảo mật"), reads an older
+  agent's words as steps, and shows a text it does not know as it is; a step of a kind it does not know is left out,
+  and steps it cannot read never refuse a result or a check-in. 0.3.1 showed the English words in the Vietnamese window
+  and in the security report's last maintenance.
+- **Snapshot space:** `du -sm /timeshift` runs again when the newest snapshot changed (also right after an update's
+  snapshot), else at most every 6 hours, and every 10 minutes while the space is unknown. 0.3.1 kept the empty answer
+  from before the first snapshot for 6 hours.
+- **The window:**
+  - a settings page is built again when the draft's values were replaced (after "Lưu và gửi", "Hoàn tác", or a save
+    from another window): its editors went on changing the old values, so an edit right after a save showed no save
+    bar and was lost, and the Wi-Fi row kept saying "mới, sẽ gửi khi bạn lưu";
+  - while the machine is frozen after the company turned freezing off, the employee window says "công ty đã tắt; máy
+    vẫn đóng băng tới lần khởi động lại tới" (part 3, "Freeze"); 0.3.1 dropped the row;
+  - freezing with snapshots, with folders tidy or without a maintenance time is refused before the password is asked
+    (the helper's check, on the draft kept to what the helper saves);
+  - "Máy đã nhập kho" sets the asset's status to `in_stock`. A status change is written once in the history: as the
+    window's own event of that kind when it sends one (here `returned`, with the step as its note), else as before;
+  - when the machine page builds its asset section again, the group in use (a leaver step just ticked, a note) keeps
+    its place on the screen, and an open history stays open (the first tick closed it, and the steps jumped up by its
+    height);
+  - packages with the same name in the licence report say their package: "Screenshot (gnome-screenshot)" and
+    "Screenshot (xfce4-screenshooter)";
+  - the audit line of the licence register counts with ngettext: "(1 entry)", "(1 mục)".

@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(56, len(catalog))
+        self.assertEqual(67, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -133,6 +133,17 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261122100100_administrative_templates",
                 "20261122100200_windows_migration_tools",
                 "20261123100000_automatic_updates",
+                "20261123120000_hidden_password_typing",
+                "20261123120100_desktop_shortcuts_anywhere",
+                "20261124100000_show_desktop_button",
+                "20261124100100_xfce_super_d_super_e",
+                "20261124100200_print_screen_to_clipboard",
+                "20261124100300_xfce_event_sounds",
+                "20261124120000_desktop_icon_labels",
+                "20261124130000_install_fastfetch",
+                "20261124140000_show_trash_on_desktop",
+                "20261124170000_tray_icons_follow_theme",
+                "20261124180000_tray_icons_keep_their_place",
             ],
             timestamp_ids,
         )
@@ -201,6 +212,17 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261122100100_administrative_templates",
                 "20261122100200_windows_migration_tools",
                 "20261123100000_automatic_updates",
+                "20261123120000_hidden_password_typing",
+                "20261123120100_desktop_shortcuts_anywhere",
+                "20261124100000_show_desktop_button",
+                "20261124100100_xfce_super_d_super_e",
+                "20261124100200_print_screen_to_clipboard",
+                "20261124100300_xfce_event_sounds",
+                "20261124120000_desktop_icon_labels",
+                "20261124130000_install_fastfetch",
+                "20261124140000_show_trash_on_desktop",
+                "20261124170000_tray_icons_follow_theme",
+                "20261124180000_tray_icons_keep_their_place",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -265,6 +287,17 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261122100100_administrative_templates",
                 "20261122100200_windows_migration_tools",
                 "20261123100000_automatic_updates",
+                "20261123120000_hidden_password_typing",
+                "20261123120100_desktop_shortcuts_anywhere",
+                "20261124100000_show_desktop_button",
+                "20261124100100_xfce_super_d_super_e",
+                "20261124100200_print_screen_to_clipboard",
+                "20261124100300_xfce_event_sounds",
+                "20261124120000_desktop_icon_labels",
+                "20261124130000_install_fastfetch",
+                "20261124140000_show_trash_on_desktop",
+                "20261124170000_tray_icons_follow_theme",
+                "20261124180000_tray_icons_keep_their_place",
             ],
             [item.migration_id for item in plan.migrations],
         )

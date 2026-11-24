@@ -1070,6 +1070,9 @@ def validate_health(health: Any) -> dict[str, Any]:
         result[key] = value
     _require(_clean_text(health.get("maintenance_result", ""), MAX_DETAIL), "bad maintenance_result")
     result["maintenance_result"] = health.get("maintenance_result", "")
+    steps = update_steps(health.get("maintenance_steps"))  # from 0.3.1, after a maintenance that updated
+    if steps is not None:
+        result["maintenance_steps"] = steps
     space = health.get("snapshot_space_mb")
     _require(space is None or (_int(space) and 0 <= space <= 10 ** 9), "bad snapshot_space_mb")
     result["snapshot_space_mb"] = space
@@ -1103,15 +1106,48 @@ def validate_checkin(body: Any) -> dict[str, Any]:
     return result
 
 
+# The steps of an `update` and of a maintenance (part 3, changes of 0.3.1 after the full test pass).
+UPDATE_STEPS = ("snapshot", "caramos-ota", "security", "apps")
+
+
+def update_steps(value: Any) -> list[dict[str, Any]] | None:
+    """The `steps` of an `update` result, or the health's `maintenance_steps`: what each step did, for the window to word
+    in its reader's language. None when absent or not steps, which never refuses what carries them; a step of a kind
+    this admin does not know (a later agent's) is left out."""
+
+    if not isinstance(value, list) or len(value) > 16:
+        return None
+    steps = []
+    for item in value:
+        if not isinstance(item, dict) or not isinstance(item.get("step"), str) or not isinstance(item.get("ok"), bool):
+            return None
+        count, error = item.get("count"), item.get("error", "")
+        if count is not None and not (_int(count) and 0 <= count <= 10 ** 6) or not _clean_text(error, MAX_DETAIL):
+            return None
+        if item["step"] not in UPDATE_STEPS:
+            continue
+        step: dict[str, Any] = {"step": item["step"], "ok": item["ok"]}
+        if count is not None:
+            step["count"] = count
+        if error:
+            step["error"] = error
+        steps.append(step)
+    return steps
+
+
 def validate_result(body: Any) -> dict[str, Any]:
-    """POST /result: {"id", "state", "detail", "time"}."""
+    """POST /result: {"id", "state", "detail", "time"}, and an `update`'s "steps" from 0.3.1."""
 
     _require(isinstance(body, dict), "not an object")
     _require(isinstance(body.get("id"), str) and UUID.match(body["id"]) is not None, "id is a uuid")
     _require(body.get("state") in RESULT_STATES, "bad state")
     _require(_clean_text(body.get("detail", ""), 300, newlines=True), "detail of at most 300 characters")
     _require(_short_text(body.get("time", ""), 40), "bad time")
-    return {"id": body["id"], "state": body["state"], "detail": body.get("detail", ""), "time": body.get("time", "")}
+    result = {"id": body["id"], "state": body["state"], "detail": body.get("detail", ""), "time": body.get("time", "")}
+    steps = update_steps(body.get("steps"))
+    if steps is not None:
+        result["steps"] = steps
+    return result
 
 
 def validate_help(body: Any) -> dict[str, Any]:
@@ -1142,7 +1178,7 @@ INVENTORY_SCHEMA: dict[str, Any] = {
     "network": [{"name": STR, "mac": STR, "ipv4": STR, "wired": BOOL}],
     "os": {"caramos": STR, "edition": ("cinnamon", "xfce", "other"), "kernel": STR},
     "apps": [{"id": STR, "name": STR, "version": STR, "source": ("deb", "flatpak"), "package": STR, "licence": STR,
-              "origin": STR}],
+              "origin": STR, "main": BOOL}],
 }
 
 

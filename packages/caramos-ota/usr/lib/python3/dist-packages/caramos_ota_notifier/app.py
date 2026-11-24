@@ -4,18 +4,25 @@ from __future__ import annotations
 
 import os
 import subprocess
+import sys
 import threading
 from typing import Any
 
 from caramos_ota.i18n import _
+
+from caramos_ota import auto_update as system_auto_update
 
 from . import auto_update as auto_update_ui
 from . import problem
 from .constants import (
     BUSY,
     CANCELLED,
+    CHECK_HELPER,
+    CHECK_TIMEOUT_SECONDS,
+    CHECKED,
     DONE,
     FAILED,
+    OFFLINE,
     OTA_BUSY,
     OTA_COMMAND,
     PKEXEC_COMMAND,
@@ -26,6 +33,8 @@ from .state import read_available_update, read_no_update_status, resolve_availab
 from .ui import (
     AutoUpdateSwitch,
     build_auto_updated_page,
+    build_check_failed_page,
+    build_checking_page,
     build_no_update_page,
     build_progress_page,
     build_result_page,
@@ -36,6 +45,18 @@ from .ui import (
 
 LOG_VIEW_LINES = 2000   # the progress view keeps the end of the output; the result page gets all of it
 LOG_FLUSH_MS = 100      # queued output lines reach the progress view in one batch at most this often
+NOTIFIER = "/usr/bin/caramos-ota-notifier"
+AFTER_CHECK = "--after-check"
+# The check could not reach the CaramOS PPA: caramos-ota's own message (from 1.5.1), or what apt-get says.
+UNREACHABLE = (
+    "could not reach the caramos update server",
+    "temporary failure resolving",
+    "could not resolve",
+    "could not connect to",
+    "network is unreachable",
+    "connection timed out",
+    "no route to host",
+)
 
 
 def has_display() -> bool:
@@ -124,6 +145,64 @@ def run_upgrade_stream(on_line) -> tuple[str, str]:
         return FAILED, str(exc)
 
 
+def check_outcome(return_code: int, output: str) -> str:
+    """CHECKED, CANCELLED (pkexec refused), BUSY (another update holds the OTA lock), OFFLINE (the CaramOS update
+    server could not be reached) or FAILED."""
+
+    if return_code == 0:
+        return CHECKED
+    if return_code in PKEXEC_REFUSED:
+        return CANCELLED
+    if return_code == OTA_BUSY:
+        return BUSY
+    text = output.lower()
+    if any(marker in text for marker in UNREACHABLE):
+        return OFFLINE
+    return FAILED
+
+
+def run_check() -> tuple[str, str]:
+    """Run the daily check now, through pkexec without a password: (check_outcome, output).
+
+    A check that takes too long is left to finish on its own: it runs as root, so this window could not stop it, and
+    stopping it halfway could leave a package half installed.
+    """
+
+    try:
+        process = subprocess.Popen([PKEXEC_COMMAND, CHECK_HELPER], stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                   stderr=subprocess.STDOUT, text=True, errors="replace")
+        output, _unused = process.communicate(timeout=CHECK_TIMEOUT_SECONDS)
+    except subprocess.TimeoutExpired:
+        return FAILED, _("Checking for updates took too long.")
+    except FileNotFoundError:
+        return FAILED, _("The pkexec command was not found.")
+    except Exception as exc:
+        return FAILED, str(exc)
+    output = (output or "").strip()
+    return check_outcome(process.returncode, output), output
+
+
+def check_first() -> bool:
+    """Whether the Update Center, opened by hand, checks for new versions before it says anything: not on a live USB
+    or a frozen system drive, where an update cannot stay."""
+
+    try:
+        return not (system_auto_update.live_session() or system_auto_update.overlay_root())
+    except Exception:
+        return True
+
+
+def engine_version() -> str:
+    """The installed caramos-ota, which a check may have just updated."""
+
+    try:
+        result = subprocess.run(["dpkg-query", "-W", "-f=${Version}", "caramos-ota"], stdin=subprocess.DEVNULL,
+                                capture_output=True, text=True, timeout=30, check=False)
+    except Exception:
+        return ""
+    return result.stdout.strip() if result.returncode == 0 else ""
+
+
 class UpdateWindowController:
     """Drive every OTA state inside one top-level GTK window.
 
@@ -132,12 +211,17 @@ class UpdateWindowController:
     """
 
     def __init__(self, Gtk, GLib, update_info: dict[str, Any] | None, no_update_status: dict[str, str] | None,
-                 auto_result: dict[str, Any] | None = None):
+                 auto_result: dict[str, Any] | None = None, check: bool = False):
         self.Gtk = Gtk
         self.GLib = GLib
         self.update_info = update_info
         self.window, self.stack = build_update_window()
         self.upgrade_running = False
+        self.checking = False
+        self.shown = False
+        self.progress_bar = None
+        self.stage_label = None
+        self.log_view = None
         self.pulse_source_id: int | None = None
         self.thread: threading.Thread | None = None
         # Lines from the updater thread wait here until the GTK thread shows them, see queue_log_line.
@@ -149,26 +233,93 @@ class UpdateWindowController:
         self.window.connect("delete-event", self._on_delete_event)
 
         if auto_result is not None:
-            self.progress_bar = None
-            self.stage_label = None
-            self.log_view = None
             self._show_auto_result(auto_result)
+        elif update_info is None and check:
+            # Opened by hand with nothing waiting: ask the CaramOS PPA before saying CaramOS is up to date.
+            self.start_check()
         elif update_info is None:
-            page = build_no_update_page(no_update_status, self.close, auto_update=self.auto_update_switch())
-            self.stack.add_named(page, "no-update")
-            self.stack.set_visible_child_name("no-update")
-            self.progress_bar = None
-            self.stage_label = None
-            self.log_view = None
+            self._show_no_update(no_update_status)
         else:
-            note = auto_update_ui.waiting_reason(update_info)
-            info_page = build_update_page(update_info, self.start_upgrade, self.close,
-                                          auto_update=self.auto_update_switch(note))
-            progress_page, self.progress_bar, self.stage_label, self.log_view = build_progress_page(update_info)
-            self.log_view.get_vadjustment().connect("changed", self._log_resized)
-            self.stack.add_named(info_page, "info")
-            self.stack.add_named(progress_page, "progress")
-            self.stack.set_visible_child_name("info")
+            self._show_update(update_info)
+
+    def _show_page(self, name: str, page) -> None:
+        """Show a page, in place of an older one of the same name (after Try again)."""
+
+        old = self.stack.get_child_by_name(name)
+        if old is not None:
+            self.stack.remove(old)
+        self.stack.add_named(page, name)
+        if self.shown:   # the window's show_all showed the pages added before it
+            page.show_all()
+        self.stack.set_visible_child_name(name)
+
+    def _show_no_update(self, status: dict[str, str] | None) -> None:
+        self._show_page("no-update", build_no_update_page(status, self.close, auto_update=self.auto_update_switch()))
+
+    def _show_update(self, update_info: dict[str, Any]) -> None:
+        self.update_info = update_info
+        note = auto_update_ui.waiting_reason(update_info)
+        info_page = build_update_page(update_info, self.start_upgrade, self.close,
+                                      auto_update=self.auto_update_switch(note))
+        progress_page, self.progress_bar, self.stage_label, self.log_view = build_progress_page(update_info)
+        self.log_view.get_vadjustment().connect("changed", self._log_resized)
+        old = self.stack.get_child_by_name("progress")
+        if old is not None:
+            self.stack.remove(old)
+        self.stack.add_named(progress_page, "progress")
+        if self.shown:
+            progress_page.show_all()
+        self._show_page("info", info_page)
+
+    def start_check(self) -> None:
+        """Check for new versions (again after Try again): the daily check, now, through pkexec without a password.
+
+        Up to 1.5.0 the window only read the updater already installed. Where the daily check kept failing (a
+        software source that no longer worked, a firewall), it said CaramOS was up to date for weeks: CaramOS 1.3.3
+        computers were still told so when 1.5.0 was out.
+        """
+
+        if self.checking:
+            return
+        self.checking = True
+        self._show_page("checking", build_checking_page(self.close))
+        self.thread = threading.Thread(target=self._do_check, daemon=True)
+        self.thread.start()
+
+    def _do_check(self) -> None:
+        before = engine_version()
+        outcome, output = run_check()
+        self.GLib.idle_add(self.on_check_done, outcome, output, engine_version() != before)
+
+    def on_check_done(self, outcome: str, output: str, engine_updated: bool = False) -> bool:
+        """Show what the check found: the update, CaramOS up to date, or why it could not check."""
+
+        self.checking = False
+        if outcome == CHECKED:
+            if engine_updated:
+                self.restart_after_check()
+            update_info, status = resolve_available_update_now()
+            if update_info is None:
+                self._show_no_update(status)
+            else:
+                self._show_update(update_info)
+            return False
+        on_help = None
+        if outcome in (FAILED, OFFLINE) and problem.help_available():
+            on_help = lambda: problem.ask_for_help(output, None, checking=True)   # noqa: E731
+        self._show_page("check-failed", build_check_failed_page(outcome, output, self.close, on_help, self.start_check))
+        return False
+
+    def restart_after_check(self) -> None:
+        """The check installed a newer updater: open the Update Center again with that updater's code, which knows
+        its own changes. Returns only if that did not work."""
+
+        try:
+            sys.stdout.flush()
+            sys.stderr.flush()
+            os.execv(NOTIFIER, [NOTIFIER, AFTER_CHECK])
+        except OSError:
+            pass
 
     def auto_update_switch(self, note: str = "") -> AutoUpdateSwitch:
         return AutoUpdateSwitch(enabled=auto_update_ui.enabled(), on_toggle=self.toggle_auto_update, note=note)
@@ -202,6 +353,7 @@ class UpdateWindowController:
         """Show the update center and start its single GTK loop."""
 
         self.window.show_all()
+        self.shown = True
 
     def close(self) -> bool:
         """Close the window unless an upgrade is active."""
@@ -357,6 +509,11 @@ def main(argv: list[str] | None = None) -> int:
         action="store_true",
         help="Show what the last automatic update installed, or why it failed.",
     )
+    parser.add_argument(
+        AFTER_CHECK,
+        action="store_true",
+        help="Opened again by the Update Center after its check installed a newer updater: do not check again.",
+    )
     args = parser.parse_args(argv)
 
     if args.auto_update_result:
@@ -392,7 +549,8 @@ def main(argv: list[str] | None = None) -> int:
         if auto_update_ui.enabled() and auto_update_ui.service_running():
             return 0   # an automatic update is installing it; its notification comes when it is done
 
-    controller = UpdateWindowController(Gtk, GLib, update_info, no_update_status, auto_result=auto_result)
+    check = not args.autostart and auto_result is None and not args.after_check and check_first()
+    controller = UpdateWindowController(Gtk, GLib, update_info, no_update_status, auto_result=auto_result, check=check)
     controller.show()
     Gtk.main()
     return 0

@@ -1,6 +1,6 @@
 [package]
 name = "caramos-business-agent"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2021"
 # Ubuntu 24.04's rustc-1.85/cargo-1.85, which the Launchpad PPA build uses. Resolver 3 picks dependency versions
 # that build with it.

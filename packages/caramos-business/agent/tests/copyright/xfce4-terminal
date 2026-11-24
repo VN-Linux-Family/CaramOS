@@ -1,0 +1,67 @@
+This package was debianized by Yves-Alexis Perez <corsac@corsac.net> on
+Sat, 23 Apr 2005 00:02:36 +0200.
+
+It was downloaded from http://www.xfce.org
+
+Files: terminal/main.c
+ terminal/terminal-accel-map.c
+ terminal/terminal-accel-map.h
+ terminal/terminal-app.c
+ terminal/terminal-app.h
+ terminal/terminal-dbus.c
+ terminal/terminal-dbus.h
+ terminal/terminal-image-loader.h
+ terminal/terminal-options.c
+ terminal/terminal-options.h
+ terminal/terminal-preferences-dialog.c
+ terminal/terminal-preferences-dialog.h
+ terminal/terminal-preferences.c
+ terminal/terminal-preferences.h
+ terminal/terminal-screen.c
+ terminal/terminal-screen.h
+ terminal/terminal-shortcut-editor.c
+ terminal/terminal-shortcut-editor.h
+ terminal/terminal-stock.c
+ terminal/terminal-stock.h
+ terminal/terminal-toolbars-model.c
+ terminal/terminal-toolbars-model.h
+ terminal/terminal-toolbars-view.c
+ terminal/terminal-toolbars-view.h
+ terminal/terminal-widget.c
+ terminal/terminal-widget.h
+ terminal/terminal-window.c
+ terminal/terminal-window.h
+Copyright: 2004-2008, os-cillation e.K
+License: GPL-2+
+
+Files: terminal/terminal-private.h
+ terminal/xfce-heading.c
+ terminal/xfce-heading.h
+ terminal/xfce-titled-dialog.c
+ terminal/xfce-titled-dialog.h
+Copyright: 2006-2007, Benedikt Meurer <benny@xfce.org>
+License: LGPL-2+
+
+Files: terminal/terminal-dialogs.c
+ terminal/terminal-dialogs.h
+Copyright: 2005-2007, Benedikt Meurer <benny@xfce.org>
+License: GPL-2+
+
+Files: terminal/terminal-image-loader.c
+Copyright: 2003, Red Hat, Inc
+ 2004-2007, os-cillation e.K
+License: GPL-2+
+
+Documentation is under GNU Free Documentation License v1.1 or later without
+invariant sections, with the following statement:
+
+  Permission is granted to copy, distribute and/or modify this document
+  under the terms of the GNU Free Documentation License, Version 1.1 or
+  any later version published by the Free Software Foundation; with no
+  Invariant Sections, with no Front-Cover Texts, and with no Back-Cover
+  Texts.
+
+On Debian systems, the complete text of the GNU General Public License can be
+found in the file `/usr/share/common-licenses/GPL-2'.  The complete text of the
+GNU Lesser General Public License can be found in the file
+`/usr/share/common-licenses/LGPL-2'.

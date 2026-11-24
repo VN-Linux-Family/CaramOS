@@ -76,12 +76,17 @@ step_repack_iso() {
     # -J -joliet-long: Windows Explorer và WinRAR không đọc Rock Ridge. Thiếu
     # Joliet thì chúng thấy tên ISO9660 (CASPER/VMLINUZ., MANIFEST_REMOVE) và
     # USB giải nén từ ISO không boot được (#68). Giống .disk/mkisofs của Mint.
+    # Nhãn ổ của USB cài đặt, vd. "CaramOS 1.5.1 Cinnamon" (như Mint: "Linux Mint 22.3 Cinnamon 64-bit"). Không chỉ
+    # "CaramOS": trình cài đặt đặt tên "CaramOS" cho phân vùng hệ thống của máy đã cài (target-config
+    # 50caramos_root_label), và GParted, Disks không nên hiện hai ổ "CaramOS". Không gì tìm USB theo nhãn này: GRUB tìm
+    # tệp /.disk/info, casper so uuid= với .disk/casper-uuid-generic. ISO 9660 cho tối đa 32 ký tự (dài hơn thì xorriso
+    # dừng); Joliet chỉ giữ 16 ký tự đầu, nên Windows hiện "CaramOS 1.5.1 Ci".
     XORRISO_ARGS=(
         -as mkisofs
         -r -J -joliet-long
         -iso-level 3
         -full-iso9660-filenames
-        -volid "CaramOS"
+        -volid "CaramOS ${CARAMOS_VERSION} ${MINT_EDITION^}"
     )
 
     # BIOS boot: isolinux (Mint) hoặc GRUB

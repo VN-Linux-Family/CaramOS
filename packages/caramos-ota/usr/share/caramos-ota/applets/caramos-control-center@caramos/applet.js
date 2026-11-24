@@ -58,6 +58,11 @@ const LIGHT_DEFAULT_WALLPAPERS = [
 ];
 const DARK_DEFAULT_WALLPAPER = 'file:///usr/share/backgrounds/caramos/02-indigo-night-2k.jpg';
 const WALLPAPER_MODE_SETTLE_MS = 800;
+// Ticket H-1211: some tray icons are pictures their programs drew once, in the colours of the theme at that time
+// (Mint's shield and System Information's mark, CopyQ's scissors, Flameshot's flame), and they stayed so until the next
+// login. Once a change of the theme or the icon theme has settled, this draws them again (Cinnamon sets the tray's
+// colours itself).
+const TRAY_REFRESH = '/usr/share/caramos-ota/control-center/caramos-tray-refresh';
 // Accent colour of the popup (tiles, sliders, panel icons, primary buttons): the CaramOS orange, a colour the user
 // picks, or 'auto', the colour of the theme set in System Settings > Themes. The choice is the accent-color key of
 // ACCENT_SCHEMA (shipped with this package). stylesheet.css has a .caramos-cc-accent-<key> block for each colour
@@ -1901,6 +1906,16 @@ function planWallpaperSwitch(toDark, state) {
     return { uri: state.savedUri, saved: null };
 }
 
+// caramos-tray-refresh's arguments for a change of the appearance keys, or null when neither the theme (GTK or
+// Cinnamon) nor the icon theme changed.
+function trayRefreshArgs(before, after) {
+    if (!before || !after) return null;
+    const args = [];
+    if (before.gtk !== after.gtk || before.cinnamon !== after.cinnamon) args.push('--theme');
+    if (before.icons !== after.icons) args.push('--icons');
+    return args.length ? args : null;
+}
+
 function wallpaperMarkerPath() {
     return GLib.build_filenamev([GLib.get_user_state_dir(), 'caramos-control-center', 'wallpaper-before-dark']);
 }
@@ -2512,6 +2527,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
         this._slideshowSettings = optionalSettings(SLIDESHOW_SCHEMA);
         // Only mode changes seen during the session move the wallpaper, never the state at login.
         this._lastAppearanceDark = appearanceIsDark(this._appearanceStyles, this._currentAppearance());
+        this._trayAppearance = this._currentAppearance();
 
         this._nightLightSettings = null;
         try {
@@ -4150,7 +4166,7 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
     }
 
     // A switch writes several keys (color scheme, GTK, icons, shell, cursor) and passes through mixed
-    // states, so the wallpaper follows the mode only once the keys have settled.
+    // states, so the wallpaper follows the mode only once the keys have settled, and so do the tray icons.
     _scheduleWallpaperForMode() {
         if (this._wallpaperModeId) Mainloop.source_remove(this._wallpaperModeId);
         this._wallpaperModeId = Mainloop.timeout_add(WALLPAPER_MODE_SETTLE_MS, () => {
@@ -4161,8 +4177,16 @@ class CaramOSControlCenterApplet extends Applet.IconApplet {
                 this._lastAppearanceDark = dark;
                 this._applyWallpaperForMode(dark);
             }
+            this._refreshTrayIcons();
             return false;
         });
+    }
+
+    _refreshTrayIcons() {
+        const current = this._currentAppearance();
+        const args = trayRefreshArgs(this._trayAppearance, current);
+        this._trayAppearance = current;
+        if (args && GLib.file_test(TRAY_REFRESH, GLib.FileTest.IS_EXECUTABLE)) spawnArgvAsync([TRAY_REFRESH].concat(args));
     }
 
     _applyWallpaperForMode(dark) {

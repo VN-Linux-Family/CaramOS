@@ -1,0 +1,44 @@
+Source: fastfetch
+Section: utils
+Priority: optional
+Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+XSBC-Original-Maintainer: Hiago De Franco <hiago@defranco.dev.br>
+Build-Depends:
+ cmake,
+ debhelper-compat (= 13),
+ directx-headers-dev,
+ libchafa-dev,
+ libdbus-1-dev,
+ libdconf-dev,
+ libddcutil-dev [!hurd-any],
+ libdrm-dev,
+ libegl-dev,
+ libelf-dev,
+ libglx-dev,
+ libmagickcore-dev,
+ libpulse-dev,
+ librpm-dev,
+ libsqlite3-dev,
+ libvulkan-dev,
+ libwayland-dev [!hurd-any],
+ libxcb-randr0-dev,
+ libxfconf-0-dev,
+ libxrandr-dev,
+ ocl-icd-opencl-dev,
+ pkgconf,
+Standards-Version: 4.7.4
+Homepage: https://github.com/fastfetch-cli/fastfetch
+
+Package: fastfetch
+Architecture: any
+Multi-Arch: foreign
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Description: neofetch-like tool for fetching system information
+ Fastfetch is a neofetch-like tool for fetching system information and
+ displaying them in a pretty way. It is written mainly in C, with
+ performance and customizability in mind.
+ .
+ This build for CaramOS shows the CaramOS logo by default
+ (/etc/xdg/fastfetch/config.jsonc).

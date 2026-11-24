@@ -36,7 +36,8 @@ def machine_sentence(ctx: Context, machine_id: str) -> str:
     return text.sentence(parts)
 
 
-def state_text(state: str, detail: str, action: str) -> str:
+def state_text(state: str, detail: str, action: str, steps: list[dict[str, Any]] | None = None) -> str:
+    detail = summaries.result_detail(action, detail, steps)
     if state == "done":
         return _("Done: %s") % detail if detail else _("Done.")
     if state == "failed":
@@ -305,7 +306,8 @@ class MachinesPage(Page):
 
         def go() -> None:
             chosen = keys[action.get_selected()]
-            where = target.get_selected_item().get_string()
+            # Inside sentences ("Đã yêu cầu mọi máy …"): not the drop-down's "Mọi máy".
+            where = summaries.targets_text(targets(), lambda key: departments.get(key, {}).get("name", key), [])
             Actions(self.ctx, targets(), where).run(chosen)
 
         common.form_dialog(self.ctx.window, _("An action for many machines"),
@@ -380,7 +382,8 @@ class MachinesPage(Page):
 
 
 class Actions:
-    """The instant actions, with their questions: for one machine, a department or all."""
+    """The instant actions, with their questions: for one machine, a department or all. `where` names them inside a
+    sentence: a machine's name, "phòng Kế toán", "mọi máy" (summaries.targets_text)."""
 
     def __init__(self, ctx: Context, targets: dict[str, Any], where: str) -> None:
         self.ctx = ctx
@@ -392,7 +395,7 @@ class Actions:
 
     def send(self, action: str, args: dict[str, Any] | None = None, sent: str | None = None,
              minutes: int | None = None) -> None:
-        self.ctx.command(self.targets, action, args or {}, sent=sent or _("Sent: %s.") % self.where, minutes=minutes)
+        self.ctx.command(self.targets, action, args or {}, sent=sent or _("Sent to %s.") % self.where, minutes=minutes)
 
     def do_lock(self) -> None:
         self.send("lock", sent=_("Locking %s.") % self.where)
@@ -401,7 +404,7 @@ class Actions:
         self.send("sync")
 
     def do_inventory(self) -> None:
-        self.send("inventory", sent=_("Asked %s for its inventory.") % self.where)
+        self.send("inventory", sent=_("Asked %s to take inventory again.") % self.where)
 
     def do_update(self) -> None:
         common.confirm(self.ctx.window, _("Update %s now?") % self.where,
@@ -557,16 +560,17 @@ class MachineDetail(Page):
     def build_asset_form(self) -> None:
         from .assets_page import AssetForm
 
-        # The page stays where it was: ticking the leaver steps one after another must not jump to the top.
-        scrolled = self.asset_box.get_ancestor(Gtk.ScrolledWindow)
-        position = scrolled.get_vadjustment().get_value() if scrolled is not None else None
+        # The page stays where it was: ticking the leaver steps one after another must not move it, and an open
+        # history stays open (0.3.1 closed it at the first tick, and the steps jumped up by its height).
+        restore = common.keep_place(self.asset_box)
+        previous = getattr(self, "asset_form", None)
+        history_open = previous.history_open() if previous is not None else False
         while (child := self.asset_box.get_first_child()) is not None:
             self.asset_box.remove(child)
-        self.asset_form = AssetForm(self.ctx, self.machine_id, saved=self.build_asset_form)
+        self.asset_form = AssetForm(self.ctx, self.machine_id, saved=self.build_asset_form, history_open=history_open)
         for widget in self.asset_form.groups():
             self.asset_box.append(widget)
-        if scrolled is not None and position is not None:
-            GLib.idle_add(lambda: scrolled.get_vadjustment().set_value(position) and False)
+        restore()
 
     def refresh(self, force: bool = False) -> None:
         if self.machine_id not in self.ctx.machines:
@@ -600,7 +604,8 @@ class MachineDetail(Page):
         for command in reversed(mine):
             result = self.ctx.command_results(command["id"]).get(self.machine_id)
             if result:
-                status = state_text(result.get("state", ""), result.get("detail", ""), command["action"])
+                status = state_text(result.get("state", ""), result.get("detail", ""), command["action"],
+                                    result.get("steps"))
             else:
                 expires = admin.parse_iso(command.get("expires"))
                 status = _("The machine did not take it in time.") if expires and expires < now else \

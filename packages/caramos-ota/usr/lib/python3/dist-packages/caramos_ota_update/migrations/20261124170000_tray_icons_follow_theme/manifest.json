@@ -1,0 +1,25 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Khay hệ thống (dưới 1 MB)",
+  "size_en": "System tray (under 1 MB)",
+  "title": "Biểu tượng ở khay đổi màu ngay khi bật, tắt Chế độ tối",
+  "summary": "Khiên của Trình Quản lý Cập nhật, cây kéo của CopyQ, chữ V của Lotus và ngọn lửa của Flameshot ở đảo bên phải đổi màu theo chế độ sáng, tối ngay, không cần đăng xuất.",
+  "title_en": "Tray icons change colour as soon as Dark mode is turned on or off",
+  "summary_en": "Update Manager's shield, CopyQ's scissors, Lotus's V and Flameshot's flame in the right island follow the light or dark mode at once, without logging out.",
+  "release_notes_vi": [
+    "Trước đây, sau khi bật hay tắt Chế độ tối, vài biểu tượng ở khay hệ thống (đảo bên phải) vẫn giữ màu cũ, lẫn vào nền đảo nên gần như không thấy, đến khi đăng xuất rồi đăng nhập lại. Giờ chúng đổi màu ngay: khiên của Trình Quản lý Cập nhật, dấu chấm than của Thông tin hệ thống, cây kéo của CopyQ, chữ V của bộ gõ Lotus, ngọn lửa của Flameshot.",
+    "CopyQ và Flameshot (bản Cinnamon) tự khởi động lại trong giây lát để vẽ biểu tượng mới; lịch sử bộ nhớ tạm của CopyQ vẫn còn nguyên.",
+    "Đổi chủ đề hay bộ biểu tượng trong phần cài đặt giao diện cũng vậy.",
+    "Chữ V có ngay; các biểu tượng khác từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "Before, after turning Dark mode on or off, some icons in the system tray (the right island) kept their old colours, which blended into the island and could hardly be seen, until the next login. Now they change at once: Update Manager's shield, System Information's exclamation mark, CopyQ's scissors, the V of the Lotus input method, Flameshot's flame.",
+    "CopyQ and Flameshot (Cinnamon edition) start again for a moment to draw their new icons; CopyQ keeps its clipboard history.",
+    "The same when the theme or the icon theme is changed in the appearance settings.",
+    "The V at once; the other icons from the next login."
+  ]
+}

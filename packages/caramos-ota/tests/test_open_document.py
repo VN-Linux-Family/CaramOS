@@ -1,4 +1,5 @@
-"""Office documents and archives open in an app that opens them (caramos-open-document, /etc/xdg/mimeapps.list).
+"""Office documents and archives open in an app that opens them (caramos-open-document, and the system's default
+apps of each desktop: /usr/share/applications/x-cinnamon-mimeapps.list and xfce-mimeapps.list).
 
 CaramOS comes without an office suite. Until 1.4.0 a .docx, .xlsx or .pptx then went to the default app of
 application/zip, its parent type, which the ISO's ~/.config/mimeapps.list said was Nemo: Nemo only showed the folder
@@ -20,6 +21,9 @@ from unittest import mock
 ROOT = Path(__file__).resolve().parents[1]
 REPO_CONFIG = ROOT.parents[1] / "config"
 OPEN_DOCUMENT = ROOT / "usr/share/caramos-ota/open-document"
+# The office defaults of the Cinnamon (XDG_CURRENT_DESKTOP X-Cinnamon) and Xfce (XFCE) editions.
+SYSTEM_LISTS = (ROOT / "usr/share/applications/x-cinnamon-mimeapps.list",
+                ROOT / "usr/share/applications/xfce-mimeapps.list")
 sys.path.insert(0, str(OPEN_DOCUMENT))
 
 import caramos_open_document as opener  # noqa: E402
@@ -68,10 +72,12 @@ class App:
 
 
 class DefaultAppsTests(unittest.TestCase):
-    def test_the_system_list_is_the_programs_list(self) -> None:
-        defaults = read_list(ROOT / "etc/xdg/mimeapps.list")["Default Applications"]
-        written = {content_type: tuple(filter(None, value.split(";"))) for content_type, value in defaults.items()}
-        self.assertEqual(opener.DEFAULTS, written)
+    def test_the_system_lists_are_the_programs_list(self) -> None:
+        for path in SYSTEM_LISTS:
+            defaults = read_list(path)["Default Applications"]
+            written = {content_type: tuple(filter(None, value.split(";"))) for content_type, value in defaults.items()}
+            self.assertEqual(opener.DEFAULTS, written, path.name)
+        self.assertEqual(*(path.read_bytes() for path in SYSTEM_LISTS))
 
     def test_the_suites_come_first_and_this_program_last(self) -> None:
         for content_type, apps in opener.DEFAULTS.items():
@@ -97,10 +103,11 @@ class DefaultAppsTests(unittest.TestCase):
         self.assertIn("wps-office-wps.desktop", opener.DEFAULTS["application/msword"])
 
     def test_archives_are_not_given_to_the_file_manager(self) -> None:
-        defaults = read_list(ROOT / "etc/xdg/mimeapps.list")["Default Applications"]
-        self.assertNotIn("application/zip", defaults)
-        for value in defaults.values():
-            self.assertNotIn("nemo.desktop", value)
+        for path in SYSTEM_LISTS:
+            defaults = read_list(path)["Default Applications"]
+            self.assertNotIn("application/zip", defaults)
+            for value in defaults.values():
+                self.assertNotIn("nemo.desktop", value)
 
     @unittest.skipUnless(REPO_CONFIG.is_dir(), "the source package has no config/")
     def test_new_users_do_not_open_archives_with_nemo(self) -> None:
@@ -128,8 +135,12 @@ class DesktopEntryTests(unittest.TestCase):
         install = (ROOT / "debian/install").read_text(encoding="utf-8").splitlines()
         for line in ("usr/share/caramos-ota/open-document usr/share/caramos-ota/",
                      "usr/share/applications/caramos-open-document.desktop usr/share/applications/",
-                     "etc/xdg/mimeapps.list etc/xdg/"):
+                     "usr/share/applications/x-cinnamon-mimeapps.list usr/share/applications/",
+                     "usr/share/applications/xfce-mimeapps.list usr/share/applications/"):
             self.assertIn(line, install)
+        # Not a configuration file any more (ticket H-1207, tests/test_conffile_questions.py).
+        self.assertFalse((ROOT / "etc/xdg/mimeapps.list").exists())
+        self.assertFalse([line for line in install if "mimeapps" in line and line.startswith("etc/")])
 
 
 class PlanTests(unittest.TestCase):

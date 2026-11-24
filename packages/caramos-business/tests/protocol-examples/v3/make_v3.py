@@ -285,13 +285,19 @@ def main() -> None:
                                "google-chrome-stable": "third-party:dl.google.com", "caramos-ota": "caramos-ppa",
                                "mint-common": "mint"})
 
+    # `main` (0.3.1) marks the entry that names its package: thunar's is thunar.desktop, not "Bulk Rename".
     write("inventory-apps.json", {"apps": [
         {"id": "vlc.desktop", "name": "VLC", "version": "3.0.20-3build6", "source": "deb", "package": "vlc",
-         "licence": "GPL-2+", "origin": "ubuntu-universe"},
+         "licence": "GPL-2+", "origin": "ubuntu-universe", "main": True},
         {"id": "google-chrome.desktop", "name": "Google Chrome", "version": "158.0.8127.36-1", "source": "deb",
-         "package": "google-chrome-stable", "licence": "unknown", "origin": "third-party:dl.google.com"},
+         "package": "google-chrome-stable", "licence": "unknown", "origin": "third-party:dl.google.com",
+         "main": True},
         {"id": "org.libreoffice.LibreOffice", "name": "LibreOffice", "version": "25.8.3.2", "source": "flatpak",
-         "package": "org.libreoffice.LibreOffice", "licence": "MPL-2.0", "origin": "flathub"},
+         "package": "org.libreoffice.LibreOffice", "licence": "MPL-2.0", "origin": "flathub", "main": True},
+        {"id": "thunar-bulk-rename.desktop", "name": "Bulk Rename", "version": "4.18.8-1build3", "source": "deb",
+         "package": "thunar", "licence": "GPL-2.0", "origin": "mint", "main": False},
+        {"id": "thunar.desktop", "name": "Thunar File Manager", "version": "4.18.8-1build3", "source": "deb",
+         "package": "thunar", "licence": "GPL-2.0", "origin": "mint", "main": True},
     ]})
     write("health.json", {"health": {
         "disk_free_pct": 48, "disk_health": "ok", "battery_health_pct": None, "updates": {"security": 0, "other": 3},

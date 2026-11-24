@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-business 0.1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-23 15:37+0700\n"
+"POT-Creation-Date: 2026-11-24 12:23+0700\n"
 "PO-Revision-Date: 2026-11-21 01:00+0700\n"
 "Last-Translator: CaramOS\n"
 "Language-Team: Vietnamese\n"
@@ -25,7 +25,7 @@ msgid "Not a JPEG, PNG or WebP picture."
 msgstr "Không phải ảnh JPEG, PNG hay WebP."
 
 #: usr/lib/python3/dist-packages/caramos_business/admin.py:155
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:369
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:370
 #: usr/lib/python3/dist-packages/caramos_business/protocol.py:404
 #: usr/lib/python3/dist-packages/caramos_business/protocol.py:411
 msgid "A picture is missing: choose it again."
@@ -41,12 +41,12 @@ msgstr "Không đọc được tùy chọn."
 
 #: usr/lib/python3/dist-packages/caramos_business/admin.py:276
 #: usr/lib/python3/dist-packages/caramos_business/admin.py:281
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:298
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:300
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:342
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:360
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:425
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:429
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:299
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:301
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:343
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:361
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:426
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:430
 msgid "The settings could not be read."
 msgstr "Không đọc được thiết lập."
 
@@ -71,7 +71,7 @@ msgstr ""
 "ổ đĩa ngay dưới hệ thống đang đóng băng."
 
 #: usr/lib/python3/dist-packages/caramos_business/admin.py:377
-#: usr/lib/python3/dist-packages/caramos_business/draft.py:278
+#: usr/lib/python3/dist-packages/caramos_business/draft.py:290
 msgid ""
 "A Wi-Fi password has 8 to 63 letters, digits or signs, without Vietnamese "
 "accents."
@@ -80,7 +80,7 @@ msgstr ""
 "Việt."
 
 #: usr/lib/python3/dist-packages/caramos_business/admin.py:383
-#: usr/lib/python3/dist-packages/caramos_business/draft.py:275
+#: usr/lib/python3/dist-packages/caramos_business/draft.py:287
 #, python-format
 msgid "Type the password of the Wi-Fi network “%s”."
 msgstr "Hãy nhập mật khẩu của mạng Wi-Fi “%s”."
@@ -102,13 +102,13 @@ msgstr "Có một ô quá dài."
 
 #: usr/lib/python3/dist-packages/caramos_business/admin.py:710
 #: usr/lib/python3/dist-packages/caramos_business/assets.py:39
-#: usr/lib/python3/dist-packages/caramos_business/licences.py:158
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:137
+#: usr/lib/python3/dist-packages/caramos_business/licences.py:159
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:145
 msgid "Write dates as day/month/year, such as 15/3/2024."
 msgstr "Ghi ngày theo dạng ngày/tháng/năm, ví dụ 15/3/2024."
 
 #: usr/lib/python3/dist-packages/caramos_business/admin.py:714
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:145
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:153
 msgid "The price is a whole number of đồng."
 msgstr "Giá là một số đồng, không có số lẻ."
 
@@ -121,7 +121,7 @@ msgid "The passphrase needs at least 8 characters."
 msgstr "Mật khẩu cần ít nhất 8 ký tự."
 
 #: usr/lib/python3/dist-packages/caramos_business/backup.py:76
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:635
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:636
 msgid "This is not a CaramOS Business backup."
 msgstr "Đây không phải bản sao lưu của CaramOS Doanh nghiệp."
 
@@ -147,28 +147,28 @@ msgid "The admin machine does not answer. Is it on, and on the same network?"
 msgstr "Máy quản lý không trả lời. Máy đó có đang bật và cùng mạng không?"
 
 #: usr/lib/python3/dist-packages/caramos_business/client.py:139
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:522
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:521
 msgid "The code has 6 digits."
 msgstr "Mã gồm 6 chữ số."
 
-#: usr/lib/python3/dist-packages/caramos_business/draft.py:190
-#: usr/lib/python3/dist-packages/caramos_business/draft.py:207
+#: usr/lib/python3/dist-packages/caramos_business/draft.py:196
+#: usr/lib/python3/dist-packages/caramos_business/draft.py:213
 msgid "A department's name has 1 to 60 characters."
 msgstr "Tên phòng ban có từ 1 đến 60 ký tự."
 
-#: usr/lib/python3/dist-packages/caramos_business/draft.py:192
+#: usr/lib/python3/dist-packages/caramos_business/draft.py:198
 msgid "At most 50 departments."
 msgstr "Tối đa 50 phòng ban."
 
-#: usr/lib/python3/dist-packages/caramos_business/draft.py:194
+#: usr/lib/python3/dist-packages/caramos_business/draft.py:200
 msgid "There is a department with this name already."
 msgstr "Đã có phòng ban tên này."
 
-#: usr/lib/python3/dist-packages/caramos_business/draft.py:230
+#: usr/lib/python3/dist-packages/caramos_business/draft.py:236
 msgid "Whole company"
 msgstr "Cả công ty"
 
-#: usr/lib/python3/dist-packages/caramos_business/draft.py:233
+#: usr/lib/python3/dist-packages/caramos_business/draft.py:239
 #, python-format
 msgid "Machine %s"
 msgstr "Máy %s"
@@ -212,7 +212,7 @@ msgstr "Lịch bật/tắt máy"
 
 #: usr/lib/python3/dist-packages/caramos_business/health.py:63
 #: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:49
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:794
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:799
 msgid "Apps"
 msgstr "Ứng dụng"
 
@@ -369,9 +369,9 @@ msgid "Unknown role."
 msgstr "Vai trò không hợp lệ."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:120
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:683
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:723
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:742
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:684
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:724
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:743
 msgid "This machine is the admin machine already."
 msgstr "Máy này đã là máy quản lý."
 
@@ -381,7 +381,7 @@ msgid ""
 msgstr "Máy này đã là máy nhân viên: hãy rời máy quản lý trước."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:128
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:217
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:325
 msgid "This machine became the admin machine."
 msgstr "Máy này trở thành máy quản lý."
 
@@ -394,23 +394,23 @@ msgid "This machine is not an employee machine."
 msgstr "Máy này không phải máy nhân viên."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:166
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:176
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:284
 msgid "Adding machines opened for 10 minutes."
 msgstr "Mở thêm máy trong 10 phút."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:170
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:177
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:285
 msgid "Adding machines closed."
 msgstr "Dừng thêm máy."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:179
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:143
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:249
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:204
 msgid "Each new machine now waits for approval."
 msgstr "Từ giờ mỗi máy mới phải chờ duyệt."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:180
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:144
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:250
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:205
 msgid "New machines join without approval."
 msgstr "Máy mới vào công ty không cần duyệt."
@@ -421,13 +421,13 @@ msgid "This machine is not waiting for approval."
 msgstr "Máy này không ở trong danh sách chờ duyệt."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:199
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:146
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:252
 #, python-format
 msgid "%s was approved and joined the company."
 msgstr "%s đã được duyệt và vào công ty."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:211
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:148
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:254
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:87
 #, python-format
 msgid "%s was turned away."
@@ -445,14 +445,14 @@ msgid "Unknown enrolment file."
 msgstr "Không có tệp ghép máy này."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:235
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:155
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:261
 msgid "An enrolment file was withdrawn."
 msgstr "Đã thu hồi một tệp ghép máy."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:257
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:622
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:399
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:375
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:623
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:416
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:377
 #: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:75
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:140
 #, python-format
@@ -460,177 +460,178 @@ msgid "Could not write %(file)s: %(error)s"
 msgstr "Không ghi được %(file)s: %(error)s"
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:259
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:151
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:257
 #, python-format
 msgid "An enrolment file was made: %(uses)d machines, until %(until)s."
 msgstr "Đã tạo một tệp ghép máy: %(uses)d máy, dùng đến %(until)s."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:271
-#: usr/lib/python3/dist-packages/caramos_business/licences.py:137
-#: usr/lib/python3/dist-packages/caramos_business/licences.py:141
+#: usr/lib/python3/dist-packages/caramos_business/licences.py:138
+#: usr/lib/python3/dist-packages/caramos_business/licences.py:142
 msgid "The licence list could not be read."
 msgstr "Không đọc được danh sách bản quyền."
 
 #: usr/lib/python3/dist-packages/caramos_business/helper.py:275
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:157
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:264
 #, python-format
-msgid "The list of bought licences was changed (%d entries)."
-msgstr "Đã sửa danh sách bản quyền đã mua (%d mục)."
+msgid "The list of bought licences was changed (%d entry)."
+msgid_plural "The list of bought licences was changed (%d entries)."
+msgstr[0] "Đã sửa danh sách bản quyền đã mua (%d mục)."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:286
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:287
 msgid "Unknown ticket."
 msgstr "Không có phiếu hỗ trợ này."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:290
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:172
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:291
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:280
 #, python-format
 msgid "Ticket %s was changed."
 msgstr "Đã cập nhật phiếu %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:306
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:123
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:307
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:229
 msgid "the whole company"
 msgstr "cả công ty"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:309
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:115
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:126
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:565
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:310
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:221
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:232
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:582
 #, python-format
 msgid "department %s"
 msgstr "phòng %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:310
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:127
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:311
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:233
 #, python-format
 msgid "machine %s"
 msgstr "máy %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:315
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:184
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:316
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:292
 msgid "Settings saved without changes."
 msgstr "Lưu thiết lập, không có gì thay đổi."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:320
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:188
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:321
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:296
 msgid "the departments"
 msgstr "danh sách phòng ban"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:322
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:190
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:323
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:298
 msgid "who is in which department"
 msgstr "máy nào thuộc phòng nào"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:325
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:194
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:326
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:302
 #, python-format
 msgid "Settings saved: %s."
 msgstr "Lưu thiết lập: %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:393
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:395
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:465
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:483
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:394
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:396
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:466
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:484
 msgid "Unknown machine."
 msgstr "Không có máy này."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:411
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:201
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:711
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:412
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:309
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:716
 #, python-format
 msgid "%s was taken out of the company."
 msgstr "Đã gỡ %s khỏi công ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:439
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:440
 #, python-format
 msgid "This action could not be sent: %s"
 msgstr "Không gửi được thao tác này: %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:451
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:452
 #, python-format
 msgid "Ticket %s was answered with remote help."
 msgstr "Phiếu %s đã được hỗ trợ từ xa."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:461
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:462
 msgid "Remote help goes to one machine at a time."
 msgstr "Mỗi lần chỉ hỗ trợ từ xa được một máy."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:469
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:470
 msgid "Remote help is not ready: press Connect again."
 msgstr "Hỗ trợ từ xa chưa sẵn sàng: hãy bấm Kết nối lại."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:485
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:486
 msgid "Unknown asset."
 msgstr "Không có tài sản này."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:491
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:204
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:492
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:312
 #, python-format
 msgid "A handover document was printed for %s."
 msgstr "Đã in biên bản bàn giao cho %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:494
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:207
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:495
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:315
 #, python-format
 msgid "The asset details of %s were changed."
 msgstr "Đã sửa thông tin tài sản của %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:503
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:206
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:504
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:314
 #, python-format
 msgid "The asset %s was added."
 msgstr "Đã thêm tài sản %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:512
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:513
 msgid "Remote help needs the stunnel4 package."
 msgstr "Hỗ trợ từ xa cần gói stunnel4."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:525
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:526
 msgid ""
 "Remote help needs the iptables program, to keep the network off the viewer."
 msgstr ""
 "Hỗ trợ từ xa cần chương trình iptables để chặn mạng khỏi cửa sổ xem màn hình."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:533
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:534
 #, python-format
 msgid "Remote help could not close the viewer's port to the network: %s"
 msgstr "Hỗ trợ từ xa không chặn được cổng của cửa sổ xem màn hình với mạng: %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:563
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:564
 #, python-format
 msgid "Remote help could not start: %s"
 msgstr "Không bắt đầu được hỗ trợ từ xa: %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:603
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:604
 msgid "Choose a file."
 msgstr "Hãy chọn một tệp."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:624
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:213
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:625
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:321
 #, python-format
 msgid "A backup was made: %s."
 msgstr "Đã tạo bản sao lưu: %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:630
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:631
 msgid "Only a machine without a role can take over from a backup."
 msgstr "Chỉ máy chưa chọn vai trò mới khôi phục được từ bản sao lưu."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:638
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:639
 #, python-format
 msgid "Could not read %(file)s: %(error)s"
 msgstr "Không đọc được %(file)s: %(error)s"
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:649
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:215
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:650
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:323
 msgid "This machine took over as the admin machine from a backup."
 msgstr "Máy này trở thành máy quản lý từ bản sao lưu."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:687
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:688
 msgid "Not an IPv4 address."
 msgstr "Không phải địa chỉ IPv4."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:702
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:705
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:703
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:706
 #: usr/lib/python3/dist-packages/caramos_business/protocol.py:953
 #: usr/lib/python3/dist-packages/caramos_business/protocol.py:955
 #: usr/lib/python3/dist-packages/caramos_business/protocol.py:960
@@ -644,11 +645,11 @@ msgstr "Không phải địa chỉ IPv4."
 msgid "This is not an enrolment file."
 msgstr "Đây không phải tệp ghép máy."
 
-#: usr/lib/python3/dist-packages/caramos_business/helper.py:744
+#: usr/lib/python3/dist-packages/caramos_business/helper.py:745
 msgid "Turn off freezing first."
 msgstr "Hãy tắt chế độ đóng băng trước."
 
-#: usr/lib/python3/dist-packages/caramos_business/licences.py:153
+#: usr/lib/python3/dist-packages/caramos_business/licences.py:154
 msgid "A licence needs a product name and a number of seats."
 msgstr "Mỗi bản quyền cần có tên sản phẩm và số máy được dùng."
 
@@ -1042,13 +1043,13 @@ msgid "LibreOffice could not make the PDF: %s"
 msgstr "LibreOffice không tạo được PDF: %s"
 
 #: usr/lib/python3/dist-packages/caramos_business/server.py:284
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:140
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:246
 #, python-format
 msgid "%(name)s asks to join the company (%(ip)s)."
 msgstr "%(name)s xin vào công ty (%(ip)s)."
 
 #: usr/lib/python3/dist-packages/caramos_business/server.py:286
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:141
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:247
 #, python-format
 msgid "%(name)s joined the company (%(ip)s)."
 msgstr "%(name)s đã vào công ty (%(ip)s)."
@@ -1058,363 +1059,456 @@ msgstr "%(name)s đã vào công ty (%(ip)s)."
 msgid ""
 "The settings were signed again as version %(new)d: a machine had version "
 "%(old)d (this admin machine was restored from an older backup)."
-msgstr "Thiết lập được ký lại thành bản %(new)d: một máy đang có bản %(old)d (máy quản lý này được khôi phục từ bản sao lưu cũ hơn)."
+msgstr ""
+"Thiết lập được ký lại thành bản %(new)d: một máy đang có bản %(old)d (máy "
+"quản lý này được khôi phục từ bản sao lưu cũ hơn)."
 
 #: usr/lib/python3/dist-packages/caramos_business/server.py:628
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:175
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:283
 msgid "Adding machines stopped by itself after 20 wrong codes."
 msgstr "Máy quản lý tự dừng thêm máy vì bị gõ sai mã 20 lần."
 
 #: usr/lib/python3/dist-packages/caramos_business/server.py:653
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:154
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:260
 msgid "An enrolment file was turned off after too many wrong requests."
 msgstr "Một tệp ghép máy đã bị tắt vì có quá nhiều yêu cầu sai."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:17
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:18
 msgid "Off."
 msgstr "Tắt."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:19
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:20
 msgid "a picture for every day"
 msgstr "có ảnh cho ngày thường"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:19
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:20
 msgid "no picture for every day"
 msgstr "chưa có ảnh cho ngày thường"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:22
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:23
 #, python-format
 msgid "%d special period"
 msgid_plural "%d special periods"
 msgstr[0] "%d dịp đặc biệt"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:24
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:25
 msgid "locked"
 msgstr "không cho đổi"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:27
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:28
 #, python-format
 msgid "Desktop and Documents in %s."
 msgstr "Desktop và Tài liệu nằm ở %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:30
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:31
 #, python-format
 msgid "Shared drives: %s."
 msgstr "Ổ dùng chung: %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:30
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:31
 #: usr/lib/python3/dist-packages/caramos_business/ui/sections.py:261
 msgid "No shared drive yet."
 msgstr "Chưa có ổ dùng chung nào."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:36
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:37
 #, python-format
 msgid "home page %s"
 msgstr "trang chủ %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:39
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:40
 #, python-format
 msgid "%d bookmark"
 msgid_plural "%d bookmarks"
 msgstr[0] "%d dấu trang"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:42
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:43
 #, python-format
 msgid "%d other website"
 msgid_plural "%d other websites"
 msgstr[0] "%d trang khác"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:45
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:46
 #, python-format
 msgid "blocks %(what)s during working hours"
 msgstr "chặn %(what)s trong giờ làm việc"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:46
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:47
 #, python-format
 msgid "blocks %(what)s all the time"
 msgstr "luôn chặn %(what)s"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:48
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:49
 msgid "safe search"
 msgstr "tìm kiếm an toàn"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:49
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:50
 msgid "On, with nothing set yet."
 msgstr "Đã bật, chưa đặt gì."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:52
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:53
 #, python-format
 msgid "Printers: %s."
 msgstr "Máy in: %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:52
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:53
 #: usr/lib/python3/dist-packages/caramos_business/ui/sections.py:490
 msgid "No printer yet."
 msgstr "Chưa có máy in nào."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:57
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:58
 #, python-format
 msgid "shuts down at %(time)s, %(days)s"
 msgstr "tắt lúc %(time)s, %(days)s"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:61
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:62
 #, python-format
 msgid "turns on at %(time)s, %(days)s"
 msgstr "bật lúc %(time)s, %(days)s"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:63
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:64
 msgid "On, with no time set."
 msgstr "Đã bật, chưa đặt giờ."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:67
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:68
 msgid "No app chosen yet."
 msgstr "Chưa chọn ứng dụng nào."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:68
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:69
 #, python-format
 msgid "%(required)s required, %(forbidden)s forbidden."
 msgstr "%(required)s bắt buộc, %(forbidden)s không được cài."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:69
 #: usr/lib/python3/dist-packages/caramos_business/summaries.py:70
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:795
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:71
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:800
 #: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:142
 #, python-format
 msgid "%d app"
 msgid_plural "%d apps"
 msgstr[0] "%d ứng dụng"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:72
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:73
 msgid "USB storage allowed."
 msgstr "Cho dùng USB lưu trữ."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:72
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:73
 msgid "USB storage read-only."
 msgstr "USB lưu trữ chỉ đọc."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:73
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:74
 msgid "USB storage blocked."
 msgstr "Chặn USB lưu trữ."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:76
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:77
 #, python-format
 msgid "Locks after %d minute."
 msgid_plural "Locks after %d minutes."
 msgstr[0] "Tự khóa sau %d phút."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:78
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:79
 msgid "Firewall on."
 msgstr "Bật tường lửa."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:80
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:81
 msgid "Machines send their inventory."
 msgstr "Máy gửi thông tin kiểm kê."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:83
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:84
 #, python-format
 msgid "Networks: %s."
 msgstr "Mạng: %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:83
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:84
 #: usr/lib/python3/dist-packages/caramos_business/ui/sections.py:584
 msgid "No network yet."
 msgstr "Chưa có mạng nào."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:85
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:86
 msgid "a guest session"
 msgstr "có phiên khách"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:85
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:86
 msgid "no guest session"
 msgstr "không có phiên khách"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:87
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:88
 #: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:418
 msgid "frozen"
 msgstr "đóng băng"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:90
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:91
 #, python-format
 msgid "maintenance at %(time)s, %(days)s"
 msgstr "bảo trì lúc %(time)s, %(days)s"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:94
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:95
 #: usr/lib/python3/dist-packages/caramos_business/text.py:127
 msgid "every day"
 msgstr "mọi ngày"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:94
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:95
 msgid "every week"
 msgstr "hằng tuần"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:94
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:95
 msgid "every month"
 msgstr "hằng tháng"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:97
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:98
 #, python-format
 msgid "a system snapshot %s"
 msgstr "chụp bản lưu hệ thống %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:97
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:98
 #, python-format
 msgid "%d kept"
 msgid_plural "%d kept"
 msgstr[0] "giữ %d bản"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:99
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:100
 msgid "one before each update"
 msgstr "chụp thêm một bản trước mỗi lần cập nhật"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:105
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:57
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:299
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:106
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:58
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:300
 msgid "Sync now"
 msgstr "Đồng bộ ngay"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:105
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:57
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:298
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:505
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:106
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:58
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:299
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:508
 msgid "Take inventory again"
 msgstr "Kiểm kê lại"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:105
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:57
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:298
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:498
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:106
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:58
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:299
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:501
 msgid "Lock"
 msgstr "Khóa máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:106
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:298
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:107
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:299
 msgid "Send a message"
 msgstr "Gửi tin nhắn"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:106
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:58
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:107
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:59
 msgid "Log out"
 msgstr "Đăng xuất"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:106
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:294
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:383
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:385
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:58
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:298
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:425
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:107
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:293
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:382
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:384
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:59
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:299
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:428
 #: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:408
 msgid "Restart"
 msgstr "Khởi động lại"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:107
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:108
 #: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:144
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:338
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:58
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:298
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:425
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:337
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:59
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:299
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:428
 msgid "Shut down"
 msgstr "Tắt máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:107
-#: usr/lib/python3/dist-packages/caramos_business/ui/common.py:204
-#: usr/lib/python3/dist-packages/caramos_business/ui/common.py:230
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:108
+#: usr/lib/python3/dist-packages/caramos_business/ui/common.py:205
+#: usr/lib/python3/dist-packages/caramos_business/ui/common.py:236
 #: usr/lib/python3/dist-packages/caramos_business/ui/departments.py:125
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:466
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:58
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:323
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:424
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:465
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:59
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:325
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:427
 #: usr/lib/python3/dist-packages/caramos_business/ui/prompts.py:408
 #: usr/lib/python3/dist-packages/caramos_business/ui/remote.py:88
 msgid "Cancel"
 msgstr "Hủy"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:107
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:59
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:298
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:409
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:108
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:60
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:299
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:412
 msgid "Update"
 msgstr "Cập nhật"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:108
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:59
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:109
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:60
 #: usr/lib/python3/dist-packages/caramos_business/ui/prompts.py:248
 #: usr/lib/python3/dist-packages/caramos_business/ui/prompts.py:293
 #: usr/lib/python3/dist-packages/caramos_business/ui/remote.py:114
 msgid "Remote help"
 msgstr "Hỗ trợ từ xa"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:108
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:59
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:109
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:60
 msgid "Allow USB for a while"
 msgstr "Mở USB tạm thời"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:113
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:121
+msgid "the machine is frozen: it updates in its maintenance time"
+msgstr "máy đang đóng băng: máy cập nhật vào giờ bảo trì"
+
+#. Translators: the mode of a remote help session that has ended, in brackets after how long it ran.
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:127
+msgid "control"
+msgstr "điều khiển"
+
+#. Translators: the mode of a remote help session that has ended, in brackets after how long it ran.
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:129
+msgid "view only"
+msgstr "chỉ xem"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:142
+msgid "system snapshot taken"
+msgstr "đã chụp bản lưu hệ thống"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:142
+#, python-format
+msgid "no system snapshot: %s"
+msgstr "không chụp được bản lưu hệ thống: %s"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:144
+msgid "CaramOS update checked"
+msgstr "đã kiểm tra bản cập nhật CaramOS"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:144
+#, python-format
+msgid "the CaramOS update check failed: %s"
+msgstr "kiểm tra bản cập nhật CaramOS bị lỗi: %s"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:147
+#, python-format
+msgid "security updates failed: %s"
+msgstr "cài bản vá bảo mật bị lỗi: %s"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:149
+#, python-format
+msgid "%d security update installed"
+msgid_plural "%d security updates installed"
+msgstr[0] "đã cài %d bản vá bảo mật"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:150
+msgid "no security updates"
+msgstr "không có bản vá bảo mật"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:152
+msgid "apps done"
+msgstr "ứng dụng: xong"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:152
+#, python-format
+msgid "apps: %s"
+msgstr "ứng dụng: %s"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:198
+msgid "in maintenance now"
+msgstr "đang bảo trì"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:199
+msgid "skipped: someone was using the machine"
+msgstr "bỏ qua: có người đang dùng máy"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:200
+msgid "out of time: it restarted before it finished"
+msgstr "hết giờ bảo trì: máy khởi động lại khi chưa xong"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:201
+msgid "not frozen any more"
+msgstr "đã thôi đóng băng"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:202
+msgid "error: the machine did not start into maintenance"
+msgstr "lỗi: máy không khởi động vào chế độ bảo trì"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:203
+msgid "error: GRUB has no maintenance entry"
+msgstr "lỗi: GRUB chưa có mục bảo trì"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:204
+msgid "no settings yet"
+msgstr "chưa có thiết lập"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:208
+#, python-format
+msgid "error: grub-reboot: %s"
+msgstr "lỗi: grub-reboot: %s"
+
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:219
 msgid "all machines"
 msgstr "mọi máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:161
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:269
 #, python-format
 msgid "Ticket %s: a note for the employee."
 msgstr "Phiếu %s: ghi chú gửi nhân viên."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:163
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:271
 #, python-format
 msgid "Ticket %s: an internal note."
 msgstr "Phiếu %s: ghi chú nội bộ."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:165
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:615
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:625
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:273
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:632
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:642
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:27
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:32
 msgid "New"
 msgstr "Mới"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:165
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:615
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:625
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:273
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:632
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:642
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:27
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:32
 msgid "Being handled"
 msgstr "Đang xử lý"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:165
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:273
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:27
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:32
 msgid "Waiting for the employee"
 msgstr "Chờ nhân viên trả lời"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:166
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:616
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:627
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:274
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:633
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:644
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:27
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:32
 msgid "Finished"
 msgstr "Đã xong"
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:167
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:275
 #, python-format
 msgid "Ticket %(ticket)s: %(status)s."
 msgstr "Phiếu %(ticket)s: %(status)s."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:170
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:278
 #, python-format
 msgid "Ticket %(ticket)s: handled by %(name)s."
 msgstr "Phiếu %(ticket)s: giao cho %(name)s."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:181
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:289
 #, python-format
 msgid ""
 "The settings were signed again as version %(new)d: a machine had a newer "
 "version (this admin machine was restored from an older backup)."
-msgstr "Thiết lập được ký lại thành bản %(new)d: một máy đang có bản mới hơn (máy quản lý này được khôi phục từ bản sao lưu cũ hơn)."
+msgstr ""
+"Thiết lập được ký lại thành bản %(new)d: một máy đang có bản mới hơn (máy "
+"quản lý này được khôi phục từ bản sao lưu cũ hơn)."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:210
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:318
 msgid "A help request was answered with remote help."
 msgstr "Đã trả lời một yêu cầu hỗ trợ bằng hỗ trợ từ xa."
 
-#: usr/lib/python3/dist-packages/caramos_business/summaries.py:211
+#: usr/lib/python3/dist-packages/caramos_business/summaries.py:319
 #, python-format
 msgid "A help request from %s was closed."
 msgstr "Đã đóng yêu cầu hỗ trợ của %s."
@@ -1712,7 +1806,7 @@ msgid "withdrawn on %s"
 msgstr "đã thu hồi ngày %s"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:50
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:566
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:583
 #, python-format
 msgid "works until %s"
 msgstr "dùng được đến %s"
@@ -1767,7 +1861,7 @@ msgstr "%s đã vào công ty."
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:189
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:207
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:250
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:713
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:718
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:245
 msgid "Could not change it."
 msgstr "Không thay đổi được."
@@ -1782,7 +1876,7 @@ msgid "It gets nothing from the company. To add it later, pair it again."
 msgstr "Máy sẽ không nhận được gì từ công ty. Muốn thêm sau thì ghép máy lại."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:104
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:74
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:75
 msgid "Add machines"
 msgstr "Thêm máy"
 
@@ -1817,7 +1911,7 @@ msgstr ""
 "Máy mới phải chờ bạn bấm Duyệt, và chưa nhận gì từ công ty trước lúc đó."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:143
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:354
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:353
 msgid "Enrolment files"
 msgstr "Tệp ghép máy"
 
@@ -1861,7 +1955,7 @@ msgid "Each step is in the guide."
 msgstr "Từng bước nằm trong hướng dẫn."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:156
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:111
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:112
 msgid "Read the guide"
 msgstr "Xem hướng dẫn"
 
@@ -1883,9 +1977,9 @@ msgstr "Cho %s"
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:227
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:262
 #: usr/lib/python3/dist-packages/caramos_business/ui/departments.py:52
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:183
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:520
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:122
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:184
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:523
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:127
 msgid "In no department"
 msgstr "Chưa vào phòng nào"
 
@@ -1915,9 +2009,9 @@ msgstr ""
 "tệp đã thêm vẫn ở lại."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:261
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:455
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:516
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:454
 #: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:519
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:522
 msgid "Department"
 msgstr "Phòng ban"
 
@@ -1948,7 +2042,7 @@ msgstr ""
 "dụ phong-may-3f2a1c."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:289
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:373
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:390
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:119
 msgid "Choose where to save…"
 msgstr "Chọn nơi lưu…"
@@ -1958,9 +2052,9 @@ msgid "Save the enrolment file"
 msgstr "Lưu tệp ghép máy"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:305
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:403
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:408
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:377
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:420
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:425
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:379
 #: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:66
 #: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:82
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:142
@@ -1970,20 +2064,20 @@ msgstr "Đã lưu %s."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/adding.py:307
 #: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:187
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:168
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:316
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:176
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:330
 #: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:195
 msgid "Could not save."
 msgstr "Không lưu được."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:38
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:266
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:268
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:25
 msgid "Overview"
 msgstr "Tổng quan"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:39
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:70
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:71
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:71
 msgid "Employee machines"
 msgstr "Máy nhân viên"
@@ -2000,8 +2094,8 @@ msgid "Help tickets"
 msgstr "Phiếu hỗ trợ"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:42
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:200
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:219
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:214
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:233
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:147
 msgid "Assets"
 msgstr "Tài sản"
@@ -2041,22 +2135,22 @@ msgstr "Nhật ký"
 msgid "Backup"
 msgstr "Sao lưu"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:195
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:197
 msgid ""
 "Sent. Machines that are on take it within seconds; the others when they "
 "start."
 msgstr ""
 "Đã gửi. Máy đang bật nhận trong vài giây, máy đang tắt nhận khi bật lên."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:235
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:237
 msgid "Could not send it."
 msgstr "Không gửi được."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:251
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:253
 msgid "Only this machine's administrators can open this"
 msgstr "Chỉ người quản trị máy này mới mở được phần này"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:252
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:254
 msgid ""
 "The company's settings on this machine are kept for the users who can "
 "install software on it. Log in with such an account."
@@ -2064,8 +2158,8 @@ msgstr ""
 "Thiết lập của công ty trên máy này chỉ dành cho tài khoản được cài phần mềm "
 "trên máy. Hãy đăng nhập bằng tài khoản đó."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:307
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:308
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:309
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:310
 #: usr/lib/python3/dist-packages/caramos_business/ui/app.py:57
 #: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:115
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:43
@@ -2075,33 +2169,33 @@ msgstr ""
 msgid "CaramOS Business"
 msgstr "CaramOS Doanh nghiệp"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:390
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:392
 #, python-format
 msgid "%(user)s asks for help on %(machine)s"
 msgstr "%(user)s nhờ hỗ trợ trên máy %(machine)s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:391
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:617
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:393
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:634
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:115
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:78
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:167
 msgid "No note."
 msgstr "Không có lời nhắn."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:400
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:420
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:402
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:422
 msgid "The settings have changes that are not sent yet."
 msgstr "Có thay đổi chưa gửi tới các máy."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:404
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:406
 msgid "Undo"
 msgstr "Hoàn tác"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:405
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:407
 msgid "Save and send"
 msgstr "Lưu và gửi"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:420
+#: usr/lib/python3/dist-packages/caramos_business/ui/admin_window.py:422
 msgid "Saving…"
 msgstr "Đang lưu…"
 
@@ -2110,12 +2204,12 @@ msgid "Desktop computer"
 msgstr "Máy để bàn"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:28
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:730
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:735
 msgid "Laptop"
 msgstr "Máy xách tay"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:28
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:775
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:780
 msgid "Screen"
 msgstr "Màn hình"
 
@@ -2124,7 +2218,7 @@ msgid "Printer"
 msgstr "Máy in"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:28
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:730
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:735
 msgid "Other"
 msgstr "Khác"
 
@@ -2186,106 +2280,106 @@ msgstr "Đã đưa họ ra khỏi phòng ban"
 msgid "The machine is in stock"
 msgstr "Máy đã nhập kho"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:66
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:73
 msgid "Asset details"
 msgstr "Thông tin tài sản"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:66
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:73
 msgid "Typed by you, for the asset list. Dates as day/month/year."
 msgstr ""
 "Do bạn nhập, để làm danh sách tài sản. Ngày ghi theo dạng ngày/tháng/năm."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:69
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:76
 #: usr/lib/python3/dist-packages/caramos_business/ui/departments.py:76
 #: usr/lib/python3/dist-packages/caramos_business/ui/sections.py:454
 msgid "Name"
 msgstr "Tên"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:71
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:299
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:732
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:78
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:313
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:737
 msgid "Kind"
 msgstr "Loại máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:74
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:81
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:175
 msgid "Status"
 msgstr "Trạng thái"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:78
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:301
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:85
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:315
 msgid "Asset code"
 msgstr "Mã tài sản"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:79
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:86
 msgid "Used by"
 msgstr "Người dùng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:80
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:87
 msgid "Used since"
 msgstr "Dùng từ ngày"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:81
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:302
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:88
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:316
 msgid "Location"
 msgstr "Vị trí"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:82
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:89
 msgid "Bought on"
 msgstr "Ngày mua"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:83
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:90
 msgid "Price (đồng)"
 msgstr "Giá (đồng)"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:84
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:91
 msgid "Warranty until"
 msgstr "Bảo hành đến"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:85
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:92
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:205
 msgid "Note"
 msgstr "Ghi chú"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:89
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:96
 msgid "Save the asset details"
 msgstr "Lưu thông tin tài sản"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:90
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:220
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:97
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:234
 msgid "Print a handover document…"
 msgstr "In biên bản bàn giao…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:95
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:102
 msgid "History"
 msgstr "Lịch sử"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:97
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:104
 msgid "What happened to it"
 msgstr "Những gì đã xảy ra"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:102
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:110
 #, python-format
 msgid "by %s"
 msgstr "do %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:105
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:113
 msgid "Nothing yet"
 msgstr "Chưa có gì"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:105
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:113
 msgid "Changes of status and holder are written here."
 msgstr "Mỗi lần đổi trạng thái hay người dùng đều được ghi ở đây."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:106
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:114
 msgid "Add a note to the history"
 msgstr "Thêm ghi chú vào lịch sử"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:118
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:126
 msgid "An employee leaves"
 msgstr "Nhân viên nghỉ việc"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:118
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:126
 msgid ""
 "The steps when the person using this machine leaves the company. Tick each "
 "one when it is done."
@@ -2293,23 +2387,23 @@ msgstr ""
 "Các việc cần làm khi người dùng máy này nghỉ việc. Đánh dấu từng việc khi "
 "làm xong."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:175
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:183
 msgid "Asset details saved."
 msgstr "Đã lưu thông tin tài sản."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:184
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:192
 msgid "Note added."
 msgstr "Đã thêm ghi chú."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:195
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:209
 msgid "Saved."
 msgstr "Đã lưu."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:203
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:217
 msgid "Add an asset…"
 msgstr "Thêm tài sản…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:208
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:222
 msgid ""
 "Every machine of the company, and the things without one: screens, printers, "
 "machines not paired. Tick several to print one handover document."
@@ -2317,52 +2411,52 @@ msgstr ""
 "Mọi máy của công ty, và những tài sản không có máy: màn hình, máy in, máy "
 "chưa ghép. Đánh dấu nhiều tài sản để in chung một biên bản bàn giao."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:212
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:226
 msgid "Search assets or people"
 msgstr "Tìm tài sản hoặc người dùng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:215
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:229
 msgid "Every status"
 msgstr "Mọi trạng thái"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:255
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:269
 #, python-format
 msgid "used by %s"
 msgstr "%s đang dùng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:262
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:276
 msgid "No asset matches."
 msgstr "Không có tài sản nào khớp."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:262
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:276
 msgid "No asset yet"
 msgstr "Chưa có tài sản nào"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:263
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:277
 msgid ""
 "Machines appear when they are paired; add other things with Add an asset."
 msgstr "Máy hiện ở đây khi được ghép; tài sản khác thì bấm Thêm tài sản."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:268
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:282
 #, python-format
 msgid "Choose %s"
 msgstr "Chọn %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:273
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:281
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:287
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:295
 #, python-format
 msgid "%d chosen."
 msgstr "Đã chọn %d."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:298
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:312
 msgid "Name, such as Màn hình Dell 24 inch"
 msgstr "Tên, ví dụ Màn hình Dell 24 inch"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:320
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:334
 msgid "Add an asset"
 msgstr "Thêm tài sản"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:320
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:334
 msgid ""
 "Something the company owns that has no paired machine. Its other details "
 "come next."
@@ -2370,7 +2464,7 @@ msgstr ""
 "Một thứ công ty sở hữu nhưng không phải máy đã ghép. Các thông tin khác nhập "
 "ở bước sau."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:322
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:336
 #: usr/lib/python3/dist-packages/caramos_business/ui/departments.py:72
 #: usr/lib/python3/dist-packages/caramos_business/ui/sections.py:219
 #: usr/lib/python3/dist-packages/caramos_business/ui/sections.py:288
@@ -2380,69 +2474,69 @@ msgstr ""
 msgid "Add"
 msgstr "Thêm"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:337
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:353
 msgid "This asset is no longer listed"
 msgstr "Tài sản này không còn trong danh sách"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:351
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:368
 msgid "Company name"
 msgstr "Tên công ty"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:351
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:368
 msgid "Number, such as 12/BB-TS"
 msgstr "Số, ví dụ 12/BB-TS"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:352
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:369
 msgid "Place, such as Hà Nội"
 msgstr "Địa điểm, ví dụ Hà Nội"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:352
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:369
 msgid "Handed over by (name)"
 msgstr "Người giao (họ tên)"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:353
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:370
 msgid "Position of who hands over"
 msgstr "Chức vụ người giao"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:353
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:370
 msgid "Received by (name)"
 msgstr "Người nhận (họ tên)"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:354
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:371
 msgid "Position of who receives"
 msgstr "Chức vụ người nhận"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:354
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:371
 msgid "Reason, such as Nhân viên mới"
 msgstr "Lý do, ví dụ Nhân viên mới"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:359
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:376
 msgid "Save a PDF too"
 msgstr "Lưu thêm bản PDF"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:363
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:380
 msgid "Needs LibreOffice: install it from App Center."
 msgstr "Cần LibreOffice: hãy cài từ App Center."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:371
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:388
 msgid "Print a handover document"
 msgstr "In biên bản bàn giao"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:372
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:389
 #, python-format
 msgid "For %s. Empty fields are left as dotted lines, to fill in by hand."
 msgstr "Cho %s. Ô nào để trống sẽ thành dòng chấm, để điền tay."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:386
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:403
 msgid "Save the handover document"
 msgstr "Lưu biên bản bàn giao"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:405
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:422
 #, python-format
 msgid "Saved %s. Making the PDF…"
 msgstr "Đã lưu %s. Đang tạo PDF…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:429
+#: usr/lib/python3/dist-packages/caramos_business/ui/assets_page.py:446
 #, python-format
 msgid "to %s"
 msgstr "cho %s"
@@ -2483,7 +2577,7 @@ msgid "Later"
 msgstr "Để sau"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/connect.py:89
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:410
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:409
 #: usr/lib/python3/dist-packages/caramos_business/ui/remote.py:89
 msgid "Connect"
 msgstr "Kết nối"
@@ -2520,7 +2614,7 @@ msgid "For example Kế toán, Kinh doanh, Kho."
 msgstr "Ví dụ Kế toán, Kinh doanh, Kho."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/departments.py:41
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:268
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:269
 #, python-format
 msgid "%d machine."
 msgid_plural "%d machines."
@@ -2602,7 +2696,7 @@ msgid "Now in %s"
 msgstr "Đang ở phòng %s"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/departments.py:120
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:291
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:292
 msgid "No machine yet."
 msgstr "Chưa có máy nào."
 
@@ -2709,9 +2803,9 @@ msgstr ""
 "liên hệ với bạn."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:196
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:576
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:577
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:613
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:593
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:594
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:630
 msgid "Your requests"
 msgstr "Yêu cầu của bạn"
 
@@ -2720,7 +2814,7 @@ msgid "What you asked IT, and their answers."
 msgstr "Những gì bạn đã nhờ IT, và câu trả lời của IT."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:199
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:606
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:623
 msgid "Ask IT for help…"
 msgstr "Nhờ IT hỗ trợ…"
 
@@ -2792,19 +2886,11 @@ msgstr "trên máy này"
 msgid "Freezing"
 msgstr "Đóng băng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:246
-msgid "on: changes are undone at restart"
-msgstr "đang bật: mọi thay đổi bị xóa khi khởi động lại"
-
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:247
-msgid "from the next restart"
-msgstr "từ lần khởi động lại tới"
-
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:249
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:248
 msgid "Detail"
 msgstr "Chi tiết"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:254
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:253
 #, python-format
 msgid ""
 "Your company manages this machine with CaramOS Business, from the machine "
@@ -2813,15 +2899,15 @@ msgstr ""
 "Công ty quản lý máy này bằng CaramOS Doanh nghiệp, từ máy %s. Chỉ những gì "
 "ghi dưới đây được bật."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:256
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:255
 msgid "What the company does here"
 msgstr "Công ty làm gì trên máy này"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:260
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:259
 msgid "What the company cannot see"
 msgstr "Công ty không xem được"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:264
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:263
 msgid ""
 "Personal Data Protection Law 91/2025/QH15, article 25: staff must know the "
 "measures used on their machines. Ask your company if something is unclear."
@@ -2830,30 +2916,30 @@ msgstr ""
 "biết các biện pháp dùng trên máy của mình. Nếu có gì chưa rõ, hãy hỏi công "
 "ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:267
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:269
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:266
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:268
 msgid "Managed by the company"
 msgstr "Do công ty quản lý"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:281
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:280
 msgid "Sent to IT."
 msgstr "Đã gửi cho bộ phận IT."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:292
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:384
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:291
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:383
 msgid "Restart to finish"
 msgstr "Khởi động lại để hoàn tất"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:293
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:385
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:292
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:384
 msgid "The machine needs a restart to remove the company's settings for good."
 msgstr "Máy cần khởi động lại để gỡ hẳn thiết lập của công ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:299
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:298
 msgid "Leave the admin machine?"
 msgstr "Rời máy quản lý?"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:300
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:299
 msgid ""
 "What the company set is taken off: Desktop and Documents come back to this "
 "machine within half a minute, the wallpaper stays as it is. Files on the "
@@ -2862,19 +2948,19 @@ msgstr ""
 "Những gì công ty đặt sẽ được gỡ: Desktop và Tài liệu trở về máy này trong "
 "nửa phút, hình nền giữ như hiện tại. Tệp trên máy chủ vẫn còn ở đó."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:302
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:301
 msgid "Leave"
 msgstr "Rời"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:307
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:306
 msgid "A model machine for a computer lab"
 msgstr "Máy mẫu cho phòng máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:308
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:307
 msgid "Prepare a disk image…"
 msgstr "Chuẩn bị tạo ảnh đĩa…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:309
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:308
 msgid ""
 "Before copying this machine's disk to others: it forgets who it is, and each "
 "copy joins the company by itself."
@@ -2882,24 +2968,24 @@ msgstr ""
 "Trước khi nhân ổ đĩa của máy này sang máy khác: máy quên mình là ai, và mỗi "
 "bản sao tự vào công ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:320
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:398
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:319
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:397
 msgid "Enrolment file"
 msgstr "Tệp ghép máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:321
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:320
 msgid "None: each copy will be paired with a code"
 msgstr "Không có: mỗi bản sao sẽ được ghép bằng mã"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:331
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:330
 msgid "Could not prepare this machine."
 msgstr "Không chuẩn bị được máy này."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:334
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:333
 msgid "Shut it down now and copy its disk"
 msgstr "Hãy tắt máy ngay và nhân ổ đĩa"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:335
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:334
 msgid ""
 "Do not start this machine again before its disk is copied: started once, it "
 "would join the company itself, and its copies would share its place."
@@ -2907,21 +2993,21 @@ msgstr ""
 "Đừng bật lại máy này trước khi nhân xong ổ đĩa: bật lên một lần là máy tự "
 "vào công ty, và các bản sao sẽ dùng chung chỗ của nó."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:337
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:336
 msgid "Do not start this machine again before its disk is copied."
 msgstr "Đừng bật lại máy này trước khi nhân xong ổ đĩa."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:343
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:457
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:342
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:456
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:222
 msgid "Details"
 msgstr "Chi tiết"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:344
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:343
 msgid "What this machine forgets"
 msgstr "Những gì máy này quên"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:345
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:344
 msgid ""
 "Its pairing, its machine id (/etc/machine-id) and its SSH host keys. The "
 "enrolment file is kept for the copies' first start."
@@ -2929,11 +3015,11 @@ msgstr ""
 "Việc ghép máy, mã máy (/etc/machine-id) và khóa SSH của máy. Tệp ghép máy "
 "được giữ lại cho lần khởi động đầu của các bản sao."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:347
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:346
 msgid "Prepare a disk image"
 msgstr "Chuẩn bị tạo ảnh đĩa"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:348
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:347
 msgid ""
 "This machine leaves the company and forgets who it is. With an enrolment "
 "file, each copy of its disk joins the company at its first start. "
@@ -2942,15 +3028,15 @@ msgstr ""
 "Máy này rời công ty và quên mình là ai. Có tệp ghép máy thì mỗi bản sao ổ "
 "đĩa tự vào công ty khi khởi động lần đầu. Xong thì tắt máy và nhân ổ đĩa."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:350
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:349
 msgid "Prepare"
 msgstr "Chuẩn bị"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:357
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:356
 msgid "Choose the enrolment file"
 msgstr "Chọn tệp ghép máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:381
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:380
 #, python-format
 msgid ""
 "The company removed this machine from the admin machine %(admin)s at "
@@ -2960,7 +3046,7 @@ msgstr ""
 "Công ty đã gỡ máy này khỏi máy quản lý %(admin)s lúc %(hour)s ngày %(day)s. "
 "Hãy khởi động lại máy để gỡ hẳn thiết lập của công ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:388
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:387
 #, python-format
 msgid ""
 "The company removed this machine from the admin machine %(admin)s at "
@@ -2969,34 +3055,34 @@ msgstr ""
 "Công ty đã gỡ máy này khỏi máy quản lý %(admin)s lúc %(hour)s ngày %(day)s. "
 "Các thiết lập của công ty đã được gỡ khỏi máy."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:390
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:389
 msgid "The company removed this machine"
 msgstr "Công ty đã gỡ máy này"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:394
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:393
 msgid "The enrolment file did not work"
 msgstr "Tệp ghép máy không dùng được"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:395
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:394
 msgid "It has expired or been used up: pair this machine with a code."
 msgstr "Tệp ghép máy đã hết hạn hoặc hết lượt: hãy ghép máy này bằng mã."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:398
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:397
 msgid ""
 "If IT gave you a USB drive with an enrolment file, plug it in: it is found "
 "by itself."
 msgstr ""
 "Nếu IT đưa bạn ổ USB có tệp ghép máy, hãy cắm vào: máy tự tìm thấy tệp."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:400
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:399
 msgid "Choose a file…"
 msgstr "Chọn tệp…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:402
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:401
 msgid "Find the admin machine"
 msgstr "Tìm máy quản lý"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:403
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:402
 msgid ""
 "On the admin machine, press Add machines: it shows a code. Both machines "
 "must be on the company's network."
@@ -3004,54 +3090,54 @@ msgstr ""
 "Trên máy quản lý, bấm Thêm máy: máy đó sẽ hiện một mã. Hai máy phải cùng "
 "mạng công ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:405
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:404
 msgid "Search again"
 msgstr "Tìm lại"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:408
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:407
 msgid "The 6-digit code on the admin machine"
 msgstr "Mã 6 số trên máy quản lý"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:433
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:432
 msgid "No enrolment file found"
 msgstr "Không thấy tệp ghép máy nào"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:441
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:440
 #: usr/lib/python3/dist-packages/caramos_business/ui/prompts.py:210
 #, python-format
 msgid "From %s"
 msgstr "Từ %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:442
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:441
 msgid "Join with this file…"
 msgstr "Ghép máy bằng tệp này…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:454
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:453
 #: usr/lib/python3/dist-packages/caramos_business/ui/window.py:70
 msgid "Admin machine"
 msgstr "Máy quản lý"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:455
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:454
 msgid "none"
 msgstr "không có"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:456
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:455
 msgid "Works until"
 msgstr "Dùng được đến"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:458
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:457
 msgid "Admin machine's fingerprint"
 msgstr "Mã nhận diện máy quản lý"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:460
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:459
 msgid "Address"
 msgstr "Địa chỉ"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:462
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:461
 msgid "Join the company with this file?"
 msgstr "Ghép máy vào công ty bằng tệp này?"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:463
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:462
 msgid ""
 "This machine will take the settings of the company's admin machine. Check "
 "that the name below is your company's."
@@ -3059,54 +3145,67 @@ msgstr ""
 "Máy này sẽ nhận thiết lập từ máy quản lý của công ty. Hãy kiểm tra tên bên "
 "dưới đúng là của công ty bạn."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:467
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:466
 msgid "Join"
 msgstr "Ghép máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:478
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:530
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:477
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:529
 msgid "Connected: the company's settings come within a minute."
 msgstr "Đã kết nối: thiết lập của công ty sẽ tới trong vòng một phút."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:480
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:532
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:479
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:531
 msgid "Connected: waiting for the admin machine to approve this machine."
 msgstr "Đã kết nối: đang chờ máy quản lý duyệt máy này."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:482
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:534
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:481
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:533
 msgid "Could not connect."
 msgstr "Không kết nối được."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:491
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:490
 msgid "Searching…"
 msgstr "Đang tìm…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:496
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:495
 msgid "No admin machine answered"
 msgstr "Không có máy quản lý nào trả lời"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:497
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:496
 msgid "Check that it is on, on the same network, and press Search again."
 msgstr "Kiểm tra máy quản lý đang bật, cùng mạng, rồi bấm Tìm lại."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:503
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:502
 msgid "adding machines now"
 msgstr "đang nhận thêm máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:503
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:502
 msgid "not adding machines now"
 msgstr "chưa mở nhận thêm máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:565
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:575
+msgid "on: changes are undone at restart"
+msgstr "đang bật: mọi thay đổi bị xóa khi khởi động lại"
+
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:575
+msgid "from the next restart"
+msgstr "từ lần khởi động lại tới"
+
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:577
+msgid ""
+"the company turned it off; the machine stays frozen until the next restart"
+msgstr "công ty đã tắt; máy vẫn đóng băng tới lần khởi động lại tới"
+
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:582
 msgid "no department"
 msgstr "không thuộc phòng ban nào"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:600
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:617
 msgid "Your requests cannot be shown on this machine"
 msgstr "Máy này không hiện được yêu cầu của bạn"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:601
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:618
 msgid ""
 "Your account has no group of its own, so this machine cannot keep your "
 "requests where only you can read them. IT still gets what you send with Ask "
@@ -3118,11 +3217,11 @@ msgstr ""
 "IT hỗ trợ; hãy nhờ IT trả lời qua điện thoại, hoặc tạo nhóm riêng cho tài "
 "khoản của bạn."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:609
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:626
 msgid "No request yet"
 msgstr "Chưa có yêu cầu nào"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:610
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:627
 msgid ""
 "When you ask IT for help, your request and their answers show here, a few "
 "minutes after you send it."
@@ -3130,21 +3229,21 @@ msgstr ""
 "Khi bạn nhờ IT hỗ trợ, yêu cầu và câu trả lời của IT hiện ở đây, vài phút "
 "sau khi gửi."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:613
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:630
 msgid "Newest first. IT's answers come here by themselves."
 msgstr "Mới nhất ở trên. Câu trả lời của IT tự hiện ở đây."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:615
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:626
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:632
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:643
 msgid "Waiting for your answer"
 msgstr "Chờ bạn trả lời"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:619
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:636
 #, python-format
 msgid "sent %s"
 msgstr "gửi lúc %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:623
+#: usr/lib/python3/dist-packages/caramos_business/ui/employee.py:640
 msgid "No answer yet"
 msgstr "Chưa có trả lời"
 
@@ -3248,19 +3347,19 @@ msgid "Could not make the backup."
 msgstr "Không tạo được bản sao lưu."
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:28
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:296
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:297
 msgid "All machines"
 msgstr "Mọi máy"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:28
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:166
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:244
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:167
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:245
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:73
 msgid "On"
 msgstr "Đang bật"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:28
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:244
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:245
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:74
 msgid "Not on"
 msgstr "Không bật"
@@ -3281,72 +3380,72 @@ msgstr "%s đang dùng"
 msgid "seen %s"
 msgstr "báo về %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:41
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:42
 #, python-format
 msgid "Done: %s"
 msgstr "Xong: %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:41
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:42
 msgid "Done."
 msgstr "Xong."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:43
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:44
 #, python-format
 msgid "Could not do it: %s"
 msgstr "Không làm được: %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:43
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:44
 msgid "Could not do it."
 msgstr "Không làm được."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:45
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:46
 msgid "The employee refused."
 msgstr "Nhân viên đã từ chối."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:45
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:46
 #, python-format
 msgid "Refused: %s"
 msgstr "Bị từ chối: %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:46
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:47
 msgid "Refused."
 msgstr "Bị từ chối."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:49
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:50
 msgid ""
 "It was sent while the machine was off or restarting, so it was not done."
 msgstr "Gửi lúc máy đang tắt hoặc khởi động lại nên không làm."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:50
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:51
 msgid "It came too late and was not done."
 msgstr "Máy nhận quá muộn nên không làm."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:52
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:53
 #, python-format
 msgid "Not done: %s"
 msgstr "Không làm: %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:52
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:53
 msgid "Not done."
 msgstr "Không làm."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:61
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:62
 #, python-format
 msgid "Message “%s”"
 msgstr "Tin nhắn “%s”"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:63
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:64
 #, python-format
 msgid "Allow USB for %d minute"
 msgid_plural "Allow USB for %d minutes"
 msgstr[0] "Mở USB trong %d phút"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:82
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:83
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:97
 msgid "Waiting for approval"
 msgstr "Chờ duyệt"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:83
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:84
 msgid ""
 "These machines asked to join. Approve the ones you know; a machine turned "
 "away gets nothing."
@@ -3354,27 +3453,27 @@ msgstr ""
 "Các máy này xin vào công ty. Hãy duyệt những máy bạn biết; máy bị từ chối "
 "không nhận được gì."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:90
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:91
 msgid "Search machines or people"
 msgstr "Tìm máy hoặc người dùng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:101
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:102
 msgid "Machines"
 msgstr "Danh sách máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:103
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:104
 msgid "Actions…"
 msgstr "Thao tác hàng loạt…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:104
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:105
 msgid "An action for every machine, or for a department"
 msgstr "Một thao tác cho mọi máy, hoặc cho một phòng ban"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:105
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:106
 msgid "Export the asset list…"
 msgstr "Xuất danh sách tài sản…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:109
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:110
 msgid ""
 "Tell your staff in writing which features the company uses on their "
 "machines, for example in the internal labour rules (Law 91/2025/QH15, "
@@ -3383,7 +3482,7 @@ msgstr ""
 "Hãy báo cho nhân viên bằng văn bản những tính năng công ty dùng trên máy của "
 "họ, ví dụ trong nội quy lao động (Luật 91/2025/QH15, điều 25)."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:144
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:145
 msgid ""
 "Machines send their hardware and list of apps, for the asset list. Never "
 "files or what employees do."
@@ -3391,7 +3490,7 @@ msgstr ""
 "Máy gửi thông tin phần cứng và danh sách ứng dụng để làm danh sách tài sản. "
 "Không bao giờ gửi tệp hay việc nhân viên làm."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:146
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:147
 msgid ""
 "Not on: machines send only their name, user and health. Turn it on for the "
 "asset list."
@@ -3399,83 +3498,83 @@ msgstr ""
 "Chưa bật: máy chỉ gửi tên máy, người dùng và tình trạng máy. Bật lên để có "
 "danh sách tài sản."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:158
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:159
 msgid "By department"
 msgstr "Theo phòng ban"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:160
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:161
 #, python-format
 msgid "%d department with its own choice"
 msgid_plural "%d departments with their own choice"
 msgstr[0] "%d phòng ban chọn riêng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:162
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:163
 msgid "Every department follows the company."
 msgstr "Mọi phòng ban theo công ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:166
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:167
 msgid "As the company"
 msgstr "Theo công ty"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:166
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:167
 msgid "Off"
 msgstr "Tắt"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:183
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:184
 msgid "Every department"
 msgstr "Mọi phòng ban"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:237
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:238
 msgid "Needs pairing again: it was added by an older version."
 msgstr "Cần ghép lại: máy này được thêm từ bản cũ."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:238
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:239
 msgid "Pair again"
 msgstr "Cần ghép lại"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:240
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:513
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:241
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:516
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:173
 msgid "Needs a look"
 msgstr "Cần xem"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:261
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:262
 msgid "No machine yet: press Add machines at the top."
 msgstr "Chưa có máy nào: bấm Thêm máy ở trên cùng."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:263
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:264
 msgid "Add the first machines"
 msgstr "Thêm những máy đầu tiên"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:264
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:265
 #: usr/lib/python3/dist-packages/caramos_business/ui/overview.py:51
 msgid ""
 "With a code typed on each machine, or with an enrolment file for many at "
 "once."
 msgstr "Gõ mã trên từng máy, hoặc dùng tệp ghép máy để thêm nhiều máy một lúc."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:270
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:271
 #, python-format
 msgid "%(shown)d of %(total)d machines."
 msgstr "%(shown)d trên %(total)d máy."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:272
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:273
 msgid "No machine matches."
 msgstr "Không có máy nào khớp."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:295
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:296
 msgid "For"
 msgstr "Cho"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:297
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:298
 msgid "Action"
 msgstr "Thao tác"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:311
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:313
 msgid "An action for many machines"
 msgstr "Thao tác cho nhiều máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:312
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:314
 msgid ""
 "Machines that are on do it within seconds; the others when they start, if it "
 "is still valid then."
@@ -3483,15 +3582,15 @@ msgstr ""
 "Máy đang bật làm trong vài giây; máy đang tắt làm khi bật lên, nếu thao tác "
 "còn hiệu lực."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:313
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:315
 msgid "Next…"
 msgstr "Tiếp…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:320
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:322
 msgid "The automatic inventory is not on"
 msgstr "Kiểm kê tự động chưa bật"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:321
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:323
 msgid ""
 "The list then has only what you typed for each machine: no configuration, "
 "serial number or disks. Turn the automatic inventory on, save, and export "
@@ -3501,51 +3600,51 @@ msgstr ""
 "hình, số serial hay ổ đĩa. Hãy bật kiểm kê tự động, lưu, rồi xuất lại sau "
 "vài phút."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:324
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:326
 msgid "Export anyway"
 msgstr "Vẫn xuất"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:325
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:327
 msgid "Turn on the inventory"
 msgstr "Bật kiểm kê"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:344
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:346
 msgid "Excel workbook (.xlsx)"
 msgstr "Bảng tính Excel (.xlsx)"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:346
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:348
 msgid "CSV, for any spreadsheet (.csv)"
 msgstr "CSV, mở được bằng mọi bảng tính (.csv)"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:350
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:352
 msgid "Export the asset list"
 msgstr "Xuất danh sách tài sản"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:372
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:374
 msgid "python3-openpyxl is missing: saved as CSV instead."
 msgstr "Thiếu gói python3-openpyxl: đã lưu thành tệp CSV."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:395
-#, python-format
-msgid "Sent: %s."
-msgstr "Đã gửi: %s."
-
 #: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:398
+#, python-format
+msgid "Sent to %s."
+msgstr "Đã gửi tới %s."
+
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:401
 #, python-format
 msgid "Locking %s."
 msgstr "Đang khóa %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:404
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:407
 #, python-format
-msgid "Asked %s for its inventory."
+msgid "Asked %s to take inventory again."
 msgstr "Đã yêu cầu %s gửi thông tin kiểm kê."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:407
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:410
 #, python-format
 msgid "Update %s now?"
 msgstr "Cập nhật %s ngay?"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:408
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:411
 msgid ""
 "The CaramOS update runs as the daily check would, then the security updates. "
 "People can keep working; a restart may be asked for afterwards."
@@ -3554,46 +3653,46 @@ msgstr ""
 "mật. Mọi người vẫn làm việc bình thường; sau đó máy có thể đề nghị khởi động "
 "lại."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:410
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:413
 #, python-format
 msgid "Updating %s."
 msgstr "Đang cập nhật %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:413
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:416
 #, python-format
 msgid "Restart %s?"
 msgstr "Khởi động lại %s?"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:413
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:416
 #, python-format
 msgid "Shut down %s?"
 msgstr "Tắt %s?"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:414
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:417
 msgid "Warn people first"
 msgstr "Báo trước cho người đang dùng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:415
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:418
 msgid "1 minute"
 msgstr "1 phút"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:415
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:418
 msgid "5 minutes"
 msgstr "5 phút"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:415
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:418
 msgid "10 minutes"
 msgstr "10 phút"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:415
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:418
 msgid "15 minutes"
 msgstr "15 phút"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:415
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:418
 msgid "No warning"
 msgstr "Không báo trước"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:419
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:422
 msgid ""
 "Whoever is using a machine sees a countdown, without a way to postpone. "
 "Unsaved work is lost."
@@ -3601,117 +3700,117 @@ msgstr ""
 "Người đang dùng máy thấy đồng hồ đếm ngược và không hoãn được. Việc chưa lưu "
 "sẽ mất."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:430
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:433
 #, python-format
 msgid "Restarting %s."
 msgstr "Đang khởi động lại %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:430
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:433
 #, python-format
 msgid "Shutting down %s."
 msgstr "Đang tắt %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:440
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:443
 msgid "Title, such as Họp lúc 15:00"
 msgstr "Tiêu đề, ví dụ Họp lúc 15:00"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:443
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:446
 msgid "Message"
 msgstr "Tin nhắn"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:447
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:450
 msgid "Ask them to press “I have read it”"
 msgstr "Yêu cầu bấm “Đã đọc”"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:464
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:467
 #, python-format
 msgid "Message sent to %s."
 msgstr "Đã gửi tin nhắn tới %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:466
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:469
 #, python-format
 msgid "Send a message to %s"
 msgstr "Gửi tin nhắn tới %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:467
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:470
 msgid "Everyone logged in sees it in a small window."
 msgstr "Mọi người đang đăng nhập sẽ thấy tin nhắn trong một cửa sổ nhỏ."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:467
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:470
 #: usr/lib/python3/dist-packages/caramos_business/ui/prompts.py:410
 msgid "Send"
 msgstr "Gửi"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:472
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:475
 msgid "Minutes"
 msgstr "Số phút"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:474
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:477
 #, python-format
 msgid "Allow USB on %s for a while"
 msgstr "Mở USB tạm thời trên %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:475
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:478
 msgid "USB drives work as usual until then, whatever the USB setting says."
 msgstr "Trong thời gian đó USB dùng bình thường, bất kể thiết lập USB."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:476
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:479
 #: usr/lib/python3/dist-packages/caramos_business/ui/prompts.py:258
 #: usr/lib/python3/dist-packages/caramos_business/ui/prompts.py:260
 msgid "Allow"
 msgstr "Cho phép"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:477
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:480
 #, python-format
 msgid "USB allowed on %s."
 msgstr "Đã mở USB trên %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:494
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:497
 msgid "Actions"
 msgstr "Thao tác"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:499
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:502
 msgid "Send a message…"
 msgstr "Gửi tin nhắn…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:500
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:503
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:188
 msgid "Remote help…"
 msgstr "Hỗ trợ từ xa…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:501
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:504
 msgid "Restart…"
 msgstr "Khởi động lại…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:502
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:505
 msgid "Shut down…"
 msgstr "Tắt máy…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:503
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:506
 msgid "Update…"
 msgstr "Cập nhật…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:504
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:507
 msgid "Allow USB for a while…"
 msgstr "Mở USB tạm thời…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:510
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:513
 msgid "Recent actions"
 msgstr "Thao tác gần đây"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:523
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:526
 msgid "Changing it takes effect when you save."
 msgstr "Đổi phòng có hiệu lực khi bạn lưu."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:524
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:527
 msgid "Add departments on the Departments page."
 msgstr "Thêm phòng ban ở trang Phòng ban."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:535
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:538
 msgid "Settings in effect"
 msgstr "Thiết lập đang áp dụng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:535
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:538
 msgid ""
 "What this machine has from the last save, and where it comes from. Open one "
 "to give this machine its own."
@@ -3719,11 +3818,11 @@ msgstr ""
 "Những gì máy này nhận từ lần lưu gần nhất, và từ đâu. Mở một mục để đặt "
 "riêng cho máy này."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:546
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:549
 msgid "Take it out of the company"
 msgstr "Gỡ khỏi công ty"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:547
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:550
 msgid ""
 "The machine is told that the company removed it: it puts back everything as "
 "it was before pairing, the firewall too, and stops taking the company's "
@@ -3733,61 +3832,61 @@ msgstr ""
 "kể cả tường lửa, rồi thôi nhận thiết lập của công ty. Muốn thêm lại thì ghép "
 "máy lại."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:550
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:553
 msgid "Take out of the company…"
 msgstr "Gỡ khỏi công ty…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:574
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:578
 msgid "This machine is no longer in the company"
 msgstr "Máy này không còn trong công ty"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:606
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:611
 msgid "The machine did not take it in time."
 msgstr "Máy không nhận kịp."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:607
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:612
 msgid "Waiting for the machine…"
 msgstr "Đang chờ máy nhận…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:622
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:627
 #, python-format
 msgid "Since %s."
 msgstr "Từ %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:642
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:647
 msgid "Not on."
 msgstr "Chưa bật."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:645
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:650
 msgid "From the company."
 msgstr "Theo công ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:645
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:650
 msgid "This machine's own."
 msgstr "Riêng máy này."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:646
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:651
 #, python-format
 msgid "From department %s."
 msgstr "Theo phòng %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:674
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:679
 msgid "Inventory"
 msgstr "Kiểm kê"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:676
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:681
 msgid "The machine has not sent its inventory yet"
 msgstr "Máy chưa gửi thông tin kiểm kê"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:677
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:682
 msgid "It sends it when it starts. Press Take inventory again to ask now."
 msgstr "Máy gửi khi khởi động. Bấm Kiểm kê lại để yêu cầu ngay."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:679
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:684
 msgid "No inventory: the automatic inventory is not on for this machine"
 msgstr "Chưa có thông tin kiểm kê: kiểm kê tự động chưa bật cho máy này"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:680
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:685
 msgid ""
 "Turn it on to see its hardware, serial number, disks and apps here and in "
 "the asset list."
@@ -3795,20 +3894,20 @@ msgstr ""
 "Bật lên để xem phần cứng, số serial, ổ đĩa và ứng dụng của máy ở đây và "
 "trong danh sách tài sản."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:683
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:688
 msgid "Turn on the inventory…"
 msgstr "Bật kiểm kê…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:694
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:699
 msgid "The automatic inventory is not on for this machine: turn it on first."
 msgstr "Kiểm kê tự động chưa bật cho máy này: hãy bật trước."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:717
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:722
 #, python-format
 msgid "Take %s out of the company?"
 msgstr "Gỡ %s khỏi công ty?"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:718
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:723
 msgid ""
 "It is told that the company removed it, puts back everything as it was, the "
 "firewall too, and stops reporting and taking actions. To add it again, pair "
@@ -3817,126 +3916,126 @@ msgstr ""
 "Máy nhận thông báo đã bị công ty gỡ, trả lại mọi thứ như cũ, kể cả tường "
 "lửa, rồi thôi báo cáo và nhận lệnh. Muốn thêm lại thì ghép máy lại."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:720
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:725
 msgid "Take out"
 msgstr "Gỡ"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:728
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:733
 msgid "Machine"
 msgstr "Máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:728
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:733
 #, python-format
 msgid "Sent %s."
 msgstr "Gửi %s."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:730
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:735
 msgid "Desktop"
 msgstr "Máy bàn"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:731
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:736
 msgid "Maker and model"
 msgstr "Hãng và kiểu máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:731
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:736
 msgid "Serial number"
 msgstr "Số serial"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:732
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:737
 msgid "BIOS"
 msgstr "BIOS"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:736
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:741
 msgid "Processor and memory"
 msgstr "Bộ xử lý và bộ nhớ"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:737
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:742
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:225
 msgid "Processor"
 msgstr "Bộ xử lý"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:738
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:743
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:226
 msgid "Memory"
 msgstr "Bộ nhớ"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:744
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:749
 msgid "Memory module"
 msgstr "Thanh RAM"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:748
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:753
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:228
 msgid "Disks"
 msgstr "Ổ đĩa"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:750
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:755
 msgid "healthy"
 msgstr "tốt"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:750
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:755
 msgid "failing"
 msgstr "sắp hỏng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:750
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:755
 msgid "health unknown"
 msgstr "chưa rõ tình trạng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:752
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:757
 msgid "Disk"
 msgstr "Ổ đĩa"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:754
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:776
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:759
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:781
 #, python-format
 msgid "serial %s"
 msgstr "serial %s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:761
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:769
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:766
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:774
 msgid "Battery"
 msgstr "Pin"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:765
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:770
 #, python-format
 msgid "holds %d%% of its first charge"
 msgstr "còn giữ %d%% so với lúc mới"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:768
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:773
 #, python-format
 msgid "%d charge cycle"
 msgid_plural "%d charge cycles"
 msgstr[0] "%d lần sạc"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:773
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:778
 msgid "Screens"
 msgstr "Màn hình"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:780
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:785
 msgid "Network"
 msgstr "Mạng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:782
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:787
 msgid "Network card"
 msgstr "Card mạng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:783
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:788
 msgid "wired"
 msgstr "có dây"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:783
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:788
 msgid "wireless"
 msgstr "không dây"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:785
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:790
 msgid "System"
 msgstr "Hệ thống"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:787
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:792
 #: usr/lib/python3/dist-packages/caramos_business/ui/tickets_page.py:227
 msgid "CaramOS"
 msgstr "CaramOS"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:789
+#: usr/lib/python3/dist-packages/caramos_business/ui/machines.py:794
 msgid "Kernel"
 msgstr "Nhân Linux"
 
@@ -4205,7 +4304,7 @@ msgid "Could not send: %s"
 msgstr "Không gửi được: %s"
 
 #: usr/lib/python3/dist-packages/caramos_business/ui/remote.py:63
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:182
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:187
 msgid "This machine is no longer in the company."
 msgstr "Máy này không còn trong công ty."
 
@@ -4734,20 +4833,20 @@ msgstr "chưa đóng băng"
 msgid "not frozen"
 msgstr "không đóng băng"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:427
+#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:428
 msgid "Last maintenance"
 msgstr "Lần bảo trì gần nhất"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:428
-#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:431
+#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:429
+#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:432
 msgid "none yet"
 msgstr "chưa có"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:430
+#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:431
 msgid "Last system snapshot"
 msgstr "Bản lưu hệ thống gần nhất"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:433
+#: usr/lib/python3/dist-packages/caramos_business/ui/reports_page.py:434
 msgid "Last seen"
 msgstr "Lần cuối thấy máy"
 
@@ -5612,23 +5711,23 @@ msgstr ""
 "Máy tự chụp bản lưu hệ thống bằng Timeshift, để quay lại khi một bản cập "
 "nhật làm hỏng máy."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:94
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:99
 msgid "One machine…"
 msgstr "Một máy…"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:95
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:100
 msgid "Applies to"
 msgstr "Áp dụng cho"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:98
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:103
 msgid "Add departments to give them settings of their own."
 msgstr "Thêm phòng ban để đặt thiết lập riêng cho từng phòng."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:115
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:120
 msgid "Settings for one machine"
 msgstr "Thiết lập cho một máy"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:132
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:137
 msgid ""
 "A machine's own settings win over its department's and the company's. Use "
 "them for exceptions, such as the director's laptop."
@@ -5636,52 +5735,52 @@ msgstr ""
 "Thiết lập riêng của một máy được ưu tiên hơn thiết lập của phòng ban và công "
 "ty. Dùng cho trường hợp ngoại lệ, ví dụ máy xách tay của giám đốc."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:148
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:153
 msgid "On for the whole company."
 msgstr "Đang bật cho cả công ty."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:149
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:154
 msgid "Not on: employee machines stay as they are."
 msgstr "Chưa bật: máy nhân viên giữ nguyên như hiện tại."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:161
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:166
 msgid "The company has not turned this on."
 msgstr "Công ty chưa bật mục này."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:165
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:170
 #, python-format
 msgid "From %(department)s: %(summary)s"
 msgstr "Theo phòng %(department)s: %(summary)s"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:168
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:173
 msgid "Use the shared settings"
 msgstr "Dùng thiết lập chung"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:168
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:173
 msgid "Use the company's settings"
 msgstr "Dùng thiết lập của công ty"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:169
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:174
 msgid "Own settings for this machine"
 msgstr "Riêng cho máy này"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:169
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:174
 msgid "Own settings for this department"
 msgstr "Riêng cho phòng này"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:170
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:175
 msgid "Off for this machine"
 msgstr "Tắt cho máy này"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:170
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:175
 msgid "Off for this department"
 msgstr "Tắt cho phòng này"
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:171
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:176
 msgid "This machine stays as it is."
 msgstr "Máy này giữ nguyên như hiện tại."
 
-#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:172
+#: usr/lib/python3/dist-packages/caramos_business/ui/settings_page.py:177
 msgid "Machines of this department stay as they are."
 msgstr "Máy của phòng này giữ nguyên như hiện tại."
 

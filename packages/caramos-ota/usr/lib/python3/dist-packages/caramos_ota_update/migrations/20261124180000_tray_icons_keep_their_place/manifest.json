@@ -1,0 +1,24 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["cinnamon"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Khay hệ thống (dưới 1 MB)",
+  "size_en": "System tray (under 1 MB)",
+  "title": "Biểu tượng ở khay luôn đứng đúng chỗ",
+  "summary": "Các biểu tượng ở khay hệ thống (đảo bên phải) giữ một thứ tự cố định, không còn đổi chỗ sau khi bật, tắt Chế độ tối hay khi một chương trình khởi động lại.",
+  "title_en": "Tray icons always keep their place",
+  "summary_en": "The icons in the system tray (the right island) keep a fixed order, and no longer swap places after Dark mode is turned on or off or when a program starts again.",
+  "release_notes_vi": [
+    "Trước đây, biểu tượng nào vừa hiện ra là đứng đầu khay hệ thống, nên thứ tự các biểu tượng tùy chương trình nào chạy trước, và chúng đổi chỗ cho nhau sau khi bật, tắt Chế độ tối.",
+    "Giờ mỗi biểu tượng có chỗ cố định: biểu tượng của các ứng dụng khác ở đầu, xếp theo tên; rồi đến Thông tin hệ thống, Trình Quản lý Cập nhật, CopyQ, chữ V của bộ gõ và Flameshot cạnh đồng hồ.",
+    "Có hiệu lực từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "Before, each new icon went to the front of the system tray, so the order of the icons depended on which program started first, and they swapped places after Dark mode was turned on or off.",
+    "Now each icon has a fixed place: other apps' icons first, by name; then System Information, Update Manager, CopyQ, the V of the input method and Flameshot next to the clock.",
+    "Works from the next login."
+  ]
+}

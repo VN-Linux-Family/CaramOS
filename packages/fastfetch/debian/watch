@@ -1,0 +1,5 @@
+version=4
+# The upstream tarball as it is (Debian's repacks it as +dfsg without src/3rdparty).
+opts="filenamemangle=s%(?:.*?)?v?(@ANY_VERSION@@ARCHIVE_EXT@)%@PACKAGE@-$1%" \
+    https://github.com/fastfetch-cli/fastfetch/tags \
+    (?:.*?/)v?@ANY_VERSION@@ARCHIVE_EXT@

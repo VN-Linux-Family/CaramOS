@@ -1,0 +1,41 @@
+#!/usr/bin/python3 -I
+"""Root side of the Update Center's check for new versions when someone opens it, run through pkexec (polkit action
+net.vietnamlinuxfamily.caramos-ota.check, which needs no password from the person at the computer).
+
+It runs the daily check now, caramos-ota --check, and takes no arguments. That check refreshes the CaramOS package
+list and installs the newest updater, as the daily timer does. It does not install the update itself. Up to 1.5.0
+the Update Center only read the updater that was already installed, so a computer whose daily check kept failing
+was told it was up to date.
+
+The check writes to a file, and its output goes to the Update Center only once it has finished. If someone closes
+the window halfway, apt-get and dpkg never write to a pipe nobody reads, which would kill them and could leave a
+package half installed.
+"""
+
+import os
+import subprocess
+import sys
+import tempfile
+
+OTA_COMMAND = "/usr/bin/caramos-ota"
+
+
+def main(argv: list[str]) -> int:
+    if argv:
+        print("caramos-ota-check-helper takes no arguments", file=sys.stderr)
+        return 2
+    with tempfile.TemporaryFile(mode="w+", encoding="utf-8", errors="replace") as output:
+        code = subprocess.run([OTA_COMMAND, "--check"], stdin=subprocess.DEVNULL, stdout=output,
+                              stderr=subprocess.STDOUT, check=False).returncode
+        output.seek(0)
+        try:
+            sys.stdout.write(output.read())
+            sys.stdout.flush()
+        except OSError:
+            # The window was closed: nobody reads this any more.
+            os.dup2(os.open(os.devnull, os.O_WRONLY), sys.stdout.fileno())
+    return code if code >= 0 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

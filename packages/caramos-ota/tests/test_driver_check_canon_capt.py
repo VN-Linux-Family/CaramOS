@@ -569,7 +569,9 @@ class InstallTests(unittest.TestCase):
             self.assertFalse(tarball.exists())
             self.assertFalse((cache / "canon-capt").exists())
         self.assertEqual([mock.call(["update"], 55, 60),
-                          mock.call(["install", "-y", "--", *map(str, debs), *canon_capt.I386_LIBRARIES], 60, 85)],
+                          mock.call(["install", "-y", "-o", "Dpkg::Options::=--force-confdef",
+                                     "-o", "Dpkg::Options::=--force-confold", "--", *map(str, debs),
+                                     *canon_capt.I386_LIBRARIES], 60, 85)],
                          run_apt.call_args_list)
         self.assertEqual([*canon_capt.PACKAGES, *canon_capt.I386_LIBRARIES], packages)
         self.assertEqual(["canon-download", "install"], [fields["stage"] for fields in emit.of("stage")])
@@ -603,7 +605,9 @@ class RemoveTests(TemporaryTestCase):
         self.assertFalse(state.exists())
         self.assertIn(mock.call("unmask", "ccpd.service"), systemctl.call_args_list)
         self.assertEqual(mock.call("daemon-reload"), systemctl.call_args_list[-1])
-        run_apt.assert_called_once_with(["purge", "-y", "cndrvcups-common", "cndrvcups-capt"], 20, 95)
+        run_apt.assert_called_once_with(["purge", "-y", "-o", "Dpkg::Options::=--force-confdef", "-o",
+                                         "Dpkg::Options::=--force-confold", "cndrvcups-common", "cndrvcups-capt"],
+                                        20, 95)
 
     def test_a_removal_that_stops_early_leaves_the_printers_working(self) -> None:
         wants = self.temp / "wants" / canon_capt.SERVICE

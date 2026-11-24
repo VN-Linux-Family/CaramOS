@@ -1,0 +1,31 @@
+#!/bin/sh
+set -e
+
+# CaramOS 1.4.0 and 1.5.0 shipped the office defaults as the configuration file /etc/xdg/mimeapps.list. On a computer
+# that already had a file of that name, dpkg asked which one to keep; the update runs without a terminal, so dpkg read
+# end-of-file, caramos-ota stayed unconfigured, and the computer could not update any more (ticket H-1207). The list
+# is now /usr/share/applications/{x-cinnamon,xfce}-mimeapps.list, which is no configuration file.
+#
+# The old file goes only when it is still the one this package wrote: a regular file whose checksum is the one dpkg
+# recorded for it. Then dpkg forgets it too. Any other one stays as it is (dpkg keeps it as an obsolete
+# configuration file): a file someone changed, or made before caramos-ota came, as on the computers that stopped
+# updating, where dpkg recorded no checksum ("newconffile"). dpkg-maintscript-helper rm_conffile would rename those.
+# postinst deletes what this moves aside, postrm puts it back when the upgrade fails. Nothing here may fail the
+# upgrade.
+case "$1" in
+    install|upgrade)
+        old="$DPKG_ROOT/etc/xdg/mimeapps.list"
+        if [ -f "$old" ] && [ ! -L "$old" ]; then
+            recorded="$(dpkg-query -W -f='${Conffiles}\n' caramos-ota 2>/dev/null \
+                | sed -n 's#^ /etc/xdg/mimeapps\.list \([0-9a-f]\{32\}\)\( obsolete\)\{0,1\}$#\1#p' | head -n 1)"
+            current="$(md5sum < "$old" 2>/dev/null | cut -d ' ' -f 1)"
+            if [ -n "$recorded" ] && [ "$current" = "$recorded" ]; then
+                mv -f "$old" "$old.dpkg-remove" || true
+            fi
+        fi
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

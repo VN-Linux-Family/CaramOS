@@ -74,6 +74,8 @@ pub struct Security {
     pub freeze_configured: bool,
     pub last_maintenance: Option<String>,
     pub maintenance_result: String,
+    /// The steps of the maintenance's update when `maintenance_result` is its outcome (`maintenance.json`'s `steps`).
+    pub maintenance_steps: Option<Vec<crate::protocol::UpdateStep>>,
     pub last_snapshot: Option<String>,
     pub snapshot_space_mb: Option<u64>,
 }
@@ -94,6 +96,11 @@ pub fn with_security(mut health: Value, security: &Security) -> Value {
         ] {
             object.insert(key.to_string(), value);
         }
+        // From 0.3.1 (after the full test pass), only after a maintenance that updated: older admins ignore it.
+        match &security.maintenance_steps {
+            Some(steps) => object.insert("maintenance_steps".to_string(), json!(steps)),
+            None => object.remove("maintenance_steps"),
+        };
     }
     health
 }

@@ -1,0 +1,11 @@
+[Xfce Panel]
+Type=X-XFCE-PanelPlugin
+Name=Show desktop (CaramOS)
+Name[vi]=Hiện màn hình nền (CaramOS)
+Comment=A thin strip at the end of the taskbar: click it to hide every window and show the desktop, as on Windows
+Comment[vi]=Dải mỏng ở cuối thanh tác vụ: bấm vào để ẩn mọi cửa sổ và hiện màn hình nền, như trên Windows
+Icon=user-desktop
+X-XFCE-Module=caramos-show-desktop
+X-XFCE-Internal=true
+X-XFCE-Unique=true
+X-XFCE-API=2.0

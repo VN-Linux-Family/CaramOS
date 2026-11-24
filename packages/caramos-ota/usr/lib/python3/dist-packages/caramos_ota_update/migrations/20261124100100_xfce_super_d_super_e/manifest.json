@@ -1,0 +1,26 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["xfce"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Phím tắt (dưới 1 MB)",
+  "size_en": "Shortcuts (under 1 MB)",
+  "title": "Super+D hiện màn hình nền, Super+E mở Tệp",
+  "summary": "Bản Xfce có thêm hai phím của Windows: Super+D ẩn mọi cửa sổ để xem màn hình nền, Super+E mở Tệp (Nemo) thay cho Thunar.",
+  "title_en": "Super+D shows the desktop, Super+E opens Files",
+  "summary_en": "The Xfce edition gets two more Windows keys: Super+D hides every window to show the desktop, and Super+E opens Files (Nemo) instead of Thunar.",
+  "release_notes_vi": [
+    "Super+D (phím Windows + D) ẩn mọi cửa sổ để xem màn hình nền; bấm lần nữa để các cửa sổ hiện lại. Ctrl+Alt+D vẫn dùng được như trước.",
+    "Super+E mở Tệp (Nemo) ở thư mục Nhà, như trên Windows và bản Cinnamon; trước đây phím này mở Thunar.",
+    "Phím Super bấm riêng vẫn mở menu Start, và không mở kèm khi bấm Super+D hay Super+E.",
+    "Ai đã tự gán Super+D hay Super+E cho việc khác thì vẫn giữ phím tắt của mình. Có tác dụng ngay."
+  ],
+  "release_notes_en": [
+    "Super+D (the Windows key + D) hides every window to show the desktop; press it again to bring the windows back. Ctrl+Alt+D still works as before.",
+    "Super+E opens Files (Nemo) in the Home folder, as on Windows and on the Cinnamon edition; it used to open Thunar.",
+    "Super alone still opens the Start menu, and Super+D or Super+E do not open it as well.",
+    "If you set Super+D or Super+E to something else yourself, you keep your shortcut. Works right away."
+  ]
+}

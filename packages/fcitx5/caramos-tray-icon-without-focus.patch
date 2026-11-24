@@ -1,0 +1,49 @@
+Description: Tray icon of the input method in use when no text box has the focus
+ The X11 tray icon (XCBTrayWindow::paint) was drawn for lastFocusedInputContext(),
+ which is empty while no input context has the focus: right after a login, or
+ with the focus on the desktop or the panel. The tray then showed the keyboard
+ icon ("input-keyboard", an "A") although another input method, Vietnamese for
+ example, was active for everyone (ShareInputState=All); clicking it to turn the
+ input method on turned it off. paint() now draws mostRecentInputContext(),
+ which falls back to the last focused context and, with ShareInputState=All, to
+ the context that carries the shared state, as the tray menu of the same file
+ already does.
+ .
+ A switch of input method while nothing has the focus (a click on the tray icon,
+ a choice in its menu, D-Bus) also redraws the tray: uiForInputContext() drops
+ the events of unfocused input contexts, so the icon kept the old input method.
+Author: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+Forwarded: no
+Last-Update: 2026-11-25
+---
+--- a/src/ui/classic/xcbtraywindow.cpp
++++ b/src/ui/classic/xcbtraywindow.cpp
+@@ -336,7 +336,10 @@
+ void XCBTrayWindow::paint(cairo_t *c) {
+     auto &theme = ui_->parent()->theme();
+     auto *instance = ui_->parent()->instance();
+-    auto *ic = ui_->parent()->instance()->lastFocusedInputContext();
++    // Without a focused input context, draw the most recent one (the shared state with
++    // ShareInputState=All), not the keyboard: right after a login the tray showed "input-keyboard"
++    // although another input method was active.
++    auto *ic = ui_->parent()->instance()->mostRecentInputContext();
+     std::string icon = "input-keyboard";
+     std::string label;
+     const InputMethodEntry *entry = nullptr;
+--- a/src/ui/classic/classicui.cpp
++++ b/src/ui/classic/classicui.cpp
+@@ -383,6 +383,14 @@
+             if (auto *ui = uiForEvent(event)) {
+                 auto &icEvent = static_cast<InputContextEvent &>(event);
+                 ui->updateCurrentInputMethod(icEvent.inputContext());
++            } else if (!suspended_ && event.isInputContextEvent() &&
++                       !instance_->lastFocusedInputContext()) {
++                // No input context has the focus (a click on the tray icon, a choice in its menu): the tray draws
++                // the most recent one, so draw it again on every display.
++                auto &icEvent = static_cast<InputContextEvent &>(event);
++                for (auto &p : uis_) {
++                    p.second->updateCurrentInputMethod(icEvent.inputContext());
++                }
+             }
+         }));
+     eventHandlers_.emplace_back(instance_->watchEvent(

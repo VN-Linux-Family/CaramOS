@@ -82,14 +82,17 @@ class MigrationContext:
 
         self.run_command(["apt-get", "update"])
 
-    def apt_install(self, packages: Sequence[str], *, recommends: bool = True) -> None:
+    def apt_install(self, packages: Sequence[str], *, recommends: bool = True, only_upgrade: bool = False) -> None:
         """Install packages through APT after validating package names.
 
-        recommends=False leaves out the packages' recommended packages.
+        recommends=False leaves out the packages' recommended packages; only_upgrade=True upgrades those of the
+        packages that are installed and installs none.
         """
 
         package_list = self._validate_packages(packages)
         options = [] if recommends else ["--no-install-recommends"]
+        if only_upgrade:
+            options.append("--only-upgrade")
         self._apt_get("install", "--yes", *options, "--", *package_list)
 
     def apt_replace(self, install: Sequence[str], remove: Sequence[str]) -> None:

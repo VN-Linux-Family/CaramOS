@@ -101,6 +101,9 @@ step_customize() {
             # Feedback & Help: the question mark on the panel (hook 0170 and an OTA migration put it there).
             test -f /usr/share/cinnamon/applets/caramos-help@caramos/applet.js
             grep -q "caramos-help@caramos" /etc/dconf/db/local.d/01-caramos-task17-panel
+            # fcitx5 from the CaramOS PPA, whose tray shows the V of Lotus from the login on (migration
+            # 20261125090000_fcitx5_tray_shows_input_method); like fastfetch, a migration that cannot get it only logs.
+            dpkg --compare-versions "$(dpkg-query -W -f="\${Version}" fcitx5-modules)" ge 5.1.7-1build3+caramos1
         fi
         date -u +"%Y-%m-%dT%H:%M:%SZ" > /etc/caramos-customized
     '

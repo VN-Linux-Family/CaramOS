@@ -1,0 +1,8 @@
+  * The tray icon shows the input method in use when no text box has the
+    focus (debian/patches/caramos-tray-icon-without-focus.patch). Right
+    after a login it showed the keyboard's "A" although Lotus was on, and
+    clicking it turned Vietnamese off:
+    - XCBTrayWindow::paint draws mostRecentInputContext() (the shared
+      state with ShareInputState=All), not only a focused input context;
+    - switching the input method while nothing has the focus redraws the
+      tray.

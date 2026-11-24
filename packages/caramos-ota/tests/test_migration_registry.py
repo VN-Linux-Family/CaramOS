@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(67, len(catalog))
+        self.assertEqual(68, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -144,6 +144,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261124140000_show_trash_on_desktop",
                 "20261124170000_tray_icons_follow_theme",
                 "20261124180000_tray_icons_keep_their_place",
+                "20261125090000_fcitx5_tray_shows_input_method",
             ],
             timestamp_ids,
         )
@@ -223,6 +224,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261124140000_show_trash_on_desktop",
                 "20261124170000_tray_icons_follow_theme",
                 "20261124180000_tray_icons_keep_their_place",
+                "20261125090000_fcitx5_tray_shows_input_method",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -298,6 +300,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261124140000_show_trash_on_desktop",
                 "20261124170000_tray_icons_follow_theme",
                 "20261124180000_tray_icons_keep_their_place",
+                "20261125090000_fcitx5_tray_shows_input_method",
             ],
             [item.migration_id for item in plan.migrations],
         )

@@ -1,3 +1,20 @@
+caramos-ota (1.5.1-0caramos2) noble; urgency=medium
+
+  * The input method's V shows in Cinnamon's tray from the login on. Fcitx5
+    drew its X11 tray icon for the input context with the focus and the
+    keyboard's "A" while none had it, right after a login too, although
+    Lotus was on; clicking that A turned Vietnamese off. Migration
+    20261125090000_fcitx5_tray_shows_input_method upgrades the installed
+    fcitx5 packages to 5.1.7-1build3+caramos1 from the CaramOS PPA
+    (packages/fcitx5: Ubuntu's 5.1.7-1build3 with a patch whose tray draws
+    the input method in use, and draws again when it changes while nothing
+    has the focus). It installs no other package and keeps the packages'
+    automatic marks; MigrationContext.apt_install takes only_upgrade.
+  * New Cinnamon ISOs get that fcitx5 from the same migration;
+    scripts/customize.sh stops the build when fcitx5-modules is older.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 25 Nov 2026 01:13:57 +0700
+
 caramos-ota (1.5.1-0caramos1) noble; urgency=medium
 
   * Computers that already had an /etc/xdg/mimeapps.list, made by their user

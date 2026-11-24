@@ -642,10 +642,11 @@ trước đó là Open Beta. Từ 1.4.0 có hai bản: Cinnamon và Xfce (bản 
 | Thành phần | Bản phát hành |
 |---|---|
 | ISO | `CaramOS-1.5.1-cinnamon-amd64.iso` và `CaramOS-1.5.1-xfce-amd64.iso`: GitHub Release `v1.5.1`, tệp ISO trên SourceForge (`SHA256SUMS`, `SHA256SUMS-xfce`) |
-| `caramos-ota` | `1.5.1-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| `caramos-ota` | `1.5.1-0caramos2` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
 | `xfce4-docklike-plugin`, `xfce4-caramos-plugin` | `0.4.2-0caramos1` và `1.1.0` trên cùng PPA (lên PPA từ 1.4.0; 1.1.0 từ 1.5.1 có thêm dải Hiện màn hình nền): đảo giữa và chỗ của Control Center trên thanh tác vụ bản Xfce |
 | `fastfetch` | `2.71.0-0caramos1` trên cùng PPA (từ 1.5.1, ticket H-1203): bản backport cho noble, cấu hình mặc định có logo CaramOS; migration `20261124130000_install_fastfetch` cài nó |
 | `caramos-business` | `0.3.1` trên cùng PPA (lên PPA từ 1.5.0): CaramOS Doanh nghiệp, cài từ App Center |
+| `fcitx5` | `5.1.7-1build3+caramos1` trên cùng PPA (từ 1.5.1, `packages/fcitx5`): fcitx5 của Ubuntu 24.04 thêm một bản vá để khay hiện đúng bộ gõ đang dùng (chữ V của Lotus) ngay khi đăng nhập; migration `20261125090000_fcitx5_tray_shows_input_method` nâng cấp nó trên bản Cinnamon |
 | `printer-driver-captdriver` | `0.2.1~git20260813.f2d2da8-0caramos1` trên cùng PPA (lên PPA từ 1.3.7, không đổi từ đó); Kiểm tra driver cài nó khi thấy máy in Canon CAPT mà captdriver chạy được |
 | Driver CAPT của Canon | Không có trên PPA (điều khoản của Canon cấm phát tán lại): từ 1.3.9, Kiểm tra driver tải `linux-capt-drv-v271-uken.tar.gz` từ Canon về máy người dùng, sau khi người dùng đồng ý điều khoản, và kiểm tra SHA-256 (`caramos_driver_check/canon_capt.py`) |
 | App Center | `caramos-app-center` 0.3.1, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` |

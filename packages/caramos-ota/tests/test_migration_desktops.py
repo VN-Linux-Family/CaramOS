@@ -26,6 +26,7 @@ CINNAMON_ONLY = {
     "20261105120200_start_menu_file_search_without_freeze", "20261111090000_start_menu_ctrl_scroll_icon_size",
     "20261112100000_screenshot_shortcuts", "20261120100200_lunar_calendar", "20261123120000_hidden_password_typing",
     "20261124180000_tray_icons_keep_their_place",
+    "20261125090000_fcitx5_tray_shows_input_method",
     "20261124120000_desktop_icon_labels",
     "v1_0_7", "v1_0_8", "v1_0_10",
 }

@@ -1,0 +1,24 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["cinnamon"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Bộ gõ (khoảng 9 MB)",
+  "size_en": "Input method (about 9 MB)",
+  "title": "Chữ V của bộ gõ hiện ngay khi đăng nhập",
+  "summary": "Ngay sau khi đăng nhập, khay hệ thống từng hiện chữ A như thể đang gõ tiếng Anh, cho đến khi bấm vào một ô nhập chữ, dù bộ gõ tiếng Việt đã bật. Giờ chữ V hiện ngay.",
+  "title_en": "The input method's V shows as soon as you log in",
+  "summary_en": "Right after logging in, the system tray showed an A, as if typing were in English, until a text box was clicked, although Vietnamese typing was on. Now the V shows at once.",
+  "release_notes_vi": [
+    "Trước đây, ngay sau khi đăng nhập, biểu tượng bộ gõ ở khay hệ thống là chữ A, đến khi bấm vào một ô nhập chữ mới thành chữ V, dù tiếng Việt đã bật sẵn. Ai tưởng tiếng Việt đang tắt mà bấm vào chữ A thì lại tắt tiếng Việt thật.",
+    "Giờ chữ V hiện ngay từ lúc đăng nhập, và bấm vào biểu tượng thì nó đổi đúng giữa V và A. Gõ tiếng Việt vẫn như cũ.",
+    "Có hiệu lực từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "Before, right after logging in, the input method's icon in the system tray was an A, and turned into the V only once a text box was clicked, although Vietnamese typing was already on. Clicking the A, to turn Vietnamese on, really turned it off.",
+    "Now the V shows from the login on, and clicking the icon switches it between V and A as it should. Vietnamese typing works as before.",
+    "Works from the next login."
+  ]
+}

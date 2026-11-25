@@ -100,7 +100,7 @@ jobs:
           # The newest release only: an older ISO of this edition goes (SourceForge keeps every release).
           aws s3api list-objects-v2 --bucket "${BUCKET}" --endpoint-url "${endpoint}" \
               --query 'Contents[].Key' --output text | tr '\t' '\n' \
-            | grep -E "^CaramOS-.*-${EDITION}-amd64\.iso$" | grep -vxF "${ISO}" \
+            | { grep -E "^CaramOS-.*-${EDITION}-amd64\.iso$" || true; } | { grep -vxF "${ISO}" || true; } \
             | while read -r old; do
                 echo "Deleting ${old}"
                 aws s3 rm "s3://${BUCKET}/${old}" --endpoint-url "${endpoint}" --only-show-errors

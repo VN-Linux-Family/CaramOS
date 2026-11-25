@@ -118,7 +118,7 @@ jobs:
             --content-type "text/plain; charset=utf-8"
           aws s3api list-objects-v2 --bucket caramos-iso --endpoint-url "${endpoint}" \
               --query 'Contents[].Key' --output text | tr '\t' '\n' \
-            | grep -E "^CaramOS-.*-${EDITION}-amd64\.iso$" | grep -vxF "${ISO_FILE}" \
+            | { grep -E "^CaramOS-.*-${EDITION}-amd64\.iso$" || true; } | { grep -vxF "${ISO_FILE}" || true; } \
             | while read -r old; do
                 echo "Deleting ${old}"
                 aws s3 rm "s3://caramos-iso/${old}" --endpoint-url "${endpoint}" --only-show-errors

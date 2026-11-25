@@ -2,9 +2,11 @@
 # where the landing page's download buttons point. SourceForge stays as the backup link. Downloading from SourceForge
 # in Vietnam ran at 10-60 KB/s (a day for one ISO); Cloudflare serves the same file at several MB/s.
 #
-# Run by hand for a release that is already out (Actions > ISO to R2 > Run workflow, tag v1.5.1): the runner fetches
-# the ISOs from SourceForge (fast from GitHub's network), checks them against the release's SHA256SUMS files, uploads
-# them with those files, then deletes the older ISO of the same edition, so R2 holds only the newest release.
+# Run by hand for a release that is already out (Actions > ISO to R2 > Run workflow, tag v1.5.1, and the run ID of
+# the tag's "Build CaramOS ISO" run while its ISO artifacts are kept, 7 days): the runner takes the ISOs from that
+# run's artifacts, or else from SourceForge (slow: 45 KB/s from GitHub's network too on 2026-11-25), checks them against
+# the release's SHA256SUMS files, uploads them with those files, then deletes the older ISO of the same edition, so R2
+# holds only the newest release.
 # build.yml does the same right after building, for each new tag.
 #
 # Secrets: R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY (an R2 API token with Object Read & Write on
@@ -17,9 +19,14 @@ on:
       tag:
         description: "Release tag, e.g. v1.5.1"
         required: true
+      build_run:
+        description: "Run ID of the tag's build, whose ISO artifacts are kept 7 days (empty: SourceForge)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
+  actions: read
 
 env:
   BUCKET: caramos-iso
@@ -41,6 +48,15 @@ jobs:
           - edition: xfce
             checksums: SHA256SUMS-xfce
     steps:
+      - name: Take the ISO from the tag's build
+        if: inputs.build_run != ''
+        uses: actions/download-artifact@v5
+        with:
+          name: CaramOS-ISO-${{ matrix.edition }}
+          run-id: ${{ inputs.build_run }}
+          github-token: ${{ github.token }}
+          path: artifact
+
       - name: Fetch and check the ISO
         env:
           TAG: ${{ inputs.tag }}
@@ -54,8 +70,16 @@ jobs:
           curl -fsSL --retry 5 -o "${CHECKSUMS}" \
             "https://github.com/${GITHUB_REPOSITORY}/releases/download/${TAG}/${CHECKSUMS}"
           grep -q "  ${iso}$" "${CHECKSUMS}" || { echo "::error::${CHECKSUMS} has no line for ${iso}"; exit 1; }
-          curl -fL --retry 5 --retry-delay 30 -o "${iso}" \
-            "https://downloads.sourceforge.net/project/caramos/${TAG}/${iso}"
+          if [ -f "artifact/${iso}" ]; then
+            mv "artifact/${iso}" "${iso}"
+          else
+            # SourceForge closes slow transfers: resume until the file is whole.
+            for attempt in 1 2 3 4 5 6 7 8 9 10; do
+              curl -fL --retry 5 --retry-all-errors --retry-delay 30 -C - -o "${iso}" \
+                "https://downloads.sourceforge.net/project/caramos/${TAG}/${iso}" && break
+              echo "attempt ${attempt} stopped; resuming"
+            done
+          fi
           grep "  ${iso}$" "${CHECKSUMS}" | sha256sum -c -
           echo "ISO=${iso}" >> "${GITHUB_ENV}"
 

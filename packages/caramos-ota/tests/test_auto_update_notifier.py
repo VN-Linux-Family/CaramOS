@@ -302,6 +302,13 @@ class PageTests(unittest.TestCase):
         self.assertIn("window.caramos-ota switch:checked { background-color: #3a855a; }", dark)
 
 
+class Page(str):
+    """A page, named by its stack name: the controller shows a page (show_all) before the stack shows it."""
+
+    def show_all(self) -> None:
+        pass
+
+
 class FakeSwitchStack:
     def __init__(self) -> None:
         self.children = {}
@@ -326,9 +333,9 @@ class ControllerTests(unittest.TestCase):
         self.window = mock.Mock()
         self.patches = [
             mock.patch.object(app, "build_update_window", return_value=(self.window, self.stack)),
-            mock.patch.object(app, "build_update_page", return_value="info"),
-            mock.patch.object(app, "build_progress_page", return_value=("progress", mock.Mock(), mock.Mock(), mock.Mock())),
-            mock.patch.object(app, "build_no_update_page", return_value="no-update"),
+            mock.patch.object(app, "build_update_page", return_value=Page("info")),
+            mock.patch.object(app, "build_progress_page", return_value=(Page("progress"), mock.Mock(), mock.Mock(), mock.Mock())),
+            mock.patch.object(app, "build_no_update_page", return_value=Page("no-update")),
             mock.patch.object(app, "build_auto_updated_page", return_value="auto-updated"),
             mock.patch.object(app, "build_result_page", return_value="result"),
             mock.patch.object(app.auto_update_ui, "enabled", return_value=True),

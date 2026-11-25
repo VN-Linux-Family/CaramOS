@@ -15,6 +15,7 @@ class FakeWindow:
         self.destroyed = False
         self.shown = False
         self.signals = {}
+        self.stack = None
 
     def connect(self, signal, callback) -> None:
         self.signals[signal] = callback
@@ -30,18 +31,33 @@ class FakeWindow:
 
     def show_all(self) -> None:
         self.shown = True
+        if self.stack is not None:
+            self.stack.show_all()
 
 
 class FakeStack:
+    """GtkStack as GTK 3 has it: set_visible_child_name() does nothing for a page that is not shown, and while no
+    page is visible the first one shown (or added already shown) becomes the visible one."""
+
     def __init__(self) -> None:
         self.children = {}
         self.visible = None
 
+    @staticmethod
+    def _shown(child) -> bool:
+        return bool(getattr(child, "shown", False))
+
+    def _first_shown(self):
+        return next((name for name, child in self.children.items() if self._shown(child)), None)
+
     def add_named(self, child, name: str) -> None:
         self.children[name] = child
+        if self.visible is None and self._shown(child):
+            self.visible = name
 
     def set_visible_child_name(self, name: str) -> None:
-        self.visible = name
+        if name in self.children and self._shown(self.children[name]):
+            self.visible = name
 
     def get_child_by_name(self, name: str):
         return self.children.get(name)
@@ -50,6 +66,14 @@ class FakeStack:
         for name, current in list(self.children.items()):
             if current is child:
                 del self.children[name]
+                if self.visible == name:
+                    self.visible = self._first_shown()
+
+    def show_all(self) -> None:
+        for name, child in self.children.items():
+            child.show_all()
+            if self.visible is None:
+                self.visible = name
 
 
 class FakeProgressBar:
@@ -225,6 +249,7 @@ class UpdateWindowControllerTests(unittest.TestCase):
     def setUp(self) -> None:
         self.window = FakeWindow()
         self.stack = FakeStack()
+        self.window.stack = self.stack
         self.progress = FakeProgressBar()
         self.stage = FakeLabel()
         self.log_view = FakeTextView()
@@ -251,6 +276,26 @@ class UpdateWindowControllerTests(unittest.TestCase):
         self.assertIs(controller.window, self.window)
         self.assertEqual("no-update", self.stack.visible)
         self.assertEqual({"no-update"}, set(self.stack.children))
+
+    def test_an_update_waiting_at_login_opens_on_its_update_page(self) -> None:
+        # The login autostart builds the pages before the window is shown. 1.5.1 added the progress page first and
+        # GtkStack ignored showing the update page, which was not shown yet: the window opened on "Updating to
+        # CaramOS 1.1" / "Getting ready…" with no button, and the update never started.
+        controller = self.make_controller({"release": "1.1"})
+        controller.show()
+
+        self.assertEqual("info", self.stack.visible)
+        self.assertFalse(controller.upgrade_running)
+        self.assertEqual({"info", "progress"}, set(self.stack.children))
+
+        controller.start_upgrade()
+        self.assertEqual("progress", self.stack.visible)
+
+    def test_nothing_waiting_at_login_opens_on_the_no_update_page(self) -> None:
+        controller = self.make_controller()
+        controller.show()
+
+        self.assertEqual("no-update", self.stack.visible)
 
     def test_update_reuses_window_and_blocks_close(self) -> None:
         controller = self.make_controller({"release": "1.1"})

@@ -218,7 +218,6 @@ class UpdateWindowController:
         self.window, self.stack = build_update_window()
         self.upgrade_running = False
         self.checking = False
-        self.shown = False
         self.progress_bar = None
         self.stage_label = None
         self.log_view = None
@@ -243,14 +242,19 @@ class UpdateWindowController:
             self._show_update(update_info)
 
     def _show_page(self, name: str, page) -> None:
-        """Show a page, in place of an older one of the same name (after Try again)."""
+        """Show a page, in place of an older one of the same name (after Try again).
+
+        The page is shown before the stack is told to show it, also when the window is not shown yet: GtkStack
+        ignores set_visible_child_name() for a page that is not visible, and the window's show_all then shows the
+        first page added. In 1.5.1 the Update Center that opens at login with an update waiting showed its progress
+        page ("Updating to CaramOS …", "Getting ready…") with no button, and the update never started.
+        """
 
         old = self.stack.get_child_by_name(name)
         if old is not None:
             self.stack.remove(old)
         self.stack.add_named(page, name)
-        if self.shown:   # the window's show_all showed the pages added before it
-            page.show_all()
+        page.show_all()
         self.stack.set_visible_child_name(name)
 
     def _show_no_update(self, status: dict[str, str] | None) -> None:
@@ -261,15 +265,15 @@ class UpdateWindowController:
         note = auto_update_ui.waiting_reason(update_info)
         info_page = build_update_page(update_info, self.start_upgrade, self.close,
                                       auto_update=self.auto_update_switch(note))
+        # The update page first, then the progress page that Update switches to (see _show_page).
+        self._show_page("info", info_page)
         progress_page, self.progress_bar, self.stage_label, self.log_view = build_progress_page(update_info)
         self.log_view.get_vadjustment().connect("changed", self._log_resized)
         old = self.stack.get_child_by_name("progress")
         if old is not None:
             self.stack.remove(old)
         self.stack.add_named(progress_page, "progress")
-        if self.shown:
-            progress_page.show_all()
-        self._show_page("info", info_page)
+        progress_page.show_all()
 
     def start_check(self) -> None:
         """Check for new versions (again after Try again): the daily check, now, through pkexec without a password.
@@ -353,7 +357,6 @@ class UpdateWindowController:
         """Show the update center and start its single GTK loop."""
 
         self.window.show_all()
-        self.shown = True
 
     def close(self) -> bool:
         """Close the window unless an upgrade is active."""

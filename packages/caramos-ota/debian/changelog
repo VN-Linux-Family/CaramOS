@@ -1,3 +1,16 @@
+caramos-ota (1.5.1-0caramos3) noble; urgency=high
+
+  * The Update Center that opens at login with an update waiting showed its
+    progress page ("Đang cập nhật lên CaramOS 1.5.1", "Đang chuẩn bị…") with
+    no button, and the update never started; closing it and opening the
+    Update Center from the menu worked. Since 1.5.1-0caramos1 the window
+    added the progress page before the update page, and GtkStack ignores
+    showing a page that is not shown yet, so the window's show_all showed
+    the first page added. Each page is now shown before the stack shows it,
+    and the update page is added first. The tests' stack behaves as GTK 3's.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 25 Nov 2026 08:13:04 +0700
+
 caramos-ota (1.5.1-0caramos2) noble; urgency=medium
 
   * The input method's V shows in Cinnamon's tray from the login on. Fcitx5

@@ -20,8 +20,8 @@
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download"><strong>Download CaramOS 1.5.1</strong></a> ·
-  <a href="https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download">Xfce edition</a> ·
+  <a href="https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github"><strong>Download CaramOS 1.5.1</strong></a> ·
+  <a href="https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github">Xfce edition</a> ·
   <a href="https://caramos.vietnamlinuxfamily.net/?lang=en">Website</a> ·
   <a href="README.md">Tiếng Việt</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -44,13 +44,13 @@ away. Since 1.4.0 there is also a lighter **Xfce edition** for 2 GB computers an
 > **CaramOS 1.5.1 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
 > Open Beta releases.
 >
-> - **New install:** [download the 1.5.1 ISO](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)
->   (2.9 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) ·
+> - **New install:** [download the 1.5.1 ISO](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
+>   (2.9 GB) · [mirror](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) ·
 >   [release notes](https://caramos.vietnamlinuxfamily.net/?lang=en#release-notes)
-> - **2 GB computers, school labs:** [download the 1.5.1 Xfce edition](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)
->   (2.7 GB) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce)
+> - **2 GB computers, school labs:** [download the 1.5.1 Xfce edition](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
+>   (2.7 GB) · [mirror](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce)
 > - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.5.1; click
->   **Update now**. See [Upgrading from an earlier release](#upgrading-from-an-earlier-release).
+>   **Update**. See [Upgrading from an earlier release](#upgrading-from-an-earlier-release).
 
 ## Highlights
 
@@ -115,7 +115,10 @@ reinstalling or losing data.
 
 - CaramOS checks once a day. When there is a new release, the Update Center shows the current and the
   new version and every change that will be applied.
-- Nothing is installed until you agree: click **Update now** when it suits you, or **Later**.
+- From 1.5.0, new releases install by themselves after the daily check and say so when done (**Automatic
+  updates**, on by default). A release that changes the taskbar or the desktop waits until nobody uses the
+  computer, or the Update Center opens at the next login for you to click **Update**. To click yourself as
+  before, turn Automatic updates off in the Update Center.
 - What you changed yourself stays as it is: a wallpaper you picked, the icon colour you use, an applet
   you removed from the taskbar.
 
@@ -260,10 +263,10 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
 
 ### 1. Download the ISO
 
-- [CaramOS-1.5.1-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)
-  (2.9 GB, on SourceForge because GitHub limits the size of each release file).
-- The Xfce edition for 2 GB computers and school labs: [CaramOS-1.5.1-xfce-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)
-  (2.7 GB), checked with [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce).
+- [CaramOS-1.5.1-cinnamon-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
+  (2.9 GB; [SourceForge mirror](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)). The ISO is not on GitHub because GitHub limits the size of each release file.
+- The Xfce edition for 2 GB computers and school labs: [CaramOS-1.5.1-xfce-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
+  (2.7 GB; [mirror](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)), checked with [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce).
 - [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) to check
   the download:
 

@@ -20,8 +20,8 @@
 </p>
 
 <p align="center">
-  <a href="https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download"><strong>Tải CaramOS 1.5.1</strong></a> ·
-  <a href="https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download">Bản Xfce</a> ·
+  <a href="https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github"><strong>Tải CaramOS 1.5.1</strong></a> ·
+  <a href="https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github">Bản Xfce</a> ·
   <a href="https://caramos.vietnamlinuxfamily.net">Website</a> ·
   <a href="README_EN.md">English</a> ·
   <a href="https://vietnamlinuxfamily.net">VNLF</a>
@@ -48,13 +48,13 @@ khác chỉ cần vài cú bấm. Từ 1.4.0 có thêm **bản Xfce**, nhẹ hơ
 > **CaramOS 1.5.1 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
 > sau chuỗi bản Open Beta 1.0.x.
 >
-> - **Cài mới:** [tải ISO 1.5.1](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)
->   (2,9 GB) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) ·
+> - **Cài mới:** [tải ISO 1.5.1](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
+>   (2,9 GB) · [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) ·
 >   [ghi chú phát hành](https://caramos.vietnamlinuxfamily.net/#release-notes)
-> - **Máy 2 GB, phòng máy ở trường:** [tải bản Xfce 1.5.1](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)
->   (2,7 GB) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce)
+> - **Máy 2 GB, phòng máy ở trường:** [tải bản Xfce 1.5.1](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
+>   (2,7 GB) · [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce)
 > - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.5.1, bấm
->   **Cập nhật ngay** là xong. Xem [Nâng cấp từ bản cũ](#nâng-cấp-từ-bản-cũ).
+>   **Cập nhật** là xong. Xem [Nâng cấp từ bản cũ](#nâng-cấp-từ-bản-cũ).
 
 ## Tính năng nổi bật
 
@@ -117,7 +117,9 @@ mất dữ liệu.
 
 - Mỗi ngày CaramOS kiểm tra một lần. Có bản mới thì Trung tâm cập nhật báo phiên bản hiện tại, phiên bản
   mới và từng thay đổi sẽ được áp dụng.
-- Không có gì tự cài khi bạn chưa đồng ý: bấm **Cập nhật ngay** khi tiện, hoặc **Để sau**.
+- Từ 1.5.0, bản mới tự cài sau lần kiểm tra hằng ngày rồi báo khi xong (**Tự động cập nhật**, bật sẵn). Bản
+  nào đổi thanh tác vụ hay màn hình nền thì chờ lúc không ai dùng máy, hoặc mở Trung tâm cập nhật ở lần đăng
+  nhập sau để bạn bấm **Cập nhật**. Muốn tự bấm như trước: tắt Tự động cập nhật trong Trung tâm cập nhật.
 - Thứ bạn đã tự chỉnh được giữ nguyên: hình nền bạn tự chọn, bộ màu biểu tượng bạn đang dùng, applet bạn
   đã gỡ khỏi thanh tác vụ.
 
@@ -258,10 +260,10 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
 
 ### 1. Tải ISO
 
-- [CaramOS-1.5.1-cinnamon-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)
-  (2,9 GB, trên SourceForge vì GitHub giới hạn dung lượng mỗi tệp đính kèm).
-- Bản Xfce cho máy 2 GB và phòng máy: [CaramOS-1.5.1-xfce-amd64.iso](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)
-  (2,7 GB), kiểm tra bằng [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce).
+- [CaramOS-1.5.1-cinnamon-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
+  (2,9 GB; [link dự phòng trên SourceForge](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)). ISO không nằm trên GitHub vì GitHub giới hạn dung lượng mỗi tệp đính kèm.
+- Bản Xfce cho máy 2 GB và phòng máy: [CaramOS-1.5.1-xfce-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
+  (2,7 GB; [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)), kiểm tra bằng [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce).
 - [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) để kiểm tra
   tệp tải về:
 

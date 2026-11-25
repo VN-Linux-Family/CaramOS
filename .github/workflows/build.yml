@@ -91,6 +91,39 @@ jobs:
             ${{ env.CHECKSUMS }}
           retention-days: 7
 
+      # Cloudflare R2 (download.caramos.vietnamlinuxfamily.net), where the landing page's download buttons point;
+      # SourceForge below stays as the backup link. Only the newest release is kept on R2 (r2-upload.yml does the
+      # same for a release that is already out).
+      - name: Upload ISO to R2
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+          AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+          AWS_DEFAULT_REGION: auto
+          EDITION: ${{ matrix.edition }}
+        run: |
+          set -euo pipefail
+          if [ -z "${R2_ACCOUNT_ID}" ] || [ -z "${AWS_ACCESS_KEY_ID}" ] || [ -z "${AWS_SECRET_ACCESS_KEY}" ]; then
+            echo "::warning::R2 secrets are not set: the ISO is only on SourceForge."
+            exit 0
+          fi
+          ISO_FILE="$(ls CaramOS-*.iso | head -n 1)"
+          endpoint="https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com"
+          aws s3 cp "${ISO_FILE}" "s3://caramos-iso/${ISO_FILE}" --endpoint-url "${endpoint}" --only-show-errors \
+            --content-type application/x-iso9660-image --content-disposition "attachment; filename=${ISO_FILE}"
+          aws s3 cp "${CHECKSUMS}" "s3://caramos-iso/${CHECKSUMS}" --endpoint-url "${endpoint}" --only-show-errors \
+            --content-type "text/plain; charset=utf-8"
+          aws s3api list-objects-v2 --bucket caramos-iso --endpoint-url "${endpoint}" \
+              --query 'Contents[].Key' --output text | tr '\t' '\n' \
+            | grep -E "^CaramOS-.*-${EDITION}-amd64\.iso$" | grep -vxF "${ISO_FILE}" \
+            | while read -r old; do
+                echo "Deleting ${old}"
+                aws s3 rm "s3://caramos-iso/${old}" --endpoint-url "${endpoint}" --only-show-errors
+              done
+
       - name: Upload ISO to SourceForge
         if: startsWith(github.ref, 'refs/tags/v')
         env:

@@ -107,6 +107,30 @@ class SourceTests(unittest.TestCase):
         self.assertFalse(found[0].removable)
         self.assertEqual([], sources.parse_lsblk("not json"))
 
+    def test_a_disk_bitlocker_locks_is_listed_as_locked(self) -> None:
+        # Windows 11 turns on device encryption by itself on many laptops: lsblk sees "BitLocker", not NTFS.
+        laptop = json.dumps({"blockdevices": [
+            {"name": "nvme0n1", "path": "/dev/nvme0n1", "fstype": None, "label": None, "size": 512110190592,
+             "mountpoints": [None], "hotplug": False, "rm": False, "children": [
+                 {"name": "nvme0n1p1", "path": "/dev/nvme0n1p1", "fstype": "vfat", "label": "SYSTEM",
+                  "size": 272629760, "mountpoints": ["/boot/efi"], "hotplug": False, "rm": False},
+                 {"name": "nvme0n1p3", "path": "/dev/nvme0n1p3", "fstype": "BitLocker", "label": None,
+                  "size": 255000000000, "mountpoints": [None], "hotplug": False, "rm": False},
+                 {"name": "nvme0n1p4", "path": "/dev/nvme0n1p4", "fstype": "BitLocker", "label": None,
+                  "size": 1048576000, "mountpoints": [None], "hotplug": False, "rm": False},
+                 {"name": "nvme0n1p5", "path": "/dev/nvme0n1p5", "fstype": "BitLocker", "label": None,
+                  "size": 200000000000, "mountpoints": [None], "hotplug": False, "rm": False, "children": [
+                      {"name": "bitlk-1234", "path": "/dev/mapper/bitlk-1234", "fstype": "ntfs", "label": "Data",
+                       "size": 199990000000, "mountpoints": ["/media/lan/Data"], "hotplug": False, "rm": False}]}]},
+        ]})
+        found = sources.parse_lsblk(laptop)
+        self.assertEqual([("/dev/nvme0n1p3", True), ("/dev/mapper/bitlk-1234", False)],
+                         [(partition.device, partition.locked) for partition in found],
+                         "a small one is no Windows; one Files unlocked shows as the NTFS under it")
+        self.assertIsNone(found[0].mountpoint)
+        self.assertEqual("Windows disk /dev/nvme0n1p3", found[0].title())
+        self.assertFalse(any(partition.locked for partition in sources.parse_lsblk(LSBLK)))
+
     def test_mount_read_only(self) -> None:
         partition = sources.parse_lsblk(LSBLK)[0]
         calls = []
@@ -338,6 +362,19 @@ class InputMethodTests(unittest.TestCase):
 
 
 class TextTests(unittest.TestCase):
+    def test_a_locked_disk_says_what_to_do(self) -> None:
+        text = app.locked_text()
+        for words in ("BitLocker", "locks this disk", "Turn off BitLocker", "Device encryption", "decrypted",
+                      "open this window again", "“A folder”"):
+            self.assertIn(words, text)
+        source = (ROOT / "usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py").read_text(encoding="utf-8")
+        # Listed with the other disks, and its page is a status page with a way back, as DESIGN.md has it.
+        self.assertIn("if partition.locked:", source)
+        self.assertIn('Adw.StatusPage(icon_name="channel-secure-symbolic", title=_("This Windows disk is locked")',
+                      source)
+        # A status page's description is markup: "&" and ">" would leave it empty.
+        self.assertIn("description=GLib.markup_escape_text(locked_text()))", source)
+
     def test_sizes_and_counts(self) -> None:
         with mock.patch.object(app, "prefers_vietnamese", return_value=True):
             self.assertEqual("2,3 GB", app.human_size(int(2.3 * 1024 ** 3)))

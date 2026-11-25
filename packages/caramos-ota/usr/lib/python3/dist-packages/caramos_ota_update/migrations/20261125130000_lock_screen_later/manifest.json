@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Khoá màn hình (dưới 1 MB)",
+  "size_en": "Screen lock (under 1 MB)",
+  "title": "Màn hình khoá sau khoảng nửa tiếng không dùng",
+  "summary": "Rời máy một lúc không còn phải nhập lại mật khẩu: màn hình vẫn tối sau 15 phút không dùng, nhưng chỉ khoá sau khoảng nửa tiếng.",
+  "title_en": "The screen locks after about half an hour without use",
+  "summary_en": "Stepping away for a while no longer means typing the password again: the screen still goes dark after 15 minutes without use, but locks only after about half an hour.",
+  "release_notes_vi": [
+    "Trước đây máy khoá màn hình sau 15 đến 20 phút không dùng, và trên bản Xfce màn hình khoá trông như màn hình đăng nhập, nên nhiều người tưởng CaramOS tự đăng xuất. Đó chỉ là khoá màn hình: nhập mật khẩu là quay lại đúng chỗ đang làm.",
+    "Giờ màn hình vẫn tối sau 15 phút không dùng như cũ, nhưng chỉ khoá sau 25 phút trên bản Cinnamon và 30 phút trên bản Xfce. Chạm chuột hay bàn phím trước lúc đó thì màn hình sáng lại, không hỏi mật khẩu.",
+    "Máy đi ngủ vẫn khoá như cũ: mở lại thì cần mật khẩu.",
+    "Ai đã tự chỉnh thời gian khoá thì giữ nguyên. Muốn đổi: bản Cinnamon vào Cài đặt Hệ thống > Trình bảo vệ màn hình; bản Xfce vào Settings > Power Manager > Display (khoá sau lúc màn hình tối 15 phút).",
+    "Có hiệu lực từ lần đăng nhập sau."
+  ],
+  "release_notes_en": [
+    "Before, the screen locked after 15 to 20 minutes without use, and on the Xfce edition the lock screen looks like the login screen, so many people thought CaramOS logged them out. It is only the lock: the password brings you back where you were.",
+    "Now the screen still goes dark after 15 minutes without use, as before, but locks only after 25 minutes on the Cinnamon edition and 30 minutes on the Xfce edition. A touch of the mouse or the keyboard before then lights the screen again without asking for the password.",
+    "A computer that goes to sleep still locks: it asks for the password when it wakes up.",
+    "Anyone who set their own lock time keeps it. To change it: on the Cinnamon edition in System Settings > Screensaver; on the Xfce edition in Settings > Power Manager > Display (it locks 15 minutes after the screen goes dark).",
+    "Works from the next login."
+  ]
+}

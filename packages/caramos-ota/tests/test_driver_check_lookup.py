@@ -185,8 +185,9 @@ class FormTests(unittest.TestCase):
         form = (ROOT / "usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py").read_text(encoding="utf-8")
         self.assertIn("found = system_logs()", window)
         self.assertIn("self.help_logs = self.app_logs + found", help_window)
-        # Like the Driver Check results: with help and bug reports, not with feedback.
-        self.assertIn("return bool(self.logs) and self.kinds[self.kind].report is not None", form)
+        # With the computer's details, for every kind (feedback too: test_computer_details.py); an app's own log has a
+        # box of its own.
+        self.assertIn("return app + (self._computer_logs() if self._details_wanted() else ())", form)
 
 
 if __name__ == "__main__":

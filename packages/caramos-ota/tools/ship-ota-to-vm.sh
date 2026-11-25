@@ -20,7 +20,7 @@ Build and ship CaramOS OTA test artifacts to a VM.
 
 Usage:
   ./tools/ship-ota-to-vm.sh                                   # libvirt domain ${VM_DOMAIN}
-  REMOTE_HOST=127.0.0.1 REMOTE_PORT=2222 ./tools/ship-ota-to-vm.sh   # any SSH-reachable VM
+  REMOTE_HOST=127.0.0.1 REMOTE_PORT=2222 ./tools/ship-ota-to-vm.sh   # any VM with key login and passwordless sudo
 
 Current target:
   VM_DOMAIN=${VM_DOMAIN}  (used when REMOTE_HOST is empty)
@@ -31,15 +31,13 @@ Current target:
 
 What it does:
   1. Build caramos-ota .deb via tools/caramos-ota-testkit.sh build-deb
-  2. Clean and recreate REMOTE_DIR on the VM
-  3. Copy .deb, guest runner scripts, and VM Makefile to the VM
-  4. Install the shipped .deb in the VM
-  5. Seed the VM at CaramOS ${TEST_RELEASE_FROM} and detect the ${TEST_RELEASE_TARGET} migration
-  6. Print the commands to run inside the VM
+  2. Copy the .deb, the guest runner scripts and the VM Makefile to the VM (~/.caramos-vm/ship)
+  3. In the VM (tools/vm-guest/ship.sh): recreate REMOTE_DIR with them, install the shipped .deb,
+     seed the VM at CaramOS ${TEST_RELEASE_FROM} and detect the ${TEST_RELEASE_TARGET} migration
+  4. Print the next commands
 
 Authentication:
-  SSH key + passwordless sudo, both installed once by: make vm-setup
-  For a throwaway live-boot VM without the key, pass REMOTE_PASSWORD=... (needs sshpass).
+  SSH key + passwordless sudo, both typed into the VM once by: make vm-bootstrap
   See VM_DEV_WORKFLOW.md.
 EOF
 }
@@ -51,7 +49,7 @@ fi
 
 # Fail before the (slow) package build if the VM is not usable.
 vm_require_ip
-vm_ssh_ok || vm_die "cannot SSH to ${REMOTE_USER}@$(vm_ip):${REMOTE_PORT}. Run once: make vm-setup (or pass REMOTE_PASSWORD=...)"
+vm_ssh_ok || vm_die "cannot SSH to ${REMOTE_USER}@$(vm_ip):${REMOTE_PORT}. New VM: make vm-bootstrap, make vm-setup"
 vm_require_sudo
 
 cd "${PKG_DIR}"
@@ -63,28 +61,13 @@ if [[ -z "${deb}" || ! -f "${deb}" ]]; then
   exit 1
 fi
 
-vm_ssh "rm -rf -- '${REMOTE_DIR}' && mkdir -p -- '${REMOTE_DIR}'"
-vm_scp \
-  "${deb}" \
-  "${PKG_DIR}/tools/vm-run-ota-e2e.sh" \
-  "${PKG_DIR}/tools/purge-caramos-ota.sh" \
-  "${PKG_DIR}/tools/Makefile.vm" \
-  "${REMOTE_DIR}/"
-
-vm_ssh "chmod +x '${REMOTE_DIR}/vm-run-ota-e2e.sh' '${REMOTE_DIR}/purge-caramos-ota.sh' && mv '${REMOTE_DIR}/Makefile.vm' '${REMOTE_DIR}/Makefile'"
-vm_ssh "sudo -n tee /etc/caramos-release >/dev/null" <<EOF
-NAME=CaramOS
-VERSION=${TEST_RELEASE_FROM}
-VERSION_ID=${TEST_RELEASE_FROM}
-VERSION_CODENAME=noble
-UBUNTU_CODENAME=noble
-CHANNEL=stable
-ID=caramos
-ID_LIKE="linuxmint ubuntu debian"
-PRETTY_NAME="CaramOS ${TEST_RELEASE_FROM}"
-EOF
-vm_ssh "cd '${REMOTE_DIR}' && sudo -n ./vm-run-ota-e2e.sh install-shipped"
-vm_ssh "cd '${REMOTE_DIR}' && sudo -n env TEST_RELEASE_FROM='${TEST_RELEASE_FROM}' TEST_RELEASE_TARGET='${TEST_RELEASE_TARGET}' ./vm-run-ota-e2e.sh prepare-check"
+payload="$(mktemp -d)"
+# shellcheck disable=SC2064
+trap "rm -rf '${payload}'" EXIT
+cp "${deb}" "${PKG_DIR}/tools/vm-run-ota-e2e.sh" "${PKG_DIR}/tools/purge-caramos-ota.sh" "${PKG_DIR}/tools/Makefile.vm" "${payload}/"
+vm_push_guest
+vm_push "${payload}" "${VM_GUEST_DIR}/ship" --delete
+vm_run ship.sh "${REMOTE_DIR}" "${TEST_RELEASE_FROM}" "${TEST_RELEASE_TARGET}"
 
 cat <<EOF
 [OK] Shipped OTA test artifacts and prepared the ${TEST_RELEASE_TARGET} Update Center state at ${REMOTE_USER}@$(vm_ip):${REMOTE_DIR}

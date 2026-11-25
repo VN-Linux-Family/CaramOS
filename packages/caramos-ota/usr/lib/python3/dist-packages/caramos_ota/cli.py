@@ -25,7 +25,7 @@ from .apt import (
 )
 from caramos_ota_update import zalo_update
 
-from . import auto_update
+from . import auto_update, stats
 from .app_center import update_installed_app_center
 from .constants import EXIT_APT, EXIT_CANCEL, EXIT_ERROR, EXIT_OK, TOOL_NAME, TOOL_VERSION
 from .errors import OtaError
@@ -172,6 +172,8 @@ def do_status(release_info: ReleaseInfo, state: dict[str, Any]) -> None:
     print(f"Installed release:    {state_field(state, 'installed_release')}")
     for line in auto_update.status_lines(state):
         print(line)
+    for line in stats.status_lines():
+        print(line)
     print()
 
     txn = latest_success_transaction(state)
@@ -287,6 +289,7 @@ def build_parser() -> argparse.ArgumentParser:
   sudo caramos-ota --repair      Fix broken packages
   sudo caramos-ota --rollback    Rollback last update
   sudo caramos-ota --auto-update off   Ask before installing updates (on: install them by themselves)
+  sudo caramos-ota --stats off         Stop counting this computer among the CaramOS computers in use each day
 
 Exit codes:
   0  Success / no updates available
@@ -312,6 +315,12 @@ Exit codes:
         help="Turn automatic updates on or off (on: new CaramOS versions install by themselves; the default)",
     )
     parser.add_argument(
+        "--stats",
+        choices=("on", "off"),
+        help="Turn the daily count of CaramOS computers in use on or off (on, the default: the daily check sends a "
+             "number that changes every day, the CaramOS version and the edition, nothing else)",
+    )
+    parser.add_argument(
         "--auto-upgrade",
         action="store_true",
         help="Install a waiting update when automatic updates are on and nothing stops it "
@@ -333,7 +342,7 @@ def selected_action(args: argparse.Namespace) -> str:
 
     actions = [
         name
-        for name in ("check", "upgrade", "status", "repair", "rollback", "auto_update", "auto_upgrade")
+        for name in ("check", "upgrade", "status", "repair", "rollback", "auto_update", "stats", "auto_upgrade")
         if getattr(args, name)
     ]
     if len(actions) > 1:
@@ -355,6 +364,12 @@ def main(argv: list[str] | None = None) -> int:
         init_log()
         auto_update.change_setting(args.auto_update == "on", f"{auto_update.caller()} (caramos-ota --auto-update)")
         print(f"Automatic updates are {args.auto_update}.")
+        return EXIT_OK
+    if action == "stats":
+        # Only the setting file, like --auto-update.
+        init_log()
+        stats.change_setting(args.stats == "on", f"{auto_update.caller()} (caramos-ota --stats)")
+        print(f"The daily count of this computer is {args.stats}.")
         return EXIT_OK
     if action == "auto_upgrade":
         # The update it starts (caramos-ota --upgrade --yes --unattended) takes the lock itself.
@@ -381,6 +396,8 @@ def main(argv: list[str] | None = None) -> int:
         do_rollback(state)
     elif action == "check":
         banner()
+        # Once a day, before anything that needs the CaramOS PPA: a computer that cannot reach it counts too.
+        stats.run_from_check(release_info.version)
         verify_repo()
         apt_update()
         self_update_ota_if_needed(

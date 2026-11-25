@@ -1,0 +1,12 @@
+[Unit]
+Description=Check Veyon Server every 30 seconds (CaramOS Phòng máy)
+
+# Enabled by the Phòng máy helper on a computer it set up with Veyon (teacher's or student's), disabled when the
+# computer leaves the lab; not by this package.
+[Timer]
+OnBootSec=60s
+OnUnitInactiveSec=30s
+AccuracySec=5s
+
+[Install]
+WantedBy=timers.target

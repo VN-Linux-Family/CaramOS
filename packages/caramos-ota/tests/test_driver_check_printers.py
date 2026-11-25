@@ -455,11 +455,14 @@ class PrinterLogTests(unittest.TestCase):
                       "printer(s) above", text)
 
     def test_help_requests_carry_it(self) -> None:
+        # computer.log (test_computer_details.py) is left out here.
         with mock.patch.object(logs, "system_log", return_value="system"), \
+                mock.patch("caramos_driver_check.computer.computer_log", return_value=""), \
                 mock.patch.object(logs, "driver_check_log_path", return_value=self.root / "none.log"), \
                 mock.patch.object(printers, "printer_log", return_value="printer report\n"):
             self.assertEqual(["system.log", "printer.log"], [log.name for log in logs.system_logs()])
         with mock.patch.object(logs, "system_log", return_value="system"), \
+                mock.patch("caramos_driver_check.computer.computer_log", return_value=""), \
                 mock.patch.object(logs, "driver_check_log_path", return_value=self.root / "none.log"), \
                 mock.patch.object(printers, "printer_log", side_effect=OSError("broken")):
             self.assertEqual(["system.log"], [log.name for log in logs.system_logs()])

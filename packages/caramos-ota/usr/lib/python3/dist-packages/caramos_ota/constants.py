@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-TOOL_VERSION = "1.5.1-0caramos3"
+TOOL_VERSION = "1.5.2-0caramos1"
 TOOL_NAME = "caramos-ota"
 
 STATE_DIR = Path("/var/lib/caramos-ota")
@@ -21,8 +21,13 @@ PPA_PATTERN = "ppa.launchpadcontent.net/vietnamlinuxfamily/caram-os"
 # other takes the package's version. Automatic updates give dpkg the same options through APT_CONFIG
 # (/usr/share/caramos-ota/auto-update/apt.conf; a test keeps the two the same).
 DPKG_NONINTERACTIVE_OPTIONS = ("--force-confdef", "--force-confold")
+# apt waits up to this long for dpkg's lock instead of failing at once: Ubuntu's apt-daily-upgrade or another program
+# installing at the same moment (often right after the computer starts, when automatic updates also run) made a
+# migration's install fail with exit 100. Automatic updates have the same in their apt.conf.
+DPKG_LOCK_TIMEOUT_SECONDS = 120
 APT_NONINTERACTIVE_OPTIONS = tuple(
-    part for option in DPKG_NONINTERACTIVE_OPTIONS for part in ("-o", f"Dpkg::Options::={option}"))
+    part for option in DPKG_NONINTERACTIVE_OPTIONS for part in ("-o", f"Dpkg::Options::={option}")
+) + ("-o", f"DPkg::Lock::Timeout={DPKG_LOCK_TIMEOUT_SECONDS}")
 # No debconf questions either, and ucf keeps a configuration file someone changed, as dpkg does.
 NONINTERACTIVE_ENV = {"DEBIAN_FRONTEND": "noninteractive", "UCF_FORCE_CONFFOLD": "1"}
 

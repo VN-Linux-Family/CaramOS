@@ -77,6 +77,16 @@ def item_subtitle(key: str, item: sources.Item, profile: sources.Profile) -> str
     return amount
 
 
+def locked_text() -> str:
+    """What the page of a Windows disk BitLocker locks says; its header names the disk."""
+
+    return _("BitLocker, the disk encryption of Windows, locks this disk: CaramOS cannot read it. Start Windows, turn "
+             "off BitLocker for this disk (Settings > Privacy & security > Device encryption, or Control Panel > "
+             "BitLocker Drive Encryption > Turn off BitLocker) and wait until Windows says the disk is decrypted. Then "
+             "start CaramOS and open this window again.\n\nOr copy your files to a USB disk from Windows, and choose "
+             "“A folder” here.")
+
+
 def build_window(app, folder: Path | None = None):
     import gi
 
@@ -189,6 +199,12 @@ def build_window(app, folder: Path | None = None):
             section(box, _("Where is the data?"))
             group = Adw.PreferencesGroup()
             for partition in sources.windows_partitions():
+                if partition.locked:
+                    subtitle = _("On this computer, {size}. Locked with BitLocker: Windows has to unlock it "
+                                 "first.").format(size=human_size(partition.size))
+                    group.add(chevron_row(partition.title(), subtitle,
+                                          lambda p=partition: self.push(self.locked_page(p))))
+                    continue
                 subtitle = _("On this computer, {size}. Read only: nothing is written to it.").format(
                     size=human_size(partition.size))
                 group.add(chevron_row(partition.title(), subtitle, lambda p=partition: self.open_partition(p)))
@@ -199,6 +215,18 @@ def build_window(app, folder: Path | None = None):
                                   self.share_page))
             box.append(group)
             return self.page(_("Windows Data Transfer"), scrolled(box), "start")
+
+        def locked_page(self, partition: sources.Partition) -> Adw.NavigationPage:
+            """A Windows disk BitLocker locks: what that means and how to go on."""
+
+            # The description is markup: "Privacy & security" and the ">" of the menu paths are escaped.
+            status = Adw.StatusPage(icon_name="channel-secure-symbolic", title=_("This Windows disk is locked"),
+                                    description=GLib.markup_escape_text(locked_text()))
+            back = Gtk.Button(label=_("Back"), halign=Gtk.Align.CENTER)
+            back.add_css_class("pill")
+            back.connect("clicked", lambda *_a: self.nav.pop())
+            status.set_child(back)
+            return self.page(partition.title(), status, "locked")
 
         def open_partition(self, partition: sources.Partition) -> None:
             self.busy(_("Opening the Windows disk…"))

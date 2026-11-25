@@ -1,0 +1,64 @@
+# Every week: has Ubuntu published a newer fcitx5 for noble than the base of our patched build
+# (packages/fcitx5, UBUNTU_VERSION in its Makefile)? A newer Ubuntu fcitx5 would replace ours on every computer and the
+# tray would show the keyboard's "A" after a login again. A newer one opens an issue, or adds a comment to the open one
+# when the report is new. Nothing is rebuilt by itself: packages/fcitx5/README.md says what to do ("Khi Ubuntu cập nhật fcitx5").
+name: fcitx5 ubuntu
+
+on:
+  schedule:
+    - cron: "10 2 * * 1"   # Mondays, 09:10 in Vietnam
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Exit 0: nothing newer, 1: Ubuntu has a newer fcitx5, 2: Launchpad could not be read (the run fails).
+      - name: Compare Ubuntu's fcitx5 with our base
+        id: check
+        run: |
+          set +e
+          python3 -I packages/fcitx5/tools/ubuntu-check.py > report.txt 2>&1
+          status=$?
+          cat report.txt
+          echo "status=${status}" >> "${GITHUB_OUTPUT}"
+          [ "${status}" -le 1 ]
+
+      - name: Open or update the issue
+        if: steps.check.outputs.status == '1'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          title="fcitx5 của Ubuntu có bản mới"
+          # The same report as last week (nothing done yet) adds nothing to the issue.
+          marker="<!-- fcitx5-ubuntu $(sha256sum report.txt | cut -c1-16) -->"
+          {
+            echo "Ubuntu đã có fcitx5 mới hơn bản gốc của gói fcitx5 vá chữ V (\`packages/fcitx5\`):"
+            echo
+            echo '```'
+            cat report.txt
+            echo '```'
+            echo
+            echo "Bản của Ubuntu sẽ đè bản của mình trên mọi máy và khay lại hiện chữ A sau khi đăng nhập."
+            echo "Dựng lại theo mục \"Khi Ubuntu cập nhật fcitx5\" trong \`packages/fcitx5/README.md\`, đưa lên PPA, rồi đóng issue này."
+            echo
+            echo "${marker}"
+          } > body.md
+          number="$(gh issue list --state open --search "\"${title}\" in:title" --json number,title \
+            --jq ".[] | select(.title == \"${title}\") | .number" | head -n 1)"
+          if [ -z "${number}" ]; then
+            gh issue create --title "${title}" --body-file body.md
+          elif gh issue view "${number}" --json body,comments --jq '.body, .comments[].body' | grep -qF "${marker}"; then
+            echo "Issue #${number} already has this report"
+          else
+            gh issue comment "${number}" --body-file body.md
+          fi

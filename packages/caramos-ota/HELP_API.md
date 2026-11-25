@@ -6,7 +6,8 @@ CaramOS sends help requests, bug reports and feedback to Vietnam Linux Family:
   hardware profile on linux-hardware.org (an `hw-probe` upload) and the Driver Check results.
 - **Feedback & Help** (`caramos-help`, "Góp ý & hỗ trợ"), opened from the question mark in the panel
   (applet `caramos-help@caramos`) and from the menu: help (`os`), a bug report (`bug`) or feedback
-  (`feedback`), with the hardware profile and the Driver Check results when the user ticks them.
+  (`feedback`). Every kind carries this computer's details unless the user unticks "Gửi kèm thông tin máy này"
+  (since the version after 1.5.1; before, feedback carried none): see [Logs](#logs).
 
 Both can attach up to five pictures or videos (screenshots, screen recordings, files): see
 [Pictures and videos](#pictures-and-videos). When the **App Center** or the **Update Center** fails, its "Ask for
@@ -61,7 +62,7 @@ User-Agent: <client.app>/<CaramOS version>
 | `"contact"` | no | Free text, at most 200 characters: email, phone/Zalo number or Facebook link. Can be empty. **Personal data: only moderators see it, never published.** |
 | `"public"` | no | `true` when "Cho cộng đồng VNLF xem để cùng giúp" is ticked (it is by default), `false` when the user unticked it. CaramOS always sends it; missing or `null` means `false` (versions that never asked). Anything else is 422. See [Sharing with the community](#sharing-with-the-community). |
 | `"probe_url"` | no | Link to the user's `hw-probe -all -upload`: only `https://linux-hardware.org/…` (or `www.`). Missing when the user unticked it, or hw-probe failed and the user chose to send without it. |
-| `"report"` | no | The Driver Check report, the same JSON as `caramos-driver-check --json`, at most 64 KB. Missing when the user unticked it (and for feedback); the app leaves out a bigger one. It may carry `"logs"`: see [Logs](#logs). |
+| `"report"` | no | The Driver Check report, the same JSON as `caramos-driver-check --json`, at most 64 KB, with `"logs"` (see [Logs](#logs)). Missing when the user unticked "Gửi kèm thông tin máy này" and no app log goes with the request; the app leaves out a bigger one. Up to 1.5.1 feedback never had one. |
 | `"system"` | yes | CaramOS version, kernel release, live USB session, virtual machine, UI language. |
 | `"client"` | yes | `"app"`: `caramos-driver-check` or `caramos-help`; `"version"`: the CaramOS version. |
 | `"upload_id"` | with `attachments` | The UUID the files were uploaded with (below). |
@@ -101,9 +102,27 @@ Driver Check's page for a failed driver install has the same button. Its form st
 chưa cài được <package>." (for example `printer-driver-captdriver`) and carries `driver-install.log`: the
 package, the error code and what the helper printed.
 
-Every request from Driver Check and Feedback & Help also carries `system.log` and, when Driver Check ran,
-`driver-check.log`. When the computer has a USB printer or a print queue, it carries `printer.log` too
-(`caramos_driver_check/printers.py`). CUPS logs to its own `error_log` rather than the journal, so without it a
+Every request from Driver Check and Feedback & Help, of every kind, also carries this computer's details unless the
+user unticks "Gửi kèm thông tin máy này" (ticked): the Driver Check results, `computer.log`, `system.log` and, when
+Driver Check ran, `driver-check.log`. When the computer has a USB printer or a print queue, it carries `printer.log`
+too (`caramos_driver_check/printers.py`). An app's own log (the three above) has a box of its own,
+"Kèm nhật ký của ứng dụng (…)", also ticked.
+
+`computer.log` (`caramos_driver_check/computer.py`) answers questions about hardware, drivers, printers and being
+"logged out" without asking anyone to look anything up:
+- CaramOS's version and edition (Cinnamon or Xfce), the Ubuntu base, the kernel; the computer's maker, model, board
+  and firmware as the firmware names them (no serial numbers); memory and the room left on `/`;
+- `lspci -nnk` (PCI ids and the driver in use), `lsusb` and `lsusb -t` (USB ids and drivers);
+- each print queue: connection (`usb`, `ipp`, `socket`…), driver (make and model) and state; network queues are
+  numbered, not named;
+- how the screen locks and the computer sleeps for this user: Cinnamon's `idle-delay`, `lock-enabled`, `lock-delay`
+  and power settings, or Xfce's power manager values and light-locker's; "(set by this user)" marks what the person
+  changed. Whether LightDM logs in by itself (on or off, not who), and the keyring where apps keep saved sign-ins (the
+  Secret Service's default collection): none yet, unlocked or locked. After an automatic login nothing unlocks it;
+- the logins, logouts, login screens (Xfce's lock is one), sleeps and wake-ups of this boot and the one before, one
+  line each, without user names ("this user", "another user", "the login screen").
+
+It keeps its start when the report is cut to 64 KB: the other logs lose their beginnings first. CUPS logs to its own `error_log` rather than the journal, so without it a
 printer that does not print leaves no trace. `printer.log` has:
 - the printing packages and the Canon CAPT drivers installed;
 - the USB printers with their IEEE 1284 id;

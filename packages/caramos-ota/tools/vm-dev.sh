@@ -14,6 +14,7 @@ VM_MEMORY_MB="${VM_MEMORY_MB:-6144}"
 VM_CPUS="${VM_CPUS:-4}"
 VM_DISK_GB="${VM_DISK_GB:-40}"
 VM_SUDOERS_FILE="/etc/sudoers.d/90-caramos-vm-dev"
+VM_E2E_DIR="${VM_E2E_DIR:-/tmp/caramos-ota-e2e}"
 
 usage() {
   cat <<EOF
@@ -24,29 +25,38 @@ Usage:
 
 One-time setup:
   create              Create libvirt domain ${VM_DOMAIN} booting VM_ISO (then install or use live session)
-  bootstrap           Type the SSH bootstrap command into the VM desktop via virsh send-key
-  setup               Install host SSH key, passwordless sudo, guest agent; disable screen lock
+  bootstrap           Type the host SSH key, passwordless sudo and openssh-server into the VM (virsh send-key)
+  setup               Guest agent, rsync, no screen lock (over SSH, after bootstrap)
+  install-to-disk [preseed]  Install the live session to disk (ubiquity + tools/vm-install-preseed.cfg), boot it
   snapshot [name]     Take a live snapshot (disk + RAM) of the prepared VM   [default: ${VM_SNAPSHOT}]
 
 Every test round:
   reset [name]        Revert to the snapshot, fix the clock, wait for SSH    [default: ${VM_SNAPSHOT}]
   sync                rsync the working tree over the installed package (no .deb build)
+  e2e <action> [NAME=value...]  Run tools/vm-run-ota-e2e.sh <action> as root (after make ship)
   logs                Collect OTA state/logs/journal into dist-testkit/vm-logs/<timestamp>/
   shot [file.png]     Screenshot the VM display into dist-testkit/vm-shots/
 
 Access and debugging:
   status              Domain state, IP, snapshots, SSH and installed caramos-ota version
   ip                  Print the VM IP
-  ssh [command...]    SSH into the VM (interactive shell without a command)
-  gui <command...>    Run a command inside the logged-in desktop session (DISPLAY/DBus set)
-  gui-bg <command...> Same, detached; output goes to /tmp/caramos-vm-gui.log in the VM
+  ssh                 Interactive shell in the VM (no commands: use run)
+  run [--gui|--bg] <script> [args...]  Copy a local script into the VM and run it there with bash
+                      (--gui: in the desktop session; --bg: the same, detached, output in /tmp/caramos-vm-gui.log)
+  gui <program> [args...]     Run one program inside the logged-in desktop session
+  gui-bg <program> [args...]  Same, detached; output goes to /tmp/caramos-vm-gui.log in the VM
   reload-applets      Ask Cinnamon to reload the applets shipped by this package
   key <combo...>      Send key combos, e.g. key ctrl+alt+t  /  key enter
   type <text>         Type text into the focused VM window (US layout)
   click <x> <y> [btn] Mouse click at screenshot pixel coordinates (btn: left|right|middle)
   agent-exec <cmd>    Run a root shell command through qemu-guest-agent (works without SSH/network)
+  forget-host-key     Forget the VM's SSH host key (after reinstalling it)
   snapshots           List snapshots
   up | down           Start / gracefully shut down the domain
+
+Commands in the VM always go through a script file (run, or the scripts in tools/vm-guest/), never through the ssh
+command line: endpoint security reads "ssh to another machine, then sudo/apt/curl | bash there" as an attacker moving
+between machines (see VM_DEV_WORKFLOW.md).
 
 Current config (override via env or vm.local.env):
   VIRSH_URI=${VIRSH_URI}
@@ -54,6 +64,7 @@ Current config (override via env or vm.local.env):
   REMOTE_USER=${REMOTE_USER}  REMOTE_HOST=${REMOTE_HOST:-<auto from libvirt>}  REMOTE_PORT=${REMOTE_PORT}
   VM_ISO=${VM_ISO}
   VM_MEMORY_MB=${VM_MEMORY_MB}  VM_CPUS=${VM_CPUS}  VM_DISK_GB=${VM_DISK_GB}
+  VM_KNOWN_HOSTS=${VM_KNOWN_HOSTS}
 
 Full guide: VM_DEV_WORKFLOW.md
 EOF
@@ -117,14 +128,17 @@ cmd_create() {
     --channel unix,target.type=virtio,target.name=org.qemu.guest_agent.0 \
     --channel spicevmc,target.type=virtio,target.name=com.redhat.spice.0 \
     --noautoconsole
+  # A domain of this name that existed before had another SSH host key.
+  cmd_forget_host_key >/dev/null
 
   cat <<EOF
 [OK] Created and started ${VM_DOMAIN} from ${VM_ISO}
 
 Next:
   1. Open the VM display:  virt-viewer -c ${VIRSH_URI} ${VM_DOMAIN}   (or virt-manager)
-  2. Either install CaramOS to disk and reboot (recommended), or stay in the live session.
-  3. make vm-bootstrap && make vm-setup && make vm-snapshot
+  2. make vm-bootstrap && make vm-setup   (SSH into the live session)
+  3. Install to disk: ./tools/vm-dev.sh install-to-disk, then bootstrap + setup again on the installed system
+     (VM_SUDO_PROMPT=1 make vm-bootstrap), and make vm-snapshot
 EOF
 }
 
@@ -256,16 +270,29 @@ cmd_click() {
 
 cmd_bootstrap() {
   require_running
-  local password="${REMOTE_PASSWORD:-caram123}"
-  local line="sudo sh -c 'apt-get update; apt-get install -y openssh-server && echo ${REMOTE_USER}:${password} | chpasswd && systemctl enable --now ssh'"
+  local pubkey_file pubkey home="/home/${REMOTE_USER}"
+  pubkey_file="$(host_pubkey)" || vm_die "no SSH public key found on this host. Create one: ssh-keygen -t ed25519"
+  pubkey="$(<"${pubkey_file}")"
+  [[ "${pubkey}" =~ ^[A-Za-z0-9@._+/=:\ -]+$ ]] || vm_die "cannot type ${pubkey_file} (unexpected characters)"
 
   if vm_ip >/dev/null 2>&1 && vm_ssh_ok; then
     log "[OK] SSH key login already works; nothing to bootstrap."
     return 0
   fi
+  # A new sshd comes with a new host key.
+  cmd_forget_host_key >/dev/null
+
+  # Typed into a terminal in the VM, never sent over the network: the host's public key, passwordless sudo for the test
+  # user, then openssh-server (it starts with the key already in place, so the host never tries a password).
+  local line="sudo sh -c 'install -d -m 700 -o ${REMOTE_USER} -g ${REMOTE_USER} ${home}/.ssh"
+  line+=" && echo \"${pubkey}\" >> ${home}/.ssh/authorized_keys"
+  line+=" && chown ${REMOTE_USER}:${REMOTE_USER} ${home}/.ssh/authorized_keys && chmod 600 ${home}/.ssh/authorized_keys"
+  line+=" && echo \"${REMOTE_USER} ALL=(ALL) NOPASSWD:ALL\" > ${VM_SUDOERS_FILE} && chmod 440 ${VM_SUDOERS_FILE}"
+  line+=" && apt-get update; apt-get install -y openssh-server && systemctl enable --now ssh'"
 
   log "Typing the bootstrap command into ${VM_DOMAIN} (the desktop must be logged in and unlocked)."
-  log "If you prefer to do it by hand, open a terminal in the VM and run:"
+  log "The VM's keyboard must type English: if the Lotus tray icon shows V, click it to A first (vm-dev.sh click)."
+  log "To do it by hand instead, open a terminal in the VM and run:"
   log "  ${line}"
   send_combo ctrl+alt+t
   # Keys sent before the terminal window has focus are lost; a cold live session needs a while.
@@ -275,75 +302,20 @@ cmd_bootstrap() {
   if [[ "${VM_SUDO_PROMPT:-0}" == "1" ]]; then
     # Installed systems ask for the sudo password; the live session does not.
     sleep 2
-    type_text "${password}"
+    type_text "${REMOTE_PASSWORD:-caram123}"
     send_combo enter
   fi
 
   log "Waiting for sshd in the VM (apt needs network; up to 5 minutes)..."
-  local deadline=$((SECONDS + 300))
-  while ((SECONDS < deadline)); do
-    _VM_IP_CACHE=""
-    if vm_ip >/dev/null 2>&1 && (REMOTE_PASSWORD="${password}" vm_ssh true) >/dev/null 2>&1; then
-      log "[OK] SSH is up at ${REMOTE_USER}@$(vm_ip) (password: ${password}). Next: REMOTE_PASSWORD=${password} make vm-setup"
-      return 0
-    fi
-    sleep 5
-  done
-  vm_die "SSH did not come up. Check the VM screen: make vm-shot"
+  vm_wait_ssh 300 || vm_die "SSH key login did not start working. Check the VM screen: make vm-shot"
+  log "[OK] SSH key login works at ${REMOTE_USER}@$(vm_ip). Next: make vm-setup"
 }
 
 cmd_setup() {
   require_running
   vm_require_ip
-  local pubkey_file pubkey
-  pubkey_file="$(host_pubkey)" || vm_die "no SSH public key found on this host. Create one: ssh-keygen -t ed25519"
-  pubkey="$(<"${pubkey_file}")"
-
-  if ! (REMOTE_PASSWORD='' vm_ssh true) >/dev/null 2>&1; then
-    command -v sshpass >/dev/null 2>&1 || vm_die "sshpass is needed for the first login. Install: sudo apt install sshpass"
-    if [[ -z "${REMOTE_PASSWORD}" ]]; then
-      read -r -s -p "Password of ${REMOTE_USER}@$(vm_ip): " REMOTE_PASSWORD
-      echo >&2
-    fi
-    vm_ssh true || vm_die "cannot SSH to ${REMOTE_USER}@$(vm_ip):${REMOTE_PORT}. Is openssh-server installed in the VM? (make vm-bootstrap)"
-    log "== installing ${pubkey_file} into the VM =="
-    vm_ssh "mkdir -p ~/.ssh && chmod 700 ~/.ssh && touch ~/.ssh/authorized_keys && chmod 600 ~/.ssh/authorized_keys && { grep -qxF ${pubkey@Q} ~/.ssh/authorized_keys || printf '%s\n' ${pubkey@Q} >> ~/.ssh/authorized_keys; }"
-  fi
-
-  if ! vm_ssh 'sudo -n true' 2>/dev/null; then
-    [[ -n "${REMOTE_PASSWORD}" ]] || {
-      read -r -s -p "sudo password of ${REMOTE_USER}: " REMOTE_PASSWORD
-      echo >&2
-    }
-    log "== enabling passwordless sudo for ${REMOTE_USER} =="
-    local rule="${REMOTE_USER} ALL=(ALL) NOPASSWD:ALL"
-    vm_ssh "printf '%s\n' ${REMOTE_PASSWORD@Q} | sudo -S -p '' sh -c 'printf \"%s\\n\" \"${rule}\" > ${VM_SUDOERS_FILE} && chmod 440 ${VM_SUDOERS_FILE} && visudo -cf ${VM_SUDOERS_FILE}'"
-  fi
-
-  # From here on everything must work with the key alone.
-  REMOTE_PASSWORD=''
-  vm_ssh_ok || vm_die "SSH key login still fails after installing the key"
-  vm_require_sudo
-
-  log "== installing guest packages =="
-  vm_ssh "sudo -n sh -c '
-    set -e
-    for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do
-      [ -f \"\$f\" ] && sed -i \"/^deb cdrom:/ s/^/#/\" \"\$f\"
-    done
-    apt-get update || true
-    DEBIAN_FRONTEND=noninteractive apt-get install -y -q -o Dpkg::Use-Pty=0 openssh-server qemu-guest-agent rsync
-    systemctl enable --now ssh
-    systemctl start qemu-guest-agent || true
-  '"
-
-  log "== disabling screen lock / blanking so screenshots show the desktop =="
-  vm_ssh "${VM_GUI_ENV}"'
-    gsettings set org.cinnamon.desktop.screensaver lock-enabled false
-    gsettings set org.cinnamon.desktop.session idle-delay 0
-    gsettings set org.cinnamon.settings-daemon.plugins.power sleep-display-ac 0
-    gsettings set org.cinnamon.settings-daemon.plugins.power sleep-inactive-ac-timeout 0
-  ' || log "Warning: could not change desktop settings (is ${REMOTE_USER} logged in to the desktop?)"
+  vm_ssh_ok || vm_die "SSH key login to ${REMOTE_USER}@$(vm_ip) does not work yet. First: make vm-bootstrap"
+  vm_run setup.sh || vm_die "setup failed in the VM (see above)"
 
   cat <<EOF
 [OK] ${VM_DOMAIN} is ready: key login as ${REMOTE_USER}@$(vm_ip), passwordless sudo, guest agent.
@@ -370,15 +342,8 @@ cmd_snapshot() {
 }
 
 sync_clock() {
-  # A reverted VM wakes up at the moment the snapshot was taken; apt rejects repos "from the future".
-  # Jumping the clock forward also makes the daily caramos-ota-check.timer due at once. Installing a
-  # .deb restarts that timer (postinst), the timer runs `caramos-ota --check`, and the check
-  # self-updates caramos-ota from the PPA over the package under test while holding the OTA lock.
-  # So the background check service is masked for this boot only (/run, gone after the next revert
-  # or reboot). The CLI (`caramos-ota --check`) still works. VM_KEEP_OTA_TIMER=1 keeps it.
-  local quiet_ota="systemctl mask --runtime --now caramos-ota-check.service >/dev/null 2>&1; systemctl stop caramos-ota-check.timer;"
-  [[ "${VM_KEEP_OTA_TIMER:-0}" != "1" ]] || quiet_ota=""
-  vm_ssh "sudo -n sh -c '${quiet_ota} date -u -s @$(date -u +%s) >/dev/null'" 2>/dev/null \
+  # tools/vm-guest/after-revert.sh says why (clock from the snapshot, the OTA check timer).
+  vm_run after-revert.sh "$(date -u +%s)" "${VM_KEEP_OTA_TIMER:-0}" \
     || log "Warning: could not set the VM clock (passwordless sudo missing?)"
 }
 
@@ -410,63 +375,56 @@ cmd_status() {
   echo "IP:        ${ip}"
   if vm_ssh_ok; then
     echo "SSH:       ok (${REMOTE_USER}@${ip}:${REMOTE_PORT})"
-    vm_ssh '
-      printf "sudo -n:   %s\n" "$(sudo -n true 2>/dev/null && echo ok || echo "needs password (run make vm-setup)")"
-      printf "Release:   %s\n" "$(. /etc/caramos-release 2>/dev/null; echo "${VERSION:-unknown}")"
-      printf "Package:   caramos-ota %s\n" "$(dpkg-query -W -f="\${Version} (\${db:Status-Abbrev})" caramos-ota 2>/dev/null || echo "not installed")"
-      printf "Clock:     %s\n" "$(date -Is)"
-    '
+    vm_run status.sh
   else
-    echo "SSH:       not reachable with the host key (run make vm-bootstrap / make vm-setup)"
+    echo "SSH:       no key login (new VM: make vm-bootstrap; reinstalled VM: ./tools/vm-dev.sh forget-host-key)"
   fi
 }
 
 cmd_ssh() {
   require_running
-  if (($# == 0)); then
-    VM_SSH_OPTS+=(-t)
-  fi
-  vm_ssh "$@"
+  (($# == 0)) || vm_die "vm-dev.sh ssh only opens an interactive shell. Put commands in a script and run it:
+  ./tools/vm-dev.sh run [--gui|--bg] <script> [args...]
+  Commands typed into the ssh command line (sudo, apt, curl | bash, ...) look like an attacker moving between machines
+  to endpoint security (VM_DEV_WORKFLOW.md)."
+  VM_SSH_OPTS+=(-t)
+  vm_ssh
 }
 
 cmd_gui() {
   require_running
-  (($# > 0)) || vm_die "usage: vm-dev.sh gui <command...>"
-  vm_ssh "${VM_GUI_ENV} $*"
+  (($# > 0)) || vm_die "usage: vm-dev.sh gui <program> [args...]   (one program; anything more: run --gui <script>)"
+  vm_run gui.sh "$@"
 }
 
 cmd_gui_bg() {
   require_running
-  (($# > 0)) || vm_die "usage: vm-dev.sh gui-bg <command...>"
-  vm_ssh "${VM_GUI_ENV} nohup setsid $* >/tmp/caramos-vm-gui.log 2>&1 </dev/null &"
+  (($# > 0)) || vm_die "usage: vm-dev.sh gui-bg <program> [args...]   (one program; anything more: run --bg <script>)"
+  vm_run gui.sh --bg "$@"
   log "[OK] Started in the VM desktop: $*   (output: /tmp/caramos-vm-gui.log, look with: make vm-shot)"
 }
 
 cmd_reload_applets() {
   require_running
-  local dir uuid
+  local dir
+  local -a uuids=()
   for dir in "${PKG_DIR}"/usr/share/caramos-ota/applets/*@*/; do
-    [[ -d "${dir}" ]] || continue
-    uuid="$(basename "${dir}")"
-    if vm_ssh "${VM_GUI_ENV} dbus-send --session --print-reply --dest=org.Cinnamon /org/Cinnamon org.Cinnamon.ReloadXlet string:${uuid} string:APPLET >/dev/null"; then
-      log "[OK] Reloaded applet ${uuid}"
-    else
-      log "Warning: could not reload applet ${uuid} (not logged in, or the applet is not on a panel)"
-    fi
+    [[ -d "${dir}" ]] && uuids+=("$(basename "${dir}")")
   done
+  ((${#uuids[@]} > 0)) || return 0
+  vm_run reload-applets.sh "${uuids[@]}" >&2
 }
 
 cmd_sync() {
   require_running
-  vm_require_sudo
   command -v rsync >/dev/null 2>&1 || vm_die "rsync not found on the host"
-  local stage src dest target host
-  local -a sources=()
+  local stage src dest target
   stage="$(mktemp -d)"
   # shellcheck disable=SC2064
   trap "rm -rf '${stage}'" EXIT
 
   # debian/install is the single source of truth for "which path goes where".
+  : >"${stage}/.caramos-targets"
   while read -r src dest || [[ -n "${src}" ]]; do
     [[ -n "${src}" && "${src}" != \#* ]] || continue
     [[ -e "${PKG_DIR}/${src}" ]] || vm_die "debian/install lists a missing path: ${src}"
@@ -474,28 +432,18 @@ cmd_sync() {
     mkdir -p "${stage}/${dest}"
     cp -a "${PKG_DIR}/${src}" "${stage}/${dest}/"
     target="${dest}/$(basename "${src}")"
-    sources+=("${stage}/./${target}")
+    printf '%s\n' "${target}" >>"${stage}/.caramos-targets"
   done < "${PKG_DIR}/debian/install"
 
-  host="$(vm_ip)"
-  # --relative + --no-implied-dirs: only the listed files/dirs are touched, so --delete cannot
-  # reach outside the package's own directories and parent dirs such as /usr keep their attributes.
-  # usr/share/locale is listed whole but belongs to every package: deleting there removed all other
-  # translations (cinnamon.mo too, and without it GLib turns off every translation in Cinnamon).
-  rsync -rlpt --relative --no-implied-dirs --delete \
-    --filter='protect /usr/share/locale/**' \
-    --exclude='__pycache__/' --exclude='*.pyc' \
-    --chown=root:root --chmod=go-w \
-    --rsync-path='sudo -n rsync' \
-    -e "ssh ${VM_SSH_OPTS[*]} -o BatchMode=yes -p ${REMOTE_PORT}" \
-    --itemize-changes \
-    "${sources[@]}" "${REMOTE_USER}@${host}:/"
-
-  vm_ssh 'sudo -n systemctl daemon-reload'
+  # Into ~/.caramos-vm/stage as the test user (only what changed since the last sync), then
+  # tools/vm-guest/sync-apply.sh puts it in place as root in the VM.
+  vm_push_guest
+  vm_push "${stage}" "${VM_GUEST_DIR}/stage" --delete --exclude='__pycache__/' --exclude='*.pyc'
+  vm_run sync-apply.sh || vm_die "could not install the synced tree in the VM (see above)"
   cmd_reload_applets
   cat <<EOF >&2
 [OK] Synced working tree into ${VM_DOMAIN} (no .deb, no maintainer scripts, dpkg version unchanged).
-     A running notifier keeps the old code: ./tools/vm-dev.sh ssh pkill -f caramos-ota-notifier
+     A running notifier keeps the old code: close it in the VM (or vm-dev.sh reset) and open it again.
      Before a PR, verify with the real package: make vm-reset ship test
 EOF
 }
@@ -505,39 +453,13 @@ cmd_logs() {
   local out_dir
   out_dir="${DIST_DIR}/vm-logs/$(date +%Y%m%d-%H%M%S)"
   mkdir -p "${out_dir}"
-  {
-    printf '%s\n' "${VM_GUI_ENV}"
-    cat <<'REMOTE'
-set +e
-exec 3>&1 1>/dev/null 2>&1
-out="$(mktemp -d)"
-run() { local name="$1"; shift; "$@" >"${out}/${name}" 2>&1; }
-run release.txt sh -c 'for f in /etc/caramos-release /etc/os-release /etc/lsb-release; do echo "== $f"; cat "$f"; done'
-run package.txt sh -c 'dpkg-query -W -f="\${Package} \${Version} \${db:Status-Abbrev}\n" caramos-ota; echo; apt-cache policy caramos-ota'
-run systemd.txt systemctl status caramos-ota-check.timer caramos-ota-check.service --no-pager --lines=30
-run failed-units.txt systemctl --failed --no-pager
-run journal-ota.txt sh -c 'sudo -n journalctl -b --no-pager -o short-iso | grep -i "caramos[-_]ota"'
-run journal-boot.txt sudo -n journalctl -b --no-pager -o short-iso -n 4000
-run apt-history.txt sudo -n tail -n 200 /var/log/apt/history.log
-run apt-term.txt sudo -n tail -n 500 /var/log/apt/term.log
-run dpkg.txt tail -n 300 /var/log/dpkg.log
-run xsession-errors.txt tail -n 1500 "${HOME}/.xsession-errors"
-run enabled-applets.txt gsettings get org.cinnamon enabled-applets
-run gui-command.txt cat /tmp/caramos-vm-gui.log
-sudo -n cp -a /var/lib/caramos-ota "${out}/var-lib-caramos-ota"
-sudo -n cp -a /var/log/caramos-ota "${out}/var-log-caramos-ota"
-sudo -n chown -R "$(id -u):$(id -g)" "${out}"
-chmod -R u+rwX "${out}"
-tar -C "${out}" -czf - . >&3
-rm -rf "${out}"
-REMOTE
-  } | vm_ssh 'bash -s' | tar -xzf - -C "${out_dir}"
+  vm_run collect-logs.sh | tar -xzf - -C "${out_dir}"
 
   echo "[OK] VM logs collected in ${out_dir}"
   (cd "${out_dir}" && find . -type f -size +0 | sort | sed 's|^\./|  |')
   local state="${out_dir}/var-lib-caramos-ota/state.json"
   if [[ -f "${state}" ]]; then
-    python3 - "${state}" <<'PY' || true
+    python3 - "${state}" <<'PY2' || true
 import json
 import sys
 
@@ -548,7 +470,7 @@ print()
 print(f"installed_release: {state.get('installed_release')}")
 print(f"available_update:  {update.get('to_version') or ('yes' if update else 'none')}")
 print(f"last transaction:  {transaction.get('status') or 'none'}")
-PY
+PY2
   fi
 }
 
@@ -611,6 +533,73 @@ sys.exit(status.get("exitcode", 1))
 PY
 }
 
+cmd_run() {
+  require_running
+  local -a mode=()
+  case "${1:-}" in
+    --gui | --bg) mode=("$1"); shift ;;
+  esac
+  (($# > 0)) || vm_die "usage: vm-dev.sh run [--gui|--bg] <local script> [args...]"
+  local script="$1" stage
+  shift
+  [[ -f "${script}" ]] || vm_die "no such script: ${script}"
+  stage="$(mktemp -d)"
+  cp "${script}" "${stage}/"
+  vm_push_guest
+  vm_push "${stage}" "${VM_GUEST_DIR}/run" --delete
+  rm -rf "${stage}"
+  vm_run run.sh "${mode[@]}" "$(basename "${script}")" "$@"
+}
+
+cmd_e2e() {
+  require_running
+  (($# > 0)) || vm_die "usage: vm-dev.sh e2e <action> [NAME=value...]   (actions of tools/vm-run-ota-e2e.sh; run make ship first)"
+  vm_run e2e.sh "${VM_E2E_DIR}" "$@"
+}
+
+cmd_forget_host_key() {
+  [[ -f "${VM_KNOWN_HOSTS}" ]] || return 0
+  ssh-keygen -R "$(vm_host_key_name)" -f "${VM_KNOWN_HOSTS}" >/dev/null 2>&1 || true
+  rm -f "${VM_KNOWN_HOSTS}.old"
+  log "[OK] Forgot the SSH host key of $(vm_host_key_name)"
+}
+
+# Installs the live session to the VM's disk: ubiquity's automatic mode with a preseed, then the restart prompt, power
+# off (virt-install's install-time config stops the VM at its first reboot), CD out, boot the installed system.
+cmd_install_to_disk() {
+  require_running
+  local preseed="${1:-${SCRIPT_DIR}/vm-install-preseed.cfg}" stage rc=0
+  [[ -f "${preseed}" ]] || vm_die "preseed not found: ${preseed}"
+  vm_ssh_ok || vm_die "no SSH key login into the live session yet: make vm-bootstrap, make vm-setup"
+  stage="$(mktemp -d)"
+  cp "${preseed}" "${stage}/preseed.cfg"
+  vm_push_guest
+  vm_push "${stage}" "${VM_GUEST_DIR}/install" --delete
+  rm -rf "${stage}"
+  vm_run install-to-disk.sh || vm_die "could not start the installer (see above)"
+  log "Waiting for the installer, in one SSH session (up to ${VM_INSTALL_MINUTES:-60} minutes)..."
+  vm_run wait-installer.sh "${VM_INSTALL_MINUTES:-60}" || rc=$?
+  # 255: the SSH session ended because the VM restarted at the end of the install (ubiquity/reboot in the preseed).
+  ((rc == 0 || rc == 255)) || vm_die "the installer did not finish (exit ${rc}). Look: make vm-shot"
+  sleep 20
+  log "Pressing Enter at the 'remove the installation medium' prompt; waiting for the VM to stop..."
+  send_combo enter
+  local deadline=$((SECONDS + 300))
+  while ((SECONDS < deadline)) && [[ "$(domain_state)" != "shut off" ]]; do
+    sleep 5
+  done
+  [[ "$(domain_state)" == "shut off" ]] || vm_die "the VM did not stop after the install. Look: make vm-shot"
+  vm_virsh change-media "${VM_DOMAIN}" sda --eject --config >/dev/null 2>&1 || true
+  # The installed system makes its own SSH host key.
+  cmd_forget_host_key >/dev/null
+  vm_virsh start "${VM_DOMAIN}" >/dev/null
+  cat <<EOF
+[OK] ${VM_DOMAIN} is installed to disk and boots the installed system.
+Next: log in on the VM screen and close the first-run windows, then
+  VM_SUDO_PROMPT=1 make vm-bootstrap && make vm-setup && make vm-snapshot
+EOF
+}
+
 cmd_up() {
   require_domain
   [[ "$(domain_state)" == "running" ]] || vm_virsh start "${VM_DOMAIN}" >/dev/null
@@ -635,6 +624,10 @@ case "${cmd}" in
   status) cmd_status ;;
   ip) require_domain; vm_require_ip; vm_ip ;;
   ssh) cmd_ssh "$@" ;;
+  run) cmd_run "$@" ;;
+  e2e) cmd_e2e "$@" ;;
+  forget-host-key) cmd_forget_host_key ;;
+  install-to-disk) cmd_install_to_disk "$@" ;;
   gui) cmd_gui "$@" ;;
   gui-bg) cmd_gui_bg "$@" ;;
   reload-applets) cmd_reload_applets ;;

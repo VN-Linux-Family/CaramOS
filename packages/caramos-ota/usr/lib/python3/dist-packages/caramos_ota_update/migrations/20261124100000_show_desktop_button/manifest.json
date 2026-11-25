@@ -1,6 +1,6 @@
 {
   "schema": 2,
-  "unattended": "nobody-logged-in",
+  "unattended": "anytime",
   "codename": "noble",
   "channel": "stable",
   "severity": "feature",
@@ -15,13 +15,13 @@
     "Không cần nhắm: đẩy chuột hẳn vào mép phải màn hình, ngang thanh tác vụ, rồi bấm.",
     "Nút Góp ý & hỗ trợ vẫn là biểu tượng cuối cùng của đảo phải; thanh tác vụ trông như cũ khi không chỉ chuột vào.",
     "Bàn phím: Super+D cũng ẩn và hiện lại các cửa sổ.",
-    "Bản Cinnamon có ngay; bản Xfce có từ lần đăng nhập sau. Không muốn dùng: bấm chuột phải vào vạch đó rồi gỡ nó khỏi thanh tác vụ."
+    "Cập nhật từ Trung tâm cập nhật: bản Cinnamon có ngay, bản Xfce có từ lần đăng nhập sau. Khi máy tự cập nhật lúc bạn đang dùng, vạch này có từ lần đăng nhập sau. Không muốn dùng: bấm chuột phải vào vạch đó rồi gỡ nó khỏi thanh tác vụ."
   ],
   "release_notes_en": [
     "Move the pointer to the right edge of the taskbar, after Feedback & Help: a thin line shows. Click it to hide every window and see the desktop, and again to bring the windows back, as Show desktop does on Windows and Linux Mint.",
     "No need to aim: push the pointer against the right edge of the screen, level with the taskbar, and click.",
     "Feedback & Help stays the last icon of the right island; the taskbar looks as before until you point there.",
     "Keyboard: Super+D hides and brings back the windows too.",
-    "On the Cinnamon edition it is there at once; on the Xfce edition from the next login. Don't want it: right-click the line and remove it from the taskbar."
+    "Updating from the Update Center: on the Cinnamon edition it is there at once, on the Xfce edition from the next login. When the computer updates itself while you use it, the line is there from your next login. Don't want it: right-click the line and remove it from the taskbar."
   ]
 }

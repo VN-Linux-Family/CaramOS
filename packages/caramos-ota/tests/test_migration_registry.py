@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(68, len(catalog))
+        self.assertEqual(74, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -145,6 +145,12 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261124170000_tray_icons_follow_theme",
                 "20261124180000_tray_icons_keep_their_place",
                 "20261125090000_fcitx5_tray_shows_input_method",
+                "20261125120000_computer_lab_stays_connected",
+                "20261125120100_veyon_lock_and_demo_show",
+                "20261125130000_lock_screen_later",
+                "20261125130100_autologin_keyring",
+                "20261125130200_online_accounts_sign_in",
+                "20261125130300_apps_site_install_links",
             ],
             timestamp_ids,
         )
@@ -225,6 +231,12 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261124170000_tray_icons_follow_theme",
                 "20261124180000_tray_icons_keep_their_place",
                 "20261125090000_fcitx5_tray_shows_input_method",
+                "20261125120000_computer_lab_stays_connected",
+                "20261125120100_veyon_lock_and_demo_show",
+                "20261125130000_lock_screen_later",
+                "20261125130100_autologin_keyring",
+                "20261125130200_online_accounts_sign_in",
+                "20261125130300_apps_site_install_links",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -301,6 +313,12 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261124170000_tray_icons_follow_theme",
                 "20261124180000_tray_icons_keep_their_place",
                 "20261125090000_fcitx5_tray_shows_input_method",
+                "20261125120000_computer_lab_stays_connected",
+                "20261125120100_veyon_lock_and_demo_show",
+                "20261125130000_lock_screen_later",
+                "20261125130100_autologin_keyring",
+                "20261125130200_online_accounts_sign_in",
+                "20261125130300_apps_site_install_links",
             ],
             [item.migration_id for item in plan.migrations],
         )

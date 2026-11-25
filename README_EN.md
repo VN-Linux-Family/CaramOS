@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.5.1"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.5.2"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=latest&color=F59F22" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github"><strong>Download CaramOS 1.5.1</strong></a> ·
+  <a href="https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github"><strong>Download CaramOS 1.5.2</strong></a> ·
   <a href="https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github">Xfce edition</a> ·
   <a href="https://caramos.vietnamlinuxfamily.net/?lang=en">Website</a> ·
   <a href="README.md">Tiếng Việt</a> ·
@@ -41,15 +41,15 @@ Vietnamese out of the box, typing that just works, a friendly desktop, and every
 away. Since 1.4.0 there is also a lighter **Xfce edition** for 2 GB computers and school computer labs.
 
 > [!IMPORTANT]
-> **CaramOS 1.5.1 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
+> **CaramOS 1.5.2 is the latest release** of the official series that began with 1.3.0, after the 1.0.x
 > Open Beta releases.
 >
-> - **New install:** [download the 1.5.1 ISO](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
->   (2.9 GB) · [mirror](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) ·
+> - **New install:** [download the 1.5.2 ISO](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
+>   (2.9 GB) · [mirror](https://sourceforge.net/projects/caramos/files/v1.5.2/CaramOS-1.5.2-cinnamon-amd64.iso/download) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.2/SHA256SUMS) ·
 >   [release notes](https://caramos.vietnamlinuxfamily.net/?lang=en#release-notes)
-> - **2 GB computers, school labs:** [download the 1.5.1 Xfce edition](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
->   (2.7 GB) · [mirror](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce)
-> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.5.1; click
+> - **2 GB computers, school labs:** [download the 1.5.2 Xfce edition](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
+>   (2.7 GB) · [mirror](https://sourceforge.net/projects/caramos/files/v1.5.2/CaramOS-1.5.2-xfce-amd64.iso/download) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.2/SHA256SUMS-xfce)
+> - **Already on CaramOS 1.0.2 or later:** no reinstall needed. The Update Center offers 1.5.2; click
 >   **Update**. See [Upgrading from an earlier release](#upgrading-from-an-earlier-release).
 
 ## Highlights
@@ -80,7 +80,8 @@ installs.
 Every app lists its strengths and weaknesses, its size and where it comes from: Flathub, the Ubuntu
 archive or a downloaded package. Installed apps have a **Remove** button on their card. Open the
 App Center any time from the Desktop or the menu; **See more** leads to
-[apps.vietnamlinuxfamily.net](https://apps.vietnamlinuxfamily.net) for everything else.
+[apps.vietnamlinuxfamily.net](https://apps.vietnamlinuxfamily.net) for everything else, where **Install on
+CaramOS** opens the App Center on that app, with no command to type.
 
 ### Driver Check — know what your computer is missing
 
@@ -116,9 +117,9 @@ reinstalling or losing data.
 - CaramOS checks once a day. When there is a new release, the Update Center shows the current and the
   new version and every change that will be applied.
 - From 1.5.0, new releases install by themselves after the daily check and say so when done (**Automatic
-  updates**, on by default). A release that changes the taskbar or the desktop waits until nobody uses the
-  computer, or the Update Center opens at the next login for you to click **Update**. To click yourself as
-  before, turn Automatic updates off in the Update Center.
+  updates**, on by default). From 1.5.2 they install while you use the computer too: what changes on your
+  taskbar or desktop waits for your next login, so nothing moves on the screen while you work. To click yourself
+  as before, turn Automatic updates off in the Update Center.
 - What you changed yourself stays as it is: a wallpaper you picked, the icon colour you use, an applet
   you removed from the taskbar.
 
@@ -235,9 +236,12 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
   textbooks, with Word, Excel and PowerPoint templates. The left pane is a folder tree like Windows Explorer.
 - **Computer Lab:** installs and sets up Veyon or Epoptes, so the teacher can watch and control the students'
   computers. The teacher's computer shows a 6-digit code; a student's computer finds it on the school network,
-  and entering the code is all it takes.
+  and entering the code is all it takes. Students' computers do not lock or sleep during the lesson, Veyon starts
+  again when it stops, and Lock and the full-screen Demo show on the students' computers.
 - **App Center** has an Education category: GCompris, Tux Paint, Klavaro, KTurtle, Thonny, Stellarium,
-  TurboWarp (Scratch 3) and GeoGebra 6.
+  TurboWarp (Scratch 3) and GeoGebra 6; a Computer skills for children step (Tux Typing, KTouch, KolourPaint and
+  ad-free mouse practice websites) and a Programming, maths, science and lessons step (eXeLearning, LeoCAD,
+  Polypad).
 
 ## The CaramOS experience
 
@@ -263,11 +267,11 @@ The CaramOS taskbar is split into three rounded, floating, evenly spaced islands
 
 ### 1. Download the ISO
 
-- [CaramOS-1.5.1-cinnamon-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
-  (2.9 GB; [SourceForge mirror](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)). The ISO is not on GitHub because GitHub limits the size of each release file.
-- The Xfce edition for 2 GB computers and school labs: [CaramOS-1.5.1-xfce-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
-  (2.7 GB; [mirror](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)), checked with [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) to check
+- [CaramOS-1.5.2-cinnamon-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
+  (2.9 GB; [SourceForge mirror](https://sourceforge.net/projects/caramos/files/v1.5.2/CaramOS-1.5.2-cinnamon-amd64.iso/download)). The ISO is not on GitHub because GitHub limits the size of each release file.
+- The Xfce edition for 2 GB computers and school labs: [CaramOS-1.5.2-xfce-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
+  (2.7 GB; [mirror](https://sourceforge.net/projects/caramos/files/v1.5.2/CaramOS-1.5.2-xfce-amd64.iso/download)), checked with [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.2/SHA256SUMS-xfce).
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.2/SHA256SUMS) to check
   the download:
 
 ```bash
@@ -280,7 +284,7 @@ Use [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net) o
 Linux you can use `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.5.1-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.5.2-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Try it and install
@@ -295,7 +299,7 @@ sudo dd if=CaramOS-1.5.1-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress of
 
 Machines with CaramOS installed do not need the ISO again.
 
-- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.5.1; click **Update
+- **From CaramOS 1.0.2 or later:** the Update Center checks every day and offers 1.5.2; click **Update
   now**. To upgrade right away, open a terminal and run:
 
   ```bash
@@ -378,12 +382,12 @@ own repository, [VN-Linux-Family/caramos-landing](https://github.com/VN-Linux-Fa
 The product version lives in the source tree, in [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.5.1"
+CARAMOS_VERSION="1.5.2"
 ```
 
 `make release VERSION=x.y.z` stamps it into `scripts/config.sh`, the release metadata and the
-`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.5.1` is tag
-`v1.5.1`, or GitHub Actions stops before building.
+`caramos-ota` `debian/changelog` at once. The release tag must match it: version `1.5.2` is tag
+`v1.5.2`, or GitHub Actions stops before building.
 
 ### OTA updates
 
@@ -459,11 +463,11 @@ writes `SHA256SUMS`, uploads the ISO to SourceForge and creates the GitHub Relea
 link.
 
 ```bash
-make -C packages/caramos-ota prepare-release VERSION=1.5.1
-git commit -am "[build] Release 1.5.1"
+make -C packages/caramos-ota prepare-release VERSION=1.5.2
+git commit -am "[build] Release 1.5.2"
 git push origin main
-git tag -a v1.5.1 -m "CaramOS 1.5.1"
-git push origin v1.5.1
+git tag -a v1.5.2 -m "CaramOS 1.5.2"
+git push origin v1.5.2
 make -C packages/caramos-ota source
 make -C packages/caramos-ota gpg-unlock upload   # caramos-ota to the PPA, with the release GPG key
 ```

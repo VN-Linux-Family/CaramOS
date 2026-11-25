@@ -1,0 +1,23 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Veyon (khoảng 2 MB)",
+  "size_en": "Veyon (about 2 MB)",
+  "title": "Phòng máy: Khóa màn hình và chiếu toàn màn hình hiện đúng",
+  "summary": "Bấm Khóa (Lock) trong Veyon Master thì màn hình máy học sinh được phủ kín, và chiếu màn hình giáo viên ở chế độ toàn màn hình hiện đúng trên máy học sinh.",
+  "title_en": "Computer Lab: Lock and full-screen Demo show",
+  "summary_en": "Lock in Veyon Master covers the students' screens, and showing the teacher's screen in full screen mode shows on the students' computers.",
+  "release_notes_vi": [
+    "Trước đây, bấm Khóa (Lock) trong Veyon Master thì bàn phím máy học sinh bị khóa nhưng màn hình vẫn như cũ và học sinh vẫn dùng chuột được. Chiếu màn hình giáo viên ở chế độ toàn màn hình thì máy học sinh không hiện gì; chỉ chế độ cửa sổ là chạy.",
+    "Giờ Veyon được cập nhật lên bản CaramOS đã sửa: khóa thì màn hình máy học sinh được phủ kín, chiếu toàn màn hình thì hiện màn hình giáo viên. Veyon cũng tự chạy lại khi bị tắt.",
+    "Chỉ máy đã cài Veyon bằng Phòng máy mới cập nhật. Cập nhật cả máy giáo viên và máy học sinh."
+  ],
+  "release_notes_en": [
+    "Before, Lock in Veyon Master locked the students' keyboards, but their screens stayed as they were and the mouse still worked. Showing the teacher's screen in full screen mode showed nothing on the students' computers; only the window mode worked.",
+    "Now Veyon is updated to CaramOS's fixed version: Lock covers the students' screens, and the full-screen demo shows the teacher's screen. Veyon also starts again by itself when it stops.",
+    "Only computers with Veyon from Computer Lab update. Update the teacher's and the students' computers."
+  ]
+}

@@ -31,7 +31,10 @@ Open desktops
     manifest (registry.NOBODY_LOGGED_IN; the default, and every legacy migration): an automatic update that includes
     it waits until no one has a desktop open. The others say "anytime": what they change applies from the next login,
     or cannot be seen; in an automatic update they leave out the reloads that would show (context.unattended: the
-    Start Menu is not reloaded, Fcitx is not started), so nothing moves on the screen while someone works.
+    Start Menu is not reloaded, Fcitx is not started), so nothing moves on the screen while someone works. A
+    migration whose visible part concerns each user's own settings changes the system at once and leaves that part
+    for the next login of each user who is logged in (caramos_ota_update.deferred), and says "anytime" too: Show
+    desktop and the Trash on the desktop (both from 1.5.1) do.
 
 Telling the users
     The result goes to RESULT_FILE, which everyone can read. Each user's caramos-ota-auto-update-notify.path (a

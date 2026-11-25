@@ -1,0 +1,34 @@
+Description: Show the lock screen and the full-screen demo after raising them on Linux
+ LockWidget showed itself full screen and then called raiseWindow(this, true), which sets
+ Qt::WindowStaysOnTopHint on the shown window. Changing the window flags of a shown window makes Qt 5 hide it,
+ so the lock screen (Lock) and the full-screen demo (Demo > share in full screen mode, a LockWidget too) never
+ appeared on the students' computers, while the keyboard was disabled all the same. Show the widget normally
+ first and full screen after raising it, as Veyon 4.8.0 does.
+Origin: upstream, https://github.com/veyon/veyon/commit/554bd2da1998258be109beedca2b25daf33f24b5
+Bug: https://github.com/veyon/veyon/issues/824
+Forwarded: not-needed
+Last-Update: 2026-11-25
+
+--- a/core/src/LockWidget.cpp
++++ b/core/src/LockWidget.cpp
+@@ -58,12 +58,20 @@
+ 
+ 	setWindowTitle( {} );
+ 
++#ifdef Q_OS_LINUX
++	show();
++#endif
+ 	move(leftMostScreen->geometry().topLeft());
++#ifndef Q_OS_LINUX
+ 	showFullScreen();
++#endif
+ 	windowHandle()->setScreen(leftMostScreen);
+ 	setFixedSize(leftMostScreen->virtualSize());
+ 
+ 	VeyonCore::platform().coreFunctions().raiseWindow(this, true);
++#ifdef Q_OS_LINUX
++	showFullScreen();
++#endif
+ 
+ 	setFocusPolicy( Qt::StrongFocus );
+ 	setFocus();

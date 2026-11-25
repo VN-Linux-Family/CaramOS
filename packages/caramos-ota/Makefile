@@ -90,11 +90,13 @@ ship:
 sync:
 	./tools/vm-dev.sh sync
 
+# The VM side runs from script files (tools/vm-guest/e2e.sh), never from the ssh command line: see VM_DEV_WORKFLOW.md.
 test test-cli:
-	./tools/vm-dev.sh ssh "cd /tmp/caramos-ota-e2e && sudo -n env $(VM_E2E_ENV) ./vm-run-ota-e2e.sh install-and-cli"
+	./tools/vm-dev.sh e2e install-and-cli $(VM_E2E_ENV)
 
 test-notifier:
-	./tools/vm-dev.sh ssh "cd /tmp/caramos-ota-e2e && sudo -n ./vm-run-ota-e2e.sh install-shipped && sudo -n env $(VM_E2E_ENV) ./vm-run-ota-e2e.sh prepare-check"
+	./tools/vm-dev.sh e2e install-shipped
+	./tools/vm-dev.sh e2e prepare-check $(VM_E2E_ENV)
 	./tools/vm-dev.sh gui-bg caramos-ota-notifier
 
 vm-create:

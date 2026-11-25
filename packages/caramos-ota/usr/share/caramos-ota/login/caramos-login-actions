@@ -1,0 +1,10 @@
+#!/usr/bin/python3 -I
+"""What an automatic update left for this user's next login (caramos_ota_update/deferred.py), run by
+/etc/X11/Xsession.d/96caramos-login-actions as the user, before the desktop starts. Takes no arguments."""
+
+import sys
+
+from caramos_ota_update.deferred import main
+
+if __name__ == "__main__":
+    sys.exit(main())

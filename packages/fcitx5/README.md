@@ -54,3 +54,5 @@ Bản cập nhật của Ubuntu (`5.1.7-1ubuntu0.x`) xếp trên `5.1.7-1build3+
 Ubuntu và khay quay lại lỗi cũ. Khi đó dựng lại gói này trên bản của Ubuntu: sửa `UBUNTU_VERSION` và `VERSION` trong
 `Makefile`, kiểm tra bản vá còn áp được, `make source upload`, rồi đổi `FIXED_VERSION` của migration trong một migration
 mới.
+
+Mỗi thứ Hai, workflow `.github/workflows/fcitx5-ubuntu.yml` chạy `tools/ubuntu-check.py`: Ubuntu có fcitx5 mới hơn `UBUNTU_VERSION` thì nó mở issue "fcitx5 của Ubuntu có bản mới".

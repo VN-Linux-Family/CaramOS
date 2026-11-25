@@ -1,0 +1,11 @@
+[Unit]
+Description=Start Veyon Server again when it is gone (CaramOS Phòng máy)
+Documentation=file:///usr/share/caramos-ota/lab/caramos_lab/watchdog.py
+After=veyon.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/share/caramos-ota/lab/caramos-lab-veyon-check
+# It runs every 30 seconds: the journal keeps only what matters, a restart of veyon.service (logged at notice), not
+# systemd's "Starting/Finished" lines about each run.
+LogLevelMax=notice

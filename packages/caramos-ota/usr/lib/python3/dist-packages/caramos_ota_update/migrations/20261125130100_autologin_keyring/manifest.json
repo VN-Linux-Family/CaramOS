@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "important",
+  "size": "Chùm chìa khoá (dưới 1 MB)",
+  "size_en": "Keyring (under 1 MB)",
+  "title": "Zalo, Lark và trình duyệt giữ đăng nhập trên máy tự đăng nhập",
+  "summary": "Máy tự đăng nhập, không gõ mật khẩu, giờ có chùm chìa khoá mở sẵn: ứng dụng không còn hỏi mật khẩu chùm chìa khoá, cũng không tự đăng xuất.",
+  "title_en": "Zalo, Lark and browsers stay signed in on computers that log in by themselves",
+  "summary_en": "A computer that logs in by itself, without a password, now has a keyring that is open from the start: apps no longer ask for the keyring's password, nor sign you out.",
+  "release_notes_vi": [
+    "Zalo, Lark, Chrome và nhiều ứng dụng khác cất khoá đăng nhập của mình vào chùm chìa khoá của máy. Trên máy tự đăng nhập, chùm chìa khoá ấy không mở được: máy hỏi “Hãy chọn mật khẩu cho chùm chìa khóa mới” hay “Authentication required”, và bấm Thôi là ứng dụng mất đăng nhập.",
+    "Giờ máy tự đăng nhập có một chùm chìa khoá không mật khẩu, mở sẵn mỗi lần đăng nhập. Máy vốn đã mở phiên mà không cần mật khẩu, nên chùm chìa khoá này cũng không đặt mật khẩu và không được mã hoá trên ổ đĩa.",
+    "Zalo, Lark có thể hỏi đăng nhập một lần cuối, sau đó giữ đăng nhập.",
+    "Chùm chìa khoá cũ có mật khẩu (nếu đã lỡ đặt) được cất sang thư mục ~/.local/share/keyrings/locked-by-password, để ứng dụng thôi hỏi mật khẩu của nó mỗi lần đăng nhập. Không có gì bị xoá: cần lấy lại mật khẩu đã lưu trong đó thì xem file README.txt trong thư mục ấy. Ai đăng nhập bằng mật khẩu thì không có gì thay đổi.",
+    "Có hiệu lực từ lần đăng nhập tự động sau."
+  ],
+  "release_notes_en": [
+    "Zalo, Lark, Chrome and many other apps keep their sign-in key in the computer's keyring. On a computer that logs in by itself, that keyring could not open: the computer asked to “Choose password for new keyring” or said “Authentication required”, and Cancel left the app signed out.",
+    "Now a computer that logs in by itself has a keyring without a password, open at every login. The computer already opens the session without a password, so this keyring has none either and is not encrypted on disk.",
+    "Zalo and Lark may ask you to sign in one last time; after that they stay signed in.",
+    "An older keyring with a password (if one was set by mistake) is moved to ~/.local/share/keyrings/locked-by-password, so apps stop asking for its password at every login. Nothing is deleted: to get back a password saved in it, see README.txt in that folder. Nothing changes for anyone who logs in with a password.",
+    "Works from the next automatic login."
+  ]
+}

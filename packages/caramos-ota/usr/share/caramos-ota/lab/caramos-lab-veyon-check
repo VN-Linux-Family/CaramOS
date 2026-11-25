@@ -1,0 +1,14 @@
+#!/usr/bin/python3 -I
+"""Start Veyon Server again when it is gone on a Phòng máy computer; run by caramos-lab-veyon-check.timer.
+
+See caramos_lab/watchdog.py. Only the standard library and the small lab modules are loaded: it runs every 30 s.
+"""
+
+import sys
+
+sys.path.insert(0, "/usr/share/caramos-ota/lab")
+
+from caramos_lab.watchdog import main  # noqa: E402
+
+if __name__ == "__main__":
+    sys.exit(main())

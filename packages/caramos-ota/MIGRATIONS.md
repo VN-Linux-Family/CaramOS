@@ -83,6 +83,23 @@ Mỗi migration phải nói nó có được chạy lúc đó không, bằng tr�
   migration này sẽ chờ đến lúc không ai mở phiên đồ họa; trong lúc chờ, Trung tâm cập nhật vẫn hiện bản cập nhật ở
   lần đăng nhập sau như khi tắt Tự động cập nhật.
 
+Một migration đổi thiết lập riêng của từng người (panel, biểu tượng trên màn hình nền) vẫn là `"anytime"` được nếu nó
+để phần nhìn thấy lại cho lần đăng nhập sau của người đang đăng nhập (`caramos_ota_update/deferred.py`):
+
+- Với mỗi người dùng, gọi `deferred.wait_for_login(context, MIGRATION, STEP, username, uid)`. Khi bản cập nhật tự
+  chạy và người đó đang đăng nhập, hàm này ghi bước `STEP` vào `/var/lib/caramos-ota/login-actions/<uid>.json` và
+  trả `True`: migration bỏ qua người đó. Còn lại (cập nhật từ Trung tâm cập nhật, người chưa đăng nhập) nó trả
+  `False` và migration đổi luôn như trước.
+- `LOGIN_ACTIONS = {STEP: hàm}` trong migration: ở lần đăng nhập sau, trước khi màn hình nền khởi động,
+  `/etc/X11/Xsession.d/96caramos-login-actions` gọi `hàm(session)` dưới quyền người đó (`session.gsettings(...)`,
+  `session.run([...])`), mỗi bước một lần. Hàm đọc lại thiết lập lúc đó, nên thay đổi người dùng làm trong lúc chờ
+  vẫn được giữ. Hàng đợi chỉ chứa tên migration và tên bước, không chứa lệnh.
+- `dconf update` (dựng lại `/etc/dconf/db/local`, Cinnamon 6.6 chết khi đang chạy) lúc có người đăng nhập thì gọi
+  `deferred.dconf_update_at_next_start(context)`: `caramos-ota-dconf-update.service` chạy nó ở lần khởi động sau,
+  trước khi ai đăng nhập được.
+
+Ví dụ: `20261124100000_show_desktop_button`, `20261124140000_show_trash_on_desktop`.
+
 Thiếu trường này thì coi như `"nobody-logged-in"`, và mọi migration legacy cũng vậy. Test
 `tests/test_auto_update.py` bắt mọi timestamp migration ghi rõ giá trị, và giữ danh sách các migration
 `nobody-logged-in`.

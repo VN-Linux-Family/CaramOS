@@ -7,16 +7,17 @@ Cinnamon (nemo-desktop, org.nemo.desktop trash-icon-visible):
   It now sets true, for accounts made later.
 - Every account where it is still false gets true. That false came from the first-login script, not from the person,
   so it changes once for everyone. Someone who does not want the Trash unticks Sọt rác in Cài đặt Hệ thống > Màn hình
-  chính. A logged-in desktop shows it at once.
+  chính. A logged-in desktop shows it at once; in an automatic update, a logged-in account gets it at its next login
+  instead (deferred.wait_for_login, LOGIN_ACTIONS), before the desktop starts.
 
 Xfce (xfdesktop, xfce4-desktop /desktop-icons/file-icons/show-trash):
 - CaramOS's default (/etc/xdg/caramos-xfce/.../xfce4-desktop.xml, the ISO's file) says true. Users' own files have only
   a blank placeholder (type="empty") there, so it shows from their next login.
 - A logged-in user without a value of their own gets it at once (xfconf-query): xfconfd keeps the old default until
-  the next login.
+  the next login. In an automatic update they get the new default at their next login, like the others.
 - A value of their own (Desktop Settings > Icons > Trash) stays.
 
-It changes what an open desktop shows, so an automatic update waits until nobody is logged in.
+An automatic update runs it while people work ("unattended": "anytime"): nothing changes on an open desktop.
 """
 
 from __future__ import annotations
@@ -26,10 +27,13 @@ import re
 import xml.etree.ElementTree as ElementTree
 from pathlib import Path
 
+from caramos_ota_update import deferred
 from caramos_ota_update.context import MigrationContext
 from caramos_ota_update.desktop import CINNAMON, XFCE, current_desktop
 
 DESCRIPTION = "The Trash on the desktop on both editions"
+MIGRATION = Path(__file__).resolve().parent.name
+LOGIN_STEP = "trash-icon"
 
 help_applet = importlib.import_module("caramos_ota_update.migrations.20261012180000_add_help_applet.migration")
 clipboard = importlib.import_module("caramos_ota_update.migrations.20261120100000_clipboard_history.migration")
@@ -117,20 +121,36 @@ def _update_file(context: MigrationContext, path: Path, updated) -> bool:
 
 # Cinnamon -------------------------------------------------------------------------------------------------------
 
-def cinnamon_user(context: MigrationContext, username: str, uid: int, home: Path) -> None:
-    env = help_applet._user_environment(username, uid, home)
-    current = help_applet._gsettings(username, env, ["get", SCHEMA, KEY])
+def show_trash(gsettings, log, username: str) -> None:
+    """trash-icon-visible true where it is false; gsettings(args) runs gsettings as the user."""
+
+    current = gsettings(["get", SCHEMA, KEY])
     if current.returncode != 0:
-        context.log(f"warning: could not read the desktop icons of {username}: {current.stderr.strip()[:200]}")
+        log(f"warning: could not read the desktop icons of {username}: {current.stderr.strip()[:200]}")
         return
     if current.stdout.strip() == "true":
-        context.log(f"the Trash is on the desktop of {username} already")
+        log(f"the Trash is on the desktop of {username} already")
         return
-    result = help_applet._gsettings(username, env, ["set", SCHEMA, KEY, "true"])
+    result = gsettings(["set", SCHEMA, KEY, "true"])
     if result.returncode == 0:
-        context.log(f"the Trash is on the desktop of {username}")
+        log(f"the Trash is on the desktop of {username}")
     else:
-        context.log(f"warning: could not show the Trash for {username}: {result.stderr.strip()[:200]}")
+        log(f"warning: could not show the Trash for {username}: {result.stderr.strip()[:200]}")
+
+
+def cinnamon_user(context: MigrationContext, username: str, uid: int, home: Path) -> None:
+    env = help_applet._user_environment(username, uid, home)
+    show_trash(lambda args: help_applet._gsettings(username, env, args), context.log, username)
+
+
+def trash_at_login(session: deferred.Session) -> None:
+    """At the next login of a user who was logged in during an automatic update, before nemo-desktop starts."""
+
+    if session.desktop == CINNAMON:
+        show_trash(lambda args: session.gsettings(*args), session.log, session.username)
+
+
+LOGIN_ACTIONS = {LOGIN_STEP: trash_at_login}
 
 
 def run_cinnamon(context: MigrationContext) -> None:
@@ -143,6 +163,8 @@ def run_cinnamon(context: MigrationContext) -> None:
         context.log("show the Trash on the desktop of every Cinnamon user")
         return
     for username, uid, home in help_applet._desktop_users():
+        if deferred.wait_for_login(context, MIGRATION, LOGIN_STEP, username, uid):
+            continue
         cinnamon_user(context, username, uid, home)
 
 
@@ -160,7 +182,8 @@ def xfce_user(context: MigrationContext, username: str, uid: int, home: Path,
     if own is not None:
         context.log(f"{username} chose {'to show' if own else 'not to show'} the Trash; left as it is")
         return
-    if not clipboard._logged_in(uid, runtime_root):
+    if not clipboard._logged_in(uid, runtime_root) or context.unattended:
+        # An automatic update leaves the open desktop as it is: the new default shows from the next login.
         context.log(f"the Trash shows on the desktop of {username} from the next login")
         return
     runtime = runtime_root / str(uid)

@@ -2,9 +2,15 @@
 
     caramos-lab              open the window
     caramos-lab --status     print this computer's lab state as JSON
+    caramos-lab --session    at login (autostart): a student's account stops locking and sleeping (awake.py)
 
 Root work goes through pkexec to caramos-lab-helper (helper.py), which reports JSON lines; the pairing over the
 LAN (pairing.py) runs as the user, in threads, with results handed back to the main loop.
+
+The look follows DESIGN.md in the CaramOS repository, like Chuyển dữ liệu từ Windows: libadwaita's navigation pages,
+boxed lists and status pages, the forest green accent and two font weights (caramos_ota.adw_style); the main action
+of a page is the right-most button of the bar at the bottom; round "pill" buttons only on status pages (done, error,
+nothing found); details as sentences, not joined with dots.
 """
 
 from __future__ import annotations
@@ -19,18 +25,28 @@ import tempfile
 import threading
 from pathlib import Path
 
-from caramos_ota.i18n import _
+from caramos_ota.i18n import _, ngettext
 
 from . import EPOPTES, STUDENT, TEACHER, VEYON
-from . import pairing, system
+from . import awake, pairing, system
 
 APP_ID = "net.vietnamlinuxfamily.CaramOSLab"
 HELPER = "/usr/share/caramos-ota/lab/caramos-lab-helper"
-DEFAULT_ROOM = "Phòng máy 1"
+LOGO = Path("/usr/share/pixmaps/caramos-logo.png")
+# The six digits of the pairing code: the one thing on its page to read from across the room (DESIGN.md's two weights).
+CSS = ".caramos-lab-code { font-size: 3.2em; font-weight: 600; letter-spacing: 0.12em; font-feature-settings: 'tnum'; }"
 
 
 def backend_name(backend: str) -> str:
     return "Veyon" if backend == VEYON else "Epoptes"
+
+
+def default_room() -> str:
+    return _("Computer lab 1")
+
+
+def console_name(backend: str) -> str:
+    return "Veyon Master" if backend == VEYON else "Epoptes"
 
 
 def open_console(backend: str) -> None:
@@ -44,6 +60,21 @@ def open_console(backend: str) -> None:
         subprocess.Popen(["epoptes"], start_new_session=True)
 
 
+def teacher_line(teacher: pairing.Teacher) -> str:
+    """A teacher's computer found on the network, as a sentence."""
+
+    return _("Teacher's computer {name}, at {address}, with {software}.").format(
+        name=teacher.name, address=teacher.host, software=backend_name(teacher.backend))
+
+
+def student_line(student: pairing.Student, added: bool) -> str:
+    """A paired student's computer on the teacher's pairing page, as a sentence."""
+
+    if added:
+        return _("At {address}, in the room.").format(address=student.ip)
+    return _("At {address}, being added to the room…").format(address=student.ip)
+
+
 def build_window(app):
     import gi
 
@@ -51,41 +82,84 @@ def build_window(app):
     gi.require_version("Adw", "1")
     from gi.repository import Adw, Gio, GLib, Gtk, Pango
 
-    def text(content: str, *classes: str, xalign: float = 0.0, selectable: bool = False) -> Gtk.Label:
-        widget = Gtk.Label(label=content, xalign=xalign, wrap=True, selectable=selectable)
+    def label(content: str, *classes: str, xalign: float = 0.0, visible: bool = True) -> Gtk.Label:
+        widget = Gtk.Label(label=content, xalign=xalign, wrap=True, visible=visible)
         widget.set_wrap_mode(Pango.WrapMode.WORD_CHAR)
         for name in classes:
             widget.add_css_class(name)
         return widget
 
-    def page_box() -> Gtk.Box:
-        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18, margin_top=24, margin_bottom=24,
-                      margin_start=24, margin_end=24)
-        return box
+    def content_box() -> Gtk.Box:
+        return Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=8, margin_top=24, margin_bottom=24,
+                       margin_start=24, margin_end=24)
+
+    def section(box: Gtk.Box, title: str) -> None:
+        heading = label(title, "section-title")
+        heading.set_margin_top(16)
+        box.append(heading)
+
+    def intro(box: Gtk.Box, sentence: str) -> None:
+        """The first page's introduction: the logo, the app's name and one sentence (DESIGN.md)."""
+
+        row = Gtk.Box(spacing=16)
+        if LOGO.exists():
+            logo = Gtk.Image.new_from_file(str(LOGO))
+            logo.set_pixel_size(48)
+            logo.set_valign(Gtk.Align.START)
+            row.append(logo)
+        texts = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=6, hexpand=True)
+        texts.append(label(_("Computer Lab"), "page-title"))
+        texts.append(label(sentence))
+        row.append(texts)
+        box.append(row)
 
     def scrolled(child: Gtk.Widget) -> Gtk.ScrolledWindow:
-        clamp = Adw.Clamp(maximum_size=640, child=child)
-        return Gtk.ScrolledWindow(child=clamp, vexpand=True, hscrollbar_policy=Gtk.PolicyType.NEVER)
+        return Gtk.ScrolledWindow(child=Adw.Clamp(maximum_size=640, child=child), vexpand=True,
+                                  hscrollbar_policy=Gtk.PolicyType.NEVER)
 
-    def pill(label: str, suggested: bool = False) -> Gtk.Button:
-        button = Gtk.Button(label=label, halign=Gtk.Align.CENTER)
-        button.add_css_class("pill")
-        if suggested:
-            button.add_css_class("suggested-action")
-        return button
+    def chevron_row(title: str, subtitle: str, handler) -> Adw.ActionRow:
+        row = Adw.ActionRow(title=GLib.markup_escape_text(title), subtitle=GLib.markup_escape_text(subtitle),
+                            activatable=True)
+        row.set_subtitle_lines(3)
+        row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
+        row.connect("activated", lambda *_a: handler())
+        return row
+
+    def button(text: str, handler, primary: bool = False) -> Gtk.Button:
+        widget = Gtk.Button(label=text, valign=Gtk.Align.CENTER)
+        if primary:
+            widget.add_css_class("suggested-action")
+        widget.connect("clicked", lambda *_a: handler())
+        return widget
+
+    def status_page(icon: str | None, title: str, description: str, buttons: list[Gtk.Button],
+                    child: Gtk.Widget | None = None) -> Adw.StatusPage:
+        """Done, error, nothing found, waiting: centred, with round buttons (DESIGN.md)."""
+
+        # A status page's title is plain text, its description Pango markup.
+        page = Adw.StatusPage(title=title, description=GLib.markup_escape_text(description))
+        if icon:
+            page.set_icon_name(icon)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
+        if child is not None:
+            box.append(child)
+        if buttons:
+            row = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER)
+            for widget in buttons:
+                widget.add_css_class("pill")
+                row.append(widget)
+            box.append(row)
+        page.set_child(box)
+        return page
 
     class Window(Adw.ApplicationWindow):
         def __init__(self) -> None:
-            super().__init__(application=app, title=_("Computer Lab"), default_width=620, default_height=640)
+            super().__init__(application=app, title=_("Computer Lab"), default_width=640, default_height=640)
+            self.set_size_request(360, 480)
             self.toasts = Adw.ToastOverlay()
-            self.stack = Gtk.Stack(transition_type=Gtk.StackTransitionType.SLIDE_LEFT_RIGHT)
-            self.back = Gtk.Button(icon_name="go-previous-symbolic", visible=False, tooltip_text=_("Back"))
-            self.back.connect("clicked", lambda *_a: self.show_home())
-            header = Adw.HeaderBar()
-            header.pack_start(self.back)
-            view = Adw.ToolbarView(content=self.stack)
-            view.add_top_bar(header)
-            self.toasts.set_child(view)
+            self.nav = Adw.NavigationView()
+            self.nav.connect("popped", self.on_popped)
+            self.toasts.set_child(self.nav)
             self.set_content(self.toasts)
             self.server: pairing.TeacherServer | None = None
             self.adder: Gio.Subprocess | None = None
@@ -94,101 +168,190 @@ def build_window(app):
 
         # ---- navigation -------------------------------------------------------------------------------------
 
-        def show(self, name: str, widget: Gtk.Widget, back: bool = True) -> None:
-            old = self.stack.get_child_by_name(name)
-            if old is not None:
-                self.stack.remove(old)
-            self.stack.add_named(widget, name)
-            self.stack.set_visible_child_name(name)
-            self.back.set_visible(back)
+        def page(self, title: str, content: Gtk.Widget, tag: str, bar: Gtk.Widget | None = None,
+                 can_pop: bool = True) -> Adw.NavigationPage:
+            view = Adw.ToolbarView(content=content)
+            view.add_top_bar(Adw.HeaderBar())
+            if bar is not None:
+                view.add_bottom_bar(bar)
+            page = Adw.NavigationPage(child=view, title=title, tag=tag)
+            page.set_can_pop(can_pop)
+            return page
+
+        def push(self, page: Adw.NavigationPage) -> None:
+            """Show a page; one with the same tag in the stack (a search to search again, a wait that has an answer)
+            goes, with the pages above it, without an animation."""
+
+            stack = list(self.nav.get_navigation_stack())
+            tags = [item.get_tag() for item in stack]
+            if page.get_tag() in tags:
+                self.nav.replace(stack[:tags.index(page.get_tag())] + [page])
+            else:
+                self.nav.push(page)
+
+        def on_popped(self, _nav, page: Adw.NavigationPage) -> None:
+            if page.get_tag() == "pairing":
+                self.stop_pairing()
+            # Its tag is free at once, while it slides away: going back and on again quickly shows the new page.
+            page.set_tag(None)
+
+        def bar(self, hint: Gtk.Label, buttons: list[Gtk.Button]) -> Gtk.Widget:
+            """The bar at the bottom: a hint at the left, the buttons at the right, the main one right-most."""
+
+            box = Gtk.Box(spacing=12)
+            box.add_css_class("action-bar")
+            hint.set_hexpand(True)
+            hint.set_valign(Gtk.Align.CENTER)
+            box.append(hint)
+            for widget in buttons:
+                box.append(widget)
+            outer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+            outer.append(Gtk.Separator())
+            outer.append(box)
+            return outer
 
         def toast(self, message: str) -> None:
-            self.toasts.add_toast(Adw.Toast(title=message, timeout=5))
+            self.toasts.add_toast(Adw.Toast(title=GLib.markup_escape_text(message), timeout=6))
 
         def show_home(self) -> None:
             self.stop_pairing()
+            self.nav.replace([self.home_page()])
+
+        def home_page(self) -> Adw.NavigationPage:
             state = system.read_state()
-            box = page_box()
-            box.append(text(_("Computer Lab"), "title-1"))
             role = state.get("role")
             if role == TEACHER:
-                self.home_teacher(box, state)
-            elif role == STUDENT:
-                self.home_student(box, state)
-            else:
-                self.home_new(box)
-            self.show("home", scrolled(box), back=False)
+                return self.home_teacher(state)
+            if role == STUDENT:
+                return self.home_student(state)
+            return self.home_new()
 
-        def home_new(self, box: Gtk.Box) -> None:
-            box.append(text(_("Classroom management in a few clicks: the teacher's computer sees every student's "
-                              "screen, shows its own screen to the class, locks the screens, sends files and turns "
-                              "the computers off.")))
+        # ---- the first page ---------------------------------------------------------------------------------
+
+        def home_new(self) -> Adw.NavigationPage:
+            box = content_box()
+            intro(box, _("The teacher's computer sees every student's screen, shows its own screen to the class, "
+                         "locks the screens, sends files and turns the computers off."))
+            section(box, _("Which computer is this?"))
             group = Adw.PreferencesGroup()
-            for title, subtitle, handler in (
-                    (_("Teacher's computer"), _("Installs Veyon and shows a code for pairing the students' computers."),
-                     self.teacher_setup),
-                    (_("Student's computer"), _("Finds the teacher's computer on the network and pairs with its code."),
-                     self.student_find)):
-                row = Adw.ActionRow(title=title, subtitle=subtitle, activatable=True)
-                row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
-                row.connect("activated", lambda *_a, h=handler: h())
-                group.add(row)
+            group.add(chevron_row(_("Teacher's computer"),
+                                  _("Installs Veyon and shows a code for pairing the students' computers."),
+                                  self.teacher_setup))
+            group.add(chevron_row(_("Student's computer"),
+                                  _("Finds the teacher's computer on the network and pairs with its code."),
+                                  self.student_find))
             box.append(group)
-            box.append(text(_("All the computers must be on the same network: the school's cable or Wi-Fi."), "dim-label"))
+            hint = label(_("All the computers must be on the same network: the school's cable or Wi-Fi."),
+                         "dim-label")
+            hint.set_margin_top(8)
+            box.append(hint)
+            return self.page(_("Computer Lab"), scrolled(box), "home")
 
-        def home_teacher(self, box: Gtk.Box, state: dict) -> None:
+        def home_teacher(self, state: dict) -> Adw.NavigationPage:
             backend = state.get("backend", VEYON)
-            box.append(text(_("This is the teacher's computer of “{room}” ({backend}).").format(
-                room=state.get("room", ""), backend=backend_name(backend))))
-            pair = pill(_("Pair students' computers"), suggested=True)
-            pair.connect("clicked", lambda *_a: self.start_pairing(state))
-            box.append(pair)
-            console = pill(_("Open Veyon Master") if backend == VEYON else _("Open Epoptes"))
-            console.connect("clicked", lambda *_a: open_console(backend))
-            box.append(console)
-            self.leave_button(box, _("Stop being the teacher's computer"))
+            software = backend_name(backend)
+            box = content_box()
+            intro(box, _("This is the teacher's computer of “{room}”, with {software}.").format(
+                room=state.get("room", ""), software=software))
+            section(box, _("Students' computers"))
+            group = Adw.PreferencesGroup()
+            group.add(chevron_row(_("Pair students' computers"),
+                                  _("Shows the code that adds a student's computer to the room."),
+                                  lambda: self.start_pairing(state)))
+            box.append(group)
+            section(box, _("This computer"))
+            leave = Adw.PreferencesGroup()
+            leave.add(chevron_row(_("Stop being the teacher's computer"),
+                                  _("{software} stops on this computer. You can set it up again later.").format(
+                                      software=software),
+                                  lambda: self.confirm_leave(state)))
+            box.append(leave)
+            hint = label(_("{console} shows the students' screens, locks them and shows yours.").format(
+                console=console_name(backend)), "dim-label")
+            console = button(_("Open Veyon Master") if backend == VEYON else _("Open Epoptes"),
+                             lambda: open_console(backend), primary=True)
+            return self.page(_("Computer Lab"), scrolled(box), "home", bar=self.bar(hint, [console]))
 
-        def home_student(self, box: Gtk.Box, state: dict) -> None:
+        def home_student(self, state: dict) -> Adw.NavigationPage:
             teacher = state.get("teacher") or {}
-            box.append(text(_("This is a student's computer of “{room}”, paired with the teacher's computer {name} "
-                              "({host}).").format(room=state.get("room", ""), name=teacher.get("name", ""),
-                                                  host=teacher.get("host", ""))))
-            again = pill(_("Pair again"))
-            again.connect("clicked", lambda *_a: self.student_find())
-            box.append(again)
-            self.leave_button(box, _("Leave the computer lab"))
+            software = backend_name(state.get("backend", VEYON))
+            box = content_box()
+            intro(box, _("This is a student's computer of “{room}”, paired with the teacher's computer {name} "
+                         "({host}).").format(room=state.get("room", ""), name=teacher.get("name", ""),
+                                             host=teacher.get("host", "")))
+            note = label(_("While it is in the lab, this computer does not lock, sleep or turn its screen off by "
+                           "itself, so that the teacher always sees it."), "dim-label")
+            note.set_margin_top(8)
+            box.append(note)
+            section(box, _("This computer"))
+            group = Adw.PreferencesGroup()
+            group.add(chevron_row(_("Pair again"), _("When the teacher's computer changed or was set up again."),
+                                  self.student_find))
+            group.add(chevron_row(_("Leave the computer lab"),
+                                  _("{software} stops on this computer, and it locks and sleeps by itself as "
+                                    "before.").format(software=software),
+                                  lambda: self.confirm_leave(state)))
+            box.append(group)
+            return self.page(_("Computer Lab"), scrolled(box), "home")
 
-        def leave_button(self, box: Gtk.Box, label: str) -> None:
-            button = pill(label)
+        # ---- leaving ----------------------------------------------------------------------------------------
 
-            def confirm(*_args) -> None:
-                dialog = Adw.MessageDialog(transient_for=self, heading=label,
-                                           body=_("Veyon or Epoptes stops on this computer and it leaves the room. "
-                                                  "You can set it up again later."))
-                dialog.add_response("cancel", _("Cancel"))
-                dialog.add_response("leave", label)
-                dialog.set_response_appearance("leave", Adw.ResponseAppearance.DESTRUCTIVE)
-                dialog.connect("response", lambda _d, response: response == "leave" and self.run_helper(
-                    ["leave"], _("Leaving the computer lab"), lambda _event: self.show_home()))
-                dialog.present()
+        def confirm_leave(self, state: dict) -> None:
+            backend = state.get("backend", VEYON)
+            software = backend_name(backend)
+            if state.get("role") == TEACHER:
+                heading = _("Stop being the teacher's computer?")
+                body = (_("{software} stops on this computer and its key is deleted: if you set it up again, the "
+                          "students' computers have to pair again.") if backend == VEYON else
+                        _("{software} stops on this computer. You can set it up again later.")).format(
+                    software=software)
+                action = _("Stop being the teacher's computer")
+            else:
+                heading = _("Leave the computer lab?")
+                body = _("{software} stops on this computer and it leaves “{room}”. You can pair it again "
+                         "later.").format(software=software, room=state.get("room", ""))
+                action = _("Leave the computer lab")
+            dialog = Adw.MessageDialog(transient_for=self, heading=heading, body=body)
+            dialog.add_response("cancel", _("Cancel"))
+            dialog.add_response("leave", action)
+            dialog.set_response_appearance("leave", Adw.ResponseAppearance.DESTRUCTIVE)
+            dialog.set_default_response("cancel")
+            dialog.set_close_response("cancel")
+            dialog.connect("response", lambda _d, response: response == "leave" and self.run_helper(
+                ["leave"], _("Leaving the computer lab"), lambda _event: self.left_lab(state)))
+            dialog.present()
 
-            button.connect("clicked", confirm)
-            box.append(button)
+        def left_lab(self, state: dict) -> None:
+            # This account's screen lock and sleep come back as they were; other accounts get theirs at their next
+            # login (caramos-lab --session).
+            threading.Thread(target=awake.restore, daemon=True).start()
+            software = backend_name(state.get("backend", VEYON))
+            if state.get("role") == STUDENT:
+                description = _("{software} no longer runs on this computer, and it locks and sleeps by itself as "
+                                "before.").format(software=software)
+            else:
+                description = _("{software} no longer runs on this computer. You can set it up again at any "
+                                "time.").format(software=software)
+            status = status_page("emblem-ok-symbolic", _("This computer left the computer lab"), description,
+                                 [button(_("Done"), self.show_home, primary=True)])
+            self.nav.replace([self.page(_("Computer Lab"), status, "left", can_pop=False)])
 
         # ---- root helper ------------------------------------------------------------------------------------
 
         def run_helper(self, args: list[str], title: str, on_done, stdin: bool = False) -> None:
-            box = page_box()
-            box.append(text(title, "title-2"))
             spinner = Gtk.Spinner(spinning=True, width_request=32, height_request=32, halign=Gtk.Align.CENTER)
-            box.append(spinner)
-            step = text(_("Waiting for the password…"), "dim-label", xalign=0.5)
-            box.append(step)
-            log = Gtk.TextView(editable=False, monospace=True, wrap_mode=Gtk.WrapMode.WORD_CHAR, vexpand=True)
-            expander = Gtk.Expander(label=_("Details"), child=Gtk.ScrolledWindow(child=log, min_content_height=160))
-            box.append(expander)
-            self.show("progress", scrolled(box), back=False)
-            steps = {"install": _("Installing the software (it may take a few minutes)…"),
+            log = Gtk.TextView(editable=False, monospace=True, wrap_mode=Gtk.WrapMode.WORD_CHAR,
+                               top_margin=8, bottom_margin=8, left_margin=8, right_margin=8)
+            log.add_css_class("caramos-log")
+            expander = Gtk.Expander(label=_("Details"), child=Gtk.ScrolledWindow(
+                child=log, min_content_height=160, hscrollbar_policy=Gtk.PolicyType.NEVER))
+            details = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=24)
+            details.append(spinner)
+            details.append(Adw.Clamp(maximum_size=560, child=expander))
+            status = status_page(None, title, _("Waiting for the password…"), [], child=details)
+            progress = self.page(title, status, "progress", can_pop=False)
+            self.push(progress)
+            steps = {"install": _("Installing the software. It may take a few minutes."),
                      "apt-update": _("Updating the list of software…"),
                      "configure": _("Setting up…")}
             process = Gio.Subprocess.new(["pkexec", HELPER, *args],
@@ -212,7 +375,8 @@ def build_window(app):
                 else:
                     kind = event.get("event")
                     if kind == "step":
-                        step.set_label(steps.get(event.get("text"), event.get("text", "")))
+                        status.set_description(GLib.markup_escape_text(steps.get(event.get("text"),
+                                                                                 event.get("text", ""))))
                     elif kind == "log":
                         append(event.get("text", ""))
                     elif kind in ("done", "error"):
@@ -223,89 +387,111 @@ def build_window(app):
 
             def finished(proc, task) -> None:
                 proc.wait_finish(task)
-                status = proc.get_exit_status() if proc.get_if_exited() else 1
+                exit_status = proc.get_exit_status() if proc.get_if_exited() else 1
                 if result.get("event") == "done":
                     on_done(result)
                     return
-                spinner.set_spinning(False)
-                if status in (126, 127):
-                    step.set_label(_("Cancelled: the password window was closed."))
+                spinner.set_visible(False)
+                progress.set_can_pop(True)
+                back = button(_("Back"), self.nav.pop)
+                back.add_css_class("pill")
+                if exit_status in (126, 127):
+                    status.set_icon_name("dialog-information-symbolic")
+                    status.set_title(_("Cancelled"))
+                    status.set_description(GLib.markup_escape_text(_("The password window was closed, so nothing "
+                                                                      "was changed.")))
+                    expander.set_visible(False)
                 else:
-                    step.set_label(_("Something went wrong. The details below say what."))
+                    status.set_icon_name("dialog-error-symbolic")
+                    status.set_title(_("The setup did not finish"))
+                    status.set_description(GLib.markup_escape_text(_("Something went wrong. The details below say "
+                                                                     "what.")))
                     expander.set_expanded(True)
-                self.back.set_visible(True)
+                details.append(back)
+                back.set_halign(Gtk.Align.CENTER)
 
             stream.read_line_async(GLib.PRIORITY_DEFAULT, None, read)
 
         # ---- teacher ----------------------------------------------------------------------------------------
 
         def teacher_setup(self) -> None:
-            box = page_box()
-            box.append(text(_("Teacher's computer"), "title-2"))
-            group = Adw.PreferencesGroup()
-            room = Adw.EntryRow(title=_("Room name"), text=DEFAULT_ROOM)
-            group.add(room)
-            box.append(group)
-            choices = Adw.PreferencesGroup(title=_("Software"))
-            veyon = Gtk.CheckButton(active=True)
-            epoptes = Gtk.CheckButton(group=veyon)
+            box = content_box()
+            box.append(label(_("Teacher's computer"), "page-title"))
+            box.append(label(_("The students' computers find this computer by the room's name.")))
+            name = Adw.PreferencesGroup(margin_top=16)
+            room = Adw.EntryRow(title=_("Room name"), text=default_room())
+            name.add(room)
+            box.append(name)
+            wrong = label("", "error", visible=False)
+            box.append(wrong)
+            room.connect("changed", lambda *_a: (room.remove_css_class("error"), wrong.set_visible(False)))
+            section(box, _("Software"))
+            choices = Adw.PreferencesGroup()
+            veyon = Gtk.CheckButton(active=True, valign=Gtk.Align.CENTER)
+            epoptes = Gtk.CheckButton(group=veyon, valign=Gtk.Align.CENTER)
             for check, title, subtitle in (
-                    (veyon, _("Veyon (recommended)"),
+                    (veyon, "Veyon",
                      _("See and control the students' screens, show the teacher's screen, lock screens, send files, "
-                       "turn computers off. Works with Veyon on Windows too.")),
-                    (epoptes, _("Epoptes (lighter)"),
-                     _("For computers with 2 GB of memory. The students' computers connect to the teacher's by "
-                       "themselves."))):
-                row = Adw.ActionRow(title=title, subtitle=subtitle, activatable_widget=check)
+                       "turn computers off. Works with Veyon on Windows too. Recommended for most labs.")),
+                    (epoptes, "Epoptes",
+                     _("Lighter, for computers with 2 GB of memory. The students' computers connect to the "
+                       "teacher's by themselves."))):
+                row = Adw.ActionRow(title=title, subtitle=GLib.markup_escape_text(subtitle),
+                                    activatable_widget=check)
+                row.set_subtitle_lines(4)
                 row.add_prefix(check)
                 choices.add(row)
             box.append(choices)
-            error = text("", "error")
-            box.append(error)
-            go = pill(_("Set up this computer"), suggested=True)
-            box.append(go)
+            hint = label(_("Setting up takes a few minutes and needs the administrator's password."), "dim-label")
 
             def start(*_args) -> None:
-                name = room.get_text().strip()
-                if not pairing.valid_room(name):
-                    error.set_label(_("Use letters, digits, spaces or dashes for the room name (up to 40)."))
+                name_text = room.get_text().strip()
+                if not pairing.valid_room(name_text):
+                    wrong.set_label(_("Use letters, digits, spaces or dashes for the room name (up to 40)."))
+                    wrong.set_visible(True)
+                    room.add_css_class("error")
                     return
                 backend = VEYON if veyon.get_active() else EPOPTES
-                self.run_helper(["teacher", "--backend", backend, "--room", name],
+                self.run_helper(["teacher", "--backend", backend, "--room", name_text],
                                 _("Setting up the teacher's computer"),
-                                lambda _event: self.start_pairing(system.read_state()))
+                                lambda _event: self.teacher_ready())
 
-            go.connect("clicked", start)
-            self.show("teacher-setup", scrolled(box))
+            room.connect("entry-activated", start)
+            go = button(_("Set up this computer"), start, primary=True)
+            self.push(self.page(_("Teacher's computer"), scrolled(box), "teacher-setup", bar=self.bar(hint, [go])))
+
+        def teacher_ready(self) -> None:
+            state = system.read_state()
+            self.nav.replace([self.home_page()])
+            self.start_pairing(state)
 
         def start_pairing(self, state: dict) -> None:
-            backend, room = state.get("backend", VEYON), state.get("room", DEFAULT_ROOM)
+            backend, room = state.get("backend", VEYON), state.get("room", default_room())
             key = system.teacher_key(backend)
             if key is None:
                 self.toast(_("The teacher's key is missing: set this computer up again."))
                 return
-            box = page_box()
-            box.append(text(_("Pairing code"), "title-4", xalign=0.5))
-            code = text(pairing.spaced(pairing.pairing_code(key)), "title-1", xalign=0.5, selectable=True)
-            code.add_css_class("caramos-lab-code")
+            box = content_box()
+            box.append(label(_("Pair students' computers"), "page-title"))
+            box.append(label(_("On each student's computer open Computer Lab, choose Student's computer, then "
+                               "“{room}”, and type this code.").format(room=room)))
+            code = label(pairing.spaced(pairing.pairing_code(key)), "caramos-lab-code")
+            code.set_margin_top(8)
             box.append(code)
-            address = system.local_ip() or "?"
-            box.append(text(_("On each student's computer open Computer Lab > Student's computer, choose “{room}” "
-                              "(teacher's computer {name}, {address}) and type this code.").format(
-                room=room, name=system.hostname(), address=address), xalign=0.5))
-            group = Adw.PreferencesGroup(title=_("Paired computers"))
+            box.append(label(_("This computer is {name}, at {address}.").format(
+                name=system.hostname(), address=system.local_ip() or "?"), "dim-label"))
+            section(box, _("Paired computers"))
+            group = Adw.PreferencesGroup()
             box.append(group)
-            empty = Adw.ActionRow(title=_("None yet. Keep this page open while you pair."))
+            empty = Adw.ActionRow(title=_("No computer yet."))
+            empty.add_css_class("dim-label")
             group.add(empty)
-            buttons = Gtk.Box(spacing=12, halign=Gtk.Align.CENTER)
-            console = pill(_("Open Veyon Master") if backend == VEYON else _("Open Epoptes"), suggested=True)
-            console.connect("clicked", lambda *_a: open_console(backend))
-            done = pill(_("Done"))
-            done.connect("clicked", lambda *_a: self.show_home())
-            buttons.append(console)
-            buttons.append(done)
-            box.append(buttons)
-            self.show("pairing", scrolled(box))
+            count = label(_("Keep this page open while the students pair."), "dim-label")
+            console = button(_("Open Veyon Master") if backend == VEYON else _("Open Epoptes"),
+                             lambda: open_console(backend), primary=True)
+            done = button(_("Done"), lambda: self.nav.pop())
+            self.push(self.page(_("Pair students' computers"), scrolled(box), "pairing",
+                                bar=self.bar(count, [done, console])))
             rows: dict[str, Adw.ActionRow] = {}
 
             def show_student(student: pairing.Student, added: bool) -> None:
@@ -313,10 +499,12 @@ def build_window(app):
                     group.remove(empty)
                 row = rows.get(student.mac)
                 if row is None:
-                    row = Adw.ActionRow(title=student.name)
+                    row = Adw.ActionRow(title=GLib.markup_escape_text(student.name))
                     rows[student.mac] = row
                     group.add(row)
-                row.set_subtitle(f"{student.ip} · " + (_("added to the room") if added else _("adding…")))
+                row.set_subtitle(GLib.markup_escape_text(student_line(student, added)))
+                count.set_label(ngettext("{count} computer paired.", "{count} computers paired.",
+                                         len(rows)).format(count=len(rows)))
 
             if backend == VEYON:
                 # One root process for the whole page: each student is added to Veyon's room as it pairs.
@@ -372,60 +560,66 @@ def build_window(app):
         # ---- student ----------------------------------------------------------------------------------------
 
         def student_find(self) -> None:
-            box = page_box()
-            box.append(text(_("Student's computer"), "title-2"))
-            status = text(_("Looking for the teacher's computer on the network…"), xalign=0.5)
-            box.append(status)
-            spinner = Gtk.Spinner(spinning=True, halign=Gtk.Align.CENTER, width_request=32, height_request=32)
-            box.append(spinner)
-            group = Adw.PreferencesGroup()
-            box.append(group)
-            again = pill(_("Search again"))
-            again.set_visible(False)
-            again.connect("clicked", lambda *_a: self.student_find())
-            box.append(again)
-            self.show("student-find", scrolled(box))
+            spinner = Gtk.Spinner(spinning=True, width_request=32, height_request=32, halign=Gtk.Align.CENTER)
+            status = status_page(None, _("Looking for the teacher's computer on the network…"), "", [],
+                                 child=spinner)
+            searching = self.page(_("Student's computer"), status, "student-find")
+            stack = list(self.nav.get_navigation_stack())
+            if len(stack) > 1 and stack[-1].get_tag() not in ("home", "student-find"):
+                # Pair again after a code or a result page: back to a fresh search above the first page.
+                self.nav.replace([stack[0], searching])
+            else:
+                self.push(searching)
 
             def found(teachers: list[pairing.Teacher]) -> bool:
-                spinner.set_spinning(False)
-                spinner.set_visible(False)
-                again.set_visible(True)
                 if not teachers:
-                    status.set_label(_("No teacher's computer found. On the teacher's computer open Computer Lab and "
-                                       "keep its pairing page open, then search again."))
+                    page = status_page("system-search-symbolic", _("No teacher's computer found"),
+                                       _("On the teacher's computer open Computer Lab and keep its pairing page "
+                                         "open. All the computers must be on the same network."),
+                                       [button(_("Search again"), self.student_find, primary=True)])
+                    self.push(self.page(_("Student's computer"), page, "student-find"))
                     return False
-                status.set_label(_("Choose the teacher's computer of your room:"))
+                box = content_box()
+                box.append(label(_("Choose your room"), "page-title"))
+                box.append(label(_("These teachers' computers have their pairing page open.")))
+                group = Adw.PreferencesGroup(margin_top=16)
                 for teacher in teachers:
-                    row = Adw.ActionRow(title=teacher.room, activatable=True,
-                                        subtitle=f"{teacher.name} · {teacher.host} · {backend_name(teacher.backend)}")
-                    row.add_suffix(Gtk.Image(icon_name="go-next-symbolic"))
-                    row.connect("activated", lambda *_a, t=teacher: self.student_code(t))
-                    group.add(row)
+                    group.add(chevron_row(teacher.room, teacher_line(teacher), lambda t=teacher: self.student_code(t)))
+                box.append(group)
+                hint = label(_("Not in the list? Open the pairing page on the teacher's computer."), "dim-label")
+                again = button(_("Search again"), self.student_find)
+                self.push(self.page(_("Student's computer"), scrolled(box), "student-find",
+                                    bar=self.bar(hint, [again])))
                 return False
 
             threading.Thread(target=lambda: GLib.idle_add(found, pairing.discover()), daemon=True).start()
 
         def student_code(self, teacher: pairing.Teacher) -> None:
-            box = page_box()
-            box.append(text(_("Pair with “{room}”").format(room=teacher.room), "title-2"))
-            box.append(text(_("Type the 6-digit code shown on the teacher's computer.")))
-            group = Adw.PreferencesGroup()
+            box = content_box()
+            box.append(label(_("Pair with “{room}”").format(room=teacher.room), "page-title"))
+            box.append(label(_("Type the 6-digit code shown on the teacher's computer.")))
+            group = Adw.PreferencesGroup(margin_top=16)
             entry = Adw.EntryRow(title=_("Pairing code"))
             entry.set_input_purpose(Gtk.InputPurpose.DIGITS)
             group.add(entry)
             box.append(group)
-            error = text("", "error")
-            box.append(error)
-            go = pill(_("Pair"), suggested=True)
-            box.append(go)
+            wrong = label("", "error", visible=False)
+            box.append(wrong)
+            entry.connect("changed", lambda *_a: (entry.remove_css_class("error"), wrong.set_visible(False)))
+            hint = label(_("Setting up takes a few minutes and needs the administrator's password."), "dim-label")
 
-            def fetched(key: bytes | None, problem: str | None) -> bool:
+            def problem(text: str) -> None:
+                wrong.set_label(text)
+                wrong.set_visible(True)
+                entry.add_css_class("error")
+
+            def fetched(key: bytes | None, error_text: str | None) -> bool:
                 go.set_sensitive(True)
                 if key is None:
-                    error.set_label(problem or "")
+                    problem(error_text or "")
                     return False
                 if not pairing.check_code(key, entry.get_text()):
-                    error.set_label(_("The code does not match. Check the code on the teacher's computer."))
+                    problem(_("The code does not match. Check the code on the teacher's computer."))
                     return False
                 handle, path = tempfile.mkstemp(prefix="caramos-lab-key-", suffix=".pem")
                 with os.fdopen(handle, "wb") as stream:
@@ -439,10 +633,9 @@ def build_window(app):
 
             def start(*_args) -> None:
                 if len(pairing.clean_code(entry.get_text())) != 6:
-                    error.set_label(_("The code has 6 digits."))
+                    problem(_("The code has 6 digits."))
                     return
                 go.set_sensitive(False)
-                error.set_label("")
 
                 def work() -> None:
                     try:
@@ -455,12 +648,14 @@ def build_window(app):
 
                 threading.Thread(target=work, daemon=True).start()
 
-            go.connect("clicked", start)
+            go = button(_("Pair"), start, primary=True)
             entry.connect("entry-activated", start)
-            self.show("student-code", scrolled(box))
+            self.push(self.page(_("Pairing code"), scrolled(box), "student-code", bar=self.bar(hint, [go])))
 
         def student_register(self, teacher: pairing.Teacher) -> None:
             def work() -> None:
+                # Veyon sees and controls the session on screen: no screensaver, lock or sleep in its way (awake.py).
+                awake.apply()
                 ip = system.local_ip(teacher.host)
                 mac = system.mac_of(ip) if ip else None
                 try:
@@ -472,19 +667,21 @@ def build_window(app):
                     GLib.idle_add(done, False)
 
             def done(ok: bool) -> bool:
-                box = page_box()
-                box.append(Gtk.Image(icon_name="emblem-ok-symbolic", pixel_size=64))
-                box.append(text(_("This computer is in “{room}”.").format(room=teacher.room), "title-2", xalign=0.5))
+                software = backend_name(teacher.backend)
                 if ok or teacher.backend == EPOPTES:
-                    box.append(text(_("The teacher can see it now in {software}.").format(
-                        software=backend_name(teacher.backend)), xalign=0.5))
+                    status = status_page("emblem-ok-symbolic", _("This computer is in “{room}”").format(
+                        room=teacher.room),
+                        _("The teacher can see it now in {software}. While it is in the lab, it does not lock, sleep "
+                          "or turn its screen off by itself.").format(software=software),
+                        [button(_("Done"), self.show_home, primary=True)])
                 else:
-                    box.append(text(_("The teacher's computer did not add it to the room's list: keep the pairing "
-                                      "page open on the teacher's computer and pair again."), xalign=0.5))
-                close = pill(_("Done"), suggested=True)
-                close.connect("clicked", lambda *_a: self.show_home())
-                box.append(close)
-                self.show("student-done", scrolled(box), back=False)
+                    status = status_page("dialog-warning-symbolic", _("Not in the room's list yet"),
+                                         _("The teacher's computer did not add it to the room's list: keep the "
+                                           "pairing page open on the teacher's computer and pair again."),
+                                         [button(_("Done"), self.show_home),
+                                          button(_("Pair again"), self.student_find, primary=True)])
+                self.nav.replace([self.home_page(), self.page(_("Student's computer"), status, "student-done",
+                                                              can_pop=False)])
                 return False
 
             threading.Thread(target=work, daemon=True).start()
@@ -493,7 +690,7 @@ def build_window(app):
 
 
 def open_window() -> int:
-    from caramos_ota import gtk_renderer
+    from caramos_ota import adw_style, gtk_renderer
 
     gtk_renderer.apply()  # cairo where OpenGL would run on the CPU
     import gi
@@ -509,8 +706,9 @@ def open_window() -> int:
     def activate(app) -> None:
         window = app.get_active_window()
         if window is None:
+            adw_style.apply()
             css = Gtk.CssProvider()
-            css.load_from_string(".caramos-lab-code { font-size: 44pt; font-weight: 800; letter-spacing: 6px; }")
+            css.load_from_string(CSS)
             Gtk.StyleContext.add_provider_for_display(Gdk.Display.get_default(), css,
                                                       Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
             window = build_window(app)
@@ -523,8 +721,14 @@ def open_window() -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="caramos-lab", description=_("Computer Lab"))
     parser.add_argument("--status", action="store_true", help="print this computer's lab state as JSON")
+    parser.add_argument("--session", action="store_true",
+                        help="at login: keep a lab student's account from locking or sleeping, or give it back its "
+                             "settings after the computer left the lab")
     args = parser.parse_args(argv)
     if args.status:
         print(json.dumps(system.read_state(), ensure_ascii=False, indent=1))
+        return 0
+    if args.session:
+        print(awake.at_login(system.read_state().get("role")))
         return 0
     return open_window()

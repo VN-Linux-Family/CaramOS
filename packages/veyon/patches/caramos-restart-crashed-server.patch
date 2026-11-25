@@ -1,0 +1,34 @@
+Description: Restart Veyon Server when it crashed in a session that is still open
+ When veyon-server exits (for example when its x11vnc loses the X display), veyon-service 4.7.5 only stops servers
+ of closing sessions and never starts a new one: the computer stays unreachable for Veyon Master (orange icon)
+ until the session ends or the computer restarts.
+Origin: upstream, https://github.com/veyon/veyon/commit/da235ee22182608e9903ac124f9a9d756ad91bfc
+Forwarded: not-needed
+Last-Update: 2026-11-25
+
+--- a/plugins/platform/linux/LinuxServiceCore.cpp
++++ b/plugins/platform/linux/LinuxServiceCore.cpp
+@@ -306,4 +306,13 @@
+ 		vDebug() << "Stopping server for currently closing session" << sessionPath;
+ 		stopServer( sessionPath );
+ 	}
++	else
++	{
++		// restart server if crashed
++		const auto serverProcess = m_serverProcesses.value(sessionPath);
++		if (serverProcess && serverProcess->state() == QProcess::NotRunning)
++		{
++			QTimer::singleShot(ServerRestartInterval, serverProcess, [serverProcess]() { serverProcess->start(); });
++		}
++	}
+ }
+--- a/plugins/platform/linux/LinuxServiceCore.h
++++ b/plugins/platform/linux/LinuxServiceCore.h
+@@ -49,6 +49,7 @@
+ 	static constexpr auto LoginManagerReconnectInterval = 3000;
+ 	static constexpr auto SessionEnvironmentProbingInterval = 1000;
+ 	static constexpr auto SessionStateProbingInterval = 1000;
++	static constexpr auto ServerRestartInterval = 5000;
+ 
+ 	void connectToLoginManager();
+ 	void startServers();

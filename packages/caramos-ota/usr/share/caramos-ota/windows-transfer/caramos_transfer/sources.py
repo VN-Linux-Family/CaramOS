@@ -3,7 +3,9 @@ shared folder of the old PC; then the Windows accounts in it and what each one h
 
 A Windows partition is mounted read-only through udisks (the session's password window asks when the disk is an
 internal one) and unmounted again at the end; one the desktop has mounted already is used as it is. Nothing here
-ever writes to the source.
+ever writes to the source. A partition BitLocker locks is listed as locked (Partition.locked): it cannot be read until
+Windows decrypts it, and up to 1.5.1 the window left it out without a word. One that Files (Nemo) unlocked with its
+recovery key has its NTFS file system under it, which is listed as usual.
 """
 
 from __future__ import annotations
@@ -27,6 +29,11 @@ XP_FOLDERS = {"Desktop": ("Desktop",), "Documents": ("My Documents",), "Pictures
               "Music": ("My Documents", "My Music"), "Videos": ("My Documents", "My Videos"), "Downloads": ()}
 
 
+# lsblk's FSTYPE of the file systems that hold Windows, and of a partition BitLocker encrypts.
+NTFS = ("ntfs", "ntfs3")
+BITLOCKER = "bitlocker"
+
+
 @dataclass
 class Partition:
     device: str               # /dev/sda3
@@ -34,6 +41,7 @@ class Partition:
     size: int                 # bytes
     mountpoint: str | None    # where it is mounted now
     removable: bool
+    locked: bool = False      # encrypted by BitLocker: unreadable until Windows turns BitLocker off
 
     def title(self) -> str:
         if self.label:
@@ -42,18 +50,24 @@ class Partition:
 
 
 def parse_lsblk(text: str) -> list[Partition]:
-    """NTFS partitions in `lsblk -J -b -o PATH,FSTYPE,LABEL,SIZE,MOUNTPOINTS,HOTPLUG,RM` output."""
+    """NTFS partitions, and the partitions BitLocker locks, in `lsblk -J -b -o PATH,FSTYPE,LABEL,SIZE,MOUNTPOINTS,
+    HOTPLUG,RM` output."""
 
     found: list[Partition] = []
 
     def walk(devices: list, removable: bool = False) -> None:
         for device in devices or []:
             hotplug = bool(device.get("hotplug")) or bool(device.get("rm")) or removable
-            if (device.get("fstype") or "").lower() in ("ntfs", "ntfs3"):
+            fstype = (device.get("fstype") or "").lower()
+            children = device.get("children") or []
+            if fstype in NTFS:
                 points = [point for point in device.get("mountpoints") or [] if point]
                 found.append(Partition(device.get("path") or "", device.get("label") or "",
                                        int(device.get("size") or 0), points[0] if points else None, hotplug))
-            walk(device.get("children") or [], hotplug)
+            elif fstype == BITLOCKER and not any((child.get("fstype") or "").lower() in NTFS for child in children):
+                found.append(Partition(device.get("path") or "", device.get("label") or "",
+                                       int(device.get("size") or 0), None, hotplug, locked=True))
+            walk(children, hotplug)
 
     try:
         walk(json.loads(text).get("blockdevices") or [])

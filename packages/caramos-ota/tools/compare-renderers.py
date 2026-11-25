@@ -23,6 +23,7 @@ from PIL import Image, ImageChops
 
 TOOLS = Path(__file__).resolve().parent
 VM = [str(TOOLS / "vm-dev.sh")]
+GUEST = TOOLS / "vm-guest" / "compare-renderers.sh"
 PROGRAMS = (
     ("App Center", "caramos-app-center"),
     ("Driver Check", "caramos-driver-check"),
@@ -41,22 +42,14 @@ def vm(*args: str, check: bool = False, stdin: str | None = None) -> str:
 
 
 def run(command: str, renderer: str, out: Path) -> tuple[str, str, Path]:
-    log = f"/tmp/compare-renderers-{command}-{renderer}.log"
-    env = ["GSK_DEBUG=renderer"] + ([f"GSK_RENDERER={renderer}"] if renderer != "auto" else [])
-    vm("ssh", f"pkill -f '^python3 /usr/bin/{command}'; rm -f {log}")
+    # The VM side is a script file (tools/vm-guest/compare-renderers.sh), never commands in the ssh command line.
+    vm("run", str(GUEST), "stop", command, renderer)
     time.sleep(1)
-    # vm-dev.sh gui-bg passes its words on unquoted: start a script, not a command line.
-    launcher = "/tmp/compare-renderers-launch.sh"
-    vm("ssh", f"cat > {launcher}; chmod +x {launcher}",
-       stdin=f"#!/bin/sh\nexec env {' '.join(env)} {command} 2>{log}\n")
-    vm("gui-bg", launcher)
+    vm("run", "--bg", str(GUEST), "start", command, renderer)
     time.sleep(WAIT_S)
     shot = out / f"{command}-{renderer}.png"
     vm("shot", str(shot))
-    probe = (f"p=$(pgrep -n -f '^python3 /usr/bin/{command}'); "
-             f"[ -n \"$p\" ] && awk '/^Pss:/{{s+=$2}} END{{printf \"%d MB\", s/1024}}' /proc/$p/smaps_rollup; echo; "
-             f"grep -o 'Using renderer of type .[A-Za-z]*' {log} | head -1; pkill -f '^python3 /usr/bin/{command}'")
-    lines = [line.strip() for line in vm("ssh", probe).splitlines() if line.strip()]
+    lines = [line.strip() for line in vm("run", str(GUEST), "probe", command, renderer).splitlines() if line.strip()]
     memory = next((line for line in lines if line.endswith("MB")), "not running")
     used = next((line.split()[-1].strip("'") for line in lines if line.startswith("Using renderer")), "?")
     time.sleep(2)

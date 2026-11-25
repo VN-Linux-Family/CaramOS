@@ -36,6 +36,17 @@ UPDATE = {"release": "1.4.1", "current_version": "1.4.0", "migration_ids": ["202
           "packages": [{"name": "CaramOS tự cập nhật", "name_en": "CaramOS updates itself"}]}
 
 
+# What CaramOS 1.5.1 brought to computers on 1.5.0.
+RELEASE_1_5_1 = {
+    "20261123120000_hidden_password_typing", "20261123120100_desktop_shortcuts_anywhere",
+    "20261124100000_show_desktop_button", "20261124100100_xfce_super_d_super_e",
+    "20261124100200_print_screen_to_clipboard", "20261124100300_xfce_event_sounds",
+    "20261124120000_desktop_icon_labels", "20261124130000_install_fastfetch", "20261124140000_show_trash_on_desktop",
+    "20261124170000_tray_icons_follow_theme", "20261124180000_tray_icons_keep_their_place",
+    "20261125090000_fcitx5_tray_shows_input_method",
+}
+
+
 def plan(*migrations) -> SimpleNamespace:
     return SimpleNamespace(migrations=list(migrations), target_version="1.4.1")
 
@@ -296,6 +307,19 @@ class SkipReasonTests(unittest.TestCase):
         self.desktop_sessions.return_value = None   # logind cannot tell: wait
         self.assertEqual(auto_update.IN_USE, self.reason(pending=pending))
 
+    def test_a_1_5_0_computer_in_use_takes_1_5_1_by_itself(self) -> None:
+        # 1.5.1 had two migrations that waited for nobody to be logged in (Show desktop, the Trash): 1.5.0 computers
+        # in use did not update by themselves. They leave the open desktop for each user's next login now
+        # (caramos_ota_update.deferred), so the whole update installs while someone works.
+        catalog = discover_migrations()
+        pending = plan(*[item for item in catalog if item.migration_id in RELEASE_1_5_1])
+        self.assertEqual(sorted(RELEASE_1_5_1), [item.migration_id for item in pending.migrations])
+        for desktop in ("cinnamon", "xfce"):
+            with self.subTest(desktop=desktop), mock.patch.dict(os.environ, {"CARAMOS_OTA_DESKTOP": desktop}):
+                self.assertEqual([], auto_update.changes_open_desktops(pending))
+                self.assertIsNone(self.reason(pending=pending))
+        self.desktop_sessions.assert_not_called()
+
     def test_the_same_update_is_not_tried_again_after_it_failed(self) -> None:
         failed = {auto_update.STATUS_KEY: {"outcome": auto_update.FAILED, "update": auto_update.update_key(UPDATE)}}
         self.assertEqual(auto_update.FAILED_BEFORE, self.reason(failed))
@@ -540,8 +564,6 @@ class ClassificationTests(unittest.TestCase):
         "20261012180000_add_help_applet",
         "20261018120000_restore_taskbar_after_cinnamon_update",
         "20261105120000_keep_lotus_settings",
-        "20261124100000_show_desktop_button",
-        "20261124140000_show_trash_on_desktop",
     }
 
     def test_every_timestamp_migration_says_when_it_may_run(self) -> None:

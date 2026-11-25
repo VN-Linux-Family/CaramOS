@@ -29,7 +29,10 @@
 8. Migration vẫn dùng APT/PPA để cài package; không tải `.deb` thủ công.
 9. Systemd timer chỉ check/chuẩn bị state. Check xong, `caramos-ota-auto-update.service` tự cài bản cập nhật khi Tự
    động cập nhật đang bật (mặc định bật) và không có gì ngăn; migration `"unattended": "nobody-logged-in"` chờ đến
-   lúc không ai đăng nhập. Xem `caramos_ota/auto_update.py` và `MIGRATIONS.md`.
+   lúc không ai đăng nhập. Phần một migration làm đổi màn hình của người đang đăng nhập có thể để tới lần đăng nhập sau
+   của người đó (`caramos_ota_update/deferred.py`), để migration vẫn là `"anytime"`. Xem `caramos_ota/auto_update.py`
+   và `MIGRATIONS.md`. Cùng bước đăng nhập ấy cho người được LightDM đăng nhập tự động một chùm chìa khoá không mật khẩu
+   làm mặc định (`caramos_ota_update/autologin_keyring.py`), để Zalo, Lark giữ đăng nhập.
 10. Local `make compile`, `make validate`, `make build` không cần `VERSION`. Chỉ `make release VERSION=x.y.z` nhận product version.
 
 ---
@@ -44,6 +47,7 @@ caramos_ota_update/migrations/
       └── migration.py          # reviewed system changes
 
 caramos-ota --check
+  ├── đếm máy đang dùng, mỗi ngày một lần (caramos_ota/stats.py; tắt: /etc/caramos-ota/stats.conf STATS=no)
   ├── verify CaramOS identity
   ├── verify PPA/keyring
   ├── inspect packaged migration metadata
@@ -89,6 +93,7 @@ sudo caramos-ota --upgrade
 sudo caramos-ota --upgrade --yes
 sudo caramos-ota --repair
 sudo caramos-ota --auto-update off   # hoặc on (mặc định)
+sudo caramos-ota --stats off         # không đếm máy này trong số máy CaramOS đang dùng mỗi ngày (on: mặc định)
 sudo caramos-ota --auto-upgrade
 sudo caramos-ota-update --dry-run
 sudo caramos-ota-update

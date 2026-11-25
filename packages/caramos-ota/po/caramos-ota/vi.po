@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-24 18:15+0700\n"
+"POT-Creation-Date: 2026-11-25 22:51+0700\n"
 "PO-Revision-Date: 2026-10-12 00:00+0700\n"
 "Last-Translator: Vietnam Linux Family <developer@vietnamlinuxfamily.net>\n"
 "Language-Team: Vietnamese <developer@vietnamlinuxfamily.net>\n"
@@ -241,7 +241,7 @@ msgstr "Máy tự kiểm tra bản mới mỗi ngày."
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:448
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:472
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:239
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:188
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:346
 msgid "Details"
 msgstr "Chi tiết"
 
@@ -278,7 +278,7 @@ msgid "You can keep using the computer while it updates."
 msgstr "Máy vẫn dùng bình thường trong lúc cập nhật."
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:722
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:384
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:387
 msgid "Getting ready…"
 msgstr "Đang chuẩn bị…"
 
@@ -303,7 +303,7 @@ msgstr "Đóng"
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:172
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:81
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:685
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:716
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:181
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/results.py:99
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:167
@@ -312,9 +312,9 @@ msgstr "Nhờ giúp đỡ"
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:754
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:778
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:559
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:585
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:656
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:590
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:616
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:687
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:178
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:122
 msgid "Try again"
@@ -381,19 +381,19 @@ msgstr "Không tìm thấy lệnh pkexec."
 msgid "Checking for updates took too long."
 msgstr "Việc kiểm tra bản cập nhật mất quá lâu."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:471
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:474
 msgid "Updated."
 msgstr "Đã cập nhật."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:471
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:474
 msgid "Not updated."
 msgstr "Chưa cập nhật."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:471
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:474
 msgid "Another update is running."
 msgstr "Đang có một lần cập nhật khác."
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:472
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:475
 msgid "Could not update."
 msgstr "Chưa cập nhật được."
 
@@ -526,10 +526,12 @@ msgstr "Thu thập ngay"
 
 #: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:106
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:176
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:303
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:484
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:336
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:492
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:676
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:681
 #: usr/share/caramos-ota/unicode/caramos_unicode/app.py:249
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:560
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:588
 msgid "Done"
 msgstr "Đã xong"
 
@@ -1405,6 +1407,8 @@ msgid "Hardware report"
 msgstr "Báo cáo phần cứng"
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/export.py:162
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:262
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:286
 msgid "This computer"
 msgstr "Máy này"
 
@@ -1772,7 +1776,7 @@ msgstr "Trang tải driver của Canon"
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/canon.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/canon.py:116
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:168
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:315
 #: usr/share/caramos-ota/open-document/caramos_open_document.py:201
 msgid "Cancel"
 msgstr "Hủy"
@@ -1814,7 +1818,7 @@ msgstr ""
 "đặt cho nó một địa chỉ cố định."
 
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/canon.py:117
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:355
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:383
 msgid "Continue"
 msgstr "Tiếp tục"
 
@@ -1871,32 +1875,32 @@ msgstr ""
 "Ví dụ: “Trung tâm cập nhật lần nào cũng dừng giữa chừng khi cài bản cập "
 "nhật, khởi động lại máy vẫn vậy.”"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:89
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:90
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:171
 msgid "Send feedback"
 msgstr "Góp ý"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:89
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:90
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:172
 msgid "An idea or a wish for CaramOS"
 msgstr "Ý tưởng hoặc mong muốn cho CaramOS"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:90
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:91
 msgid "What would you like to tell us?"
 msgstr "Bạn muốn góp ý điều gì?"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:91
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:92
 msgid ""
 "For example: “I would like a quicker way to switch between Telex and VNI "
 "typing.”"
 msgstr "Ví dụ: “Mong có cách chuyển nhanh giữa kiểu gõ Telex và VNI.”"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:155
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:156
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:253
 msgid "Write to the Vietnam Linux Family community"
 msgstr "Gửi tới cộng đồng Vietnam Linux Family"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:156
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:157
 msgid ""
 "Ask for help, report a bug or share an idea. The CaramOS team and the VNLF "
 "community read every request."
@@ -1904,11 +1908,11 @@ msgstr ""
 "Nhờ giúp đỡ, báo lỗi hay góp ý: đội CaramOS và cộng đồng VNLF đọc mọi yêu "
 "cầu."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:160
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:161
 msgid "Ask the VNLF community for help"
 msgstr "Nhờ cộng đồng VNLF giúp đỡ"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:161
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:162
 msgid ""
 "Describe what is wrong. Your message goes to Vietnam Linux Family together "
 "with this computer's hardware profile, so the people helping you see exactly "
@@ -1918,31 +1922,31 @@ msgstr ""
 "sơ phần cứng của máy, để người giúp bạn biết chính xác máy có phần cứng và "
 "driver gì."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:193
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:194
 msgid "How can we reach you? (optional)"
 msgstr "Liên lạc với bạn qua đâu? (không bắt buộc)"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:196
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:197
 msgid "Email, Zalo number or Facebook link"
 msgstr "Email, số Zalo hoặc link Facebook"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:198
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:199
 msgid ""
 "Only the VNLF team sees it. Without it, the answer is on your request's page."
 msgstr ""
 "Chỉ đội VNLF thấy thông tin này. Nếu bỏ trống, câu trả lời sẽ nằm ở trang "
 "yêu cầu của bạn."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:201
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:202
 msgid ""
 "Attach the hardware profile (hw-probe: 1–2 minutes, asks for your password)"
 msgstr "Kèm hồ sơ phần cứng (hw-probe: mất 1–2 phút, cần nhập mật khẩu)"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:205
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:206
 msgid "hw-probe is not installed. Install it with: sudo apt install hw-probe"
 msgstr "Máy chưa cài hw-probe. Cài bằng lệnh: sudo apt install hw-probe"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:210
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:211
 msgid ""
 "The hardware profile (hw-probe) leaves out user names, the computer's name "
 "and IP addresses; serial numbers and MAC addresses are only sent as hashes."
@@ -1950,15 +1954,26 @@ msgstr ""
 "Hồ sơ phần cứng (hw-probe) không có tên người dùng, tên máy và địa chỉ IP; "
 "số serial và địa chỉ MAC chỉ gửi dạng mã băm."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:212
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:213
 msgid "How hw-probe works"
 msgstr "Tìm hiểu về hw-probe"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:216
-msgid "Attach the Driver Check results"
-msgstr "Kèm kết quả Kiểm tra driver"
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:218
+msgid "Send this computer's details"
+msgstr "Gửi kèm thông tin máy này"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:224
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:223
+msgid ""
+"The hardware and its drivers, the printers, the CaramOS version, how the "
+"screen locks and the computer sleeps, and recent errors. Only the VNLF team "
+"sees them, never the community. E-mail and IP addresses, the computer's name "
+"and your user name are taken out."
+msgstr ""
+"Phần cứng và driver, máy in, phiên bản CaramOS, cách màn hình khoá và máy đi "
+"ngủ, cùng những lỗi gần đây. Chỉ đội VNLF xem, cộng đồng không thấy. Địa chỉ "
+"email, địa chỉ IP, tên máy và tên người dùng của bạn đã được xoá."
+
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:233
 msgid ""
 "Only the VNLF team sees the log, never the community. E-mail and IP "
 "addresses, the computer's name and your user name are taken out."
@@ -1966,38 +1981,38 @@ msgstr ""
 "Chỉ đội VNLF xem nhật ký, cộng đồng không thấy. Địa chỉ email, địa chỉ IP, "
 "tên máy và tên người dùng của bạn đã được xoá khỏi nhật ký."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:228
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:237
 msgid "See what will be sent"
 msgstr "Xem nội dung sẽ gửi"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:240
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:249
 msgid "Let the VNLF community see it and help"
 msgstr "Cho cộng đồng VNLF xem để cùng giúp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:245
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:254
 msgid "Your contact is not made public."
 msgstr "Thông tin liên hệ không công khai."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:249
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:258
 msgid "Send"
 msgstr "Gửi"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:253
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:262
 msgid "Save the hardware profile"
 msgstr "Lưu hồ sơ phần cứng"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:262
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:271
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/requests.py:75
 #: usr/share/caramos-ota/applets/caramos-help@caramos/applet.js:302
 msgid "Your requests"
 msgstr "Yêu cầu của bạn"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:312
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:321
 #, python-format
-msgid "Attach the logs (%s)"
-msgstr "Kèm nhật ký (%s)"
+msgid "Attach the app's log (%s)"
+msgstr "Kèm nhật ký của ứng dụng (%s)"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:385
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:416
 msgid ""
 "No internet: get online first, or save the hardware profile and send it from "
 "another device."
@@ -2005,63 +2020,63 @@ msgstr ""
 "Chưa có mạng: hãy vào mạng trước, hoặc lưu hồ sơ phần cứng rồi gửi từ máy "
 "khác."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:388
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:419
 msgid "No internet: connect to the internet to send it."
 msgstr "Chưa có mạng: hãy kết nối Internet để gửi."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:390
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:421
 msgid "Reading this computer's details…"
 msgstr "Đang đọc thông tin máy…"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:392
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:423
 msgid "Write a few words about the problem to send it."
 msgstr "Viết vài dòng về vấn đề để gửi."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:394
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:425
 msgid "The message is too long; keep it under 5000 characters."
 msgstr "Lời nhắn quá dài, hãy viết dưới 5000 ký tự."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:396
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:427
 msgid "Recording the screen: stop it (Ctrl+Shift+Alt+R) to send the video."
 msgstr "Đang quay màn hình: hãy dừng quay (Ctrl+Shift+Alt+R) để gửi kèm video."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:398
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:429
 msgid "Making the pictures and videos smaller…"
 msgstr "Đang nén ảnh và video…"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:400
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:431
 msgid "Ready to send."
 msgstr "Sẵn sàng gửi."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:405
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:436
 msgid "(your message)"
 msgstr "(lời nhắn của bạn)"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:453
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:484
 msgid "Sending your request…"
 msgstr "Đang gửi yêu cầu…"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:454
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:485
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:49
 msgid "Collecting hardware information…"
 msgstr "Đang thu thập thông tin phần cứng…"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:454
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:479
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:520
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:485
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:510
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:551
 msgid "Sending to VNLF…"
 msgstr "Đang gửi tới VNLF…"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:501
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:532
 #, python-format
 msgid "Uploading the pictures and videos (%(number)d of %(count)d)…"
 msgstr "Đang tải ảnh và video lên (%(number)d/%(count)d)…"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:547
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:578
 msgid "The hardware profile was not made"
 msgstr "Chưa tạo được hồ sơ phần cứng"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:549
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:580
 msgid ""
 "hw-probe needs your password to read the hardware, and the password was not "
 "entered."
@@ -2069,14 +2084,14 @@ msgstr ""
 "hw-probe cần mật khẩu của bạn để đọc thông tin phần cứng, nhưng mật khẩu "
 "chưa được nhập."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:551
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:582
 msgid ""
 "hw-probe stopped before it was done. Check the internet connection and try "
 "again."
 msgstr ""
 "hw-probe dừng lại trước khi chạy xong. Hãy kiểm tra kết nối mạng rồi thử lại."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:553
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:584
 msgid ""
 "Your request has not been sent yet. Try again, or send it without the "
 "hardware profile."
@@ -2084,51 +2099,52 @@ msgstr ""
 "Yêu cầu của bạn chưa được gửi. Hãy thử lại, hoặc gửi mà không kèm hồ sơ phần "
 "cứng."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:558
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:584
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:589
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:615
 msgid "Not sent yet"
 msgstr "Chưa gửi"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:558
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:584
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:656
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:688
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:589
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:615
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:687
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:719
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:178
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:122
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:82
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:396
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:225
 msgid "Back"
 msgstr "Quay lại"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:558
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:589
 msgid "Send without it"
 msgstr "Gửi không kèm hồ sơ"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:569
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:600
 msgid "The pictures and videos were not sent"
 msgstr "Chưa gửi được ảnh và video"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:571
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:602
 msgid "VNLF does not take pictures and videos from CaramOS yet."
 msgstr "VNLF chưa nhận ảnh và video gửi từ CaramOS."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:573
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:604
 msgid "Could not reach VNLF. Check the internet connection and try again."
 msgstr "Không kết nối được tới VNLF. Hãy kiểm tra mạng rồi thử lại."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:576
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:607
 #, python-format
 msgid "You sent many pictures and videos today. Try again in %d minutes."
 msgstr "Hôm nay bạn đã gửi nhiều ảnh và video. Hãy thử lại sau %d phút."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:578
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:609
 msgid "VNLF did not accept one of the files."
 msgstr "VNLF không nhận một trong các tệp."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:580
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:611
 msgid "The VNLF server has a problem right now. Try again later."
 msgstr "Máy chủ VNLF đang gặp lỗi. Hãy thử lại sau."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:582
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:613
 msgid ""
 "Your request has not been sent yet. Try again, or send it without the "
 "pictures and videos."
@@ -2136,11 +2152,11 @@ msgstr ""
 "Yêu cầu của bạn chưa được gửi. Hãy thử lại, hoặc gửi mà không kèm ảnh và "
 "video."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:584
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:615
 msgid "Send without them"
 msgstr "Gửi không kèm ảnh, video"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:591
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:622
 msgid ""
 "Could not reach VNLF. Check the internet connection, or post the request "
 "yourself below."
@@ -2148,13 +2164,13 @@ msgstr ""
 "Không kết nối được tới VNLF. Hãy kiểm tra mạng, hoặc tự đăng yêu cầu theo "
 "hướng dẫn bên dưới."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:594
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:625
 #, python-format
 msgid "You sent several requests in a short time. Try again in %d minutes."
 msgstr ""
 "Bạn vừa gửi nhiều yêu cầu trong thời gian ngắn. Hãy thử lại sau %d phút."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:596
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:627
 msgid ""
 "The VNLF help service is not available yet. You can post the request "
 "yourself below."
@@ -2162,12 +2178,12 @@ msgstr ""
 "Dịch vụ nhờ giúp đỡ của VNLF chưa sẵn sàng. Bạn có thể tự đăng yêu cầu theo "
 "hướng dẫn bên dưới."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:598
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:629
 msgid "VNLF did not accept the request. You can post it yourself below."
 msgstr ""
 "VNLF không nhận yêu cầu này. Bạn có thể tự đăng theo hướng dẫn bên dưới."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:599
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:630
 msgid ""
 "The VNLF server has a problem right now. Try again later, or post the "
 "request yourself below."
@@ -2175,11 +2191,11 @@ msgstr ""
 "Máy chủ VNLF đang gặp lỗi. Hãy thử lại sau, hoặc tự đăng yêu cầu theo hướng "
 "dẫn bên dưới."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:608
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:639
 msgid "Your request was sent"
 msgstr "Đã gửi yêu cầu"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:609
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:640
 msgid ""
 "VNLF answers on your request's page. You can open it again any time from "
 "Feedback & Help (the question mark in the panel)."
@@ -2187,45 +2203,45 @@ msgstr ""
 "VNLF sẽ trả lời ngay trên trang yêu cầu của bạn. Bạn mở lại trang này lúc "
 "nào cũng được từ Góp ý & hỗ trợ (biểu tượng dấu chấm hỏi trên thanh tác vụ)."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:612
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:643
 #, python-format
 msgid "They may also contact you at: %s"
 msgstr "VNLF cũng có thể liên lạc với bạn qua: %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:616
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:647
 #, python-format
 msgid "With %d picture or video."
 msgid_plural "With %d pictures or videos."
 msgstr[0] "Kèm %d ảnh hoặc video."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:619
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:650
 msgid ""
 "Shared with the VNLF community: it is published once VNLF has reviewed it."
 msgstr ""
 "Đã chia sẻ với cộng đồng VNLF: yêu cầu sẽ được đăng sau khi VNLF duyệt."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:624
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:655
 #, python-format
 msgid "Request number: %s"
 msgstr "Mã yêu cầu: %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:628
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:659
 msgid "Follow your request"
 msgstr "Theo dõi yêu cầu"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:633
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:664
 msgid "Request sent"
 msgstr "Đã gửi"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:637
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:668
 msgid "The request was not sent"
 msgstr "Chưa gửi được yêu cầu"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:641
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:672
 msgid "Post it yourself"
 msgstr "Tự đăng yêu cầu"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:642
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:673
 msgid ""
 "Copy the request and paste it as a new post on vietnamlinuxfamily.net, or in "
 "the VNLF Facebook group, Telegram or Discord."
@@ -2233,29 +2249,29 @@ msgstr ""
 "Chép nội dung yêu cầu rồi dán thành bài đăng mới trên vietnamlinuxfamily."
 "net, hoặc trong nhóm Facebook, Telegram, Discord của VNLF."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:646
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:677
 msgid "Copy the request"
 msgstr "Chép nội dung"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:648
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:679
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:95
 msgid "Open VNLF"
 msgstr "Mở trang VNLF"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:652
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:683
 msgid "Open the pictures and videos"
 msgstr "Mở thư mục ảnh và video"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:656
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:687
 msgid "Not sent"
 msgstr "Chưa gửi được"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:664
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:695
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:134
 msgid "Copied"
 msgstr "Đã sao chép"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:691
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:722
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:98
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/report.py:113
 msgid "Back to Driver Check"
@@ -2847,70 +2863,121 @@ msgstr "Chưa cài: chưa nhập mật khẩu."
 msgid "Driver Check could not install %s."
 msgstr "Kiểm tra driver chưa cài được %s."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:79
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:112
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:506
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:524
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:45
+msgid "Computer lab 1"
+msgstr "Phòng máy 1"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:66
+#, python-brace-format
+msgid "Teacher's computer {name}, at {address}, with {software}."
+msgstr "Máy giáo viên {name}, địa chỉ {address}, dùng {software}."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:74
+#, python-brace-format
+msgid "At {address}, in the room."
+msgstr "Địa chỉ {address}, đã vào phòng."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:75
+#, python-brace-format
+msgid "At {address}, being added to the room…"
+msgstr "Địa chỉ {address}, đang thêm vào phòng…"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:111
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:157
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:248
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:273
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:295
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:337
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:703
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:722
 msgid "Computer Lab"
 msgstr "Phòng máy"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:123
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:233
 msgid ""
-"Classroom management in a few clicks: the teacher's computer sees every "
-"student's screen, shows its own screen to the class, locks the screens, "
-"sends files and turns the computers off."
+"The teacher's computer sees every student's screen, shows its own screen to "
+"the class, locks the screens, sends files and turns the computers off."
 msgstr ""
-"Quản lý phòng máy chỉ với vài cú bấm: máy giáo viên xem được màn hình của "
-"mọi học sinh, chiếu màn hình của mình cho cả lớp, khóa màn hình, gửi tệp và "
-"tắt máy cả phòng."
+"Máy giáo viên xem được màn hình của từng học sinh, chiếu màn hình của mình "
+"cho cả lớp, khóa màn hình, gửi tệp và tắt các máy trong phòng."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:128
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:244
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:235
+msgid "Which computer is this?"
+msgstr "Đây là máy nào?"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:237
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:419
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:461
 msgid "Teacher's computer"
 msgstr "Máy giáo viên"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:128
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:238
 msgid "Installs Veyon and shows a code for pairing the students' computers."
 msgstr "Cài Veyon và hiện mã để ghép nối các máy học sinh."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:130
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:376
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:240
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:566
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:580
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:591
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:683
 msgid "Student's computer"
 msgstr "Máy học sinh"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:130
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:241
 msgid "Finds the teacher's computer on the network and pairs with its code."
 msgstr "Tìm máy giáo viên trong mạng và ghép nối bằng mã của máy đó."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:137
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:244
 msgid ""
 "All the computers must be on the same network: the school's cable or Wi-Fi."
 msgstr "Các máy phải cùng một mạng: mạng dây hoặc Wi-Fi của trường."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:141
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:254
 #, python-brace-format
-msgid "This is the teacher's computer of “{room}” ({backend})."
-msgstr "Đây là máy giáo viên của “{room}” ({backend})."
+msgid "This is the teacher's computer of “{room}”, with {software}."
+msgstr "Đây là máy giáo viên của “{room}”, dùng {software}."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:143
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:256
+msgid "Students' computers"
+msgstr "Các máy học sinh"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:258
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:475
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:493
 msgid "Pair students' computers"
 msgstr "Ghép nối máy học sinh"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:146
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:301
-msgid "Open Veyon Master"
-msgstr "Mở Veyon Master"
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:259
+msgid "Shows the code that adds a student's computer to the room."
+msgstr "Hiện mã để thêm máy học sinh vào phòng."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:146
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:301
-msgid "Open Epoptes"
-msgstr "Mở Epoptes"
-
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:149
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:264
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:308
 msgid "Stop being the teacher's computer"
 msgstr "Thôi làm máy giáo viên"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:153
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:265
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:306
+#, python-brace-format
+msgid "{software} stops on this computer. You can set it up again later."
+msgstr "{software} sẽ dừng trên máy này. Bạn có thể thiết lập lại sau."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:269
+#, python-brace-format
+msgid "{console} shows the students' screens, locks them and shows yours."
+msgstr "Xem, khóa màn hình học sinh và chiếu màn hình của bạn trong {console}."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:271
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:490
+msgid "Open Veyon Master"
+msgstr "Mở Veyon Master"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:271
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:490
+msgid "Open Epoptes"
+msgstr "Mở Epoptes"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:279
 #, python-brace-format
 msgid ""
 "This is a student's computer of “{room}”, paired with the teacher's computer "
@@ -2919,177 +2986,265 @@ msgstr ""
 "Đây là máy học sinh của “{room}”, đã ghép nối với máy giáo viên {name} "
 "({host})."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:156
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:282
+msgid ""
+"While it is in the lab, this computer does not lock, sleep or turn its "
+"screen off by itself, so that the teacher always sees it."
+msgstr ""
+"Khi còn trong phòng máy, máy này không tự khóa, không tự ngủ và không tự tắt "
+"màn hình, để giáo viên luôn thấy được máy."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:288
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:682
 msgid "Pair again"
 msgstr "Ghép nối lại"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:159
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:288
+msgid "When the teacher's computer changed or was set up again."
+msgstr "Khi máy giáo viên đổi hoặc được thiết lập lại."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:290
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:313
 msgid "Leave the computer lab"
 msgstr "Rời phòng máy"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:166
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:291
+#, python-brace-format
 msgid ""
-"Veyon or Epoptes stops on this computer and it leaves the room. You can set "
-"it up again later."
-msgstr ""
-"Veyon hoặc Epoptes sẽ dừng trên máy này và máy rời khỏi phòng. Bạn có thể "
-"thiết lập lại sau."
+"{software} stops on this computer, and it locks and sleeps by itself as "
+"before."
+msgstr "{software} sẽ dừng trên máy này, và máy lại tự khóa, tự ngủ như trước."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:172
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:303
+msgid "Stop being the teacher's computer?"
+msgstr "Thôi làm máy giáo viên?"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:304
+#, python-brace-format
+msgid ""
+"{software} stops on this computer and its key is deleted: if you set it up "
+"again, the students' computers have to pair again."
+msgstr ""
+"{software} sẽ dừng trên máy này và khóa của máy bị xóa: nếu thiết lập lại, "
+"các máy học sinh phải ghép nối lại."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:310
+msgid "Leave the computer lab?"
+msgstr "Rời phòng máy?"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:311
+#, python-brace-format
+msgid ""
+"{software} stops on this computer and it leaves “{room}”. You can pair it "
+"again later."
+msgstr ""
+"{software} sẽ dừng trên máy này và máy rời khỏi “{room}”. Bạn có thể ghép "
+"nối lại sau."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:321
 msgid "Leaving the computer lab"
 msgstr "Đang rời phòng máy"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:185
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:330
+#, python-brace-format
+msgid ""
+"{software} no longer runs on this computer, and it locks and sleeps by "
+"itself as before."
+msgstr ""
+"{software} không còn chạy trên máy này, và máy lại tự khóa, tự ngủ như trước."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:333
+#, python-brace-format
+msgid ""
+"{software} no longer runs on this computer. You can set it up again at any "
+"time."
+msgstr ""
+"{software} không còn chạy trên máy này. Bạn có thể thiết lập lại bất cứ lúc "
+"nào."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:335
+msgid "This computer left the computer lab"
+msgstr "Máy này đã rời phòng máy"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:351
 msgid "Waiting for the password…"
 msgstr "Đang chờ bạn nhập mật khẩu…"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:191
-msgid "Installing the software (it may take a few minutes)…"
-msgstr "Đang cài phần mềm (có thể mất vài phút)…"
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:354
+msgid "Installing the software. It may take a few minutes."
+msgstr "Đang cài phần mềm. Có thể mất vài phút."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:192
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:355
 msgid "Updating the list of software…"
 msgstr "Đang cập nhật danh sách phần mềm…"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:193
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:356
 msgid "Setting up…"
 msgstr "Đang thiết lập…"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:232
-msgid "Cancelled: the password window was closed."
-msgstr "Đã hủy: cửa sổ nhập mật khẩu đã bị đóng."
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:400
+msgid "Cancelled"
+msgstr "Đã hủy"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:234
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:401
+msgid "The password window was closed, so nothing was changed."
+msgstr "Cửa sổ nhập mật khẩu đã bị đóng nên chưa có gì thay đổi."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:406
+msgid "The setup did not finish"
+msgstr "Chưa thiết lập xong"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:407
 msgid "Something went wrong. The details below say what."
 msgstr "Có lỗi xảy ra. Xem phần Chi tiết bên dưới."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:246
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:420
+msgid "The students' computers find this computer by the room's name."
+msgstr "Máy học sinh tìm máy này theo tên phòng."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:422
 msgid "Room name"
 msgstr "Tên phòng"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:249
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:428
 msgid "Software"
 msgstr "Phần mềm"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:253
-msgid "Veyon (recommended)"
-msgstr "Veyon (nên dùng)"
-
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:254
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:434
 msgid ""
 "See and control the students' screens, show the teacher's screen, lock "
-"screens, send files, turn computers off. Works with Veyon on Windows too."
+"screens, send files, turn computers off. Works with Veyon on Windows too. "
+"Recommended for most labs."
 msgstr ""
 "Xem và điều khiển màn hình học sinh, chiếu màn hình giáo viên, khóa màn "
-"hình, gửi tệp, tắt máy. Dùng chung được với Veyon trên Windows."
+"hình, gửi tệp, tắt máy. Dùng chung được với Veyon trên Windows. Nên dùng cho "
+"hầu hết các phòng máy."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:256
-msgid "Epoptes (lighter)"
-msgstr "Epoptes (nhẹ hơn)"
-
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:257
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:437
 msgid ""
-"For computers with 2 GB of memory. The students' computers connect to the "
-"teacher's by themselves."
-msgstr "Cho máy có 2 GB RAM. Máy học sinh tự kết nối về máy giáo viên."
+"Lighter, for computers with 2 GB of memory. The students' computers connect "
+"to the teacher's by themselves."
+msgstr ""
+"Nhẹ hơn, cho máy có 2 GB RAM. Máy học sinh tự kết nối về máy giáo viên."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:265
-msgid "Set up this computer"
-msgstr "Thiết lập máy này"
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:445
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:609
+msgid "Setting up takes a few minutes and needs the administrator's password."
+msgstr "Thiết lập mất vài phút và cần mật khẩu quản trị của máy."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:271
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:450
 msgid "Use letters, digits, spaces or dashes for the room name (up to 40)."
 msgstr "Tên phòng chỉ gồm chữ, số, dấu cách hoặc gạch ngang (tối đa 40 ký tự)."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:275
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:456
 msgid "Setting up the teacher's computer"
 msgstr "Đang thiết lập máy giáo viên"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:285
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:460
+msgid "Set up this computer"
+msgstr "Thiết lập máy này"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:472
 msgid "The teacher's key is missing: set this computer up again."
 msgstr "Thiếu khóa của máy giáo viên: hãy thiết lập lại máy này."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:288
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:413
-msgid "Pairing code"
-msgstr "Mã ghép nối"
-
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:293
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:476
 #, python-brace-format
 msgid ""
-"On each student's computer open Computer Lab > Student's computer, choose "
-"“{room}” (teacher's computer {name}, {address}) and type this code."
+"On each student's computer open Computer Lab, choose Student's computer, "
+"then “{room}”, and type this code."
 msgstr ""
-"Trên từng máy học sinh, mở Phòng máy > Máy học sinh, chọn “{room}” (máy giáo "
-"viên {name}, {address}) rồi gõ mã này."
+"Trên từng máy học sinh, mở Phòng máy, chọn Máy học sinh, chọn tiếp “{room}” "
+"rồi gõ mã này."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:296
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:481
+#, python-brace-format
+msgid "This computer is {name}, at {address}."
+msgstr "Máy này là {name}, địa chỉ {address}."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:483
 msgid "Paired computers"
 msgstr "Máy đã ghép nối"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:298
-msgid "None yet. Keep this page open while you pair."
-msgstr "Chưa có máy nào. Giữ trang này mở trong lúc ghép nối."
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:486
+msgid "No computer yet."
+msgstr "Chưa có máy nào."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:319
-msgid "added to the room"
-msgstr "đã vào phòng"
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:489
+msgid "Keep this page open while the students pair."
+msgstr "Giữ trang này mở trong lúc các máy học sinh ghép nối."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:319
-msgid "adding…"
-msgstr "đang thêm…"
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:506
+#, python-brace-format
+msgid "{count} computer paired."
+msgid_plural "{count} computers paired."
+msgstr[0] "Đã ghép nối {count} máy."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:355
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:543
 #, python-brace-format
 msgid "Pairing cannot start: {error}"
 msgstr "Không bắt đầu ghép nối được: {error}"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:377
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:564
 msgid "Looking for the teacher's computer on the network…"
 msgstr "Đang tìm máy giáo viên trong mạng…"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:383
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:576
+msgid "No teacher's computer found"
+msgstr "Chưa thấy máy giáo viên"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:577
+msgid ""
+"On the teacher's computer open Computer Lab and keep its pairing page open. "
+"All the computers must be on the same network."
+msgstr ""
+"Trên máy giáo viên, mở Phòng máy và giữ trang ghép nối mở. Các máy phải cùng "
+"một mạng."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:579
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:590
 msgid "Search again"
 msgstr "Tìm lại"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:394
-msgid ""
-"No teacher's computer found. On the teacher's computer open Computer Lab and "
-"keep its pairing page open, then search again."
-msgstr ""
-"Chưa tìm thấy máy giáo viên. Trên máy giáo viên, mở Phòng máy và giữ trang "
-"ghép nối mở, rồi tìm lại."
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:583
+msgid "Choose your room"
+msgstr "Chọn phòng của bạn"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:397
-msgid "Choose the teacher's computer of your room:"
-msgstr "Chọn máy giáo viên của phòng bạn:"
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:584
+msgid "These teachers' computers have their pairing page open."
+msgstr "Đây là các máy giáo viên đang mở trang ghép nối."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:410
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:589
+msgid "Not in the list? Open the pairing page on the teacher's computer."
+msgstr "Không thấy phòng của bạn? Mở trang ghép nối trên máy giáo viên."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:599
 #, python-brace-format
 msgid "Pair with “{room}”"
 msgstr "Ghép nối với “{room}”"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:411
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:600
 msgid "Type the 6-digit code shown on the teacher's computer."
 msgstr "Gõ mã 6 chữ số đang hiện trên máy giáo viên."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:419
-msgid "Pair"
-msgstr "Ghép nối"
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:602
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:653
+msgid "Pairing code"
+msgstr "Mã ghép nối"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:428
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:622
 msgid "The code does not match. Check the code on the teacher's computer."
 msgstr "Mã không khớp. Xem lại mã trên máy giáo viên."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:436
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:630
 msgid "Setting up the student's computer"
 msgstr "Đang thiết lập máy học sinh"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:442
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:636
 msgid "The code has 6 digits."
 msgstr "Mã gồm 6 chữ số."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:451
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:644
 msgid ""
 "The teacher's computer does not answer. Keep its pairing page open and try "
 "again."
@@ -3097,17 +3252,29 @@ msgstr ""
 "Máy giáo viên không trả lời. Giữ trang ghép nối trên máy giáo viên mở rồi "
 "thử lại."
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:477
-#, python-brace-format
-msgid "This computer is in “{room}”."
-msgstr "Máy này đã vào “{room}”."
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:651
+msgid "Pair"
+msgstr "Ghép nối"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:479
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:672
 #, python-brace-format
-msgid "The teacher can see it now in {software}."
-msgstr "Giáo viên đã thấy máy này trong {software}."
+msgid "This computer is in “{room}”"
+msgstr "Máy này đã vào “{room}”"
 
-#: usr/share/caramos-ota/lab/caramos_lab/app.py:482
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:674
+#, python-brace-format
+msgid ""
+"The teacher can see it now in {software}. While it is in the lab, it does "
+"not lock, sleep or turn its screen off by itself."
+msgstr ""
+"Giáo viên đã thấy máy này trong {software}. Khi còn trong phòng máy, máy "
+"không tự khóa, không tự ngủ và không tự tắt màn hình."
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:678
+msgid "Not in the room's list yet"
+msgstr "Chưa có trong danh sách của phòng"
+
+#: usr/share/caramos-ota/lab/caramos_lab/app.py:679
 msgid ""
 "The teacher's computer did not add it to the room's list: keep the pairing "
 "page open on the teacher's computer and pair again."
@@ -3468,7 +3635,7 @@ msgid "Fonts you installed"
 msgstr "Phông chữ bạn đã cài"
 
 #: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:61
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:354
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:382
 msgid "Working out the size…"
 msgstr "Đang tính dung lượng…"
 
@@ -3510,15 +3677,33 @@ msgstr "{amount}. Máy chưa có pst-utils nên tệp .pst được chép nguyê
 msgid "{amount}. Microsoft's own fonts are left out."
 msgstr "{amount}. Bỏ qua phông chữ của Microsoft."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:117
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:184
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:201
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:649
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:664
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:83
+msgid ""
+"BitLocker, the disk encryption of Windows, locks this disk: CaramOS cannot "
+"read it. Start Windows, turn off BitLocker for this disk (Settings > Privacy "
+"& security > Device encryption, or Control Panel > BitLocker Drive "
+"Encryption > Turn off BitLocker) and wait until Windows says the disk is "
+"decrypted. Then start CaramOS and open this window again.\n"
+"\n"
+"Or copy your files to a USB disk from Windows, and choose “A folder” here."
+msgstr ""
+"BitLocker, tính năng mã hoá ổ đĩa của Windows, đang khoá ổ này nên CaramOS "
+"không đọc được. Hãy khởi động Windows, tắt BitLocker cho ổ này (Cài đặt > "
+"Quyền riêng tư & bảo mật > Mã hóa thiết bị, hoặc Pa-nen Điều khiển > Mã hóa "
+"Ổ đĩa BitLocker > Tắt BitLocker) rồi đợi đến khi Windows báo đã giải mã "
+"xong. Sau đó khởi động CaramOS và mở lại cửa sổ này.\n"
+"\n"
+"Hoặc chép tệp sang ổ USB ngay trong Windows, rồi chọn “Một thư mục” ở đây."
+
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:127
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:194
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:217
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:677
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:692
 msgid "Windows Data Transfer"
 msgstr "Chuyển dữ liệu từ Windows"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:185
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:195
 msgid ""
 "Copy documents, pictures, browser bookmarks, Outlook mail and fonts from "
 "your old Windows computer to this one. Nothing on the Windows side is "
@@ -3527,37 +3712,49 @@ msgstr ""
 "Chép tài liệu, ảnh, dấu trang trình duyệt, thư Outlook và phông chữ từ máy "
 "Windows cũ sang máy này. Máy Windows không bị thay đổi gì."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:189
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:199
 msgid "Where is the data?"
 msgstr "Dữ liệu ở đâu?"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:192
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:203
+#, python-brace-format
+msgid ""
+"On this computer, {size}. Locked with BitLocker: Windows has to unlock it "
+"first."
+msgstr ""
+"Trên máy này, {size}. BitLocker đang khoá ổ: cần mở khoá trong Windows trước."
+
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:208
 #, python-brace-format
 msgid "On this computer, {size}. Read only: nothing is written to it."
 msgstr "Trên máy này, {size}. Chỉ đọc, không ghi gì vào ổ."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:195
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:211
 msgid "A folder"
 msgstr "Một thư mục"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:195
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:211
 msgid "The old computer's disk on a USB adapter, or a folder copied from it."
 msgstr "Ổ cứng của máy cũ cắm qua USB, hay thư mục đã chép ra từ máy cũ."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:197
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:259
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:213
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:287
 msgid "A shared folder on the network"
 msgstr "Thư mục chia sẻ trên mạng"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:197
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:213
 msgid "The C:\\Users folder of the old computer, shared on the office network."
 msgstr "Thư mục C:\\Users của máy cũ, chia sẻ qua mạng nội bộ."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:204
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:223
+msgid "This Windows disk is locked"
+msgstr "Ổ Windows này đang bị khoá"
+
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:232
 msgid "Opening the Windows disk…"
 msgstr "Đang mở ổ Windows…"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:235
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:263
 msgid ""
 "No Windows account was found there. Choose the disk of the old computer, its "
 "Users folder or an account's folder."
@@ -3565,11 +3762,11 @@ msgstr ""
 "Không thấy tài khoản Windows nào ở đó. Hãy chọn ổ đĩa của máy cũ, thư mục "
 "Users của nó hay thư mục của một tài khoản."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:245
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:273
 msgid "Choose the old computer's disk or folder"
 msgstr "Chọn ổ đĩa hay thư mục của máy cũ"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:260
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:288
 msgid ""
 "On the old Windows computer, right-click the folder C:\\Users, choose "
 "Properties, Sharing, Share…, and note the computer's name. Both computers "
@@ -3578,63 +3775,63 @@ msgstr ""
 "Trên máy Windows cũ, bấm chuột phải vào thư mục C:\\Users, chọn Thuộc tính, "
 "Chia sẻ, Chia sẻ…, rồi ghi lại tên máy. Hai máy phải cùng một mạng."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:264
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:292
 msgid "Address, such as \\\\OLD-PC\\Users"
 msgstr "Địa chỉ, ví dụ \\\\MAY-CU\\Users"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:269
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:297
 msgid "Connect"
 msgstr "Kết nối"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:275
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:303
 msgid ""
 "Type the computer's name and the shared folder, such as \\\\OLD-PC\\Users."
 msgstr "Gõ tên máy và thư mục chia sẻ, ví dụ \\\\MAY-CU\\Users."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:282
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:310
 msgid "A password window may ask for the Windows account."
 msgstr "Có thể có cửa sổ hỏi tài khoản Windows của máy cũ."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:283
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:311
 msgid "Shared folder"
 msgstr "Thư mục chia sẻ"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:296
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:324
 #, python-brace-format
 msgid "The shared folder could not be opened: {error}"
 msgstr "Không mở được thư mục chia sẻ: {error}"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:301
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:329
 msgid "The shared folder could not be opened."
 msgstr "Không mở được thư mục chia sẻ."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:311
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:339
 msgid "Choose the Windows account"
 msgstr "Chọn tài khoản Windows"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:312
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:340
 msgid "Each person who used the old computer has an account of their own."
 msgstr "Mỗi người dùng máy cũ có một tài khoản riêng."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:316
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:344
 #, python-brace-format
 msgid "Last used on {date}."
 msgstr "Dùng lần cuối ngày {date}."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:318
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:346
 #, python-brace-format
 msgid "Folders: {folders}."
 msgstr "Có các thư mục: {folders}."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:322
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:350
 msgid "Account"
 msgstr "Tài khoản"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:334
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:362
 msgid "Choose what to copy"
 msgstr "Chọn những gì cần chép"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:335
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:363
 #, python-brace-format
 msgid ""
 "From the account “{name}”. Files that are here already stay; a copy with the "
@@ -3643,95 +3840,95 @@ msgstr ""
 "Từ tài khoản “{name}”. Tệp đã có trên máy này giữ nguyên; tệp trùng tên được "
 "chép với “(2)” trong tên."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:359
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:387
 msgid "What to copy"
 msgstr "Cần chép"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:394
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:422
 msgid "This folder is empty."
 msgstr "Thư mục này trống."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:413
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:441
 #, python-brace-format
 msgid "Copied with {folder}: the folder “Zalo Received Files” is in it."
 msgstr "Được chép cùng {folder}: thư mục “Zalo Received Files” nằm trong đó."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:420
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:448
 msgid "Choose at least one thing to copy."
 msgstr "Chọn ít nhất một mục để chép."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:423
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:451
 #, python-brace-format
 msgid ""
 "Not enough free space: this needs {needed}, the computer has {free} free."
 msgstr "Không đủ chỗ trống: cần {needed}, máy còn trống {free}."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:428
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:456
 #, python-brace-format
 msgid "About {needed} to copy; {free} free on this computer."
 msgstr "Cần chép khoảng {needed}; máy còn trống {free}."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:449
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:477
 msgid "How do you type Vietnamese?"
 msgstr "Bạn quen gõ tiếng Việt kiểu nào?"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:450
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:478
 msgid ""
 "This computer will type the way you did on Windows with Unikey or EVKey."
 msgstr "Máy này sẽ gõ giống như bạn đã gõ bằng Unikey hay EVKey trên Windows."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:453
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:481
 msgid ""
 "aa gives â, dd gives đ, s adds the acute accent: “Vieejt Nam” becomes “Việt "
 "Nam”."
 msgstr "aa ra â, dd ra đ, s thêm dấu sắc: gõ “Vieejt Nam” ra “Việt Nam”."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:455
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:483
 msgid ""
 "a6 gives â, d9 gives đ, 1 adds the acute accent: “Vie65t Nam” becomes “Việt "
 "Nam”."
 msgstr "a6 ra â, d9 ra đ, 1 thêm dấu sắc: gõ “Vie65t Nam” ra “Việt Nam”."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:467
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:495
 msgid "Start copying"
 msgstr "Bắt đầu chép"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:470
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:498
 msgid "The typing method can be changed later in the input method's settings."
 msgstr "Có thể đổi kiểu gõ sau trong cài đặt bộ gõ."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:471
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:542
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:499
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:570
 msgid "Typing"
 msgstr "Kiểu gõ"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:480
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:508
 msgid "Copying…"
 msgstr "Đang chép…"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:489
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:621
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:517
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:649
 msgid "Stop"
 msgstr "Dừng"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:491
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:519
 msgid "Do not turn a computer off or unplug a disk until it finishes."
 msgstr "Đừng tắt máy hay rút ổ đĩa cho tới khi chép xong."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:492
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:520
 msgid "Copying"
 msgstr "Đang chép"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:517
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:545
 #, python-brace-format
 msgid "{done} of {total} copied"
 msgstr "Đã chép {done} trong {total}"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:526
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:554
 msgid "Copying stopped"
 msgstr "Đã dừng chép"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:527
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:555
 msgid ""
 "What was copied before you stopped is kept. Nothing on the Windows side was "
 "changed."
@@ -3739,39 +3936,39 @@ msgstr ""
 "Những gì đã chép trước khi dừng được giữ lại. Máy Windows không bị thay đổi "
 "gì."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:530
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:558
 msgid "Everything is copied"
 msgstr "Đã chép xong"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:531
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:559
 msgid "Nothing on the Windows side was changed."
 msgstr "Máy Windows không bị thay đổi gì."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:543
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:571
 #, python-brace-format
 msgid "{method}. Press Ctrl+Shift to switch between Vietnamese and English."
 msgstr "{method}. Bấm Ctrl+Shift để chuyển giữa tiếng Việt và tiếng Anh."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:546
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:574
 #, python-brace-format
 msgid "{count} file could not be copied"
 msgid_plural "{count} files could not be copied"
 msgstr[0] "{count} tệp không chép được"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:548
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:576
 msgid "They cannot be read, often because they are only on OneDrive."
 msgstr "Không đọc được các tệp này, thường vì chúng chỉ nằm trên OneDrive."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:556
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:584
 msgid "Open Documents"
 msgstr "Mở Tài liệu"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:575
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:603
 #, python-brace-format
 msgid "{files}, {size}, in the folder {folder}."
 msgstr "{files}, {size}, trong thư mục {folder}."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:578
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:606
 #, python-brace-format
 msgid ""
 "{count} bookmark in the file “{file}” in Documents. In Firefox, press "
@@ -3783,7 +3980,7 @@ msgstr[0] ""
 "{count} dấu trang trong tệp “{file}” ở Tài liệu. Trong Firefox, bấm "
 "Ctrl+Shift+O, chọn Nhập và sao lưu, rồi Nhập dấu trang từ HTML."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:585
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:613
 #, python-brace-format
 msgid ""
 "The .pst files are in the folder “{folder}” in Documents. Install pst-utils "
@@ -3792,7 +3989,7 @@ msgstr ""
 "Tệp .pst nằm trong thư mục “{folder}” ở Tài liệu. Cài pst-utils để chuyển "
 "thành thư cho Thunderbird."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:588
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:616
 #, python-brace-format
 msgid ""
 "Mail files (.mbox) in the folder “{folder}” in Documents. To read them in "
@@ -3803,58 +4000,58 @@ msgstr ""
 "(có trong App Center), cài tiện ích ImportExportTools NG rồi nhập các tệp ."
 "mbox."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:593
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:621
 #, python-brace-format
 msgid "{count} font installed for your account."
 msgid_plural "{count} fonts installed for your account."
 msgstr[0] "Đã cài {count} phông chữ cho tài khoản của bạn."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:597
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:625
 msgid "These fonts were on this computer already."
 msgstr "Các phông chữ này đã có trên máy."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:599
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:627
 #, python-brace-format
 msgid "{count} font of Microsoft left out."
 msgid_plural "{count} fonts of Microsoft left out."
 msgstr[0] "Bỏ qua {count} phông chữ của Microsoft."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:605
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:633
 msgid "Stopped here."
 msgstr "Dừng tại đây."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:618
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:646
 msgid "Stop copying?"
 msgstr "Dừng chép?"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:619
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:647
 msgid "What is copied so far is kept."
 msgstr "Những gì đã chép được giữ lại."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:620
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/app.py:648
 msgid "Keep copying"
 msgstr "Chép tiếp"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:40
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:48
 #, python-brace-format
 msgid "Windows disk “{label}”"
 msgstr "Ổ Windows “{label}”"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:41
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:49
 #, python-brace-format
 msgid "Windows disk {device}"
 msgstr "Ổ Windows {device}"
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:88
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:97
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:102
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:111
 msgid "The Windows disk could not be opened."
 msgstr "Không mở được ổ Windows."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:93
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:107
 msgid "The Windows disk was not opened: the password was not entered."
 msgstr "Chưa mở ổ Windows: chưa nhập mật khẩu."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:95
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:109
 msgid ""
 "Windows did not shut down fully (Fast Startup or hibernation). Start "
 "Windows, choose Shut down while holding Shift, then try again."
@@ -3862,7 +4059,7 @@ msgstr ""
 "Windows chưa tắt hẳn (Khởi động nhanh hay Ngủ đông). Hãy bật Windows, giữ "
 "phím Shift trong khi chọn Tắt máy, rồi thử lại."
 
-#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:208
+#: usr/share/caramos-ota/windows-transfer/caramos_transfer/sources.py:222
 msgid "This folder cannot be read."
 msgstr "Không đọc được thư mục này."
 
@@ -3894,6 +4091,9 @@ msgstr "Xem máy còn thiếu driver nào"
 #, javascript-format
 msgid "See all %d requests"
 msgstr "Xem tất cả %d yêu cầu"
+
+#~ msgid "Attach the Driver Check results"
+#~ msgstr "Kèm kết quả Kiểm tra driver"
 
 #~ msgid "Get help"
 #~ msgstr "Nhờ hỗ trợ"

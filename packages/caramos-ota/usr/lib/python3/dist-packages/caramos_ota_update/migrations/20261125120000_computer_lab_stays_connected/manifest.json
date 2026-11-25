@@ -1,0 +1,27 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Phòng máy (dưới 1 MB)",
+  "size_en": "Computer Lab (under 1 MB)",
+  "title": "Phòng máy: máy học sinh luôn hiện trong Veyon",
+  "summary": "Máy học sinh không còn tự khóa hay tự ngủ khi để yên, và Veyon tự chạy lại khi bị tắt, nên Veyon Master không còn hiện màn hình màu cam thay cho máy học sinh.",
+  "title_en": "Computer Lab: students' computers stay in Veyon",
+  "summary_en": "Students' computers no longer lock or sleep when left alone, and Veyon starts again by itself when it stops, so Veyon Master no longer shows an orange screen instead of a student's computer.",
+  "release_notes_vi": [
+    "Trước đây, máy học sinh để yên một lúc thì tự khóa màn hình. Veyon Master trên máy giáo viên có lúc chỉ hiện một màn hình màu cam thay cho màn hình của máy đó, cho đến khi khởi động lại máy. Khóa màn hình và chiếu màn hình giáo viên cũng không tới được máy đang khóa, và học sinh cần mật khẩu mới vào lại được.",
+    "Giờ, khi còn trong phòng máy, máy học sinh không tự khóa, không tự tắt màn hình và không tự ngủ nữa. Khi máy rời phòng máy, các thiết lập này trở lại như trước.",
+    "Trên máy giáo viên và máy học sinh, Veyon ngừng chạy thì tự chạy lại sau khoảng nửa phút, không cần khởi động lại máy.",
+    "Máy đã rời phòng máy bằng Phòng máy của các bản trước không còn tự chạy Veyon mỗi lần khởi động.",
+    "Chỉ máy đã thiết lập bằng Phòng máy mới thay đổi."
+  ],
+  "release_notes_en": [
+    "Before, a student's computer left alone for a while locked its screen. Veyon Master on the teacher's computer then sometimes showed only an orange screen instead of that computer's screen, until the computer restarted. Locking screens and showing the teacher's screen did not reach a locked computer either, and students needed the password to get back.",
+    "Now, while it is in the lab, a student's computer no longer locks, turns its screen off or sleeps by itself. When the computer leaves the lab, these settings go back to how they were.",
+    "On the teacher's and the students' computers, Veyon starts again by itself about half a minute after it stopped, without restarting the computer.",
+    "A computer that left the lab with an earlier Computer Lab no longer starts Veyon at every boot.",
+    "Only computers set up with Computer Lab change."
+  ]
+}

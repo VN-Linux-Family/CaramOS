@@ -91,15 +91,25 @@ def _json_length(value: Any) -> int:
     return length(json.dumps(value, ensure_ascii=False, separators=(",", ":")))
 
 
+# Logs whose start matters most (the computer's model, devices and settings): cut last, and from their end.
+CUT_LAST = ("computer.log",)
+
+
 def _with_logs(report: dict[str, Any] | None, logs: Mapping[str, str]) -> dict[str, Any]:
-    """report with "logs", their beginnings cut until the whole report fits the API's limit."""
+    """report with "logs", cut until the whole report fits the API's limit: the beginnings of the longest logs first,
+    where their oldest lines are, and the end of computer.log only when the others are gone."""
 
     texts = dict(logs)
     base = dict(report or {})
     while texts and _json_length({**base, "logs": texts}) > MAX_REPORT:
-        name = max(texts, key=lambda key: len(texts[key]))
+        others = [key for key in texts if key not in CUT_LAST and len(texts[key]) >= 512]
+        name = max(others or texts, key=lambda key: len(texts[key]))
         if len(texts[name]) < 512:
             texts.pop(name)
+            continue
+        if name in CUT_LAST:
+            kept = texts[name][:len(texts[name]) * 3 // 4]
+            texts[name] = (kept[:kept.rfind("\n")] if "\n" in kept else kept) + "\n…"
             continue
         cut = texts[name][len(texts[name]) // 4:]
         texts[name] = "…" + cut[cut.find("\n") + 1:] if "\n" in cut else "…" + cut

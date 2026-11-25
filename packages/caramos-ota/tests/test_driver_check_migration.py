@@ -25,7 +25,7 @@ class DriverCheckMigrationTests(unittest.TestCase):
                 mock.patch.object(context, "run_command") as run:
             migration.run(context)
         run.assert_called_once_with(["apt-get", "-o", "Dpkg::Options::=--force-confdef",
-                                     "-o", "Dpkg::Options::=--force-confold", "install", "--yes",
+                                     "-o", "Dpkg::Options::=--force-confold", "-o", "DPkg::Lock::Timeout=120", "install", "--yes",
                                      "--no-install-recommends", "--", "hw-probe"], env=mock.ANY)
 
     def test_nothing_to_do_when_hw_probe_is_installed(self) -> None:
@@ -58,7 +58,7 @@ class DriverCheckMigrationTests(unittest.TestCase):
         with mock.patch.object(context, "run_command") as run:
             context.apt_install(["earlyoom"])
         run.assert_called_once_with(["apt-get", "-o", "Dpkg::Options::=--force-confdef",
-                                     "-o", "Dpkg::Options::=--force-confold", "install", "--yes", "--",
+                                     "-o", "Dpkg::Options::=--force-confold", "-o", "DPkg::Lock::Timeout=120", "install", "--yes", "--",
                                      "earlyoom"], env=mock.ANY)
         env = run.call_args.kwargs["env"]
         self.assertEqual(("noninteractive", "1"), (env["DEBIAN_FRONTEND"], env["UCF_FORCE_CONFFOLD"]))

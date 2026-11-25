@@ -5,13 +5,17 @@
 - system.log, made when the form opens: CaramOS and kernel, live USB or not, CPU, memory and swap, the boot
   options, how the computer starts (UEFI entries, Secure Boot) and its disks, and the warnings and errors of
   this boot (and the end of the previous one, after a freeze and a restart).
+- computer.log, made with it: the edition, the computer's model and board, its PCI and USB devices with their
+  drivers, the print queues, how the screen locks and the computer sleeps, automatic login, the login keyring, and
+  the logins and sleeps of this boot and the one before (computer.py).
 - driver-check.log: what each Driver Check scan did and how long it took (note()).
 - printer.log, when the computer has a USB printer or a print queue: the printers, their queues and jobs, and
   the end of CUPS's error_log (printers.py).
 - driver-install.log: what the helper printed when a driver install failed, when the failure page asks for help.
 
-The form attaches them, ticked, to the request's report, which only VNLF's moderators see, never the community
-(HELP_API.md, "Logs"). A log keeps its last lines up to LOG_LIMIT, after e-mail and IP addresses, MAC
+The form attaches them to the request's report, which only VNLF's moderators see, never the community (HELP_API.md,
+"Logs"): the logs about the computer (COMPUTER_LOGS) with the box "Send this computer's details", an app's log with a
+box of its own; both are ticked. A log keeps its last lines up to LOG_LIMIT, after e-mail and IP addresses, MAC
 addresses, passwords and tokens, the home folder, the computer's name and the user's login name are taken out.
 """
 
@@ -53,6 +57,10 @@ EFI_FILE = re.compile(r"File\(([^)]*)\)")
 SERIAL_LIKE = re.compile(r"\b(?=[\w-]*\d)(?=[\w-]*[A-Za-z])[\w-]{8,}\b")
 # The mount points the log names; another one (a USB stick, a data partition) shows as "mounted".
 SYSTEM_MOUNTS = frozenset({"/", "/boot", "/boot/efi", "/home", "/var", "/usr", "[SWAP]", "/cdrom", "/isodevice"})
+
+
+# The logs about this computer, which go with "Send this computer's details"; any other log is an app's.
+COMPUTER_LOGS = ("computer.log", "system.log", "driver-check.log", "printer.log")
 
 
 @dataclass(frozen=True)
@@ -375,10 +383,19 @@ def system_log(root: Path = Path("/")) -> str:
 
 
 def system_logs() -> tuple[Log, ...]:
-    """What a help request carries about the computer: system.log, driver-check.log when Driver Check ran, and
-    printer.log when there is a printer."""
+    """What a help request carries about the computer: computer.log, system.log, driver-check.log when Driver Check
+    ran, and printer.log when there is a printer."""
 
-    found = [Log("system.log", system_log().strip())]
+    found = []
+    try:
+        from .computer import computer_log   # computer imports this module
+
+        computer = computer_log().strip()
+    except Exception:   # noqa: BLE001 - what cannot be read must not cost the other logs
+        computer = ""
+    if computer:
+        found.append(Log("computer.log", computer))
+    found.append(Log("system.log", system_log().strip()))
     driver_check = read_log(driver_check_log_path())
     if driver_check is not None:
         found.append(driver_check)

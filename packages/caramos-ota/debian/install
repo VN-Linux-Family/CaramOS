@@ -41,6 +41,7 @@ etc/logrotate.d/caramos-ota etc/logrotate.d/
 usr/share/themes/Cinnamon-Delight-Dark usr/share/themes/
 usr/share/cinnamon/styles.d/30_caramos.styles usr/share/cinnamon/styles.d/
 usr/share/glib-2.0/schemas/60_caramos-ota.gschema.override usr/share/glib-2.0/schemas/
+usr/share/glib-2.0/schemas/zz_caramos-ota.gschema.override usr/share/glib-2.0/schemas/
 usr/share/glib-2.0/schemas/net.vietnamlinuxfamily.caramos.control-center.gschema.xml usr/share/glib-2.0/schemas/
 usr/lib/udev/rules.d/72-caramos-canon-capt.rules usr/lib/udev/rules.d/
 usr/lib/systemd/system/caramos-canon-capt.service usr/lib/systemd/system/
@@ -62,9 +63,15 @@ usr/lib/systemd/user/caramos-templates.service usr/lib/systemd/user/
 usr/lib/systemd/user/caramos-templates.timer usr/lib/systemd/user/
 etc/X11/Xsession.d/85caramos-nemo-menu etc/X11/Xsession.d/
 etc/X11/Xsession.d/85caramos-nemo-desktop-labels etc/X11/Xsession.d/
+etc/X11/Xsession.d/96caramos-login-actions etc/X11/Xsession.d/
+usr/share/caramos-ota/login usr/share/caramos-ota/
+usr/lib/systemd/system/caramos-ota-dconf-update.service usr/lib/systemd/system/
 usr/bin/caramos-lab usr/bin/
 usr/share/caramos-ota/lab usr/share/caramos-ota/
 usr/share/applications/caramos-lab.desktop usr/share/applications/
+etc/xdg/autostart/caramos-lab-session.desktop etc/xdg/autostart/
+usr/lib/systemd/system/caramos-lab-veyon-check.service usr/lib/systemd/system/
+usr/lib/systemd/system/caramos-lab-veyon-check.timer usr/lib/systemd/system/
 usr/share/caramos-ota/xfce usr/share/caramos-ota/
 usr/share/caramos-ota/gtk usr/share/caramos-ota/
 usr/share/caramos-ota/open-document usr/share/caramos-ota/

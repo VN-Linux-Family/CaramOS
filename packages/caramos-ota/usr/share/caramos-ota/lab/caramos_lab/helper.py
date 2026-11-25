@@ -11,6 +11,10 @@ without it every key command fails with "RSA not supported". Veyon's service is 
 
 A lab computer also gets a few defaults for every user (70_caramos-lab.gschema.override): the folder tree in the
 left pane of Files, for the "cây thư mục" lessons.
+
+With Veyon, caramos-lab-veyon-check.timer starts Veyon Server again when it is gone (watchdog.py): Veyon 4.7.5 does not,
+and Veyon Master showed such computers as an orange screen until they restarted. A student's account also stops its
+desktop from locking or sleeping by itself (awake.py, run as the user by the window and at each login).
 """
 
 from __future__ import annotations
@@ -55,6 +59,7 @@ LAB_DEFAULTS = """# CaramOS Phòng máy: defaults of a lab computer, written by 
 side-pane-view='tree'
 """
 EPOPTES_DEFAULT = Path("/etc/default/epoptes-client")
+VEYON_CHECK_TIMER = "caramos-lab-veyon-check.timer"
 STATE_FILE = Path(STATE_DIR) / "state.json"
 
 
@@ -212,6 +217,7 @@ def veyon_teacher(room: str, user: str) -> bytes:
         add_computer(room, Student(name=system.hostname(), ip=ip, mac=mac), host=system.hostname())
     run(["systemctl", "enable", "--now", "veyon.service"])
     run(["systemctl", "restart", "veyon.service"], check=False, quiet=True)
+    run(["systemctl", "enable", "--now", VEYON_CHECK_TIMER], check=False, quiet=True)
     return system.VEYON_PUBLIC_KEY.read_bytes()
 
 
@@ -221,6 +227,7 @@ def veyon_student(key_file: Path) -> None:
     veyon("config", "set", "Authentication/Method", "1")
     run(["systemctl", "enable", "--now", "veyon.service"])
     run(["systemctl", "restart", "veyon.service"], check=False, quiet=True)
+    run(["systemctl", "enable", "--now", VEYON_CHECK_TIMER], check=False, quiet=True)
 
 
 # ---- Epoptes --------------------------------------------------------------------------------------------------
@@ -296,11 +303,14 @@ def leave() -> None:
     state = system.read_state(STATE_FILE)
     backend = state.get("backend")
     if backend == VEYON:
-        run(["systemctl", "disable", "--now", "veyon.service"], check=False, quiet=True)
+        run(["systemctl", "disable", "--now", VEYON_CHECK_TIMER], check=False, quiet=True)
         veyon("authkeys", "delete", f"{KEY_NAME}/public", check=False)
         if state.get("role") == TEACHER:
             veyon("authkeys", "delete", f"{KEY_NAME}/private", check=False)
         veyon("config", "set", "Authentication/Method", "0", check=False)
+        # Last: veyon-cli saving its configuration enables veyon.service again (Service/Autostart, checked in a VM),
+        # which left Veyon Server starting at every boot of a computer that had left the lab.
+        run(["systemctl", "disable", "--now", "veyon.service"], check=False, quiet=True)
     elif backend == EPOPTES:
         if state.get("role") == STUDENT:
             run(["systemctl", "disable", "--now", "epoptes-client.service"], check=False, quiet=True)

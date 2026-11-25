@@ -13,6 +13,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 
+from caramos_ota_update import deferred
 from caramos_ota_update.context import MigrationContext
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,7 +112,8 @@ class FileTests(unittest.TestCase):
 
     def test_manifest(self) -> None:
         manifest = json.loads((MIGRATION_DIR / "manifest.json").read_text(encoding="utf-8"))
-        self.assertEqual("nobody-logged-in", manifest["unattended"], "a new icon on an open desktop")
+        self.assertEqual("anytime", manifest["unattended"], "a logged-in desktop gets the icon at its next login")
+        self.assertIn("lần đăng nhập sau", manifest["release_notes_vi"][-1])
         self.assertNotIn("desktops", manifest, "both editions")
         for key in ("title", "summary", "title_en", "summary_en", "size", "size_en"):
             self.assertTrue(manifest[key].strip(), key)
@@ -163,6 +165,63 @@ class CinnamonTests(unittest.TestCase):
         self.assertEqual(["minh", "lan"], [call.args[1] for call in user.call_args_list])
 
 
+class AutomaticUpdateTests(unittest.TestCase):
+    """Cinnamon shows a changed setting at once: a logged-in account gets the Trash at its next login."""
+
+    def setUp(self) -> None:
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.root = Path(folder.name)
+        runtime = self.root / "run/user"
+        (runtime / "1000").mkdir(parents=True)
+        (runtime / "1000/bus").touch()   # minh is logged in, lan is not
+        for name, value in (("QUEUE_DIR", self.root / "login-actions"), ("RUNTIME_ROOT", runtime)):
+            patcher = mock.patch.object(deferred, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+
+    def run_cinnamon(self, unattended: bool) -> list[str]:
+        context = MigrationContext(unattended=unattended)
+        users = [("minh", 1000, Path("/home/minh")), ("lan", 1001, Path("/home/lan"))]
+        with mock.patch.object(migration, "_update_file", return_value=False), \
+                mock.patch.object(migration.help_applet, "_desktop_users", return_value=users), \
+                mock.patch.object(migration, "cinnamon_user") as user, mock.patch.object(context, "log"):
+            migration.run(context, "cinnamon")
+        return [call.args[1] for call in user.call_args_list]
+
+    def test_a_logged_in_account_waits_for_its_next_login(self) -> None:
+        self.assertEqual(["lan"], self.run_cinnamon(unattended=True))
+        queued = json.loads(deferred.queue_file(1000).read_text(encoding="utf-8"))
+        self.assertEqual("minh", queued["user"])
+        self.assertEqual([(migration.MIGRATION, "trash-icon")],
+                         [(entry["migration"], entry["action"]) for entry in queued["actions"]])
+
+    def test_the_update_center_shows_it_at_once(self) -> None:
+        self.assertEqual(["minh", "lan"], self.run_cinnamon(unattended=False))
+        self.assertFalse(deferred.queue_file(1000).exists())
+
+    def test_the_next_login_shows_it_before_nemo_desktop_starts(self) -> None:
+        commands = []
+
+        class Session(deferred.Session):
+            def run(self, args, timeout=deferred.COMMAND_TIMEOUT):  # noqa: ANN001
+                commands.append(list(args))
+                return done(0, "false\n") if args[1] == "get" else done()
+
+            def log(self, message: str) -> None:
+                self.messages.append(message)
+
+        session = Session("minh", 1000, Path("/home/minh"), "cinnamon", environ={})
+        migration.LOGIN_ACTIONS["trash-icon"](session)
+        self.assertEqual([["gsettings", "get", "org.nemo.desktop", "trash-icon-visible"],
+                          ["gsettings", "set", "org.nemo.desktop", "trash-icon-visible", "true"]], commands)
+        self.assertEqual("the Trash is on the desktop of minh", session.messages[-1])
+        commands.clear()
+        session.desktop = "xfce"   # xfdesktop takes the new default by itself
+        migration.LOGIN_ACTIONS["trash-icon"](session)
+        self.assertEqual([], commands)
+
+
 class XfceTests(unittest.TestCase):
     def setUp(self) -> None:
         folder = tempfile.TemporaryDirectory()
@@ -191,6 +250,15 @@ class XfceTests(unittest.TestCase):
                           "/desktop-icons/file-icons/show-trash", "-n", "-t", "bool", "-s", "true"], argv)
         env = run_command.call_args.kwargs["env"]
         self.assertEqual(f"unix:path={self.runtime}/1000/bus", env["DBUS_SESSION_BUS_ADDRESS"])
+
+    def test_an_automatic_update_leaves_an_open_desktop_to_the_new_default(self) -> None:
+        context = MigrationContext(unattended=True)
+        (self.runtime / "1000").mkdir(parents=True)
+        (self.runtime / "1000/bus").touch()
+        with mock.patch.object(context, "run_command") as run_command, mock.patch.object(context, "log") as log:
+            migration.xfce_user(context, "minh", 1000, self.home, runtime_root=self.runtime)
+        run_command.assert_not_called()
+        self.assertIn("from the next login", log.call_args.args[0])
 
     def test_not_logged_in_gets_the_new_default_at_the_next_login(self) -> None:
         run_command, log = self.user(USER_FILE_PLACEHOLDER, logged_in=False)

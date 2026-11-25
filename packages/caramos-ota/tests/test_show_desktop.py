@@ -15,6 +15,7 @@ import xml.etree.ElementTree as ElementTree
 from pathlib import Path
 from unittest import mock
 
+from caramos_ota_update import deferred
 from caramos_ota_update.context import MigrationContext, MigrationContextError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -113,14 +114,18 @@ class CinnamonPanelTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "01-caramos-task17-panel"
             path.write_text(f"[org/cinnamon]\nenabled-applets={ISO_1_5_0}\n", encoding="utf-8")
+            flag = Path(tmp) / "dconf-update-pending"
             context = MigrationContext()
             with mock.patch.object(context, "run_command") as run, mock.patch.object(context, "log"), \
                     mock.patch.object(migration.help_applet, "_session_bus",
-                                      return_value=Path(tmp) / "bus"):
+                                      return_value=Path(tmp) / "bus"), \
+                    mock.patch.object(deferred, "DCONF_FLAG", flag):
                 (Path(tmp) / "bus").touch()
                 migration.cinnamon_defaults(context, [("minh", 1000, Path(tmp))], path)
                 run.assert_not_called()
                 self.assertIn("cornerbar@cinnamon.org", path.read_text(encoding="utf-8"))
+                self.assertTrue(flag.is_file(), "dconf update at the next start, before anyone logs in")
+                flag.unlink()
                 (Path(tmp) / "bus").unlink()
                 path.write_text(f"[org/cinnamon]\nenabled-applets={ISO_1_5_0}\n", encoding="utf-8")
                 migration.cinnamon_defaults(context, [("minh", 1000, Path(tmp))], path)
@@ -275,11 +280,141 @@ class StripPluginTests(unittest.TestCase):
         self.assertIn("/usr/share/xfce4/panel/plugins/caramos-show-desktop.desktop", bootstrap)
 
 
+class Session(deferred.Session):
+    """A login whose commands answer from a table instead of running."""
+
+    def __init__(self, desktop: str, answer, home: Path = Path("/home/minh")) -> None:
+        super().__init__("minh", 1000, home, desktop, environ={})
+        self.answer = answer
+        self.commands: list[list[str]] = []
+
+    def run(self, args, timeout=deferred.COMMAND_TIMEOUT):  # noqa: ANN001
+        self.commands.append(list(args))
+        return self.answer(list(args))
+
+    def log(self, message: str) -> None:
+        self.messages.append(message)
+
+
+class AutomaticUpdateTests(unittest.TestCase):
+    """While someone works, their panel waits for their next login; every other account changes at once."""
+
+    def setUp(self) -> None:
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.root = Path(folder.name)
+        self.queue = self.root / "login-actions"
+        self.runtime = self.root / "run/user"
+        (self.runtime / "1000").mkdir(parents=True)
+        (self.runtime / "1000/bus").touch()   # minh is logged in, lan is not
+        for name, value in (("QUEUE_DIR", self.queue), ("RUNTIME_ROOT", self.runtime),
+                            ("DCONF_FLAG", self.root / "dconf-update-pending")):
+            patcher = mock.patch.object(deferred, name, value)
+            patcher.start()
+            self.addCleanup(patcher.stop)
+        self.users = [("minh", 1000, self.root / "minh"), ("lan", 1001, self.root / "lan")]
+
+    def run_cinnamon(self, unattended: bool) -> list[str]:
+        context = MigrationContext(unattended=unattended)
+        with mock.patch.object(migration, "CORNER_BAR_DIR", self.root), \
+                mock.patch.object(migration.help_applet, "_desktop_users", return_value=self.users), \
+                mock.patch.object(migration, "cinnamon_defaults"), \
+                mock.patch.object(migration, "cinnamon_user") as user, mock.patch.object(context, "log"):
+            (self.root / "applet.js").touch()
+            migration.run(context, "cinnamon")
+        return [call.args[1] for call in user.call_args_list]
+
+    def queued(self, uid: int = 1000) -> list[str]:
+        data = json.loads(deferred.queue_file(uid).read_text(encoding="utf-8"))
+        return [f"{entry['migration']}/{entry['action']}" for entry in data["actions"]]
+
+    def test_an_automatic_update_leaves_a_logged_in_panel_for_the_next_login(self) -> None:
+        self.assertEqual(["lan"], self.run_cinnamon(unattended=True))
+        self.assertEqual([f"{migration.MIGRATION}/corner-bar"], self.queued())
+        self.assertFalse(deferred.queue_file(1001).exists())
+
+    def test_the_update_center_changes_every_panel_at_once(self) -> None:
+        self.assertEqual(["minh", "lan"], self.run_cinnamon(unattended=False))
+        self.assertFalse(self.queue.exists())
+
+    def test_an_xfce_panel_in_use_waits_too(self) -> None:
+        home = self.root / "minh"
+        (home / ".config/xfce4/xfconf/xfce-perchannel-xml").mkdir(parents=True)
+        (home / ".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml").touch()
+        for unattended, queued in ((False, False), (True, True)):
+            with self.subTest(unattended=unattended):
+                context = MigrationContext(unattended=unattended)
+                with mock.patch.object(context, "run_command",
+                                       return_value=subprocess.CompletedProcess([], 1, "", "")) as run, \
+                        mock.patch.object(context, "log"):
+                    migration.xfce_user(context, "minh", 1000, home, runtime_root=self.runtime)
+                self.assertEqual(queued, run.call_count == 0, "no xfconf-query on the open panel")
+                self.assertEqual(queued, deferred.queue_file(1000).exists())
+
+
+class NextLoginTests(unittest.TestCase):
+    """What a logged-in user's next login runs, before the desktop starts: gsettings and xfconf-query as the user."""
+
+    def test_the_corner_bar_goes_on_the_cinnamon_panel(self) -> None:
+        def answer(args):  # noqa: ANN001
+            return subprocess.CompletedProcess(args, 0, INSTALLED + "\n" if args[1] == "get" else "", "")
+
+        session = Session("cinnamon", answer)
+        migration.LOGIN_ACTIONS["corner-bar"](session)
+        self.assertEqual(["gsettings", "get", "org.cinnamon", "enabled-applets"], session.commands[0])
+        self.assertEqual(["gsettings", "set", "org.cinnamon", "enabled-applets", migration.add_corner_bar(INSTALLED)],
+                         session.commands[1])
+        self.assertEqual(2, len(session.commands), "no applet to reload: Cinnamon has not started yet")
+
+    def test_a_panel_that_has_it_already_stays(self) -> None:
+        done = migration.add_corner_bar(INSTALLED)
+        session = Session("cinnamon", lambda args: subprocess.CompletedProcess(args, 0, done + "\n", ""))
+        migration.LOGIN_ACTIONS["corner-bar"](session)
+        self.assertEqual(1, len(session.commands))
+
+    def test_the_xfce_strip_goes_through_the_sessions_xfconfd(self) -> None:
+        layout = XfcePanelTests.LAYOUT[2]
+        listing = "\n".join(f"/plugins/plugin-{n}   {name}" for n, name in layout.items())
+        arrays = {"/panels": [1, 2, 3], "/panels/panel-1/plugin-ids": [1], "/panels/panel-2/plugin-ids": [2],
+                  "/panels/panel-3/plugin-ids": [3, 5, 6]}
+
+        def answer(args):  # noqa: ANN001
+            if args[-2:] == ["-l", "-v"]:
+                return subprocess.CompletedProcess(args, 0, listing, "")
+            if args[-2] == "-p" and args[-1] in arrays:
+                values = arrays[args[-1]]
+                text = f"Value is an array with {len(values)} items:\n\n" + "".join(f"{v}\n" for v in values)
+                return subprocess.CompletedProcess(args, 0, text, "")
+            return subprocess.CompletedProcess(args, 0, "", "")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            (home / ".config/xfce4/xfconf/xfce-perchannel-xml").mkdir(parents=True)
+            (home / ".config/xfce4/xfconf/xfce-perchannel-xml/xfce4-panel.xml").touch()
+            session = Session("xfce", answer, home)
+            migration.LOGIN_ACTIONS["xfce-strip"](session)
+        writes = [command for command in session.commands if "-s" in command]
+        self.assertEqual(["xfconf-query", "-c", "xfce4-panel", "-p", "/plugins/plugin-15", "-n", "-t", "string", "-s",
+                          "caramos-show-desktop"], writes[0])
+        self.assertEqual("/panels/panel-3/plugin-ids", writes[1][4])
+        self.assertTrue(all(command[0] == "xfconf-query" for command in session.commands), "as the user: no runuser")
+        self.assertIn("Show desktop ends the taskbar of minh", session.messages[-1])
+
+    def test_each_step_only_on_its_desktop(self) -> None:
+        session = Session("xfce", lambda args: subprocess.CompletedProcess(args, 0, "", ""))
+        migration.LOGIN_ACTIONS["corner-bar"](session)
+        session.desktop = "cinnamon"
+        migration.LOGIN_ACTIONS["xfce-strip"](session)
+        self.assertEqual([], session.commands)
+
+
 class ManifestTests(unittest.TestCase):
     def test_manifest(self) -> None:
         manifest = json.loads((Path(migration.__file__).parent / "manifest.json").read_text(encoding="utf-8"))
         self.assertNotIn("desktops", manifest, "both editions")
-        self.assertEqual("nobody-logged-in", manifest["unattended"], "Cinnamon's panel changes at once")
+        self.assertEqual("anytime", manifest["unattended"],
+                         "an automatic update leaves a logged-in user's panel for their next login")
+        self.assertIn("lần đăng nhập sau", manifest["release_notes_vi"][-1])
         self.assertEqual(len(manifest["release_notes_vi"]), len(manifest["release_notes_en"]))
 
 

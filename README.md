@@ -13,14 +13,14 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.5.1"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t&color=F59F22" alt="Bản mới nhất"></a>
+  <a href="https://github.com/VN-Linux-Family/CaramOS/releases/tag/v1.5.2"><img src="https://img.shields.io/github/v/release/VN-Linux-Family/CaramOS?style=for-the-badge&label=b%E1%BA%A3n%20m%E1%BB%9Bi%20nh%E1%BA%A5t&color=F59F22" alt="Bản mới nhất"></a>
   <img src="https://img.shields.io/badge/Linux%20Mint-22.3%20Cinnamon-87CF3E?style=for-the-badge&logo=linuxmint&logoColor=white" alt="Linux Mint 22.3 Cinnamon">
   <img src="https://img.shields.io/badge/Ubuntu-24.04%20LTS-E95420?style=for-the-badge&logo=ubuntu&logoColor=white" alt="Ubuntu 24.04 LTS">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-GPL--3.0-2F7048?style=for-the-badge" alt="GPL-3.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github"><strong>Tải CaramOS 1.5.1</strong></a> ·
+  <a href="https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github"><strong>Tải CaramOS 1.5.2</strong></a> ·
   <a href="https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github">Bản Xfce</a> ·
   <a href="https://caramos.vietnamlinuxfamily.net">Website</a> ·
   <a href="README_EN.md">English</a> ·
@@ -45,15 +45,15 @@ Windows chuyển sang mà không phải mày mò, có sẵn tiếng Việt, bộ
 khác chỉ cần vài cú bấm. Từ 1.4.0 có thêm **bản Xfce**, nhẹ hơn, cho máy 2 GB và phòng máy ở trường học.
 
 > [!IMPORTANT]
-> **CaramOS 1.5.1 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
+> **CaramOS 1.5.2 là bản mới nhất** của dòng phát hành chính thức (Official Release) bắt đầu từ 1.3.0,
 > sau chuỗi bản Open Beta 1.0.x.
 >
-> - **Cài mới:** [tải ISO 1.5.1](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
->   (2,9 GB) · [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) ·
+> - **Cài mới:** [tải ISO 1.5.2](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
+>   (2,9 GB) · [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.2/CaramOS-1.5.2-cinnamon-amd64.iso/download) · [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.2/SHA256SUMS) ·
 >   [ghi chú phát hành](https://caramos.vietnamlinuxfamily.net/#release-notes)
-> - **Máy 2 GB, phòng máy ở trường:** [tải bản Xfce 1.5.1](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
->   (2,7 GB) · [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce)
-> - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.5.1, bấm
+> - **Máy 2 GB, phòng máy ở trường:** [tải bản Xfce 1.5.2](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
+>   (2,7 GB) · [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.2/CaramOS-1.5.2-xfce-amd64.iso/download) · [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.2/SHA256SUMS-xfce)
+> - **Đang dùng CaramOS 1.0.2 trở lên:** không cần cài lại. Trung tâm cập nhật tự báo bản 1.5.2, bấm
 >   **Cập nhật** là xong. Xem [Nâng cấp từ bản cũ](#nâng-cấp-từ-bản-cũ).
 
 ## Tính năng nổi bật
@@ -82,7 +82,8 @@ sẵn: chỉ cần bấm **Cài** ở cuối trang, rồi dùng máy bình thư�
 Mỗi ứng dụng ghi rõ ưu và nhược điểm, dung lượng, và nguồn cài: Flathub, kho Ubuntu hay gói tải về. Ứng
 dụng đã cài có nút **Gỡ cài đặt** ngay trên thẻ. Mở lại App Center bất cứ lúc nào từ biểu tượng trên
 Desktop hoặc menu; cần thêm ứng dụng khác thì nút **Xem thêm** dẫn tới
-[apps.vietnamlinuxfamily.net](https://apps.vietnamlinuxfamily.net).
+[apps.vietnamlinuxfamily.net](https://apps.vietnamlinuxfamily.net). Trên trang đó, nút **Cài trên CaramOS**
+mở App Center để cài ứng dụng ấy, không phải gõ lệnh.
 
 ### Kiểm tra driver — biết ngay máy còn thiếu gì
 
@@ -117,9 +118,10 @@ mất dữ liệu.
 
 - Mỗi ngày CaramOS kiểm tra một lần. Có bản mới thì Trung tâm cập nhật báo phiên bản hiện tại, phiên bản
   mới và từng thay đổi sẽ được áp dụng.
-- Từ 1.5.0, bản mới tự cài sau lần kiểm tra hằng ngày rồi báo khi xong (**Tự động cập nhật**, bật sẵn). Bản
-  nào đổi thanh tác vụ hay màn hình nền thì chờ lúc không ai dùng máy, hoặc mở Trung tâm cập nhật ở lần đăng
-  nhập sau để bạn bấm **Cập nhật**. Muốn tự bấm như trước: tắt Tự động cập nhật trong Trung tâm cập nhật.
+- Từ 1.5.0, bản mới tự cài sau lần kiểm tra hằng ngày rồi báo khi xong (**Tự động cập nhật**, bật sẵn). Từ
+  1.5.2, bản mới cài được cả lúc bạn đang dùng máy: phần đổi thanh tác vụ hay màn hình nền của bạn chờ đến lần
+  đăng nhập sau mới hiện, nên không có gì nhảy trên màn hình khi bạn đang làm việc. Muốn tự bấm như trước: tắt Tự
+  động cập nhật trong Trung tâm cập nhật.
 - Thứ bạn đã tự chỉnh được giữ nguyên: hình nền bạn tự chọn, bộ màu biểu tượng bạn đang dùng, applet bạn
   đã gỡ khỏi thanh tác vụ.
 
@@ -233,8 +235,11 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
   sẵn mẫu Word, Excel, PowerPoint. Khung bên trái là cây thư mục như Windows Explorer.
 - **Phòng máy (Computer Lab):** tự cài và thiết lập Veyon hoặc Epoptes để giáo viên xem và điều khiển máy học
   sinh. Máy giáo viên hiện một mã 6 số; máy học sinh tìm máy giáo viên trong mạng của trường, nhập mã là xong.
+  Máy học sinh không tự khoá hay tự ngủ trong giờ học, Veyon tự chạy lại khi bị tắt, và Khoá màn hình cùng
+  Trình chiếu toàn màn hình hiện đúng trên máy học sinh.
 - **App Center** có mục Giáo dục: GCompris, Tux Paint, Klavaro, KTurtle, Thonny, Stellarium, TurboWarp
-  (Scratch 3) và GeoGebra 6.
+  (Scratch 3) và GeoGebra 6; nhóm Tin học cho các em (Tux Typing, KTouch, KolourPaint và các trang tập dùng
+  chuột không quảng cáo) và nhóm Lập trình, Toán, Khoa học và soạn bài giảng (eXeLearning, LeoCAD, Polypad).
 
 ## Trải nghiệm CaramOS
 
@@ -260,11 +265,11 @@ Thanh tác vụ của CaramOS tách thành ba "đảo" nổi, bo tròn, cách đ
 
 ### 1. Tải ISO
 
-- [CaramOS-1.5.1-cinnamon-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
-  (2,9 GB; [link dự phòng trên SourceForge](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-cinnamon-amd64.iso/download)). ISO không nằm trên GitHub vì GitHub giới hạn dung lượng mỗi tệp đính kèm.
-- Bản Xfce cho máy 2 GB và phòng máy: [CaramOS-1.5.1-xfce-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
-  (2,7 GB; [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.1/CaramOS-1.5.1-xfce-amd64.iso/download)), kiểm tra bằng [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS-xfce).
-- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.1/SHA256SUMS) để kiểm tra
+- [CaramOS-1.5.2-cinnamon-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/cinnamon?from=github)
+  (2,9 GB; [link dự phòng trên SourceForge](https://sourceforge.net/projects/caramos/files/v1.5.2/CaramOS-1.5.2-cinnamon-amd64.iso/download)). ISO không nằm trên GitHub vì GitHub giới hạn dung lượng mỗi tệp đính kèm.
+- Bản Xfce cho máy 2 GB và phòng máy: [CaramOS-1.5.2-xfce-amd64.iso](https://caramos.vietnamlinuxfamily.net/tai/xfce?from=github)
+  (2,7 GB; [link dự phòng](https://sourceforge.net/projects/caramos/files/v1.5.2/CaramOS-1.5.2-xfce-amd64.iso/download)), kiểm tra bằng [SHA256SUMS-xfce](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.2/SHA256SUMS-xfce).
+- [SHA256SUMS](https://github.com/VN-Linux-Family/CaramOS/releases/download/v1.5.2/SHA256SUMS) để kiểm tra
   tệp tải về:
 
 ```bash
@@ -277,7 +282,7 @@ Dùng [balenaEtcher](https://etcher.balena.io), [Ventoy](https://www.ventoy.net)
 Trên Linux có thể dùng `dd`:
 
 ```bash
-sudo dd if=CaramOS-1.5.1-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
+sudo dd if=CaramOS-1.5.2-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress oflag=sync
 ```
 
 ### 3. Chạy thử và cài đặt
@@ -291,7 +296,7 @@ sudo dd if=CaramOS-1.5.1-cinnamon-amd64.iso of=/dev/sdX bs=4M status=progress of
 
 Máy đã cài CaramOS không cần cài lại ISO.
 
-- **Từ CaramOS 1.0.2 trở lên:** Trung tâm cập nhật tự kiểm tra mỗi ngày và báo bản 1.5.1; bấm **Cập nhật
+- **Từ CaramOS 1.0.2 trở lên:** Trung tâm cập nhật tự kiểm tra mỗi ngày và báo bản 1.5.2; bấm **Cập nhật
   ngay**. Muốn nâng cấp liền, mở Terminal và chạy:
 
   ```bash
@@ -387,7 +392,7 @@ Landing page [caramos.vietnamlinuxfamily.net](https://caramos.vietnamlinuxfamily
 Version sản phẩm nằm trong source tree, ở [scripts/config.sh](scripts/config.sh):
 
 ```bash
-CARAMOS_VERSION="1.5.1"
+CARAMOS_VERSION="1.5.2"
 ```
 
 `make release VERSION=x.y.z` đóng dấu version này cùng lúc vào `scripts/config.sh`, metadata release và
@@ -400,7 +405,7 @@ CARAMOS_VERSION="1.5.1"
 - `neofetch` / `fastfetch`
 - GitHub Release và package `caramos-ota` trên PPA
 
-Khi release, Git tag phải khớp version trong source: version `1.5.1` thì tag là `v1.5.1`. Nếu tag
+Khi release, Git tag phải khớp version trong source: version `1.5.2` thì tag là `v1.5.2`. Nếu tag
 không khớp, GitHub Actions dừng trước khi build.
 
 ### Cập nhật OTA
@@ -548,17 +553,17 @@ Workflow CI nằm ở [.github/workflows/build.yml](.github/workflows/build.yml)
 - Push tag `v*`: kiểm tra tag khớp `CARAMOS_VERSION`, build release bằng `./build.sh --release`, tạo
   `SHA256SUMS`, đưa ISO lên SourceForge và tạo GitHub Release có link tải.
 
-Ví dụ release `1.5.1`:
+Ví dụ release `1.5.2`:
 
 ```bash
 # 1. Đóng dấu version: scripts/config.sh, metadata và changelog của caramos-ota
-make -C packages/caramos-ota prepare-release VERSION=1.5.1
-git commit -am "[build] Release 1.5.1"
+make -C packages/caramos-ota prepare-release VERSION=1.5.2
+git commit -am "[build] Release 1.5.2"
 git push origin main
 
 # 2. Tag: GitHub Actions build ISO, SourceForge và GitHub Release
-git tag -a v1.5.1 -m "CaramOS 1.5.1"
-git push origin v1.5.1
+git tag -a v1.5.2 -m "CaramOS 1.5.2"
+git push origin v1.5.2
 
 # 3. Gói caramos-ota lên PPA (cần chìa GPG của người release)
 make -C packages/caramos-ota source

@@ -112,9 +112,11 @@ sleep-inactive-battery-timeout=900
 lid-close-ac-action='nothing'
 lid-close-battery-action='suspend'
 
+# The screensaver starts after 15 minutes without use (Cinnamon's idle-delay) and locks 10 minutes later: locked after
+# 25 minutes. Cinnamon's Screensaver settings offer 5, 10 or 30 minutes for the delay (migration 20261125130000).
 [org.cinnamon.desktop.screensaver]
 lock-enabled=true
-lock-delay=uint32 300
+lock-delay=uint32 600
 font-date='Be Vietnam Pro 24'
 font-message='Be Vietnam Pro 14'
 font-time='Be Vietnam Pro 64'
@@ -142,3 +144,9 @@ screensaver=['<Control><Alt>l', '<Super>l', 'XF86ScreenSaver']
 custom-list=['custom0', 'custom1', 'custom2']
 # Super+L opened Looking Glass, Cinnamon's debugger: Alt+F2 then lg still does.
 looking-glass-keybinding=@as []
+
+# The Xfce edition: light-locker locks the screen 15 minutes after the power manager blanks it (after 15 minutes, in
+# /etc/xdg/caramos-xfce/xfce4/xfconf/xfce-perchannel-xml/xfce4-power-manager.xml): after half an hour without use.
+# Its own 5 seconds made people think CaramOS logged them out. Locking when the computer goes to sleep stays as it is.
+[apps.light-locker]
+lock-after-screensaver=uint32 900

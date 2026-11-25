@@ -18,7 +18,7 @@ from gi.repository import Adw, Gdk, GLib, Gtk
 from caramos_ota.i18n import _, ngettext
 
 from .. import actions, helpdesk, hwprobe, media
-from ..logs import Log
+from ..logs import COMPUTER_LOGS, Log
 from ..analysis import Report
 from .attachments import AttachmentsBox
 from .common import (
@@ -67,7 +67,7 @@ class Kind:
     question: str
     hint: str
     probe: bool | None    # the hw-probe box: ticked, not ticked, or not offered
-    report: bool | None   # the Driver Check results box: the same
+    report: bool | None   # the box "Send this computer's details" (the Driver Check results, computer.log...): the same
 
 
 def kinds() -> dict[str, Kind]:
@@ -86,10 +86,11 @@ def kinds() -> dict[str, Kind]:
                     _("What went wrong?"),
                     _("For example: “The Update Center stops halfway every time I install updates, also after "
                       "a restart.”"), probe=False, report=True),
+        # Feedback too: a wish ("drivers for my receipt printer") is often a question about this computer.
         "feedback": Kind("chat-symbolic", _("Send feedback"), _("An idea or a wish for CaramOS"),
                          _("What would you like to tell us?"),
                          _("For example: “I would like a quicker way to switch between Telex and VNI typing.”"),
-                         probe=None, report=None),
+                         probe=None, report=True),
     }
 
 
@@ -213,8 +214,16 @@ class HelpForm(Gtk.Box):
         guide.set_halign(Gtk.Align.START)
         self.probe_note.append(guide)
         form.append(self.probe_note)
-        self.with_report = Gtk.CheckButton(label=_("Attach the Driver Check results"))
+        # Ticked for every kind: the details answer most questions without asking the person to look them up.
+        self.with_report = Gtk.CheckButton(label=_("Send this computer's details"))
         form.append(self.with_report)
+        self.details_note = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
+        self.details_note.set_margin_start(28)
+        self.details_note.append(_point("security-high-symbolic", _(
+            "The hardware and its drivers, the printers, the CaramOS version, how the screen locks and the computer "
+            "sleeps, and recent errors. Only the VNLF team sees them, never the community. E-mail and IP addresses, "
+            "the computer's name and your user name are taken out.")))
+        form.append(self.details_note)
         self.logs: tuple[Log, ...] = ()
         self.with_logs = Gtk.CheckButton(active=True)
         form.append(self.with_logs)
@@ -309,28 +318,44 @@ class HelpForm(Gtk.Box):
         if logs:
             self.logs = tuple(logs)
             self.with_logs.set_active(True)
-        self.with_logs.set_label(_("Attach the logs (%s)") % ", ".join(log.name for log in self.logs))
+        self.with_logs.set_label(_("Attach the app's log (%s)") % ", ".join(log.name for log in self._app_logs()))
         self._show_logs()
+        self._show_details()
         self._refresh_preview()
 
-    def _logs_offered(self) -> bool:
-        """Logs go with help and bug reports, like the Driver Check results; feedback has no use for them."""
+    def _computer_logs(self) -> tuple[Log, ...]:
+        """The logs about this computer (logs.COMPUTER_LOGS): they go with its details."""
 
-        return bool(self.logs) and self.kinds[self.kind].report is not None
+        return tuple(log for log in self.logs if log.name in COMPUTER_LOGS)
+
+    def _app_logs(self) -> tuple[Log, ...]:
+        """What an app that failed logged (the App Center, the Update Center, a driver install): a box of its own."""
+
+        return tuple(log for log in self.logs if log.name not in COMPUTER_LOGS)
+
+    def _logs_offered(self) -> bool:
+        return bool(self._app_logs())
 
     def _show_logs(self) -> None:
         self.with_logs.set_visible(self._logs_offered())
         self.logs_note.set_visible(self._logs_offered())
 
+    def _show_details(self) -> None:
+        self.with_report.set_visible(self._report_offered())
+        self.details_note.set_visible(self._report_offered())
+
     def set_report(self, report: Report | None) -> None:
         self.report = report
         self.ready = True
-        self.with_report.set_visible(self._report_offered())
+        self._show_details()
         self._sync()
         self._refresh_preview()
 
     def _report_offered(self) -> bool:
-        return self.kinds[self.kind].report is not None and (self.report is not None or not self.ready)
+        """Every kind offers the computer's details while they are read, and once there is something to send."""
+
+        return self.kinds[self.kind].report is not None and (
+            self.report is not None or bool(self._computer_logs()) or not self.ready)
 
     def _set_kind(self, name: str) -> None:
         self.kind = name
@@ -344,7 +369,7 @@ class HelpForm(Gtk.Box):
         self.with_probe.set_active(bool(kind.probe) and hwprobe.available())
         if self.save_probe is not None:
             self.save_probe.set_visible(offered)
-        self.with_report.set_visible(self._report_offered())
+        self._show_details()
         self.with_report.set_active(bool(kind.report))
         self._show_logs()
         self._sync()
@@ -371,11 +396,17 @@ class HelpForm(Gtk.Box):
     def _probe_wanted(self) -> bool:
         return self.with_probe.get_visible() and self.with_probe.get_active()
 
+    def _details_wanted(self) -> bool:
+        return self.with_report.get_visible() and self.with_report.get_active()
+
     def _report_wanted(self) -> bool:
-        return self.report is not None and self.with_report.get_visible() and self.with_report.get_active()
+        """The Driver Check results, part of the computer's details."""
+
+        return self.report is not None and self._details_wanted()
 
     def _logs_wanted(self) -> tuple[Log, ...]:
-        return self.logs if self._logs_offered() and self.with_logs.get_active() else ()
+        app = self._app_logs() if self._logs_offered() and self.with_logs.get_active() else ()
+        return app + (self._computer_logs() if self._details_wanted() else ())
 
     def _sync(self) -> None:
         problem = helpdesk.message_problem(self._text())

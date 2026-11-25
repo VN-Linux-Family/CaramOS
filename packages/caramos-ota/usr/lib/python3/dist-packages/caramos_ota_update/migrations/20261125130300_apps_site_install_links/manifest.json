@@ -1,0 +1,21 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "feature",
+  "size": "Firefox (dưới 1 MB)",
+  "size_en": "Firefox (under 1 MB)",
+  "title": "Cài ứng dụng từ trang ứng dụng VNLF bằng một nút",
+  "summary": "Trên apps.vietnamlinuxfamily.net, bấm Cài trên CaramOS là App Center mở ra cài ứng dụng đó, không phải gõ lệnh.",
+  "title_en": "Install apps from the VNLF apps website with one button",
+  "summary_en": "On apps.vietnamlinuxfamily.net, Install on CaramOS opens the App Center to install that app, with no command to type.",
+  "release_notes_vi": [
+    "Trên trang ứng dụng VNLF (apps.vietnamlinuxfamily.net), bấm Cài trên CaramOS là App Center mở ra trang của ứng dụng đó: bấm Cài đặt, nhập mật khẩu là xong, không phải chép lệnh vào Terminal.",
+    "Firefox mở thẳng App Center, không hỏi lại, và chỉ với các nút của trang ứng dụng VNLF. Trình duyệt khác (Chrome, Cốc Cốc…) hỏi một lần: bấm Mở và tích Luôn cho phép."
+  ],
+  "release_notes_en": [
+    "On the VNLF apps website (apps.vietnamlinuxfamily.net), Install on CaramOS opens the App Center on that app: click Install and enter your password, with no command to copy into a terminal.",
+    "Firefox opens the App Center straight away, without asking, and only for the apps website's buttons. Other browsers (Chrome, Cốc Cốc…) ask once: choose Open and tick Always allow."
+  ]
+}

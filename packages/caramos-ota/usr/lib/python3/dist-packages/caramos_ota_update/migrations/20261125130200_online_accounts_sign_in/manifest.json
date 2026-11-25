@@ -1,0 +1,23 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Firefox (dưới 1 MB)",
+  "size_en": "Firefox (under 1 MB)",
+  "title": "Thêm tài khoản Google trong Tài khoản trực tuyến không còn bị ngắt giữa chừng",
+  "summary": "Đăng nhập Google hay Microsoft trên Firefox xong là tài khoản được thêm vào máy, không còn hộp hỏi bằng tiếng Anh ở bước cuối.",
+  "title_en": "Adding a Google account in Online Accounts no longer stops halfway",
+  "summary_en": "Once you sign in to Google or Microsoft in Firefox, the account is added, without the English question at the last step.",
+  "release_notes_vi": [
+    "Tài khoản trực tuyến (trong Cài đặt Hệ thống) đăng nhập Google hay Microsoft qua trình duyệt. Ở bước cuối, Firefox từng hỏi “Open the … link with GNOME OAuth2 Handler?”: bấm Cancel hay bỏ qua là cửa sổ Tài khoản trực tuyến tự đóng mà không báo gì, và tài khoản không được thêm.",
+    "Giờ Firefox tự chuyển bước cuối đó cho Tài khoản trực tuyến, chỉ khi nó đến từ trang đăng nhập của Google hay Microsoft.",
+    "Có hiệu lực từ lần mở Firefox sau. Trình duyệt khác (Chrome, Cốc Cốc…) vẫn hỏi “Mở xdg-open?”: bấm Mở."
+  ],
+  "release_notes_en": [
+    "Online Accounts (in System Settings) signs in to Google or Microsoft through the browser. At the last step Firefox asked “Open the … link with GNOME OAuth2 Handler?”: pressing Cancel or missing it closed the Online Accounts window without a word, and the account was not added.",
+    "Now Firefox hands that last step to Online Accounts by itself, only when it comes from Google's or Microsoft's sign-in page.",
+    "Works from the next start of Firefox. Other browsers (Chrome, Cốc Cốc…) still ask “Open xdg-open?”: press Open."
+  ]
+}

@@ -93,8 +93,9 @@ cd packages/caramos-ota
 REMOTE_USER="${VM_SSH_USER}" REMOTE_HOST="${VM_SSH_HOST}" REMOTE_PORT="${VM_SSH_PORT}" make ship
 ```
 
-Thêm `REMOTE_PASSWORD=<mật-khẩu>` nếu VM chưa có SSH key của host (cần `sshpass`). Để khỏi gõ lại mỗi
-lần, ghi các biến này vào `vm.local.env` (xem `vm.local.env.example`).
+VM phải đăng nhập SSH được bằng key của host và có sudo không hỏi mật khẩu (`make vm-bootstrap`, xem
+`VM_DEV_WORKFLOW.md`; không dùng mật khẩu SSH hay `sshpass`). Để khỏi gõ lại mỗi lần, ghi các biến này vào
+`vm.local.env` (xem `vm.local.env.example`).
 
 `make ship` sẽ:
 

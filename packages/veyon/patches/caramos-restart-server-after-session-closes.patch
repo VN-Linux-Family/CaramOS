@@ -1,0 +1,84 @@
+Description: Start Veyon Server again for the user's session after a lock screen session closes
+ With light-locker (CaramOS Xfce), locking switches to a LightDM greeter session; veyon-service (single-session
+ mode) stops the user's server and serves the greeter. On unlocking, the greeter's X server goes away: its server
+ exits, checkSessionState() stops it for the closing session, and the later SessionRemoved finds no server for that
+ session, so startServers() never runs and the user's session has no server (orange icon in Veyon Master). A
+ server started right after the switch back can also exit early with nothing to start it again. Backport of the
+ relevant parts of upstream's fix for issue #1177:
+ - when a session closes, start servers again in single-session mode, as when a session is removed;
+ - in single-session mode, try startServers() every 10 seconds while no server is running or pending;
+ - drop a session from the deferred list when its start is attempted, so a given-up start is not skipped forever;
+ - MinimumUserSessionLifetime is in seconds: defer by that many seconds, not milliseconds.
+Origin: backport, https://github.com/veyon/veyon/commit/1765f8a0a68aadf96d7208d8c4ceb3df5a1debf6
+Bug: https://github.com/veyon/veyon/issues/1177
+Forwarded: not-needed
+Last-Update: 2026-11-25
+
+--- a/plugins/platform/linux/LinuxServiceCore.cpp
++++ b/plugins/platform/linux/LinuxServiceCore.cpp
+@@ -53,6 +53,18 @@
+ {
+ 	startServers();
+ 
++	// in single session mode a start may have been given up on (e.g. the session closed while its server
++	// was starting) without any later event retriggering it
++	QTimer serverWatchdog;
++	connect(&serverWatchdog, &QTimer::timeout, this, [this]() {
++		if (m_sessionManager.mode() != PlatformSessionManager::Mode::Multi &&
++			m_serverProcesses.isEmpty() && m_deferredServerSessions.isEmpty())
++		{
++			startServers();
++		}
++	});
++	serverWatchdog.start(ServerWatchdogInterval);
++
+ 	QEventLoop eventLoop;
+ 	eventLoop.exec();
+ }
+@@ -142,6 +154,10 @@
+ 
+ void LinuxServiceCore::startServer( const QString& sessionPath )
+ {
++	// a pending deferral (if any) is handled now - re-added below whenever the start is deferred
++	// again, so that a session given up on here is not skipped forever by startServers()
++	m_deferredServerSessions.removeAll(sessionPath);
++
+ 	const auto sessionType = LinuxSessionFunctions::getSessionType( sessionPath );
+ 
+ 	if( sessionType == LinuxSessionFunctions::Type::Wayland )
+@@ -209,8 +225,9 @@
+ 	if( sessionUptime >= 0 &&
+ 		sessionUptime < minimumSessionUptime )
+ 	{
+-		vDebug() << "Session" << sessionPath << "too young - retrying in" << minimumSessionUptime - sessionUptime << "msecs";
+-		deferServerStart( sessionPath, int(minimumSessionUptime - sessionUptime) );
++		vDebug() << "Session" << sessionPath << "too young - retrying in" << minimumSessionUptime - sessionUptime << "secs";
++		// MinimumUserSessionLifetime and the session uptime are in seconds
++		deferServerStart(sessionPath, int(minimumSessionUptime - sessionUptime) * 1000);
+ 		return;
+ 	}
+ 
+@@ -305,6 +322,13 @@
+ 	{
+ 		vDebug() << "Stopping server for currently closing session" << sessionPath;
+ 		stopServer( sessionPath );
++
++		// as when a session is removed: (re-)start servers for other sessions, e.g. the one
++		// preempted by the closing session (a lock screen greeter whose X server went away)
++		if (m_sessionManager.mode() != PlatformSessionManager::Mode::Multi)
++		{
++			startServers();
++		}
+ 	}
+ 	else
+ 	{
+--- a/plugins/platform/linux/LinuxServiceCore.h
++++ b/plugins/platform/linux/LinuxServiceCore.h
+@@ -50,6 +50,7 @@
+ 	static constexpr auto SessionEnvironmentProbingInterval = 1000;
+ 	static constexpr auto SessionStateProbingInterval = 1000;
+ 	static constexpr auto ServerRestartInterval = 5000;
++	static constexpr auto ServerWatchdogInterval = 10000;
+ 
+ 	void connectToLoginManager();
+ 	void startServers();

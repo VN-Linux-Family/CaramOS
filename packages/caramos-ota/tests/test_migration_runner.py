@@ -97,9 +97,15 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261124170000_tray_icons_follow_theme",
                 "20261124180000_tray_icons_keep_their_place",
                 "20261125090000_fcitx5_tray_shows_input_method",
+                "20261125120000_computer_lab_stays_connected",
+                "20261125120100_veyon_lock_and_demo_show",
+                "20261125130000_lock_screen_later",
+                "20261125130100_autologin_keyring",
+                "20261125130200_online_accounts_sign_in",
+                "20261125130300_apps_site_install_links",
             ],
         )
-        self.assertEqual(54, run_one.call_count)
+        self.assertEqual(60, run_one.call_count)
         self.assertEqual(
             [
                 "20260805111120_update_taskbar_pins_cleanup_desktop",
@@ -156,6 +162,12 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261124170000_tray_icons_follow_theme",
                 "20261124180000_tray_icons_keep_their_place",
                 "20261125090000_fcitx5_tray_shows_input_method",
+                "20261125120000_computer_lab_stays_connected",
+                "20261125120100_veyon_lock_and_demo_show",
+                "20261125130000_lock_screen_later",
+                "20261125130100_autologin_keyring",
+                "20261125130200_online_accounts_sign_in",
+                "20261125130300_apps_site_install_links",
             ],
             [entry.args[0].migration_id for entry in run_one.call_args_list],
         )

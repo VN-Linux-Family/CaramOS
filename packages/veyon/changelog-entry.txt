@@ -1,0 +1,13 @@
+  * CaramOS Phòng máy (computer lab) fixes for Veyon 4.7.5:
+    - The lock screen and the full-screen demo show on the students'
+      computers (debian/patches/caramos-lockwidget-show-after-raise.patch,
+      upstream 554bd2d, issue #824): LockWidget was hidden again right after
+      it was shown, while the keyboard was disabled.
+    - Veyon Server is started again when it crashed in a session that is
+      still open (debian/patches/caramos-restart-crashed-server.patch,
+      upstream da235ee).
+    - Veyon Server comes back for the user's session after a lock screen
+      greeter session closes, and every 10 seconds while none runs
+      (debian/patches/caramos-restart-server-after-session-closes.patch,
+      backport of upstream 1765f8a, issue #1177). Veyon Master showed such
+      computers with an orange icon until they were restarted.

@@ -1,0 +1,12 @@
+# CaramOS (caramos-ota): defaults that must win over Linux Mint's mint-artwork.gschema.override.
+# glib-compile-schemas reads the override files in name order and the last value of a key wins. "mint-artwork" sorts
+# after the ISO's 99_caramos override, so Mint's "Ubuntu" fonts won on the Cinnamon lock screen and on the login
+# screen (slick-greeter), which on the Xfce edition is also the lock screen. These keys are set again here, in a file
+# that sorts after Mint's. Anyone who chose a font of their own keeps it: these are only defaults.
+[org.cinnamon.desktop.screensaver]
+font-date='Be Vietnam Pro 24'
+font-message='Be Vietnam Pro 14'
+font-time='Be Vietnam Pro 64'
+
+[x.dm.slick-greeter]
+font-name='Be Vietnam Pro 11'

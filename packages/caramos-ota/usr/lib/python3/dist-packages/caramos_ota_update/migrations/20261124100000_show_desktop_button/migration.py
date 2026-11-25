@@ -18,7 +18,13 @@ desktop when clicked and brings the windows back when clicked again; pointing at
 A panel that has a show-desktop button already (Cinnamon's corner bar or show-desktop applet, Xfce's Show Desktop
 plugin) is left as it is, and so is a panel without Feedback & Help (Cinnamon) or the Control Center (Xfce): someone
 changed it by hand. Cinnamon 6.6 crashes when the system dconf database is rebuilt under a running session: with
-someone logged in, `dconf update` waits (see 20261012180000_add_help_applet).
+someone logged in, `dconf update` waits for the next start (deferred.dconf_update_at_next_start).
+
+An automatic update runs it while people work ("unattended": "anytime"). The panel of a user who is logged in then
+changes at their next login, before the desktop starts (deferred.wait_for_login, LOGIN_ACTIONS): Cinnamon adds the
+corner bar to an open panel at once, and xfce4-panel rebuilds an open panel when its plugin list changes, which takes
+the clock out of the Control Center until the next login. Accounts that are not logged in, and every account in an
+update from the Update Center, change as before.
 """
 
 from __future__ import annotations
@@ -30,10 +36,15 @@ import subprocess
 import xml.etree.ElementTree as ElementTree
 from pathlib import Path
 
+from caramos_ota_update import deferred
 from caramos_ota_update.context import MigrationContext, MigrationContextError
 from caramos_ota_update.desktop import CINNAMON, XFCE, current_desktop
 
 DESCRIPTION = "Show desktop at the end of the taskbar on both editions"
+MIGRATION = Path(__file__).resolve().parent.name
+# The steps a logged-in user's next login runs after an automatic update (LOGIN_ACTIONS, at the end).
+CINNAMON_STEP = "corner-bar"
+XFCE_STEP = "xfce-strip"
 
 help_applet = importlib.import_module("caramos_ota_update.migrations.20261012180000_add_help_applet.migration")
 clipboard = importlib.import_module("caramos_ota_update.migrations.20261120100000_clipboard_history.migration")
@@ -117,7 +128,8 @@ def cinnamon_defaults(context: MigrationContext, users: list[tuple[str, int, Pat
         return
     logged_in = [username for username, uid, _home in users if help_applet._session_bus(uid).exists()]
     if logged_in:
-        context.log(f"{', '.join(logged_in)} logged in: dconf update waits, Cinnamon would crash under it")
+        context.log(f"{', '.join(logged_in)} logged in")
+        deferred.dconf_update_at_next_start(context)
     else:
         context.run_command(["dconf", "update"], allow_fail=True)
 
@@ -131,31 +143,44 @@ def _reload_help(username: str, env: dict[str, str]) -> subprocess.CompletedProc
                           check=False, capture_output=True, text=True, env=env, timeout=30)
 
 
-def cinnamon_user(context: MigrationContext, username: str, uid: int, home: Path) -> None:
-    env = help_applet._user_environment(username, uid, home)
-    current = help_applet._gsettings(username, env, ["get", "org.cinnamon", "enabled-applets"])
+def corner_bar_for(gsettings, log, username: str, before_set=None) -> None:
+    """The corner bar on the user's panel; gsettings(args) runs gsettings as the user, before_set() runs first when
+    the panel changes."""
+
+    current = gsettings(["get", "org.cinnamon", "enabled-applets"])
     if current.returncode != 0:
-        context.log(f"warning: could not read the panel of {username}: {current.stderr.strip()}")
+        log(f"warning: could not read the panel of {username}: {current.stderr.strip()}")
         return
     updated = add_corner_bar(current.stdout)
     if updated is None:
-        context.log(f"warning: unexpected panel applets for {username}; leave the panel as it is")
+        log(f"warning: unexpected panel applets for {username}; leave the panel as it is")
         return
     if updated == current.stdout.strip().removeprefix("@as ").lstrip():
-        context.log(f"Show desktop is on the panel of {username} already, or it has no Feedback & Help")
+        log(f"Show desktop is on the panel of {username} already, or it has no Feedback & Help")
         return
-    if "DBUS_SESSION_BUS_ADDRESS" in env and not context.unattended:
+    if before_set is not None:
+        before_set()
+    result = gsettings(["set", "org.cinnamon", "enabled-applets", updated])
+    if result.returncode == 0:
+        log(f"Show desktop is at the end of the panel of {username}")
+    else:
+        log(f"warning: could not add Show desktop for {username}: {result.stderr.strip()}")
+
+
+def cinnamon_user(context: MigrationContext, username: str, uid: int, home: Path) -> None:
+    env = help_applet._user_environment(username, uid, home)
+
+    def reload_help() -> None:
         try:
             reloaded = _reload_help(username, env)
             if reloaded.returncode != 0:
                 context.log(f"Feedback & Help of {username} did not reload: {reloaded.stderr.strip()[:200]}")
         except subprocess.TimeoutExpired:
             context.log(f"Feedback & Help of {username} did not reload in time")
-    result = help_applet._gsettings(username, env, ["set", "org.cinnamon", "enabled-applets", updated])
-    if result.returncode == 0:
-        context.log(f"Show desktop is at the end of the panel of {username}")
-    else:
-        context.log(f"warning: could not add Show desktop for {username}: {result.stderr.strip()}")
+
+    live = "DBUS_SESSION_BUS_ADDRESS" in env and not context.unattended
+    corner_bar_for(lambda args: help_applet._gsettings(username, env, args), context.log, username,
+                   reload_help if live else None)
 
 
 def run_cinnamon(context: MigrationContext) -> None:
@@ -168,6 +193,8 @@ def run_cinnamon(context: MigrationContext) -> None:
         context.log("add Show desktop to the end of the panel of every Cinnamon user")
         return
     for username, uid, home in users:
+        if deferred.wait_for_login(context, MIGRATION, CINNAMON_STEP, username, uid):
+            continue
         cinnamon_user(context, username, uid, home)
 
 
@@ -260,27 +287,18 @@ def xfce_defaults(context: MigrationContext, path: Path = PANEL_DEFAULTS) -> Non
         context.log(f"{path}: Show desktop is there already, or the panels are not as expected; left alone")
 
 
-def xfce_user(context: MigrationContext, username: str, uid: int, home: Path,
-              runtime_root: Path = clipboard.RUNTIME_ROOT) -> None:
-    if not (home / lunar_clock.USER_PANELS).is_file():
-        context.log(f"Xfce panels of {username}: still the defaults")
-        return
-    runtime = runtime_root / str(uid)
-    env = {"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "XDG_CONFIG_DIRS": clipboard.XFCE_CONFIG_DIRS}
-    prefix = ["runuser", "-u", username, "--"]
-    if clipboard._logged_in(uid, runtime_root):
-        env.update(XDG_RUNTIME_DIR=str(runtime), DBUS_SESSION_BUS_ADDRESS=f"unix:path={runtime}/bus")
-    else:
-        prefix += ["dbus-run-session", "--"]
+def strip_for(xfconf, log, username: str, when: str = "") -> None:
+    """Show desktop last in the user's panel with the Control Center. xfconf(args) runs xfconf-query of the
+    xfce4-panel channel with these arguments as the user: a CompletedProcess, or None (a dry run)."""
 
     def query(*args: str) -> str | None:
-        result = context.run_command([*prefix, *lunar_clock.QUERY, *args], allow_fail=True, env=env)
+        result = xfconf(list(args))
         return result.stdout if result is not None and result.returncode == 0 else None
 
     listed = query("-l", "-v")
     panels = lunar_clock.array(query("-p", "/panels") or "")
     if listed is None or panels is None:
-        context.log(f"Xfce panels of {username}: could not be read; left alone")
+        log(f"Xfce panels of {username}: could not be read; left alone")
         return
     names = {int(name.rsplit("-", 1)[1]): value
              for name, value in clipboard.xfce_properties(listed).items()
@@ -289,29 +307,45 @@ def xfce_user(context: MigrationContext, username: str, uid: int, home: Path,
     for panel in panels:
         ids = lunar_clock.array(query("-p", f"/panels/panel-{panel}/plugin-ids") or "")
         if ids is None:
-            context.log(f"Xfce panels of {username}: panel {panel} could not be read; left alone")
+            log(f"Xfce panels of {username}: panel {panel} could not be read; left alone")
             return
         plugin_ids[panel] = ids
     found = plan(panels, plugin_ids, names)
     if found is None:
-        context.log(f"Xfce panels of {username}: Show desktop there already, or no Control Center")
+        log(f"Xfce panels of {username}: Show desktop there already, or no Control Center")
         return
     panel, plugin, new = found
     if new:
-        made = context.run_command([*prefix, *lunar_clock.QUERY, "-p", f"/plugins/plugin-{plugin}", "-n",
-                                    "-t", "string", "-s", STRIP], allow_fail=True, env=env)
+        made = xfconf(["-p", f"/plugins/plugin-{plugin}", "-n", "-t", "string", "-s", STRIP])
         if made is None or made.returncode != 0:
-            context.log(f"warning: could not add Show desktop for {username}: "
-                        f"{made.stderr.strip() if made is not None else 'not run'}")
+            log(f"warning: could not add Show desktop for {username}: "
+                f"{made.stderr.strip() if made is not None else 'not run'}")
             return
     values = [arg for item in [*plugin_ids[panel], plugin] for arg in ("-t", "int", "-s", str(item))]
-    result = context.run_command([*prefix, *lunar_clock.QUERY, "-p", f"/panels/panel-{panel}/plugin-ids",
-                                  "--force-array", *values], allow_fail=True, env=env)
+    result = xfconf(["-p", f"/panels/panel-{panel}/plugin-ids", "--force-array", *values])
     if result is None or result.returncode != 0:
-        context.log(f"warning: could not add Show desktop to the panel of {username}: "
-                    f"{result.stderr.strip() if result is not None else 'not run'}")
+        log(f"warning: could not add Show desktop to the panel of {username}: "
+            f"{result.stderr.strip() if result is not None else 'not run'}")
     else:
-        context.log(f"Show desktop ends the taskbar of {username} from the next login")
+        log(f"Show desktop ends the taskbar of {username}{when}")
+
+
+def xfce_user(context: MigrationContext, username: str, uid: int, home: Path,
+              runtime_root: Path = clipboard.RUNTIME_ROOT) -> None:
+    if not (home / lunar_clock.USER_PANELS).is_file():
+        context.log(f"Xfce panels of {username}: still the defaults")
+        return
+    if deferred.wait_for_login(context, MIGRATION, XFCE_STEP, username, uid, runtime_root=runtime_root):
+        return
+    runtime = runtime_root / str(uid)
+    env = {"PATH": "/usr/sbin:/usr/bin:/sbin:/bin", "XDG_CONFIG_DIRS": clipboard.XFCE_CONFIG_DIRS}
+    prefix = ["runuser", "-u", username, "--"]
+    if clipboard._logged_in(uid, runtime_root):
+        env.update(XDG_RUNTIME_DIR=str(runtime), DBUS_SESSION_BUS_ADDRESS=f"unix:path={runtime}/bus")
+    else:
+        prefix += ["dbus-run-session", "--"]
+    strip_for(lambda args: context.run_command([*prefix, *lunar_clock.QUERY, *args], allow_fail=True, env=env),
+              context.log, username, " from the next login")
 
 
 def _plugin_ready(context: MigrationContext, plugin: Path = STRIP_PLUGIN) -> bool:
@@ -351,3 +385,22 @@ def run(context: MigrationContext, desktop: str | None = None) -> None:
         run_xfce(context)
     else:
         context.log(f"desktop {desktop}: no taskbar to add Show desktop to")
+
+
+# The next login, after an automatic update ----------------------------------------------------------------------
+
+def corner_bar_at_login(session: deferred.Session) -> None:
+    """Cinnamon: the corner bar, before Cinnamon starts (Feedback & Help loads with its new stylesheet then)."""
+
+    if session.desktop == CINNAMON:
+        corner_bar_for(lambda args: session.gsettings(*args), session.log, session.username)
+
+
+def strip_at_login(session: deferred.Session) -> None:
+    """Xfce: the strip, before xfce4-panel starts, through the session's xfconfd."""
+
+    if session.desktop == XFCE and (session.home / lunar_clock.USER_PANELS).is_file():
+        strip_for(lambda args: session.run([*lunar_clock.QUERY, *args]), session.log, session.username)
+
+
+LOGIN_ACTIONS = {CINNAMON_STEP: corner_bar_at_login, XFCE_STEP: strip_at_login}

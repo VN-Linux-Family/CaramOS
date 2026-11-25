@@ -28,7 +28,11 @@
 8. Migrations use APT/PPA for package installation. Do not download `.deb` files manually.
 9. The systemd timer only checks/prepares state. After the check, `caramos-ota-auto-update.service` installs the update
    when automatic updates are on (the default) and nothing stops it; migrations with
-   `"unattended": "nobody-logged-in"` wait until nobody is logged in. See `caramos_ota/auto_update.py` and `MIGRATIONS.md`.
+   `"unattended": "nobody-logged-in"` wait until nobody is logged in. What a migration changes on the screen of someone
+   logged in can wait for that person's next login (`caramos_ota_update/deferred.py`), so the migration stays
+   `"anytime"`. See `caramos_ota/auto_update.py` and `MIGRATIONS.md`. The same login step gives a user LightDM logs in
+   automatically a default keyring without a password (`caramos_ota_update/autologin_keyring.py`), so that Zalo and
+   Lark keep their sign-in.
 10. Local `make compile`, `make validate`, and `make build` do not require `VERSION`. Only `make release VERSION=x.y.z` receives the product version.
 
 ---
@@ -43,6 +47,7 @@ caramos_ota_update/migrations/
       └── migration.py          # reviewed system changes
 
 caramos-ota --check
+  ├── count this computer among those in use, once a day (caramos_ota/stats.py; off: /etc/caramos-ota/stats.conf STATS=no)
   ├── verify CaramOS identity
   ├── verify PPA/keyring
   ├── inspect packaged migration metadata
@@ -82,6 +87,8 @@ sudo caramos-ota --dry-run
 sudo caramos-ota --upgrade
 sudo caramos-ota --upgrade --yes
 sudo caramos-ota --repair
+sudo caramos-ota --auto-update off   # or on (the default)
+sudo caramos-ota --stats off         # do not count this computer among the CaramOS computers in use (on: the default)
 sudo caramos-ota-update --dry-run
 sudo caramos-ota-update
 ```

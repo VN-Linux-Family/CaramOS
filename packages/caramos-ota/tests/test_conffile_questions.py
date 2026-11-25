@@ -34,7 +34,8 @@ from pathlib import Path
 from unittest import mock
 
 from caramos_ota import apt, auto_update
-from caramos_ota.constants import APT_NONINTERACTIVE_OPTIONS, DPKG_NONINTERACTIVE_OPTIONS, NONINTERACTIVE_ENV
+from caramos_ota.constants import (APT_NONINTERACTIVE_OPTIONS, DPKG_LOCK_TIMEOUT_SECONDS, DPKG_NONINTERACTIVE_OPTIONS,
+                                    NONINTERACTIVE_ENV)
 from caramos_ota_update.context import MigrationContext
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,7 +44,7 @@ DEBIAN = ROOT / "debian"
 OLD_LIST = Path(__file__).resolve().parent / "data/etc-xdg-mimeapps.list-1.4.0"
 OLD_SUM = hashlib.md5(OLD_LIST.read_bytes()).hexdigest()
 USERS_LIST = b"[Default Applications]\ntext/plain=org.x.editor.desktop\n"
-QUIET = ["-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold"]
+QUIET = ["-o", "Dpkg::Options::=--force-confdef", "-o", "Dpkg::Options::=--force-confold", "-o", "DPkg::Lock::Timeout=120"]
 
 
 def snippet(script: Path, first: str, last: str) -> str:
@@ -218,6 +219,9 @@ class NoQuestionsTests(unittest.TestCase):
     def test_automatic_updates_use_the_same(self) -> None:
         conf = (ROOT / "usr/share/caramos-ota/auto-update/apt.conf").read_text(encoding="utf-8")
         self.assertEqual(list(DPKG_NONINTERACTIVE_OPTIONS), re.findall(r'^\s*"(--force-[a-z]+)";', conf, re.M))
+        # The same wait for dpkg's lock as the other apt calls.
+        self.assertEqual([str(DPKG_LOCK_TIMEOUT_SECONDS)], re.findall(r'^DPkg::Lock::Timeout "([0-9]+)";', conf, re.M))
+        self.assertEqual(("-o", f"DPkg::Lock::Timeout={DPKG_LOCK_TIMEOUT_SECONDS}"), APT_NONINTERACTIVE_OPTIONS[-2:])
         self.assertEqual("/usr/share/caramos-ota/auto-update/apt.conf", auto_update.APT_CONFIG)
         for name, value in NONINTERACTIVE_ENV.items():
             self.assertEqual(value, auto_update.UNATTENDED_ENV[name], name)

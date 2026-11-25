@@ -64,7 +64,7 @@ class PowerProfilesMigrationTests(unittest.TestCase):
                 "-o",
                 "Dpkg::Options::=--force-confdef",
                 "-o",
-                "Dpkg::Options::=--force-confold",
+                "Dpkg::Options::=--force-confold", "-o", "DPkg::Lock::Timeout=120",
                 "install",
                 "--yes",
                 "--",

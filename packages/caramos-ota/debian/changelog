@@ -1,3 +1,79 @@
+caramos-ota (1.5.2-0caramos1) noble; urgency=medium
+
+  * Automatic updates install while people work. An update whose migrations
+    change what a logged-in user sees (Show desktop and the Trash on the
+    desktop, both from 1.5.1) no longer waits until nobody is logged in:
+    the system changes at once, the visible part waits for that user's next
+    login, before the desktop starts (caramos_ota_update/deferred.py,
+    /etc/X11/Xsession.d/96caramos-login-actions), and `dconf update`, which
+    a running Cinnamon 6.6 does not survive, waits for the next start
+    (caramos-ota-dconf-update.service). Updates from the Update Center
+    change the open desktop at once, as before.
+  * Zalo, Lark and browsers stay signed in on computers that log in by
+    themselves (migration 20261125130100_autologin_keyring). At each
+    automatic login, before the desktop starts, the user gets a keyring
+    with an empty password as the default one, open from the start; apps
+    no longer ask to "Choose password for new keyring" or for a keyring's
+    password, nor lose their sign-in. A keyring with a password that apps
+    open by themselves (the default one, the login one), which nothing can
+    type at an automatic login, is moved to
+    ~/.local/share/keyrings/locked-by-password with a README.txt on getting
+    its secrets back; nothing is deleted. Logins with a password are left
+    alone.
+  * The screen locks after about half an hour without use, instead of 15 to
+    20 minutes (migration 20261125130000_lock_screen_later): it still goes
+    dark after 15 minutes; Cinnamon locks 10 minutes later (lock-delay
+    600), Xfce after 30 minutes (blank after 15, light-locker 900 s). Only
+    the defaults change: an account's own setting stays.
+  * Phòng máy (computer lab), from a teacher's pilot with 18 computers:
+    - students' computers stay in Veyon Master: their screens no longer
+      lock, blank or sleep while they are in the lab (caramos-lab --session,
+      at once and at every login; each account gets its own settings back
+      when the computer leaves the lab), and caramos-lab-veyon-check.timer
+      starts Veyon Server again within 30 seconds when it stopped (migration
+      20261125120000_computer_lab_stays_connected);
+    - Lock and the full-screen Demo show on the students' computers: Veyon
+      4.7.5+repack1-1ubuntu5+caramos1 from the CaramOS PPA, Ubuntu's Veyon
+      with upstream's fixes for the lock window, a crashed server and a
+      server lost after a lock screen's session (migration
+      20261125120100_veyon_lock_and_demo_show);
+    - a computer that left the lab no longer starts Veyon Server at boot;
+    - the Phòng máy window follows DESIGN.md.
+  * Online Accounts: adding a Google or Microsoft account no longer stops
+    halfway in Firefox, which asked in English whether to open the
+    sign-in's answer with GNOME OAuth2 Handler; whoever pressed Cancel saw
+    the window close without a word (migration
+    20261125130200_online_accounts_sign_in, Firefox's
+    AutoLaunchProtocolsFromOrigins policy; the rest of
+    /etc/firefox/policies/policies.json stays as it is).
+  * One-button installs from apps.vietnamlinuxfamily.net: Firefox opens its
+    "Cài trên CaramOS" links (caramos-app://install/<Flathub id>) in the App
+    Center 0.4.0 without asking (migration
+    20261125130300_apps_site_install_links).
+  * Help requests from Feedback & Help carry computer.log (ticket H-1189):
+    CaramOS's version and edition, the computer's model and board, its
+    devices and their drivers, the print queues, and how the screen locks
+    and the computer sleeps; no serial numbers and no names of network
+    printers. VNLF can answer a question about hardware without asking for
+    those details.
+  * Chuyển dữ liệu từ Windows lists a disk that BitLocker locks as locked
+    and says how to turn BitLocker off in Windows, instead of failing to
+    read it.
+  * The lock screen and the login screen use Be Vietnam Pro, like the rest
+    of CaramOS: Mint's mint-artwork.gschema.override set their fonts after
+    CaramOS's, so zz_caramos-ota.gschema.override sets them again.
+  * apt waits up to two minutes for another program that is installing
+    software (DPkg::Lock::Timeout=120) in updates, automatic updates,
+    migrations, Driver Check and Phòng máy, instead of failing at once.
+  * The CaramOS computers in use are counted once a day: the daily check
+    sends the CaramOS version, the edition and an id that changes every day
+    (a SHA-256 of the machine id and the date, so the days of one computer
+    cannot be linked) to caramos.vietnamlinuxfamily.net/api/active, and
+    nothing else. `sudo caramos-ota --stats off` turns it off; not on the
+    live USB.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Wed, 25 Nov 2026 22:49:55 +0700
+
 caramos-ota (1.5.1-0caramos3) noble; urgency=high
 
   * The Update Center that opens at login with an update waiting showed its

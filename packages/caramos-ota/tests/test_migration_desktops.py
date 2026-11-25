@@ -58,6 +58,12 @@ SHARED_ON_PURPOSE = {
                                             "by the desktop it runs on",
     "20261124170000_tray_icons_follow_theme": "Lotus and the Tela icon themes are the same on both editions; each "
                                               "one's tray draws the icon again when the icon theme changes",
+    "20261125120000_computer_lab_stays_connected": "Phòng máy runs on both editions: the Veyon check is the same, and "
+                                                   "caramos-lab --session picks each desktop's own lock and sleep "
+                                                   "settings",
+    "20261125130000_lock_screen_later": "the screen locks later on both: Cinnamon's delay and light-locker's in the "
+                                        "gschema override both editions have, Xfce's blank time only where its "
+                                        "defaults are",
     "v1_0_9": "Fcitx/Lotus setup for both; it only resets old Cinnamon keybinding experiments",
     "v1_0_12": "Fcitx/Lotus setup for both; it only resets old Cinnamon keybinding experiments",
 }

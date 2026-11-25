@@ -1,0 +1,18 @@
+# CaramOS: `dconf update` that an update left for the next start (caramos_ota_update/deferred.py). It rebuilds the
+# system's dconf database from /etc/dconf/db/local.d, which a running Cinnamon 6.6 does not survive, so a migration
+# that changes those files while someone is logged in leaves the flag file instead. This runs before anyone can log
+# in, and only when the flag is there. The package never starts it (debian/rules: --no-start).
+[Unit]
+Description=CaramOS: rebuild the system's dconf defaults left for this start
+ConditionPathExists=/var/lib/caramos-ota/dconf-update-pending
+Before=systemd-user-sessions.service display-manager.service
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/dconf update
+ExecStartPost=/usr/bin/rm -f /var/lib/caramos-ota/dconf-update-pending
+TimeoutStartSec=2min
+
+[Install]
+WantedBy=multi-user.target

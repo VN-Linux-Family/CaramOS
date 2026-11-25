@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=CaramOS Computer Lab session
+Comment=Keep a lab student's computer from locking, sleeping or turning its screen off, or give the account its settings back after the computer left the lab
+Exec=/usr/bin/caramos-lab --session
+Terminal=false
+NoDisplay=true
+OnlyShowIn=X-Cinnamon;XFCE;
+X-GNOME-Autostart-Phase=Applications

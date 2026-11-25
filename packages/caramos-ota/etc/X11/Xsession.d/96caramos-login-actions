@@ -1,0 +1,15 @@
+# This file is sourced by Xsession(5), not executed.
+# CaramOS, before the desktop starts (caramos_ota_update/deferred.py):
+# - after LightDM's automatic login, a keyring that opens by itself, so that Zalo, Lark and the browsers keep their
+#   sign-in (autologin_keyring.py); logins with a password are left alone;
+# - what an automatic update left for this user's next login, so that nothing changes on the screen while someone
+#   works.
+# After 95dbus_update-activation-env: daemons started through D-Bus (xfconfd) get this session's environment. Only
+# when there is something to do; a step that hangs is stopped and the login goes on.
+CARAMOS_LOGIN_SERVICE="$(loginctl show-session "${XDG_SESSION_ID:-none}" -p Service --value 2>/dev/null || true)"
+if [ -x /usr/share/caramos-ota/login/caramos-login-actions ] && \
+    { [ "$CARAMOS_LOGIN_SERVICE" = lightdm-autologin ] || \
+      [ -e "/var/lib/caramos-ota/login-actions/$(id -u).json" ]; }; then
+  timeout 60 /usr/share/caramos-ota/login/caramos-login-actions </dev/null || true
+fi
+unset CARAMOS_LOGIN_SERVICE

@@ -15,6 +15,17 @@ create → cài/boot → bootstrap → setup → snapshot ──► reset → sh
 
 Tất cả lệnh dưới đây chạy trên **máy host**, trong `packages/caramos-ota`, **không dùng `sudo`**.
 
+> **Lệnh trong VM luôn đi qua file script, không gõ thẳng vào dòng lệnh ssh.** Phần mềm giám sát an ninh trên máy
+> host đọc dòng lệnh của mọi tiến trình. "ssh sang máy khác rồi chạy `sudo`, `apt`, `curl … | bash` ở đó" là đúng
+> kiểu kẻ tấn công lây từ máy này sang máy khác, và đã bị báo **LateralMovement** ngày 25/11/2026: phần mềm không biết
+> máy kia chỉ là VM nằm trong máy này. Vì vậy:
+>
+> - các bước của `vm-dev.sh` là các script trong `tools/vm-guest/`, được chép vào `~/.caramos-vm` trong VM rồi chạy
+>   bằng `ssh … bash .caramos-vm/<script> <tham số>`;
+> - việc riêng của bạn: viết vào một file script rồi `./tools/vm-dev.sh run [--gui|--bg] <script> [tham số]`;
+>   `./tools/vm-dev.sh ssh` chỉ mở shell tương tác, không nhận lệnh;
+> - không `curl | bash`, không mở web server tạm cho VM tải file, không `sshpass`, không tắt kiểm tra host key.
+
 ---
 
 ## 1. Tra nhanh
@@ -31,6 +42,7 @@ Tất cả lệnh dưới đây chạy trên **máy host**, trong `packages/cara
 | Chụp màn hình VM | `make vm-shot` |
 | Xem VM đang ở trạng thái nào | `make vm-status` |
 | Mở shell trong VM | `make vm-ssh` |
+| Chạy một script của bạn trong VM | `./tools/vm-dev.sh run [--gui\|--bg] <script> [tham số]` |
 | Test từ bản base khác | thêm `BASE=1.0.12` vào bất kỳ lệnh nào |
 
 Mọi target `vm-*` gọi `tools/vm-dev.sh`; chạy `./tools/vm-dev.sh help` để xem đủ lệnh và cấu hình đang áp dụng.
@@ -45,7 +57,7 @@ Mọi target `vm-*` gọi `tools/vm-dev.sh`; chạy `./tools/vm-dev.sh help` đ�
 - Một file ISO CaramOS của bản base, mặc định `<repo>/CaramOS-<BASE>-cinnamon-amd64.iso`.
 
 ```bash
-sudo apt install qemu-kvm libvirt-daemon-system virtinst virt-viewer sshpass rsync \
+sudo apt install qemu-kvm libvirt-daemon-system virtinst virt-viewer rsync \
                  build-essential debhelper
 sudo usermod -aG libvirt "$USER"     # đăng xuất/đăng nhập lại để có hiệu lực
 ls ~/.ssh/*.pub || ssh-keygen -t ed25519
@@ -99,57 +111,51 @@ Sau khi trình cài đặt khởi động lại, **lần đầu VM sẽ tắt h�
 
 #### Cài vào đĩa tự động (không cần bấm)
 
-Khi VM đang ở desktop live và đã qua bước 3–4 (SSH + `vm-setup`), có thể cài không cần tương tác bằng
+Khi VM đang ở desktop live và đã qua bước 3–4 (`vm-bootstrap` + `vm-setup`), có thể cài không cần tương tác bằng
 preseed trong `tools/vm-install-preseed.cfg` (xoá `/dev/vda`, user `caram` / `caram123`, tự đăng nhập):
 
 ```bash
-./tools/vm-dev.sh ssh 'cat > /tmp/caramos-preseed.cfg' < tools/vm-install-preseed.cfg
-./tools/vm-dev.sh ssh 'sudo -n debconf-set-selections /tmp/caramos-preseed.cfg'
-./tools/vm-dev.sh gui-bg "sudo -n --preserve-env=DISPLAY,XAUTHORITY,DBUS_SESSION_BUS_ADDRESS,XDG_RUNTIME_DIR sh -c 'WEBKIT_DISABLE_COMPOSITING_MODE=1 ubiquity --automatic gtk_ui'"
+./tools/vm-dev.sh install-to-disk        # hoặc: ./tools/vm-dev.sh install-to-disk <preseed khác>
 ```
 
-Theo dõi bằng `make vm-shot` (mất khoảng 30–40 phút). Khi màn hình báo *Please remove the installation
-medium, then press ENTER*: `./tools/vm-dev.sh key enter`, rồi `./tools/vm-dev.sh up` khi VM đã tắt. Bản đã
-cài chưa có SSH, nên làm lại bước 3 với `VM_SUDO_PROMPT=1 REMOTE_PASSWORD=caram123 make vm-bootstrap`, rồi
-bước 4 và 5.
+Lệnh này chép preseed vào VM, chạy `ubiquity --automatic` trong desktop live (`tools/vm-guest/install-to-disk.sh`),
+chờ trình cài xong trong một phiên SSH (khoảng 30–40 phút, `VM_INSTALL_MINUTES` mặc định 60), bấm Enter ở màn hình
+*Please remove the installation medium*, chờ VM tắt, rút ISO, quên host key cũ rồi bật bản đã cài. Bản đã cài chưa có
+SSH: đăng nhập trên màn hình VM, đóng các cửa sổ chào mừng, rồi làm lại bước 3 với
+`VM_SUDO_PROMPT=1 make vm-bootstrap`, rồi bước 4 và 5.
 
 Nên đặt domain riêng cho bản cài đĩa để giữ cả VM live, ví dụ `VM_DOMAIN=caram1.0.16-disk` cho mọi lệnh
 (`make vm-create`, `make vm-reset`, ...).
 
 ### Bước 3 — Bật SSH trong VM
 
-VM mới chưa có `openssh-server`. Để script tự gõ lệnh cài vào VM:
+VM mới chưa có `openssh-server`. Để script tự gõ lệnh vào VM:
 
 ```bash
 make vm-bootstrap                       # live session
 VM_SUDO_PROMPT=1 REMOTE_PASSWORD=<mật khẩu user> make vm-bootstrap   # bản cài vào đĩa
 ```
 
-Script mở terminal trong VM bằng `Ctrl+Alt+T`, gõ lệnh cài `openssh-server`, đặt mật khẩu user
-(mặc định `caram123`, hoặc giá trị `REMOTE_PASSWORD`) rồi chờ SSH lên. Desktop VM phải đang đăng
-nhập và không khoá màn hình.
+Script mở terminal trong VM bằng `Ctrl+Alt+T` rồi **gõ phím** (virsh send-key, không qua mạng) một lệnh: thêm public
+key của host vào `~/.ssh/authorized_keys`, tạo `/etc/sudoers.d/90-caramos-vm-dev` (sudo không hỏi mật khẩu), cài và
+bật `openssh-server`. Sau đó nó chờ đăng nhập bằng key được. Không lúc nào host đăng nhập SSH bằng mật khẩu.
+`REMOTE_PASSWORD` (mặc định `caram123`) chỉ được gõ vào ô hỏi mật khẩu sudo của bản cài vào đĩa.
 
-Nếu muốn làm tay, mở terminal trong VM và chạy:
-
-```bash
-sudo sh -c 'apt-get update; apt-get install -y openssh-server && echo caram:caram123 | chpasswd && systemctl enable --now ssh'
-```
+Desktop VM phải đang đăng nhập, không khoá màn hình, và **bàn phím phải gõ tiếng Anh**: nếu biểu tượng Lotus ở khay
+hệ thống là **V**, bấm vào nó cho thành **A** trước (`make vm-shot` để xem vị trí, rồi `./tools/vm-dev.sh click <x> <y>`).
+Gõ khi đang ở chế độ Telex thì "install" thành "ínstall" và lệnh hỏng. Script in ra đúng lệnh nó gõ, để làm tay nếu
+cần.
 
 ### Bước 4 — Cài SSH key, sudo không mật khẩu, guest agent
 
 ```bash
-REMOTE_PASSWORD=caram123 make vm-setup
+make vm-setup
 ```
 
-(Bỏ `REMOTE_PASSWORD` thì script sẽ hỏi mật khẩu.) Lệnh này chạy lại bao nhiêu lần cũng được, và làm
-các việc sau trong VM:
+Lệnh này chạy `tools/vm-guest/setup.sh` trong VM qua SSH bằng key (chạy lại bao nhiêu lần cũng được):
 
-- thêm public key của host vào `~/.ssh/authorized_keys`;
-- tạo `/etc/sudoers.d/90-caramos-vm-dev` cho user test sudo không cần mật khẩu;
 - tắt nguồn apt `cdrom:` (nếu có), cài `qemu-guest-agent` và `rsync`;
 - tắt khoá màn hình và tắt màn hình khi rảnh, để ảnh chụp luôn thấy desktop.
-
-Từ đây không cần mật khẩu nữa.
 
 ### Bước 5 — Chụp snapshot nền
 
@@ -200,11 +206,14 @@ make test-notifier   # cài lại .deb đã ship, chuẩn bị state, mở Trung
 make vm-shot         # in ra đường dẫn file PNG
 ```
 
-Chạy lệnh GUI bất kỳ trong phiên desktop của VM từ host:
+Chạy một chương trình trong phiên desktop của VM từ host. Chương trình nhận đúng môi trường của phiên desktop và chạy
+trong một scope systemd của user, ngoài phiên SSH. Nhờ vậy polkit coi nó như mở từ menu (người dùng đang ngồi trước
+máy), nên Trung tâm cập nhật kiểm tra được mà không hỏi mật khẩu:
 
 ```bash
-./tools/vm-dev.sh gui gsettings get org.cinnamon enabled-applets
+./tools/vm-dev.sh gui gsettings get org.cinnamon enabled-applets   # một chương trình và tham số, không cú pháp shell
 ./tools/vm-dev.sh gui-bg caramos-ota-notifier      # chạy nền, output ở /tmp/caramos-vm-gui.log trong VM
+./tools/vm-dev.sh run --gui my-check.sh            # nhiều lệnh: viết vào script (pipe, &&, biến...)
 ./tools/vm-dev.sh key enter                        # bấm phím
 ./tools/vm-dev.sh key ctrl+alt+t
 ./tools/vm-dev.sh type 'caramos-ota --status'      # gõ chữ vào cửa sổ đang focus
@@ -214,17 +223,20 @@ Chạy lệnh GUI bất kỳ trong phiên desktop của VM từ host:
 
 ```bash
 make vm-reset sync   # reset rồi rsync source đè lên bản đang cài, vài giây
-./tools/vm-dev.sh ssh 'sudo caramos-ota-update --from 1.0.16 --target 1.0.16.1 --dry-run'
+printf '#!/bin/bash\nsudo -n caramos-ota-update --from 1.0.16 --target 1.0.16.1 --dry-run\n' > /tmp/dry-run.sh
+./tools/vm-dev.sh run /tmp/dry-run.sh
 ```
 
 `make sync` đọc `debian/install` để biết file nào đi đâu, nên thêm đường dẫn mới vào `debian/install`
-là `sync` tự theo. Sau khi copy, nó chạy `systemctl daemon-reload` và yêu cầu Cinnamon nạp lại các
-applet của gói.
+là `sync` tự theo. Nó rsync các file đó vào `~/.caramos-vm/stage` trong VM bằng user thường (lần sau chỉ gửi phần
+đổi), rồi `tools/vm-guest/sync-apply.sh` đặt chúng vào hệ thống bằng root, chạy `systemctl daemon-reload` và yêu
+cầu Cinnamon nạp lại các applet của gói.
 
 Giới hạn của `sync`, cần nhớ:
 
 - Không chạy `postinst`/`prerm`, không đổi version trong dpkg. Thay đổi ở `debian/` phải test bằng `make ship`.
-- Notifier đang chạy vẫn giữ code cũ: `./tools/vm-dev.sh ssh pkill -f caramos-ota-notifier` rồi mở lại.
+- Notifier đang chạy vẫn giữ code cũ: đóng cửa sổ trong VM (hoặc một script `pkill -f caramos-ota-notifier` chạy
+  bằng `vm-dev.sh run`) rồi mở lại.
 - File bị xoá khỏi source cũng bị xoá trong VM, nhưng chỉ trong các thư mục riêng của gói.
 - Trước khi mở PR luôn chạy lại bằng gói thật: `make vm-e2e`.
 
@@ -296,7 +308,7 @@ Mỗi bản base là một domain riêng `caram<BASE>` với snapshot `clean` ri
 ```bash
 make vm-create BASE=1.0.12             # cần CaramOS-1.0.12-cinnamon-amd64.iso ở gốc repo
 make vm-bootstrap BASE=1.0.12
-REMOTE_PASSWORD=caram123 make vm-setup BASE=1.0.12
+make vm-setup BASE=1.0.12
 make vm-snapshot BASE=1.0.12
 
 make vm-e2e BASE=1.0.12 TEST_RELEASE_FROM=1.0.12
@@ -337,20 +349,22 @@ cp vm.local.env.example vm.local.env
 | `REMOTE_USER` | `caram` | User trong VM |
 | `REMOTE_HOST` | rỗng | Rỗng = hỏi libvirt IP của `VM_DOMAIN`. Đặt giá trị = SSH thẳng tới host đó |
 | `REMOTE_PORT` | `22` | Cổng SSH |
-| `REMOTE_PASSWORD` | rỗng | Chỉ dùng trước khi `vm-setup` cài key, hoặc cho VM live dùng một lần |
+| `REMOTE_PASSWORD` | `caram123` | Mật khẩu user, chỉ được `vm-bootstrap` gõ vào ô sudo của bản cài vào đĩa |
 | `VM_ISO` | `<repo>/CaramOS-<BASE>-cinnamon-amd64.iso` | ISO cho `vm-create` |
 | `VM_MEMORY_MB` / `VM_CPUS` / `VM_DISK_GB` | `6144` / `4` / `40` | Cấu hình máy cho `vm-create` |
 | `VM_SSH_PUBKEY` | key đầu tiên tìm thấy trong `~/.ssh` | Public key cài vào VM |
 | `VM_TERMINAL_WAIT` | `15` | Số giây `vm-bootstrap` chờ terminal mở trước khi gõ |
 | `VM_SUDO_PROMPT` | `0` | `1` nếu `sudo` trong VM hỏi mật khẩu (bản cài vào đĩa) khi `vm-bootstrap` |
 | `VM_KEEP_OTA_TIMER` | `0` | `1` để `vm-reset` không chặn `caramos-ota-check.service` (mục 9) |
+| `VM_KNOWN_HOSTS` | `~/.local/state/caramos-vm/known_hosts` | Host key của các VM test, mỗi domain một dòng |
+| `VM_INSTALL_MINUTES` | `60` | Thời gian tối đa `install-to-disk` chờ trình cài |
 | `VIRSH_URI` | `qemu:///system` | Kết nối libvirt |
 | `TEST_RELEASE_FROM` | xem `Makefile` | Version ghi vào `/etc/caramos-release` trước khi `--check` |
 
 ### VM không nằm trên libvirt
 
-`ship`, `sync`, `test`, `vm-logs`, `vm-ssh` chỉ cần SSH, nên vẫn dùng được với VirtualBox
-port-forward hay máy thật:
+`ship`, `sync`, `test`, `vm-logs`, `vm-ssh`, `run` chỉ cần SSH bằng key và sudo không mật khẩu, nên vẫn dùng được với
+VirtualBox port-forward hay máy thật:
 
 ```bash
 REMOTE_HOST=127.0.0.1 REMOTE_PORT=2222 make ship
@@ -377,20 +391,24 @@ VM chưa boot xong hoặc chưa có mạng. Xem `make vm-shot`. Kiểm tra mạn
 `virsh -c qemu:///system net-list` phải có `default` ở trạng thái `active`
 (`virsh -c qemu:///system net-start default`).
 
-**`SSH: not reachable with the host key`**
-Chưa chạy `make vm-bootstrap` / `make vm-setup`, hoặc snapshot được chụp trước khi setup. Setup lại
-rồi `FORCE=1 make vm-snapshot`.
+**`SSH: no key login`**
+Chưa chạy `make vm-bootstrap`, hoặc snapshot được chụp trước khi bootstrap. Bootstrap lại rồi
+`FORCE=1 make vm-snapshot`.
+
+**`REMOTE HOST IDENTIFICATION HAS CHANGED`**
+VM được cài lại nên có host key mới. `vm-create`, `vm-bootstrap` và `install-to-disk` tự quên key cũ; nếu cài lại
+bằng cách khác thì chạy `./tools/vm-dev.sh forget-host-key`.
 
 **`passwordless sudo is not available`**
-Chạy `make vm-setup`.
+Chạy `make vm-bootstrap` (nó gõ luật sudo vào VM).
 
 **`make vm-bootstrap` gõ thiếu chữ đầu dòng lệnh**
 Terminal mở chậm hơn thời gian chờ. Bấm `Ctrl+C` trong VM (`./tools/vm-dev.sh key ctrl+c`) rồi chạy
 lại với `VM_TERMINAL_WAIT=30`.
 
 **apt báo `Release file ... is not valid yet`**
-Đồng hồ VM bị lùi về lúc chụp snapshot. `make vm-reset` đã tự chỉnh giờ; nếu revert bằng
-virt-manager thì chạy `./tools/vm-dev.sh ssh "sudo date -u -s @$(date -u +%s)"`.
+Đồng hồ VM bị lùi về lúc chụp snapshot. `make vm-reset` đã tự chỉnh giờ (`tools/vm-guest/after-revert.sh`); nếu
+revert bằng virt-manager thì revert lại bằng `make vm-reset`.
 
 **`make vm-shot` ra ảnh đen**
 Desktop chưa lên xong, hoặc màn hình đã tắt vì snapshot chụp trước khi `vm-setup` tắt chế độ tắt màn
@@ -423,11 +441,11 @@ virsh -c qemu:///system undefine caram1.0.16 --snapshots-metadata --remove-all-s
 - Snapshot kèm RAM phụ thuộc CPU host (`host-passthrough`). Đổi máy host thì chụp lại.
 - VM dùng BIOS, không dùng UEFI, vì snapshot nội bộ của libvirt 10 không hỗ trợ VM UEFI đang chạy.
   Cần test UEFI/Secure Boot thì dùng VM khác.
-- `vm-setup` có thay đổi VM so với bản cài nguyên gốc: thêm `openssh-server`, `qemu-guest-agent`,
-  `rsync`, file sudoers, tắt khoá màn hình. Nếu migration của bạn đụng tới đúng mấy thứ này, hãy
-  kiểm tra thêm trên một VM chưa qua `vm-setup`.
-- Các tool SSH tới VM với `StrictHostKeyChecking=no` và không ghi `known_hosts`, vì VM test đổi host
-  key sau mỗi lần cài lại. Chỉ trỏ `REMOTE_HOST` tới máy test.
+- `vm-bootstrap` và `vm-setup` có thay đổi VM so với bản cài nguyên gốc: thêm `openssh-server`, `qemu-guest-agent`,
+  `rsync`, file sudoers, thư mục `~/.caramos-vm`, tắt khoá màn hình. Nếu migration của bạn đụng tới đúng mấy thứ
+  này, hãy kiểm tra thêm trên một VM chưa qua hai bước đó.
+- Host key của VM được kiểm tra như mọi máy khác, trong file `known_hosts` riêng (`VM_KNOWN_HOSTS`), mỗi domain
+  một dòng. Chỉ trỏ `REMOTE_HOST` tới máy test.
 
 ---
 
@@ -435,8 +453,9 @@ virsh -c qemu:///system undefine caram1.0.16 --snapshots-metadata --remove-all-s
 
 | File | Vai trò |
 | --- | --- |
-| `tools/vm-dev.sh` | Toàn bộ lệnh `vm-*`, `sync`, `logs`, `shot`, `gui`, `key`, `type`, `click` |
-| `tools/vm-common.sh` | Cấu hình + helper SSH dùng chung (tìm IP qua libvirt, `vm_ssh`, `vm_scp`) |
+| `tools/vm-dev.sh` | Toàn bộ lệnh `vm-*`, `sync`, `logs`, `shot`, `gui`, `run`, `e2e`, `key`, `type`, `click` |
+| `tools/vm-common.sh` | Cấu hình + helper SSH dùng chung (tìm IP qua libvirt, `vm_ssh`, `vm_push`, `vm_run`) |
+| `tools/vm-guest/` | Các script chạy **bên trong** VM cho từng bước (chép vào `~/.caramos-vm` trước mỗi lệnh) |
 | `tools/ship-ota-to-vm.sh` | Build `.deb` và cài vào VM (`make ship`) |
 | `tools/vm-run-ota-e2e.sh` | Script chạy **bên trong** VM (install, prepare-check, install-and-cli) |
 | `tools/Makefile.vm` | Makefile được copy vào VM tại `/tmp/caramos-ota-e2e/` |

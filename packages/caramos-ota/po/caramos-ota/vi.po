@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-26 22:54+0700\n"
+"POT-Creation-Date: 2026-11-27 00:27+0700\n"
 "PO-Revision-Date: 2026-10-12 00:00+0700\n"
 "Last-Translator: Vietnam Linux Family <developer@vietnamlinuxfamily.net>\n"
 "Language-Team: Vietnamese <developer@vietnamlinuxfamily.net>\n"
@@ -600,6 +600,15 @@ msgstr "Tính mã kiểm tra"
 msgid "The user reproduced the problem, then ran CaramOS Audit"
 msgstr "Người dùng tái hiện lỗi rồi chạy CaramOS Audit"
 
+#: usr/lib/python3/dist-packages/caramos_ota/notices_window.py:53
+#: usr/lib/python3/dist-packages/caramos_ota/notices_window.py:109
+msgid "A notice from CaramOS"
+msgstr "Thông báo từ CaramOS"
+
+#: usr/lib/python3/dist-packages/caramos_ota/notices_window.py:76
+msgid "Got it"
+msgstr "Đã hiểu"
+
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:67
 msgid "Wi-Fi"
 msgstr "Wi-Fi"
@@ -1145,40 +1154,40 @@ msgstr "Bluetooth không chạy"
 msgid "Bluetooth has no driver"
 msgstr "Bluetooth chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:718
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:721
 msgid "no Linux driver yet"
 msgstr "Linux chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:720
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:723
 msgid "Bluetooth is turned off by a switch"
 msgstr "Bluetooth đang bị tắt bằng phím cứng"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:721
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:724
 msgid ""
 "Turn it on with the wireless switch or the Fn key with the airplane symbol."
 msgstr "Bật lại bằng công tắc không dây hoặc phím Fn có biểu tượng máy bay."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:735
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:738
 msgid "Restart to start the webcam driver"
 msgstr "Khởi động lại để chạy driver webcam"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:736
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:739
 msgid "The webcam driver did not load"
 msgstr "Driver webcam không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:737
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:740
 msgid "The webcam does not start"
 msgstr "Webcam không chạy"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:738
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:741
 msgid "The webcam has no driver"
 msgstr "Webcam chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:747
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:750
 msgid "The built-in camera may not work yet"
 msgstr "Camera của máy có thể chưa dùng được"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:748
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:751
 msgid ""
 "This laptop's camera is connected through an Intel IPU image processor, "
 "common on laptops since 2021. Most apps on Linux cannot use this kind of "
@@ -1188,11 +1197,11 @@ msgstr ""
 "từ năm 2021). Đa số ứng dụng trên Linux chưa dùng được loại camera này; "
 "webcam USB thì cắm vào là dùng được ngay."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:752
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:755
 msgid "The built-in cameras do not work yet"
 msgstr "Camera tích hợp chưa dùng được"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:753
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:756
 msgid ""
 "This computer's cameras are connected through the image processor of Intel "
 "Atom chips. Linux only has an unfinished driver for it, so apps cannot use "
@@ -1202,16 +1211,16 @@ msgstr ""
 "có driver chưa hoàn thiện cho bộ này nên ứng dụng chưa dùng được camera; "
 "webcam USB thì cắm vào là dùng được ngay."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:768
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:771
 #, python-format
 msgid "%s fingerprint reader"
 msgstr "Đầu đọc vân tay %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:771
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:774
 msgid "Log in with your fingerprint"
 msgstr "Đăng nhập bằng vân tay"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:772
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:775
 msgid ""
 "This fingerprint reader works with CaramOS. Add your fingerprints to log in "
 "and unlock the screen with them."
@@ -1219,11 +1228,11 @@ msgstr ""
 "Đầu đọc vân tay này dùng được với CaramOS. Hãy thêm vân tay để đăng nhập và "
 "mở khóa màn hình bằng vân tay."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:776
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:779
 msgid "The fingerprint reader has no driver"
 msgstr "Đầu đọc vân tay chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:777
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:780
 msgid ""
 "Linux has no driver for this fingerprint reader yet (libfprint). Log in with "
 "your password."
@@ -1231,11 +1240,11 @@ msgstr ""
 "Linux chưa có driver cho đầu đọc vân tay này (libfprint). Bạn vẫn đăng nhập "
 "bằng mật khẩu như bình thường."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:794
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:797
 msgid "The printer is not connected properly"
 msgstr "Máy in chưa kết nối được"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:795
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:798
 msgid ""
 "The computer sees this Canon printer but cannot talk to it over USB, so no "
 "driver can use it yet. Unplug the USB cable and plug it into another USB "
@@ -1249,7 +1258,7 @@ msgstr ""
 "vẫn bị, hãy thử một sợi cáp khác. Sau đó tắt máy in rồi bật lại, và kiểm tra "
 "lại."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:807
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:810
 msgid ""
 "This Canon printer speaks Canon's own printer language (CAPT), so it prints "
 "nothing without a CAPT driver. Install captdriver, an open-source driver for "
@@ -1259,15 +1268,15 @@ msgstr ""
 "CAPT thì nó không in ra được gì. Hãy cài captdriver, một driver mã nguồn mở "
 "cho máy này; sau đó máy in sẽ tự được thiết lập."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:812
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:815
 msgid "Support for this model is still experimental."
 msgstr "Driver hỗ trợ mẫu máy này mới ở mức thử nghiệm."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:814
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:817
 msgid "Install the printer driver"
 msgstr "Cài driver máy in"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:817
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:820
 msgid ""
 "This Canon printer speaks Canon's own printer language (CAPT), and only "
 "Canon's driver supports this model. Driver Check downloads it from Canon "
@@ -1279,11 +1288,11 @@ msgstr ""
 "tra driver sẽ tải driver từ Canon (khoảng 120 MB), cài đúng như Canon phát "
 "hành và thiết lập máy in."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:821
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:824
 msgid "Install Canon's driver"
 msgstr "Cài driver của Canon"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:824
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:827
 msgid ""
 "This Canon printer speaks Canon's own printer language (CAPT), and neither "
 "captdriver nor Canon's Linux driver supports this model. Ask the community "
@@ -1293,33 +1302,33 @@ msgstr ""
 "lẫn driver Linux của Canon đều không hỗ trợ mẫu máy này. Hãy nhờ cộng đồng "
 "giúp bằng nút bên dưới."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:828
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:831
 msgid "The printer has no driver"
 msgstr "Máy in chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:860
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:863
 msgid "Restart to start a device driver"
 msgstr "Khởi động lại để chạy driver thiết bị"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:861
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:864
 msgid "A device driver did not load"
 msgstr "Một driver thiết bị không được nạp"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:862
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:865
 msgid "A device has no driver"
 msgstr "Một thiết bị chưa có driver"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:879
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:882
 #, python-format
 msgid "Recommended driver for %s"
 msgstr "Driver khuyên dùng cho %s"
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:880
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:883
 #, python-format
 msgid "Ubuntu recommends the %s package for this device."
 msgstr "Ubuntu khuyên dùng gói %s cho thiết bị này."
 
-#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:881
+#: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:884
 msgid "Install the driver"
 msgstr "Cài driver"
 

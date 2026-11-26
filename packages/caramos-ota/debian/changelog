@@ -1,3 +1,21 @@
+caramos-ota (1.5.2-0caramos7) noble; urgency=medium
+
+  * Notices from the CaramOS team reach every computer (owner, 2026-11-27):
+    the team writes them at https://caramos.vietnamlinuxfamily.net/quan-tri
+    (CaramOSLanding), and caramos-ota-notices, run by the user timer
+    caramos-ota-notices.timer of every desktop session (3 minutes after
+    login, then every 4 hours), fetches /api/thong-bao, keeps the notices
+    meant for this computer (CaramOS version bounds, edition, an update
+    waiting or failing) and shows each one once to each user in a small
+    window, in English when the session is and the notice has it.
+  * It goes through no APT and no dpkg, and its request says nothing about
+    the computer: computers whose updates are stuck still get the notices
+    (on 2026-11-26 most computers counted had a recent updater on CaramOS
+    1.0.x, 1.3.x or 1.4.0). A notice is text and at most one https link to
+    vietnamlinuxfamily.net; nothing in it is run.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Fri, 27 Nov 2026 00:33:51 +0700
+
 caramos-ota (1.5.2-0caramos6) noble; urgency=medium
 
   * Driver Check, NVIDIA (ticket H-1223): after it installed the NVIDIA

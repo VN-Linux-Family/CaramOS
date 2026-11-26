@@ -1,0 +1,14 @@
+# Started by caramos-ota-notices.timer: fetch the notices meant for this computer and show those this user has not seen.
+[Unit]
+Description=CaramOS: show the notices from the CaramOS team
+ConditionUser=!@system
+ConditionKernelCommandLine=!boot=casper
+# Only in a desktop session: not for a user logged in over SSH alone.
+ConditionEnvironment=|DISPLAY
+ConditionEnvironment=|WAYLAND_DISPLAY
+
+[Service]
+# exec: the unit stays active while a notice is on the screen, so the timer does not open a second one.
+Type=exec
+ExecStart=/usr/bin/caramos-ota-notices
+Nice=10

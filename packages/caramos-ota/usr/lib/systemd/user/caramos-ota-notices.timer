@@ -1,0 +1,16 @@
+# Notices from the CaramOS team (caramos_ota.notices): 3 minutes after login, then every 4 hours. Enabled for every
+# user by the package; a session open when it arrived gets it from its next login.
+[Unit]
+Description=CaramOS: notices from the CaramOS team
+# Desktop users only: not the login screen's account or other system accounts.
+ConditionUser=!@system
+# Not in the live session of the USB stick.
+ConditionKernelCommandLine=!boot=casper
+
+[Timer]
+OnStartupSec=3min
+OnUnitActiveSec=4h
+RandomizedDelaySec=5min
+
+[Install]
+WantedBy=timers.target

@@ -3,6 +3,7 @@ usr/bin/caramos-help usr/bin/
 usr/bin/caramos-ota usr/bin/
 usr/bin/caramos-ota-audit usr/bin/
 usr/bin/caramos-ota-notifier usr/bin/
+usr/bin/caramos-ota-notices usr/bin/
 usr/bin/caramos-ota-update usr/bin/
 usr/lib/python3/dist-packages/caramos_ota usr/lib/python3/dist-packages/
 usr/lib/python3/dist-packages/caramos_ota_audit usr/lib/python3/dist-packages/
@@ -31,6 +32,8 @@ lib/systemd/system/caramos-ota-check.timer lib/systemd/system/
 lib/systemd/system/caramos-ota-auto-update.service lib/systemd/system/
 usr/lib/systemd/user/caramos-ota-auto-update-notify.path usr/lib/systemd/user/
 usr/lib/systemd/user/caramos-ota-auto-update-notify.service usr/lib/systemd/user/
+usr/lib/systemd/user/caramos-ota-notices.service usr/lib/systemd/user/
+usr/lib/systemd/user/caramos-ota-notices.timer usr/lib/systemd/user/
 usr/share/caramos-ota/auto-update usr/share/caramos-ota/
 usr/share/caramos-ota/check usr/share/caramos-ota/
 etc/xdg/autostart/caramos-ota-notifier.desktop etc/xdg/autostart/

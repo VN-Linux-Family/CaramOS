@@ -452,12 +452,12 @@ window.caramos-cc {
   color: #ffffff;
 }
 
-/* -------- The sound level shown by the sound keys (osd.py), as Cinnamon's OSD -------- */
+/* -------- The sound level shown by the sound keys (osd.py): a slim bar with the percentage (ticket H-1216) -------- */
 .caramos-cc-osd {
-  min-width: 92px;
-  min-height: 92px;
-  padding: 20px 20px 24px;
-  border-radius: 28px;
+  min-width: 260px;
+  min-height: 46px;
+  padding: 0 20px;
+  border-radius: 999px;
   background-color: rgba(240, 238, 237, 0.99);
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
@@ -467,7 +467,7 @@ window.caramos-cc {
 }
 
 .caramos-cc-osd-level trough {
-  min-width: 92px;
+  min-width: 176px;
   min-height: 6px;
   padding: 0;
   border: none;
@@ -477,7 +477,10 @@ window.caramos-cc {
   box-shadow: none;
 }
 
+/* No minimum width: Cinnamon-Delight gives a level bar's block 32 px, which drew every level under about a third
+   the same (ticket H-1216). */
 .caramos-cc-osd-level block {
+  min-width: 0;
   min-height: 6px;
   border: none;
   border-radius: 999px;
@@ -493,6 +496,15 @@ window.caramos-cc {
   background-color: transparent;
 }
 
+.caramos-cc-osd-percent {
+  font-weight: 600;
+  color: rgba(48, 48, 48, 0.86);
+}
+
+.caramos-cc-osd-percent.muted {
+  color: rgba(48, 48, 48, 0.42);
+}
+
 .dark .caramos-cc-osd {
   background-color: rgba(41, 32, 38, 0.99);
   border-color: rgba(255, 255, 255, 0.14);
@@ -500,6 +512,14 @@ window.caramos-cc {
 
 .dark .caramos-cc-osd-icon {
   color: rgba(245, 245, 247, 0.92);
+}
+
+.dark .caramos-cc-osd-percent {
+  color: rgba(245, 245, 247, 0.92);
+}
+
+.dark .caramos-cc-osd-percent.muted {
+  color: rgba(245, 245, 247, 0.45);
 }
 
 .dark .caramos-cc-osd-level trough {

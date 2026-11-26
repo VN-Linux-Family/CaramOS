@@ -11,6 +11,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parents[1] / "usr/share/caramos-ota/driver-check"))
 
 from caramos_driver_check.analysis import (
+    ABSENT,
     CRITICAL,
     DRIVER_MANAGER,
     INFO,
@@ -341,6 +342,50 @@ class GraphicsTests(unittest.TestCase):
         finding = analyze(laptop(pci=(INTEL_WIFI, INTEL_GPU, stuck, INTEL_AUDIO))).findings[0]
         self.assertEqual("graphics:nvidia-blocked:pci:10de:1f99", finding.key)
 
+    # Ticket H-1223, an ASUS X550LN: Driver Check installed NVIDIA 580 with the signed modules of the newest kernel
+    # (7.0) and that kernel, while 6.14 keeps running until a restart. 6.14 has no NVIDIA module, the card still runs
+    # on nouveau, and Ubuntu proposes nothing for a card whose driver is installed.
+    GEFORCE_840M = Device("pci", "0000:04:00.0", "10de", "1341", "NVIDIA GeForce 840M", driver="nouveau",
+                          pci_class="030200", modules=("nouveau",), loaded_modules=("nouveau",))
+    INSTALLED_580 = {"nvidia_drivers": ("nvidia-driver-580",)}
+    MODULE_7_0 = "/lib/modules/7.0.0-42-generic/kernel/nvidia-580/nvidia.ko"
+
+    def test_nvidia_driver_installed_for_the_next_kernel_asks_for_a_restart(self) -> None:
+        # It said: open Driver Manager and install the recommended driver, which may be NVIDIA 470 (H-1094).
+        report = analyze(laptop(pci=(INTEL_WIFI, INTEL_GPU, self.GEFORCE_840M, INTEL_AUDIO),
+                                nvidia_modules=(self.MODULE_7_0,), **self.INSTALLED_580))
+        finding = report.findings[0]
+        self.assertEqual([("graphics:nvidia-restart:pci:10de:1341", WARNING)],
+                         [(f.key, f.level) for f in report.findings])
+        self.assertEqual([REBOOT], kinds(finding))
+        self.assertNotIn("MOK", finding.detail)
+        # Ubuntu's modules are signed: Secure Boot asks nothing at the restart. A DKMS build is signed with the MOK.
+        signed = analyze(laptop(pci=(INTEL_WIFI, INTEL_GPU, self.GEFORCE_840M, INTEL_AUDIO), secure_boot=True,
+                                nvidia_modules=(self.MODULE_7_0,), **self.INSTALLED_580)).findings[0]
+        self.assertNotIn("MOK", signed.detail)
+        dkms = analyze(laptop(pci=(INTEL_WIFI, INTEL_GPU, self.GEFORCE_840M, INTEL_AUDIO), secure_boot=True,
+                              nvidia_modules=("/lib/modules/7.0.0-42-generic/updates/dkms/nvidia.ko.zst",),
+                              **self.INSTALLED_580)).findings[0]
+        self.assertEqual("graphics:nvidia-restart:pci:10de:1341", dkms.key)
+        self.assertIn("Enroll MOK", dkms.detail)
+
+    def test_an_installed_nvidia_driver_without_a_module_for_this_kernel_asks_for_help(self) -> None:
+        report = analyze(laptop(pci=(INTEL_WIFI, INTEL_GPU, self.GEFORCE_840M, INTEL_AUDIO), **self.INSTALLED_580))
+        finding = report.findings[0]
+        self.assertEqual([("graphics:nvidia-unfinished:pci:10de:1341", WARNING)],
+                         [(f.key, f.level) for f in report.findings])
+        self.assertEqual([REPORT], kinds(finding))
+        self.assertIn("6.14", finding.title)
+        self.assertIn("NVIDIA 580 is installed", finding.detail)
+        self.assertIn("Linux 6.14", finding.detail)
+        self.assertEqual((), report.installs)
+
+    def test_an_unfinished_nvidia_install_is_still_the_broken_driver(self) -> None:
+        # dpkg could not finish a package of it: that blocks every install, whatever the modules.
+        report = analyze(laptop(pci=(INTEL_WIFI, INTEL_GPU, self.GEFORCE_840M, INTEL_AUDIO),
+                                unfinished_packages=("nvidia-dkms-580",), **self.INSTALLED_580))
+        self.assertEqual(["graphics:nvidia-broken:pci:10de:1341"], [f.key for f in report.findings])
+
     def test_nvidia_with_its_driver_is_fine(self) -> None:
         working = replace(self.NVIDIA, driver="nvidia", modules=(), loaded_modules=())
         self.assertEqual((), analyze(laptop(pci=(INTEL_WIFI, INTEL_GPU, working, INTEL_AUDIO))).findings)
@@ -423,6 +468,53 @@ class SoundBluetoothCameraTests(unittest.TestCase):
         self.assertEqual("bluetooth:failed:usb:0bda:b85c", finding.key)
         self.assertIn("rtl_bt/rtl8852bu_fw.bin", finding.detail)
         self.assertIn("btusb", finding.detail)
+
+    # Ticket H-1223, an ASUS X550LN: the Ralink RT3290 is a Wi-Fi card (rt2800pci) with a Bluetooth function on PCI
+    # that Linux has no driver for. The Bluetooth area said "Not found on this computer", and the function was only
+    # "a device without a driver" under other devices.
+    RT3290_WIFI = Device("pci", "0000:03:00.0", "1814", "3290", "Ralink RT3290 Wireless 802.11n 1T/1R PCIe",
+                         driver="rt2800pci", pci_class="028000", net=("wlp3s0",))
+    RT3290_BLUETOOTH = Device("pci", "0000:03:00.1", "1814", "3298", "Ralink RT3290 Bluetooth", pci_class="0d1100")
+    RT3290_UP = NetInterface("wlp3s0", wireless=True, up=True, driver="rt2800pci", bus="pci", address="0000:03:00.0")
+
+    def test_a_pci_bluetooth_function_without_a_driver_is_bluetooth_without_a_driver(self) -> None:
+        report = analyze(laptop(pci=(self.RT3290_WIFI, self.RT3290_BLUETOOTH, INTEL_GPU, INTEL_AUDIO), usb=(WEBCAM,),
+                                net=(self.RT3290_UP,)))
+
+        # INFO: no Linux driver exists, so no notification at every login (a USB adapter is the way out).
+        self.assertEqual([("bluetooth:no-driver:pci:1814:3298", "bluetooth", INFO)],
+                         [(f.key, f.area, f.level) for f in report.findings])
+        finding = report.findings[0]
+        self.assertEqual([REPORT], kinds(finding))
+        self.assertIn("Linux 6.14 has no driver for it", finding.detail)
+        self.assertEqual(("Ralink RT3290 Bluetooth", "PCI 1814:3298"), (finding.device, finding.device_id))
+        areas = {area.key: (area.level, area.summary) for area in report.areas}
+        self.assertEqual((INFO, "Ralink RT3290 Bluetooth (no Linux driver yet)"), areas["bluetooth"])
+        self.assertEqual((OK, "Ralink RT3290 Wireless 802.11n 1T/1R PCIe (connected)"), areas["wifi"])
+        self.assertNotIn("other", areas)
+
+        # The same card without its Bluetooth function: the computer has no Bluetooth.
+        without = analyze(laptop(pci=(self.RT3290_WIFI, INTEL_GPU, INTEL_AUDIO), usb=(WEBCAM,), net=(self.RT3290_UP,)))
+        self.assertEqual((), without.findings)
+        self.assertEqual((ABSENT, "Not found on this computer"),
+                         {area.key: (area.level, area.summary) for area in without.areas}["bluetooth"])
+
+    def test_a_pci_bluetooth_function_with_its_driver_works(self) -> None:
+        working = replace(self.RT3290_BLUETOOTH, driver="rtbth", bluetooth=("hci0",))
+        report = analyze(laptop(pci=(self.RT3290_WIFI, working, INTEL_GPU, INTEL_AUDIO), usb=(WEBCAM,),
+                                net=(self.RT3290_UP,)))
+        self.assertEqual((), report.findings)
+        self.assertEqual((OK, "Ralink RT3290 Bluetooth"),
+                         {area.key: (area.level, area.summary) for area in report.areas}["bluetooth"])
+
+    def test_a_usb_bluetooth_adapter_without_a_driver_is_named_too(self) -> None:
+        bare = Device("usb", "1-4", "13d3", "3402", "IMC Networks Bluetooth Radio",
+                      interfaces=(UsbInterface("1.0", "e0", "01", "01", "", "usb:v13D3p3402"),))
+        report = analyze(laptop(usb=(bare, WEBCAM)))
+        self.assertEqual([("bluetooth:no-driver:usb:13d3:3402", WARNING)], [(f.key, f.level) for f in report.findings])
+        self.assertEqual([REPORT], kinds(report.findings[0]))
+        self.assertEqual((WARNING, "IMC Networks Bluetooth Radio (no Linux driver yet)"),
+                         {area.key: (area.level, area.summary) for area in report.areas}["bluetooth"])
 
     def test_intel_ipu_camera_without_a_usb_webcam(self) -> None:
         ipu = Device("pci", "0000:00:05.0", "8086", "465d", "Intel Alder Lake Imaging Signal Processor",

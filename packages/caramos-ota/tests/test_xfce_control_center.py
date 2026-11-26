@@ -383,6 +383,42 @@ class PowerTests(unittest.TestCase):
         self.assertEqual("Power saver", profile_label("power-saver"))
 
 
+class OsdTests(unittest.TestCase):
+    """The sound level of the sound keys (ticket H-1216): a slim bar with the percentage, and every level shows."""
+
+    def osd_function(self, name: str):
+        source = (PACKAGE / "osd.py").read_text(encoding="utf-8")
+        tree = ast.parse(source)
+        node = next(item for item in tree.body if isinstance(item, ast.FunctionDef) and item.name == name)
+        namespace: dict = {}
+        exec(compile(ast.Module(body=[node], type_ignores=[]), "osd.py", "exec"), namespace)  # noqa: S102
+        return namespace[name]
+
+    def test_the_percentage(self) -> None:
+        percent_text = self.osd_function("percent_text")
+        self.assertEqual("0%", percent_text(0.0))
+        self.assertEqual("4%", percent_text(0.04))
+        self.assertEqual("45%", percent_text(0.449))
+        self.assertEqual("100%", percent_text(1.0))
+        self.assertEqual("100%", percent_text(1.3))
+
+    def test_a_slim_bar_icon_level_and_number(self) -> None:
+        source = (PACKAGE / "osd.py").read_text(encoding="utf-8")
+        self.assertIn("Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL", source)
+        order = [source.index(f"self.card.pack_start(self.{name}") for name in ("image", "level", "percent")]
+        self.assertEqual(sorted(order), order)
+        self.assertIn('w.set_class(self.percent, "muted", muted)', source)
+
+    def test_every_level_shows(self) -> None:
+        # Cinnamon-Delight gives a level bar's block a 32 px minimum: every level under about a third looked the same.
+        css = (PACKAGE / "style.css").read_text(encoding="utf-8")
+        rule = css[css.index(".caramos-cc-osd-level block {"):]
+        self.assertIn("min-width: 0;", rule[:rule.index("}")])
+        for selector in (".caramos-cc-osd-percent {", ".caramos-cc-osd-percent.muted {",
+                         ".dark .caramos-cc-osd-percent {", ".dark .caramos-cc-osd-percent.muted {"):
+            self.assertIn(selector, css)
+
+
 @unittest.skipUnless(HAVE_GI, "PyGObject is unavailable")
 class AppearanceTests(unittest.TestCase):
     def test_the_caramos_styles_of_cinnamon(self) -> None:

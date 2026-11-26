@@ -27,7 +27,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from . import knowledge
-from .hardware import PCI_ADDRESS, PCI_DISPLAY, USB_DEVICE, Snapshot
+from .hardware import NVIDIA_DRIVER, PCI_ADDRESS, PCI_DISPLAY, USB_DEVICE, Snapshot
 
 # Ubuntu's own auto-install list (UbuntuDrivers.detect.auto_install_filter), without the OEM archives, and the
 # CaramOS PPA's driver for Canon CAPT printers (knowledge.CAPTDRIVER_PACKAGE).
@@ -36,7 +36,6 @@ ONE_CLICK = ("nvidia-driver-*", "bcmwl*", "broadcom-sta-dkms", "virtualbox-guest
 # Packages the CaramOS USB stick carries: Driver Check can install them without internet.
 ON_INSTALL_MEDIA = ("bcmwl-kernel-source", "broadcom-sta-dkms")
 PREFERRED = ("bcmwl-kernel-source", "broadcom-sta-dkms")
-NVIDIA_DRIVER = re.compile(r"^nvidia-driver-(?P<flavour>\d+(?:-server)?(?:-open)?)$")
 # VirtualBox and VMware virtual hardware: their guest tools are one-click drivers.
 GUEST_VENDORS = frozenset({"80ee", "15ad"})
 LOOKUP_TIMEOUT = 180                # seconds; a busy old computer gets this long, then the window goes on without

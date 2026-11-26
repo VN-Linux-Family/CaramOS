@@ -20,7 +20,9 @@ from .drivers import DriverProposal
 from .hardware import (
     ACPI_AUDIO,
     ACPI_BLUETOOTH,
+    NVIDIA_DRIVER,
     PCI_AUDIO,
+    PCI_BLUETOOTH,
     PCI_DISPLAY,
     PCI_ETHERNET,
     PCI_OTHER,
@@ -221,13 +223,19 @@ class _Analysis:
         names = {device.address, *device.bluetooth}
         files = [error.file for error in self.snapshot.firmware_errors if error.device in names]
         serial_bluetooth = device.bus == "acpi" and bool(ACPI_BLUETOOTH.match(device.product))
-        if not files and (device.bluetooth_interfaces or serial_bluetooth) and not device.bluetooth:
+        bluetooth = device.bluetooth_interfaces or serial_bluetooth or device.pci_class_is(PCI_BLUETOOTH)
+        if not files and bluetooth and not device.bluetooth:
             # A Bluetooth adapter whose firmware failed is gone again; its errors name the old hciN.
             files = [error.file for error in self.snapshot.firmware_errors if error.driver == "bluetooth"]
         return tuple(dict.fromkeys(files))
 
     def _secure_boot_note(self, device: Device) -> str:
-        if self.snapshot.secure_boot and any(module in device.dkms_modules for module in self._waiting_modules(device)):
+        return self._mok_note(any(module in device.dkms_modules for module in self._waiting_modules(device)))
+
+    def _mok_note(self, dkms: bool) -> str:
+        """What to do at the restart when the driver waiting for it was built by DKMS, so signed with the MOK key."""
+
+        if self.snapshot.secure_boot and dkms:
             return " " + _(
                 "Secure Boot is on: if a blue “Perform MOK management” screen appears while restarting, "
                 "choose “Enroll MOK” and type the password you set when the driver was installed."
@@ -511,6 +519,12 @@ class _Analysis:
                           device, self._actions_for(reason))
         self._area("graphics", cards)
 
+    def _nvidia_restart(self, device: Device, note: str) -> None:
+        self._add("graphics", WARNING, f"graphics:nvidia-restart:{device.key}",
+                  _("Restart to start the NVIDIA driver"),
+                  _("The NVIDIA driver is installed. Restart the computer to start it.") + note,
+                  device, (_action(REBOOT),))
+
     def _nvidia(self, device: Device) -> None:
         broken = [package for package in self.snapshot.unfinished_packages if package.startswith(NVIDIA_PACKAGES)]
         if broken:
@@ -519,16 +533,26 @@ class _Analysis:
         if device.driver == "nvidia":
             return
         if "nvidia" in device.new_modules:
-            self._add("graphics", WARNING, f"graphics:nvidia-restart:{device.key}",
-                      _("Restart to start the NVIDIA driver"),
-                      _("The NVIDIA driver is installed. Restart the computer to start it.")
-                      + self._secure_boot_note(device), device, (_action(REBOOT),))
+            self._nvidia_restart(device, self._secure_boot_note(device))
             return
         if "nvidia" in device.modules and "nvidia" not in device.loaded_modules:
             self._add("graphics", WARNING, f"graphics:nvidia-blocked:{device.key}",
                       _("The NVIDIA driver did not load"), self._explain(device, "blocked", ""), device,
                       (_action(DRIVER_MANAGER), _action(REPORT)))
             return
+        if self.snapshot.nvidia_drivers:
+            # An NVIDIA driver is installed, but the running kernel has no module of it. Ubuntu proposes nothing for
+            # the card then, and the advice below sent the user to Driver Manager, which may preselect NVIDIA 470:
+            # its module does not build for Linux 6.12 and later, and dpkg is left broken (H-1094, H-1223).
+            if self.snapshot.nvidia_modules:
+                # Its module is for a newer kernel, which starts at the next boot: Driver Check's install brings the
+                # modules of the newest kernel of the series and that kernel (H-1223).
+                self._nvidia_restart(device, self._mok_note(
+                    any("/updates/" in path for path in self.snapshot.nvidia_modules)))
+                return
+            if "nvidia" not in device.modules:
+                self._nvidia_unfinished(device)
+                return
         if device.driver == "nouveau":
             why = _("This NVIDIA card runs on the open-source nouveau driver: slower in games and videos, and "
                     "the battery runs down faster.")
@@ -579,6 +603,24 @@ class _Analysis:
                   why + " " + _("CaramOS installs the driver Ubuntu recommends for this card."), device,
                   (Action(INSTALL, _("Install NVIDIA driver %s") % version, proposal.target),
                    _action(DRIVER_MANAGER)), notes=tuple(notes))
+
+    def _nvidia_unfinished(self, device: Device) -> None:
+        """An NVIDIA driver dpkg installed fully, with a module for neither the running kernel nor a newer one.
+
+        Its packages are fine (_nvidia_broken is for those dpkg could not finish), but its module for this kernel
+        never came: a DKMS build that failed for a kernel installed later, or the modules of another kernel series.
+        The community can tell which; Driver Manager may preselect NVIDIA 470 and break dpkg (H-1094, H-1223).
+        """
+
+        versions = [match.group("flavour").split("-")[0] if (match := NVIDIA_DRIVER.match(package)) else package
+                    for package in self.snapshot.nvidia_drivers]
+        kernel = kernel_version(self.snapshot.kernel)
+        self._add("graphics", WARNING, f"graphics:nvidia-unfinished:{device.key}",
+                  _("The NVIDIA driver is not fully installed for Linux %s") % kernel, _(
+                      "NVIDIA %(driver)s is installed, but its kernel module for Linux %(kernel)s, the kernel this "
+                      "computer runs, is missing, so the card cannot use it. Ask the community for help with the "
+                      "button below before installing another NVIDIA driver from Driver Manager."
+                  ) % {"driver": ", ".join(dict.fromkeys(versions)), "kernel": kernel}, device, (_action(REPORT),))
 
     def _nvidia_broken(self, device: Device, broken: list[str]) -> None:
         """An NVIDIA driver dpkg could not finish (its module does not build for this kernel, ticket H-1094)."""
@@ -652,9 +694,14 @@ class _Analysis:
 
     def _bluetooth(self) -> None:
         devices = [device for device in self.snapshot.usb if device.bluetooth_interfaces]
+        # The Bluetooth function of a PCI Wi-Fi card, like the Ralink RT3290's, which Linux has no driver for: it was
+        # only "a device without a driver", and this area said the computer had no Bluetooth (ticket H-1223).
+        devices += [device for device in self.snapshot.pci if device.pci_class_is(PCI_BLUETOOTH)]
         devices += [device for device in self.snapshot.acpi if ACPI_BLUETOOTH.match(device.product)]
+        names = []
         for device in devices:
             if device.bluetooth:
+                names.append(device.name)
                 continue
             driver = device.driver or next(
                 (interface.driver for interface in device.bluetooth_interfaces if interface.driver), "")
@@ -665,12 +712,17 @@ class _Analysis:
                 "failed": _("Bluetooth does not start"),
                 "no-driver": _("Bluetooth has no driver"),
             }
-            self._add("bluetooth", WARNING, f"bluetooth:{reason}:{device.key}", titles[reason],
+            # The Bluetooth function of a PCI card with no Linux driver at all (RT3290) is something to know, not to
+            # be told about at every login: nothing on the computer can fix it (a USB adapter can).
+            level = INFO if device.bus == "pci" and reason == "no-driver" else WARNING
+            self._add("bluetooth", level, f"bluetooth:{reason}:{device.key}", titles[reason],
                       self._explain(device, reason, driver), device, self._actions_for(reason))
+            # The area names the device it found and says that it has no driver, not that there is none.
+            names.append("%s (%s)" % (device.name, _("no Linux driver yet")) if reason == "no-driver" else device.name)
         if devices and any(switch.kind == "bluetooth" and switch.hard for switch in self.snapshot.rfkill):
             self._add("bluetooth", INFO, "bluetooth:hard-blocked", _("Bluetooth is turned off by a switch"),
                       _("Turn it on with the wireless switch or the Fn key with the airplane symbol."))
-        self._area("bluetooth", devices)
+        self._area("bluetooth", devices, " + ".join(dict.fromkeys(names)))
 
     # Webcam ------------------------------------------------------------------------------------
 
@@ -785,7 +837,8 @@ class _Analysis:
     def _other(self) -> None:
         devices = []
         for device in self.snapshot.pci:
-            if device.driver or not device.pci_class_is(*PCI_OTHER):
+            # A Bluetooth controller belongs to the Bluetooth area (H-1223).
+            if device.driver or not device.pci_class_is(*PCI_OTHER) or device.pci_class_is(PCI_BLUETOOTH):
                 continue
             if device.pci_class_is("ff00") and "card reader" not in device.name.lower():
                 continue

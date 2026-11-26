@@ -1,0 +1,22 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "desktops": ["xfce"],
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Thông báo (dưới 1 MB)",
+  "size_en": "Notifications (under 1 MB)",
+  "title": "Thông báo hiện ở góc dưới bên phải",
+  "summary": "Trên bản Xfce, thông báo hiện ở góc dưới bên phải màn hình, ngay trên thanh tác vụ, như trên Windows.",
+  "title_en": "Notifications at the bottom right",
+  "summary_en": "On the Xfce edition, notifications show at the bottom right of the screen, just above the taskbar, as on Windows.",
+  "release_notes_vi": [
+    "Thông báo (cập nhật, tin nhắn, USB vừa cắm…) chuyển từ góc trên bên phải xuống góc dưới bên phải, ngay trên thanh tác vụ, đúng chỗ người quen Windows hay nhìn.",
+    "Ai đã tự chọn chỗ khác cho thông báo thì giữ nguyên. Muốn đổi: Settings > Notifications > Default position."
+  ],
+  "release_notes_en": [
+    "Notifications (updates, messages, a USB drive plugged in…) move from the top right to the bottom right, just above the taskbar, where people used to Windows look for them.",
+    "Anyone who chose another place keeps it. To change it: Settings > Notifications > Default position."
+  ]
+}

@@ -1,3 +1,34 @@
+caramos-ota (1.5.2-0caramos6) noble; urgency=medium
+
+  * Driver Check, NVIDIA (ticket H-1223): after it installed the NVIDIA
+    driver, whose modules come for the newest kernel of the series, it said
+    "Open Driver Manager and install the recommended NVIDIA driver" until
+    the computer restarted, and Driver Manager may preselect NVIDIA 470,
+    which breaks dpkg on Linux 6.12 and later (H-1094). An installed driver
+    whose module waits in a newer kernel now gets "Restart to start the
+    NVIDIA driver"; one with no module for any kernel gets a warning with
+    the community-help button instead of the Driver Manager advice.
+  * Driver Check, Bluetooth (ticket H-1223): the Bluetooth function of a
+    PCI card that Linux has no driver for (Ralink RT3290) is in the
+    Bluetooth area, as "Ralink RT3290 Bluetooth (no Linux driver yet)",
+    instead of "the computer has none"; an information, not a warning at
+    every login, since a USB adapter is the only way out.
+  * CaramOS Xfce, the sound keys (ticket H-1216): the level they show is a
+    slim bar above the dock with the speaker, the level and its percentage,
+    in place of Cinnamon's square. Every level shows now: the theme's 32 px
+    minimum for a level bar's block drew all levels under about a third
+    the same. Muted, the bar is empty and the percentage greyed.
+  * CaramOS Xfce, Show desktop (ticket H-1217): the strip at the end of the
+    taskbar is 12 px wide instead of 4, so a click near the corner no longer
+    opens Feedback & Help.
+  * CaramOS Xfce, notifications at the bottom right, where Windows shows
+    them (ticket H-1219): migration
+    20261126200100_xfce_notifications_bottom_right sets xfce4-notifyd's
+    place in CaramOS's system default and for each account still at the
+    stock top right; a place someone chose stays.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 26 Nov 2026 23:06:36 +0700
+
 caramos-ota (1.5.2-0caramos5) noble; urgency=medium
 
   * Linux Mint's Update Manager no longer opens its welcome page by itself

@@ -265,9 +265,10 @@ class StripPluginTests(unittest.TestCase):
     def test_the_island_keeps_its_place(self) -> None:
         css = ISLANDS.read_text(encoding="utf-8")
         help_rule = re.search(r"\n#launcher-6 button \{\n(.*?)\}", css, re.S).group(1)
-        self.assertIn("margin: 4px 0;", help_rule, "the strip takes the 4 px between the island and the edge")
+        self.assertIn("margin: 4px 0;", help_rule)
         strip = re.search(r"\n#caramos-show-desktop \{\n(.*?)\}", css, re.S).group(1)
-        for line in ("min-width: 0;", "background: none;", "border-style: none;"):
+        # 12 px between the island and the edge (ticket H-1217: 4 px was easy to miss, a click opened Feedback & Help).
+        for line in ("min-width: 12px;", "background: none;", "border-style: none;"):
             self.assertIn(line, strip)
         hover = re.search(r"#caramos-show-desktop:hover,\n#caramos-show-desktop:active \{(.*?)\}", css, re.S).group(1)
         # A thin line with a little of the island's colour around it: it shows on any wallpaper.

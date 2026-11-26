@@ -12,7 +12,8 @@ from pathlib import Path
 # Driver Check lives in /usr/share/caramos-ota/driver-check, outside dist-packages.
 sys.path.insert(0, str(Path(__file__).parents[1] / "usr/share/caramos-ota/driver-check"))
 
-from caramos_driver_check.hardware import SystemReader, friendly_model
+from caramos_driver_check.analysis import REBOOT, analyze
+from caramos_driver_check.hardware import SystemReader, friendly_model, kernel_order
 from caramos_driver_check.knowledge import intel_ipu, read_libfprint_support
 
 PCI_ROOT = "sys/devices/pci0000:00"
@@ -136,6 +137,21 @@ class FakeSystem:
 
     def module(self, name: str) -> None:
         (self.root / "sys/module" / name).mkdir(parents=True, exist_ok=True)
+
+    def dpkg_status(self, packages: dict[str, str]) -> None:
+        """/var/lib/dpkg/status: {"nvidia-driver-580": "install ok installed"}."""
+
+        _write(self.root / "var/lib/dpkg/status", "".join(
+            f"Package: {name}\nStatus: {status}\nArchitecture: amd64\n\n" for name, status in packages.items()))
+
+    def kernel(self, release: str, *module_files: str, image: bool = True) -> None:
+        """A kernel in /lib/modules with these module files (relative to its folder), its image in /boot."""
+
+        (self.root / "lib/modules" / release / "kernel/drivers").mkdir(parents=True, exist_ok=True)
+        for name in module_files:
+            _write(self.root / "lib/modules" / release / name, "")
+        if image:
+            _write(self.root / f"boot/vmlinuz-{release}", "")
 
 
 class FakeRunner:
@@ -310,6 +326,89 @@ class HardwareReaderTests(unittest.TestCase):
         self.assertEqual(("nouveau",), device.loaded_modules)
         self.assertEqual((), device.new_modules)
 
+    def test_an_nvidia_driver_installed_for_the_next_kernel(self) -> None:
+        # Ticket H-1223: NVIDIA 580 came with the signed modules of Linux 7.0 and that kernel; 6.14 still runs, has
+        # no NVIDIA module, and the card is on nouveau until the restart.
+        self.system.pci("0000:04:00.0", "10de", "1341", "030200", driver="nouveau")
+        self.system.module("nouveau")
+        runner = FakeRunner(aliases={"v000010DEd00001341": ("nouveau",)})
+        self.system.dpkg_status({
+            "nvidia-driver-580": "install ok installed",
+            "linux-modules-nvidia-580-generic-hwe-24.04": "install ok installed",
+            "nvidia-driver-470": "deinstall ok config-files",
+        })
+        self.system.kernel("6.14.0-37-generic")                                  # running
+        self.system.kernel("7.0.0-42-generic", "kernel/nvidia-580/nvidia.ko", "kernel/nvidia-580/nvidia-drm.ko")
+        self.system.kernel("6.11.0-29-generic", "updates/dkms/nvidia.ko.zst")   # older
+        self.system.kernel("7.0.0-40-generic", "kernel/nvidia-580/nvidia.ko", image=False)   # removed, folder left
+
+        snapshot = SystemReader(self.root, runner).snapshot()
+
+        self.assertEqual(("nvidia-driver-580",), snapshot.nvidia_drivers)
+        self.assertEqual(("/lib/modules/7.0.0-42-generic/kernel/nvidia-580/nvidia.ko",), snapshot.nvidia_modules)
+        self.assertEqual(("nouveau",), snapshot.pci[0].modules)
+        finding = next(finding for finding in analyze(snapshot).findings if finding.area == "graphics")
+        self.assertEqual(("graphics:nvidia-restart:pci:10de:1341", [REBOOT]),
+                         (finding.key, [action.kind for action in finding.actions]))
+
+    def test_an_nvidia_driver_built_by_dkms_for_the_next_kernel(self) -> None:
+        self.system.pci("0000:01:00.0", "10de", "1f99", "030000")
+        self.system.dpkg_status({"nvidia-driver-580-open": "install ok installed"})
+        self.system.kernel("6.14.0-37-generic")
+        self.system.kernel("6.17.0-8-generic", "updates/dkms/nvidia.ko.zst")
+
+        snapshot = SystemReader(self.root, FakeRunner()).snapshot()
+
+        self.assertEqual(("nvidia-driver-580-open",), snapshot.nvidia_drivers)
+        self.assertEqual(("/lib/modules/6.17.0-8-generic/updates/dkms/nvidia.ko.zst",), snapshot.nvidia_modules)
+
+    def test_the_nvidia_driver_is_only_looked_for_when_the_card_does_not_run_on_it(self) -> None:
+        self.system.dpkg_status({"nvidia-driver-580": "install ok installed"})
+        self.system.kernel("7.0.0-42-generic", "kernel/nvidia-580/nvidia.ko")
+        card = self.system.pci("0000:01:00.0", "10de", "1f99", "030200", driver="nvidia")
+
+        snapshot = SystemReader(self.root, FakeRunner()).snapshot()
+
+        self.assertEqual(((), ()), (snapshot.nvidia_drivers, snapshot.nvidia_modules))
+        # Nor in the live session, where the NVIDIA driver only comes after installing.
+        (card / "driver").unlink()
+        _write(self.root / "proc/cmdline", "BOOT_IMAGE=/casper/vmlinuz boot=casper quiet splash\n")
+        live = SystemReader(self.root, FakeRunner()).snapshot()
+        self.assertEqual((True, "", ()), (live.live, live.pci[0].driver, live.nvidia_drivers))
+
+    def test_an_nvidia_driver_dpkg_could_not_finish_is_not_installed(self) -> None:
+        self.system.pci("0000:01:00.0", "10de", "1f99", "030200", driver="nouveau")
+        self.system.dpkg_status({"nvidia-driver-580": "install ok half-configured",
+                                 "nvidia-driver-assistant": "install ok installed"})
+        self.system.kernel("7.0.0-42-generic", "kernel/nvidia-580/nvidia.ko")
+
+        snapshot = SystemReader(self.root, FakeRunner()).snapshot()
+
+        self.assertEqual(((), ("nvidia-driver-580",)), (snapshot.nvidia_drivers, snapshot.unfinished_packages))
+        self.assertEqual((), snapshot.nvidia_modules)
+
+    def test_the_bluetooth_function_of_a_pci_wifi_card(self) -> None:
+        # Ticket H-1223, an ASUS X550LN: the Ralink RT3290's Wi-Fi works with rt2800pci; its Bluetooth function
+        # (class 0d11) has no driver in Linux.
+        wifi = self.system.pci("0000:03:00.0", "1814", "3290", "028000", driver="rt2800pci",
+                               model="RT3290 Wireless 802.11n 1T/1R PCIe", vendor_name="Ralink corp.")
+        self.system.net("wlp3s0", wifi, wireless=True)
+        self.system.pci("0000:03:00.1", "1814", "3298", "0d1100", model="RT3290 Bluetooth", vendor_name="Ralink corp.")
+        runner = FakeRunner()
+
+        snapshot = SystemReader(self.root, runner).snapshot()
+
+        bluetooth = next(device for device in snapshot.pci if device.product == "3298")
+        self.assertEqual(("Ralink RT3290 Bluetooth", "0d1100", "", ()), (bluetooth.name, bluetooth.pci_class,
+                                                                          bluetooth.driver, bluetooth.bluetooth))
+        # Looked up like any device without a driver, and the kernel log is read for a firmware error.
+        self.assertIn("pci:v00001814d00003298", " ".join(call[-1] for call in runner.calls if call[0] == "modprobe"))
+        self.assertTrue(any(call[0] == "journalctl" for call in runner.calls))
+        report = analyze(snapshot)
+        self.assertEqual(["bluetooth:no-driver:pci:1814:3298"], [finding.key for finding in report.findings])
+        self.assertEqual("Ralink RT3290 Bluetooth (no Linux driver yet)",
+                         {area.key: area.summary for area in report.areas}["bluetooth"])
+
     def test_firmware_errors_are_read_only_when_a_device_does_not_work(self) -> None:
         log = (
             "iwlwifi 0000:00:14.3: Direct firmware load for iwlwifi-so-a0-gf-a0-89.ucode failed with error -2\n"
@@ -387,6 +486,12 @@ class NamesAndKnowledgeTests(unittest.TestCase):
                          friendly_model("TU117M [GeForce GTX 1650 Mobile / Max-Q] (XPS 15 7590)"))
         self.assertEqual("82801I (ICH9 Family) HD Audio Controller",
                          friendly_model("82801I (ICH9 Family) HD Audio Controller (QEMU Virtual Machine)"))
+
+    def test_the_newer_of_two_kernels(self) -> None:
+        self.assertGreater(kernel_order("7.0.0-42-generic"), kernel_order("6.14.0-37-generic"))
+        self.assertGreater(kernel_order("6.14.0-37-generic"), kernel_order("6.8.0-90-generic"))   # not text order
+        self.assertGreater(kernel_order("6.14.0-37-generic"), kernel_order("6.14.0-36-generic"))
+        self.assertEqual(kernel_order("6.14.0-37-generic"), kernel_order("6.14.0-37-lowlatency"))
 
     def test_libfprint_hwdb_gives_supported_and_unsupported_readers(self) -> None:
         with tempfile.TemporaryDirectory() as temp:

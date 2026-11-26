@@ -1,5 +1,9 @@
-"""The sound level shown for a moment when a sound key is pressed, as Cinnamon does: a square at the bottom of the
-screen, above the dock, with the speaker (or microphone) and the level. It lets clicks through and hides by itself.
+"""The sound level shown for a moment when a sound key is pressed: a slim bar at the bottom of the screen, above the
+dock, with the speaker (or microphone), the level and its percentage. It lets clicks through and hides by itself.
+
+It was Cinnamon's square until ticket H-1216: the square took much room, showed no number, and the theme's 32 px
+minimum for a level bar's block (Cinnamon-Delight's gtk.css) drew every level under about a third the same, so the
+first presses of the keys showed no change. The block has no minimum now (style.css).
 
 The keys change the sound themselves (caramos-volume, an Xfce keyboard shortcut), then ask the running Control Center
 for this window (its "osd" action)."""
@@ -21,8 +25,14 @@ except (ImportError, ValueError):  # without python3-gi-cairo the window only ta
     cairo = None
 
 SHOW_MS = 1500
-ICON_SIZE = 64
-ABOVE_DOCK = 48 + 38  # the square's bottom edge: 38 px above the 48 px dock
+ICON_SIZE = 20
+ABOVE_DOCK = 48 + 24  # the bar's bottom edge: 24 px above the 48 px dock
+
+
+def percent_text(fraction: float) -> str:
+    """The level as people read it on Windows: "45%"."""
+
+    return f"{round(max(0.0, min(fraction, 1.0)) * 100)}%"
 
 
 class Osd(Gtk.Window):
@@ -34,14 +44,17 @@ class Osd(Gtk.Window):
         self.set_app_paintable(True)
         self.set_accept_focus(False)
         w.styled(self, "caramos-cc")
-        self.card = w.styled(Gtk.Box(orientation=Gtk.Orientation.VERTICAL, spacing=18), "caramos-cc-osd")
+        self.card = w.styled(Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, spacing=14), "caramos-cc-osd")
         self.image = w.icon("audio-volume-high-symbolic", ICON_SIZE, "caramos-cc-osd-icon")
-        self.image.set_vexpand(True)
         self.level = w.styled(Gtk.LevelBar.new_for_interval(0, 1), "caramos-cc-osd-level")
         for offset in (Gtk.LEVEL_BAR_OFFSET_LOW, Gtk.LEVEL_BAR_OFFSET_HIGH, Gtk.LEVEL_BAR_OFFSET_FULL):
             self.level.remove_offset_value(offset)
-        self.card.pack_start(self.image, True, True, 0)
-        self.card.pack_start(self.level, False, False, 0)
+        self.level.set_valign(Gtk.Align.CENTER)
+        # "100%" fits, so the bar does not move as the number changes.
+        self.percent = w.styled(Gtk.Label(xalign=1.0, width_chars=4), "caramos-cc-osd-percent")
+        self.card.pack_start(self.image, False, False, 0)
+        self.card.pack_start(self.level, True, True, 0)
+        self.card.pack_start(self.percent, False, False, 0)
         self.add(self.card)
         self.connect("realize", self._click_through)
         self._timeout = 0
@@ -54,6 +67,9 @@ class Osd(Gtk.Window):
     def show_level(self, icon_name: str, fraction: float, muted: bool, dark: bool) -> None:
         w.set_icon(self.image, icon_name)
         self.level.set_value(0 if muted else max(0.0, min(fraction, 1.0)))
+        # Muted: the bar is empty, the number stays (greyed), the level the key brings back.
+        self.percent.set_text(percent_text(fraction))
+        w.set_class(self.percent, "muted", muted)
         w.set_class(self, "dark", dark)
         self.card.show_all()
         natural = self.get_preferred_size()[1]

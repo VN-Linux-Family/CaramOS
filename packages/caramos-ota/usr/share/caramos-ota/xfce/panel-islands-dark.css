@@ -155,14 +155,15 @@
   margin-right: 21px;
 }
 
-/* Show desktop (the CaramOS panel plugin caramos-show-desktop, tickets H-1189 and H-1192): a strip 4 px wide and as
-   high as the panel, after the island, at the edge of the screen. It shows nothing until the pointer is on it, then a
-   thin line, as Windows and CaramOS Cinnamon do, with a little of the island's colour around it so that it shows on
-   any wallpaper; a click shows the desktop. */
+/* Show desktop (the CaramOS panel plugin caramos-show-desktop, tickets H-1189 and H-1192): a strip 12 px wide and as
+   high as the panel, after the island, at the edge of the screen. The plugin asks for 4 px; 4 px was easy to miss,
+   and the click then opened Feedback & Help next to it (ticket H-1217), so its button is 12 px wide here. It shows
+   nothing until the pointer is on it, then a thin line, as Windows and CaramOS Cinnamon do, with a little of the
+   island's colour around it so that it shows on any wallpaper; a click shows the desktop. */
 #caramos-show-desktop {
   margin: 0;
   padding: 0;
-  min-width: 0;
+  min-width: 12px;
   min-height: 0;
   border-style: none;
   border-radius: 0;

@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import re
 import subprocess
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass, replace
 from pathlib import Path
 
@@ -23,6 +23,12 @@ MODPROBE_DIRS = ("etc/modprobe.d", "run/modprobe.d", "usr/lib/modprobe.d", "lib/
 DISABLING_COMMANDS = frozenset({"/bin/false", "/bin/true", "/usr/bin/false", "/usr/bin/true", "false", "true"})
 DPKG_STATUS = "var/lib/dpkg/status"
 UNFINISHED_STATES = frozenset({"half-installed", "unpacked", "half-configured"})
+# The NVIDIA drivers Driver Manager and ubuntu-drivers install: nvidia-driver-580, nvidia-driver-580-open.
+NVIDIA_DRIVER = re.compile(r"^nvidia-driver-(?P<flavour>\d+(?:-server)?(?:-open)?)$")
+# The file of the NVIDIA kernel module in a kernel's folder of /lib/modules: Ubuntu's signed modules
+# (linux-modules-nvidia-580-<kernel>) are linked into kernel/nvidia-580/ when they are installed, and DKMS builds
+# go to updates/dkms/, compressed like the kernel's own modules.
+NVIDIA_MODULE_FILES = ("nvidia.ko", "nvidia.ko.zst", "nvidia.ko.xz")
 # Drivers for Canon CAPT printers, by a file each installs: the open-source captdriver (its CUPS filter) and
 # Canon's own driver (its daemon, package cndrvcups-capt).
 CAPT_DRIVER_FILES = (("captdriver", "usr/lib/cups/filter/rastertocapt"), ("canon", "usr/sbin/ccpd"))
@@ -33,6 +39,9 @@ PCI_WIFI = "0280"
 PCI_DISPLAY = ("0300", "0302", "0380")
 PCI_AUDIO = ("0401", "0403")
 PCI_CAMERA = "0480"   # Intel IPU, the chip behind the MIPI cameras of recent laptops
+# A Bluetooth controller on PCI: the second function of Wi-Fi + Bluetooth cards like the Ralink RT3290, whose
+# Bluetooth Linux has no driver for (ticket H-1223).
+PCI_BLUETOOTH = "0d11"
 # Other user-facing devices that should have a driver: USB controllers, SD card readers, wireless
 # controllers and Realtek card readers, which report "unassigned class" ff00.
 PCI_OTHER = ("0c03", "0805", "0d", "ff00")
@@ -216,6 +225,12 @@ class Snapshot:
     unfinished_packages: tuple[str, ...] = ()
     # Drivers for Canon CAPT printers that are installed: "captdriver" and/or "canon" (CAPT_DRIVER_FILES).
     capt_drivers: tuple[str, ...] = ()
+    # Read for an NVIDIA card that does not run on the NVIDIA driver (outside the live session): the NVIDIA driver
+    # packages dpkg has fully installed ("nvidia-driver-580") and the NVIDIA kernel modules of installed kernels
+    # newer than the running one ("/lib/modules/7.0.0-42-generic/kernel/nvidia-580/nvidia.ko"). Driver Check's
+    # install brings the modules of the newest kernel and that kernel, which only starts at the next boot (H-1223).
+    nvidia_drivers: tuple[str, ...] = ()
+    nvidia_modules: tuple[str, ...] = ()
 
     def boot_options(self) -> tuple[str, ...]:
         return tuple(self.cmdline.split())
@@ -246,6 +261,12 @@ def run_command(command: Sequence[str], timeout: float) -> subprocess.CompletedP
 def _hex(value: str) -> str:
     value = value.strip().lower()
     return value[2:] if value.startswith("0x") else value
+
+
+def kernel_order(release: str) -> tuple[int, ...]:
+    """6.14.0-37-generic -> (6, 14, 0, 37), so that the newer of two kernels compares greater."""
+
+    return tuple(int(number) for number in re.findall(r"\d+", release))
 
 
 def _short_vendor(vendor_id: str, database_name: str) -> str:
@@ -641,18 +662,48 @@ class SystemReader:
                         found.setdefault(words[1].replace("-", "_"), "/" + str(conf.relative_to(self.root)))
         return tuple(found.items())
 
-    def unfinished_packages(self) -> tuple[str, ...]:
-        """Packages of /var/lib/dpkg/status in the half-installed, unpacked or half-configured state."""
+    def _package_states(self) -> Iterator[tuple[str, str]]:
+        """(package, state) for each package of /var/lib/dpkg/status: "installed", "half-configured"..."""
 
-        found = []
         package = ""
         for line in self._read(self._path(DPKG_STATUS)).splitlines():
             if line.startswith("Package:"):
                 package = line.split(":", 1)[1].strip()
             elif line.startswith("Status:") and package:
                 words = line.split()
-                if len(words) == 4 and words[3] in UNFINISHED_STATES:
-                    found.append(package)
+                if len(words) == 4:
+                    yield package, words[3]
+
+    def unfinished_packages(self) -> tuple[str, ...]:
+        """Packages of /var/lib/dpkg/status in the half-installed, unpacked or half-configured state."""
+
+        return tuple(package for package, state in self._package_states() if state in UNFINISHED_STATES)
+
+    def nvidia_drivers(self) -> tuple[str, ...]:
+        """The NVIDIA drivers dpkg has fully installed (nvidia-driver-580), not those in unfinished_packages()."""
+
+        return tuple(dict.fromkeys(package for package, state in self._package_states()
+                                   if state == "installed" and NVIDIA_DRIVER.match(package)))
+
+    def nvidia_modules(self, running: str) -> tuple[str, ...]:
+        """The NVIDIA kernel modules of the installed kernels newer than the running one.
+
+        Driver Check's NVIDIA install brings the signed modules of the newest kernel of the series and that kernel
+        (helper.kernel_for_modules): on a computer not updated since it was installed, they are for Linux 7.0 while
+        6.14 runs until the next boot, so the running kernel has no NVIDIA module to find (ticket H-1223). A kernel
+        counts when its image is in /boot: a folder of /lib/modules can outlive its kernel.
+        """
+
+        found = []
+        newer = [folder for folder in self._entries(self._path("lib/modules"))
+                 if kernel_order(folder.name) > kernel_order(running)]
+        for folder in newer:
+            if not self._path(f"boot/vmlinuz-{folder.name}").is_file():
+                continue
+            places = [entry for entry in self._entries(folder / "kernel") if entry.name.startswith("nvidia")]
+            places.append(folder / "updates" / "dkms")
+            found += ["/" + str((place / name).relative_to(self.root))
+                      for place in places for name in NVIDIA_MODULE_FILES if (place / name).is_file()]
         return tuple(found)
 
     def capt_drivers(self) -> tuple[str, ...]:
@@ -670,7 +721,13 @@ class SystemReader:
     # The snapshot ------------------------------------------------------------------------------
 
     @staticmethod
-    def _needs_modules(device: Device) -> tuple[str, ...]:
+    def _nvidia_off(device: Device) -> bool:
+        """An NVIDIA graphics card that does not run on the NVIDIA driver (nouveau, or no driver)."""
+
+        return device.vendor == "10de" and device.pci_class_is(*PCI_DISPLAY) and device.driver != "nvidia"
+
+    @classmethod
+    def _needs_modules(cls, device: Device) -> tuple[str, ...]:
         """Modaliases to look up for a device the check looks at that has no working driver."""
 
         if device.bus == "acpi":
@@ -681,7 +738,7 @@ class SystemReader:
             if not interesting:
                 return ()
             # NVIDIA cards on nouveau: is the NVIDIA driver installed and waiting for a restart?
-            if device.vendor == "10de" and device.pci_class_is(*PCI_DISPLAY) and device.driver != "nvidia":
+            if cls._nvidia_off(device):
                 return (device.modalias,)
             if device.driver and not (device.pci_class_is(PCI_ETHERNET, PCI_WIFI) and not device.net):
                 return ()
@@ -718,6 +775,8 @@ class SystemReader:
                 return not device.net
             if device.pci_class_is(*PCI_AUDIO):
                 return not device.sound_cards
+            if device.pci_class_is(PCI_BLUETOOTH):
+                return not device.bluetooth
             return device.pci_class_is(*PCI_DISPLAY) and not device.driver
         if device.bus == "acpi":
             return not (device.sound_cards or device.bluetooth)
@@ -760,6 +819,10 @@ class SystemReader:
         firmware = self.firmware_errors() if any(self._not_working(device) for device in devices) else ()
         ulp = self.ulp_stuck() if any(self._not_working(device) and "e1000e" in device.modules for device in pci) else ()
         cmdline = self.kernel_cmdline()
+        kernel = self._read(self._path("proc/sys/kernel/osrelease"))
+        live = self.live_session()
+        # Is the NVIDIA driver installed, and for which kernels? Only asked when the card does not run on it.
+        nvidia = self.nvidia_drivers() if not live and any(self._nvidia_off(device) for device in pci) else ()
         return Snapshot(
             pci=pci,
             usb=usb,
@@ -767,8 +830,8 @@ class SystemReader:
             net=tuple(net),
             rfkill=tuple(self.rfkill()),
             connected=self.connected(net),
-            kernel=self._read(self._path("proc/sys/kernel/osrelease")),
-            live=self.live_session(),
+            kernel=kernel,
+            live=live,
             virtual=self.virtual_machine(),
             secure_boot=self.secure_boot(),
             firmware_errors=firmware,
@@ -777,4 +840,6 @@ class SystemReader:
             blacklists=self.module_blacklists(cmdline),
             unfinished_packages=self.unfinished_packages(),
             capt_drivers=self.capt_drivers(),
+            nvidia_drivers=nvidia,
+            nvidia_modules=self.nvidia_modules(kernel) if nvidia else (),
         )

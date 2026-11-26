@@ -33,7 +33,7 @@ CINNAMON_ONLY = {
 XFCE_ONLY = {"20261118090100_xfce_wallpapers", "20261119100200_lighten_xfce_session",
              "20261120100400_xfce_lunar_clock",
              "20261120100500_xfce_round_menus", "20261124100100_xfce_super_d_super_e",
-             "20261124100300_xfce_event_sounds"}
+             "20261124100300_xfce_event_sounds", "20261126200100_xfce_notifications_bottom_right"}
 # Migrations that run on both editions although their code talks about Cinnamon, and why that is right on Xfce.
 SHARED_ON_PURPOSE = {
     "20260808090000_restore_power_profiles_daemon": "power-profiles-daemon is a system service, not part of Cinnamon",

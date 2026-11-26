@@ -670,7 +670,7 @@ trước đó là Open Beta. Từ 1.4.0 có hai bản: Cinnamon và Xfce (bản 
 | `veyon` | `4.11.5+repack1-0caramos1` trên cùng PPA (từ `caramos-ota` 1.5.2-0caramos4, `packages/veyon/4.11`): Veyon 4.11.5, bản mới nhất, dựng từ packaging của Debian trên Qt 6 với cùng năm tên gói; migration `20261126120000_computer_lab_veyon_4_11` nâng cấp nó trên máy Phòng máy đã cài Veyon. Trước đó (1.5.2): `4.7.5+repack1-1ubuntu5+caramos1` (`packages/veyon`, migration `20261125120100_veyon_lock_and_demo_show`). Workflow `veyon-upstream` báo mỗi khi Veyon có bản mới |
 | `printer-driver-captdriver` | `0.2.1~git20260813.f2d2da8-0caramos1` trên cùng PPA (lên PPA từ 1.3.7, không đổi từ đó); Kiểm tra driver cài nó khi thấy máy in Canon CAPT mà captdriver chạy được |
 | Driver CAPT của Canon | Không có trên PPA (điều khoản của Canon cấm phát tán lại): từ 1.3.9, Kiểm tra driver tải `linux-capt-drv-v271-uken.tar.gz` từ Canon về máy người dùng, sau khi người dùng đồng ý điều khoản, và kiểm tra SHA-256 (`caramos_driver_check/canon_capt.py`) |
-| App Center | `caramos-app-center` 0.4.0, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` (từ 0.4.0 mở được liên kết cài `caramos-app://install/<Flathub id>` của apps.vietnamlinuxfamily.net) |
+| App Center | `caramos-app-center` 0.4.1, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` (từ 0.4.0 mở được liên kết cài `caramos-app://install/<Flathub id>` của apps.vietnamlinuxfamily.net; từ 0.4.1 làm nốt lần cài bị ngắt, `dpkg --configure -a`, trước khi cài hay gỡ) |
 
 Máy CaramOS cũ không cần cài lại ISO:
 
@@ -692,8 +692,8 @@ submodule, nên App Center được phát hành và trỏ submodule trước khi
 
 ```bash
 # 1. App Center (khi có thay đổi): commit trong submodule rồi tag
-make -C packages/caramos-app-center release VERSION=0.4.0
-git -C packages/caramos-app-center push origin HEAD v0.4.0
+make -C packages/caramos-app-center release VERSION=0.4.1
+git -C packages/caramos-app-center push origin HEAD v0.4.1
 
 # 2. CaramOS: đóng dấu version, commit (kèm con trỏ submodule mới), tag
 # Plugin Xfce và fastfetch lên PPA TRƯỚC khi tag (CI dựng ISO cài chúng từ PPA), khi chúng thay đổi

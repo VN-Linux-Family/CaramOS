@@ -391,6 +391,38 @@ def repair_dpkg() -> bool:
                        env=noninteractive_environment()).returncode == 0
 
 
+DPKG_UPDATES = Path("/var/lib/dpkg/updates")
+
+
+def dpkg_interrupted(updates: Path | None = None) -> bool:
+    """dpkg stopped in the middle of its work: the computer was turned off, or a shutdown stopped the program that ran
+    it. dpkg's journal is then left in /var/lib/dpkg/updates as files named by number, and APT, which looks at the same
+    files, refuses every install with "dpkg was interrupted, you must manually run 'dpkg --configure -a'" until someone
+    does: no update, no App Center install (tickets H-1218, H-1221)."""
+
+    try:
+        return any(entry.name.isdigit() for entry in (updates or DPKG_UPDATES).iterdir())
+    except OSError:
+        return False
+
+
+def finish_interrupted_dpkg() -> bool:
+    """dpkg --configure -a when dpkg was interrupted, asking nothing, as every dpkg run of the OTA; whether dpkg is
+    usable afterwards. While another dpkg runs, its journal is there too, but it holds dpkg's lock: this run then fails
+    at once and changes nothing."""
+
+    if not dpkg_interrupted():
+        return True
+    log_warn("dpkg was interrupted (the computer was turned off or shut down while it installed): "
+             "finishing its work first with dpkg --configure -a")
+    print("Finishing an install that was interrupted (dpkg --configure -a)...")
+    if repair_dpkg() and not dpkg_interrupted():
+        log_info("dpkg finished the interrupted work")
+        return True
+    log_warn("dpkg could not finish the interrupted work; the installs that follow may fail")
+    return False
+
+
 def repair_apt() -> bool:
     return run_command(apt_get("--fix-broken", "install", "--yes"), allow_fail=True,
                        env=noninteractive_environment()).returncode == 0

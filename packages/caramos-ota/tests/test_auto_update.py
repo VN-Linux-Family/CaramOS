@@ -687,6 +687,17 @@ class PackagingTests(unittest.TestCase):
         self.assertEqual(["caramos-ota-auto-update.service"], check["OnSuccess"])
         self.assertEqual(["true"], check["ProtectHome"])
         self.assertEqual(["/usr/bin/caramos-ota --check"], check["ExecStart"])
+        # A shutdown during its install: SIGTERM to caramos-ota alone, which lets dpkg finish (stopping.py).
+        self.assertEqual(["mixed"], check["KillMode"])
+        self.assertEqual(["15min"], check["TimeoutStopSec"])
+        # The upgrade that check runs must not restart the check or its timer: that restart waited for the check's
+        # own stop, and the stop for it (debian/rules).
+        rules = (ROOT / "debian/rules").read_text(encoding="utf-8")
+        self.assertIn("dh_installsystemd --no-start --no-stop-on-upgrade caramos-ota-check.service "
+                      "caramos-ota-check.timer\n", rules)
+        postinst = (ROOT / "debian/postinst").read_text(encoding="utf-8")
+        self.assertIn("systemctl --no-block start caramos-ota-check.timer", postinst)
+        self.assertNotRegex(postinst, r"systemctl (re)?start caramos-ota-check")
 
     def test_the_automatic_update_unit(self) -> None:
         service = unit(ROOT / "lib/systemd/system/caramos-ota-auto-update.service")

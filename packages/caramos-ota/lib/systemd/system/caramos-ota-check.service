@@ -17,6 +17,11 @@ ExecStart=/usr/bin/caramos-ota --check
 Restart=on-failure
 RestartSec=1h
 RestartPreventExitStatus=2 3
+# A shutdown while the check installs the new caramos-ota: SIGTERM goes to caramos-ota alone, which lets apt and dpkg
+# finish and then stops (caramos_ota/stopping.py). By default systemd killed dpkg half-way, and from then on APT
+# refused every install with "dpkg was interrupted" (tickets H-1218, H-1221). The installs take a minute or two.
+KillMode=mixed
+TimeoutStopSec=15min
 PrivateTmp=true
 ProtectHome=true
 LockPersonality=true

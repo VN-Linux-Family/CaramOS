@@ -1,3 +1,25 @@
+caramos-ota (1.5.2-0caramos3) noble; urgency=medium
+
+  * Computers whose dpkg was interrupted update again by themselves (tickets
+    H-1218, H-1221). A shutdown or a power cut while software installed left
+    dpkg's journal behind, and from then on APT refused every install ("dpkg
+    was interrupted, you must manually run 'dpkg --configure -a'"): no
+    CaramOS update and no App Center install until someone typed that
+    command. Before it installs anything (the daily check, the Update
+    Center, automatic updates), the OTA now finishes dpkg's interrupted work
+    with dpkg --configure -a, asking nothing.
+  * A shutdown no longer kills dpkg in the middle of the daily check's
+    install. Linux Mint stops services after 10 seconds, and systemd sent
+    SIGTERM to apt and dpkg too. caramos-ota-check.service now sends it to
+    caramos-ota alone (KillMode=mixed), which lets apt and dpkg finish (up to
+    15 minutes) and then stops (caramos_ota/stopping.py).
+  * This package's upgrade no longer restarts the daily check's timer
+    (dh_installsystemd --no-stop-on-upgrade). Run by the check's own install
+    while the check was being stopped, that restart and the stop waited for
+    each other until the stop's time ran out.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 26 Nov 2026 10:44:58 +0700
+
 caramos-ota (1.5.2-0caramos2) noble; urgency=medium
 
   * Build fix only, nothing changes on the computer: the test of the

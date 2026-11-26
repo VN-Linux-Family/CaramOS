@@ -17,7 +17,9 @@ case "$1" in
         if command -v systemctl >/dev/null 2>&1; then
             systemctl daemon-reload || true
             systemctl enable caramos-ota-check.timer || true
-            systemctl start caramos-ota-check.timer || true
+            # Without waiting: the daily check runs this upgrade itself, and a start that waited for a stop of the
+            # check (a shutdown) waited for ever (debian/rules).
+            systemctl --no-block start caramos-ota-check.timer || true
         fi
 
         # Files (Nemo): right-click > "Mới" > "Thư mục" from the next login (see the script).

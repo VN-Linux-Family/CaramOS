@@ -14,6 +14,7 @@ from .apt import (
     candidate_version,
     detect_updates,
     downgrade_package,
+    finish_interrupted_dpkg,
     install_packages,
     installed_version,
     is_installed,
@@ -35,6 +36,7 @@ from .models import Manifest, ReleaseInfo, UpdatePackage
 from .privilege import acquire_lock, current_lock_fd, require_root
 from .release import detect_caramos
 from .repo import verify_repo
+from .stopping import finishing_before_stopping
 from .state import (
     default_state,
     latest_success_transaction,
@@ -80,23 +82,27 @@ def self_update_ota_if_needed(*, skip_self_update: bool, reexec_args: list[str])
     before = installed_version("caramos-ota")
     print("Updating CaramOS OTA engine first...")
     log_info(f"OTA self-update before version: {before or '(not installed)'}")
-    repairs = repairable_packages()
-    if repairs:
-        log_info(f"Also installing {', '.join(repairs)}: dpkg could not finish its installed version")
-    if not install_packages(["caramos-ota", *repairs]):
-        # apt-get also configures every package dpkg left unfinished; one that keeps failing (a driver whose
-        # module does not build) fails each install, though caramos-ota itself was installed.
-        candidate = candidate_version("caramos-ota")
-        if candidate in ("", "(none)") or not is_installed("caramos-ota", candidate):
-            log_error("OTA self-update failed")
-            print("Error: Failed to update caramos-ota before checking/running migrations.")
-            print(f"Log: {current_log_file()}")
-            raise SystemExit(EXIT_APT)
-        broken = ", ".join(broken_packages()) or "?"
-        log_warn(f"caramos-ota is up to date, but dpkg could not finish these packages: {broken}")
-        print(f"Warning: these packages are not fully installed and need a repair: {broken}")
+    # A shutdown now waits for apt and dpkg to finish (stopping.py); dpkg left half-way by an earlier one, or by a
+    # power cut, is finished first, or APT would refuse this install and every later one (tickets H-1218, H-1221).
+    with finishing_before_stopping("installing the update engine"):
+        finish_interrupted_dpkg()
+        repairs = repairable_packages()
+        if repairs:
+            log_info(f"Also installing {', '.join(repairs)}: dpkg could not finish its installed version")
+        if not install_packages(["caramos-ota", *repairs]):
+            # apt-get also configures every package dpkg left unfinished; one that keeps failing (a driver whose
+            # module does not build) fails each install, though caramos-ota itself was installed.
+            candidate = candidate_version("caramos-ota")
+            if candidate in ("", "(none)") or not is_installed("caramos-ota", candidate):
+                log_error("OTA self-update failed")
+                print("Error: Failed to update caramos-ota before checking/running migrations.")
+                print(f"Log: {current_log_file()}")
+                raise SystemExit(EXIT_APT)
+            broken = ", ".join(broken_packages()) or "?"
+            log_warn(f"caramos-ota is up to date, but dpkg could not finish these packages: {broken}")
+            print(f"Warning: these packages are not fully installed and need a repair: {broken}")
 
-    update_installed_app_center()
+        update_installed_app_center()
     after = installed_version("caramos-ota")
     log_info(f"OTA self-update after version: {after or '(not installed)'}")
     if before == after:

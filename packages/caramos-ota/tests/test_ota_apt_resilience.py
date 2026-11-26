@@ -149,6 +149,7 @@ class SelfUpdateTests(unittest.TestCase):
             return install_ok
 
         with mock.patch.object(cli, "install_packages", side_effect=install), \
+                mock.patch.object(cli, "finish_interrupted_dpkg", side_effect=lambda: installed.append("repair")), \
                 mock.patch.object(apt, "package_status", side_effect=package_status), \
                 mock.patch.object(cli, "candidate_version", side_effect=lambda name: candidates.get(name, "")), \
                 mock.patch.object(apt, "candidate_version", side_effect=lambda name: candidates.get(name, "")), \
@@ -166,7 +167,7 @@ class SelfUpdateTests(unittest.TestCase):
     def test_installed_despite_another_broken_package_goes_on(self) -> None:
         installed, exit_code, out, _execv = self.run_self_update(
             install_ok=False, status={"caramos-ota": ("ii", "1.3.4-0caramos1")}, candidates={"caramos-ota": "1.3.4-0caramos1"})
-        self.assertEqual([["caramos-ota"]], installed)
+        self.assertEqual(["repair", ["caramos-ota"]], installed)
         self.assertIsNone(exit_code)
         self.assertIn("nvidia-dkms-470", out)
 
@@ -186,7 +187,7 @@ class SelfUpdateTests(unittest.TestCase):
         installed, exit_code, _out, _execv = self.run_self_update(
             install_ok=True, status={"caramos-ota": ("ii", "1.3.4-0caramos1"), "fcitx5-lotus": ("iF", "3.5.6-1")},
             candidates={"caramos-ota": "1.3.4-0caramos1", "fcitx5-lotus": "6.0.0-1"})
-        self.assertEqual([["caramos-ota", "fcitx5-lotus"]], installed)
+        self.assertEqual(["repair", ["caramos-ota", "fcitx5-lotus"]], installed)
         self.assertIsNone(exit_code)
 
     def test_what_was_printed_reaches_a_pipe_before_the_restart(self) -> None:
@@ -199,6 +200,7 @@ class SelfUpdateTests(unittest.TestCase):
         pipe = Pipe()
         versions = iter(["1.3.3-0caramos1", "1.3.4-0caramos1"])
         with mock.patch.object(cli, "install_packages", return_value=False), \
+                mock.patch.object(cli, "finish_interrupted_dpkg", return_value=True), \
                 mock.patch.object(apt, "package_status", return_value=("ii", "1.3.4-0caramos1")), \
                 mock.patch.object(cli, "candidate_version", return_value="1.3.4-0caramos1"), \
                 mock.patch.object(apt, "candidate_version", return_value="1.3.4-0caramos1"), \
@@ -214,7 +216,62 @@ class SelfUpdateTests(unittest.TestCase):
         installed, _exit_code, _out, _execv = self.run_self_update(
             install_ok=True, status={"caramos-ota": ("ii", "1.3.4-0caramos1"), "fcitx5-lotus": ("ii", "5.0.5-1")},
             candidates={"caramos-ota": "1.3.4-0caramos1", "fcitx5-lotus": "6.0.0-1"})
-        self.assertEqual([["caramos-ota"]], installed)
+        self.assertEqual(["repair", ["caramos-ota"]], installed)
+
+
+class InterruptedDpkgTests(unittest.TestCase):
+    """dpkg stopped half-way (a shutdown or a power cut during an install): APT refuses every install until
+    dpkg --configure -a, so the OTA runs it first (tickets H-1218, H-1221)."""
+
+    def setUp(self) -> None:
+        folder = tempfile.TemporaryDirectory()
+        self.addCleanup(folder.cleanup)
+        self.updates = Path(folder.name) / "updates"
+        self.updates.mkdir()
+        patcher = mock.patch.object(apt, "DPKG_UPDATES", self.updates)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_journal_files_named_by_number_mean_interrupted_as_for_apt(self) -> None:
+        self.assertFalse(apt.dpkg_interrupted())
+        (self.updates / "tmp.i").write_text("", encoding="utf-8")   # dpkg's own temporary file, which APT skips
+        self.assertFalse(apt.dpkg_interrupted())
+        (self.updates / "0003").write_text("Package: caramos-ota\nStatus: install ok half-configured\n", encoding="utf-8")
+        self.assertTrue(apt.dpkg_interrupted())
+        self.assertFalse(apt.dpkg_interrupted(self.updates / "missing"))
+
+    def test_nothing_runs_when_dpkg_finished_its_work(self) -> None:
+        with mock.patch.object(apt, "repair_dpkg") as repair:
+            self.assertTrue(apt.finish_interrupted_dpkg())
+        repair.assert_not_called()
+
+    def test_an_interrupted_dpkg_is_finished_first(self) -> None:
+        (self.updates / "0000").write_text("", encoding="utf-8")
+
+        def configure() -> bool:
+            (self.updates / "0000").unlink()   # dpkg --configure -a folds the journal into its status file
+            return True
+
+        with mock.patch.object(apt, "repair_dpkg", side_effect=configure) as repair, \
+                mock.patch.object(apt, "log_warn") as warn, redirect_stdout(io.StringIO()) as out:
+            self.assertTrue(apt.finish_interrupted_dpkg())
+        repair.assert_called_once()
+        self.assertIn("dpkg was interrupted", warn.call_args.args[0])
+        self.assertIn("dpkg --configure -a", out.getvalue())
+
+    def test_a_repair_that_fails_is_said_and_the_update_goes_on(self) -> None:
+        (self.updates / "0000").write_text("", encoding="utf-8")
+        with mock.patch.object(apt, "repair_dpkg", return_value=False), mock.patch.object(apt, "log_warn") as warn, \
+                redirect_stdout(io.StringIO()):
+            self.assertFalse(apt.finish_interrupted_dpkg())
+        self.assertIn("could not finish", warn.call_args.args[0])
+
+    def test_the_repair_asks_nothing(self) -> None:
+        with mock.patch.object(apt, "run_command", return_value=done(0)) as run:
+            self.assertTrue(apt.repair_dpkg())
+        command = run.call_args.args[0]
+        self.assertEqual(["dpkg", "--configure", "-a", "--force-confdef", "--force-confold"], command)
+        self.assertEqual("noninteractive", run.call_args.kwargs["env"]["DEBIAN_FRONTEND"])
 
 
 if __name__ == "__main__":

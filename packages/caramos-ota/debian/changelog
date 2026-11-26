@@ -1,3 +1,19 @@
+caramos-ota (1.5.2-0caramos5) noble; urgency=medium
+
+  * Linux Mint's Update Manager no longer opens its welcome page by itself
+    (owner, 2026-11-26: off on every CaramOS computer). Until someone pressed
+    OK there, it kept its updates back, and its first automatic refresh, 10
+    minutes after login, opened its window on that page over whatever was
+    open: Veyon Master in a computer lab, on every student's computer once.
+    The package's gschema override (60_caramos-ota) makes
+    com.linuxmint.updates show-welcome-page false by default, so Update
+    Manager refreshes in the background from the start, as on computers
+    where someone pressed OK, and its window opens from its icon and the
+    menu. An account that set the key itself keeps its choice; Update
+    Manager reads it when it starts, at the next login.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 26 Nov 2026 20:49:30 +0700
+
 caramos-ota (1.5.2-0caramos4) noble; urgency=medium
 
   * Computer lab (Phòng máy): Veyon goes from 4.7.5 to 4.11.5, the newest

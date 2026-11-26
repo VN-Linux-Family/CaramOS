@@ -16,3 +16,11 @@ show-image-thumbnails='always'
 [org.cinnamon.desktop.default-applications.terminal:XFCE]
 exec='xfce4-terminal'
 exec-arg='-x'
+
+# Linux Mint's Update Manager keeps its updates back until someone presses OK on its welcome page, and its first
+# automatic refresh, 10 minutes after login, opened its window on that page instead: over whatever was open, Veyon
+# Master in a computer lab and every student's computer once. CaramOS has its own Update Center. Without the page,
+# Update Manager refreshes in the background from the start, as on computers where someone pressed OK; its window
+# opens from its icon and the menu. An account that set the key itself keeps its choice.
+[com.linuxmint.updates]
+show-welcome-page=false

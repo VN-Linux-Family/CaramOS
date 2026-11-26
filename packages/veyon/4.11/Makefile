@@ -33,6 +33,11 @@ DEB_BUILD_EXTRA ?=
 CARAMOS_OTA := $(abspath ../../caramos-ota)
 # tests/install-test.sh: plain noble; upgrade from Ubuntu's 4.7.5; upgrade from the Veyon the PPA has now
 SCENARIOS ?= fresh from-ubuntu from-ppa
+# apt in the containers: a failed install runs again with a fresh index, up to three times a minute apart. Ubuntu's
+# mirrors can list a new security update before they serve its file (404 for libasound2 in GitHub Actions, 2026-11-26).
+APT_RETRY := apt_retry() { for try in 1 2 3; do apt-get update -qq && "$$@" && return 0; [ $$try = 3 ] || sleep 60; done; return 1; };
+# A test scenario that failed on such a download runs once more; any other failure stops the tests.
+MIRROR_ERRORS := Failed to fetch|Unable to fetch some archives|Hash Sum mismatch|Temporary failure resolving|Could not connect to
 
 .PHONY: help orig source deps-image deps-image-build deb test upload clean check-upstream bump test-tools
 
@@ -63,7 +68,7 @@ $(ORIG): | $(DOWNLOAD)
 	  $(BUILD_IMAGE) bash -euo pipefail -c '\
 	  trap "chown -R $(UID_GID) /build" EXIT; \
 	  export DEBIAN_FRONTEND=noninteractive; \
-	  apt-get update -qq; apt-get install -y -qq --no-install-recommends devscripts xz-utils bzip2 >/dev/null; \
+	  $(APT_RETRY) apt_retry apt-get install -y -qq --no-install-recommends devscripts xz-utils bzip2 >/dev/null; \
 	  mk-origtargz --package $(PACKAGE) --version $(UPSTREAM_VERSION) --repack --compression xz \
 	    --repack-suffix +repack1 --copyright-file /tmp/copyright --directory /build --copy \
 	    /build/upstream/$(UPSTREAM_TARBALL)'
@@ -75,7 +80,7 @@ source: $(ORIG)
 	  bash -euo pipefail -c '\
 	  trap "chown -R $(UID_GID) /build" EXIT; \
 	  export DEBIAN_FRONTEND=noninteractive; \
-	  apt-get update -qq; apt-get install -y -qq --no-install-recommends dpkg-dev xz-utils >/dev/null; \
+	  $(APT_RETRY) apt_retry apt-get install -y -qq --no-install-recommends dpkg-dev xz-utils >/dev/null; \
 	  mkdir -p /tmp/area/src; cp /build/$(notdir $(ORIG)) /tmp/area/; \
 	  tar -xJf /tmp/area/$(notdir $(ORIG)) -C /tmp/area/src --strip-components=1; \
 	  cp -a /tmp/debian /tmp/area/src/; cd /tmp/area/src; \
@@ -95,10 +100,9 @@ deps-image:
 deps-image-build:
 	docker rm -f $(DEPS_CONTAINER) >/dev/null 2>&1 || true
 	docker run --name $(DEPS_CONTAINER) -v '$(CURDIR)/debian/control:/tmp/control:ro' $(BUILD_IMAGE) bash -euo pipefail -c '\
-	  export DEBIAN_FRONTEND=noninteractive; \
-	  apt-get update -qq; \
-	  apt-get install -y -qq --no-install-recommends build-essential devscripts equivs >/dev/null; \
-	  cd /tmp && mk-build-deps -i -r -t "apt-get -y -qq --no-install-recommends" /tmp/control >/dev/null; \
+	  export DEBIAN_FRONTEND=noninteractive; $(APT_RETRY) \
+	  apt_retry apt-get install -y -qq --no-install-recommends build-essential devscripts equivs >/dev/null; \
+	  cd /tmp && apt_retry mk-build-deps -i -r -t "apt-get -y -qq --no-install-recommends" /tmp/control >/dev/null; \
 	  apt-get clean; rm -rf /var/lib/apt/lists/*'
 	docker commit --change 'LABEL control-sha256=$(CONTROL_SHA256)' $(DEPS_CONTAINER) '$(DEPS_IMAGE)' >/dev/null
 	docker rm $(DEPS_CONTAINER) >/dev/null
@@ -125,10 +129,16 @@ deb: deps-image
 test:
 	test -n "$$(ls $(DEBS)/*.deb 2>/dev/null)" || { echo 'Run: make deb' >&2; exit 1; }
 	for scenario in $(SCENARIOS); do \
-	  echo "=== $$scenario"; \
-	  docker run --rm -v '$(CURDIR)/$(DEBS):/debs:ro' -v '$(CURDIR)/tests:/tests:ro' \
-	    -v '$(CARAMOS_OTA):/caramos-ota:ro' $(BUILD_IMAGE) bash /tests/install-test.sh "$$scenario" '$(VERSION)' \
-	    2>&1 | tee '$(BUILD)/test-'"$$scenario"'.log'; \
+	  log='$(BUILD)/test-'"$$scenario"'.log'; \
+	  for try in 1 2; do \
+	    echo "=== $$scenario"; \
+	    if docker run --rm -v '$(CURDIR)/$(DEBS):/debs:ro' -v '$(CURDIR)/tests:/tests:ro' \
+	      -v '$(CARAMOS_OTA):/caramos-ota:ro' $(BUILD_IMAGE) bash /tests/install-test.sh "$$scenario" '$(VERSION)' \
+	      2>&1 | tee "$$log"; then break; fi; \
+	    if [ "$$try" = 1 ] && grep -qE '$(MIRROR_ERRORS)' "$$log"; then \
+	      echo "=== $$scenario: a download from Ubuntu's mirrors failed; once more in a minute"; sleep 60; \
+	    else exit 1; fi; \
+	  done; \
 	done
 	@echo 'all scenarios passed'
 

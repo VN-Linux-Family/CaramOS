@@ -6,14 +6,17 @@
     caramos-lab-helper leave
 
 Each step is reported on stdout as a JSON line ({"event": "step"|"log"|"added"|"done"|"error", …}) for the window.
-Packages come from Ubuntu (Veyon 4.7, Epoptes 23.08). Veyon needs the QCA RSA plugin, which is only a Recommends:
-without it every key command fails with "RSA not supported". Veyon's service is not enabled by its package.
+Veyon comes from the CaramOS PPA (4.11.5 with Qt 6, packages/veyon/4.11; Ubuntu 24.04 has 4.7.5), Epoptes from
+Ubuntu (23.08). Ubuntu's Veyon 4.7.5 needs the Qt 5 QCA RSA plugin, which is only a Recommends there: without it every
+key command fails with "RSA not supported". 4.11.5 depends on the Qt 6 one itself; the Qt 5 plugin stays in the list
+for a computer that gets Ubuntu's Veyon. Veyon's service is not enabled by its package.
 
 A lab computer also gets a few defaults for every user (70_caramos-lab.gschema.override): the folder tree in the
 left pane of Files, for the "cây thư mục" lessons.
 
-With Veyon, caramos-lab-veyon-check.timer starts Veyon Server again when it is gone (watchdog.py): Veyon 4.7.5 does not,
-and Veyon Master showed such computers as an orange screen until they restarted. A student's account also stops its
+With Veyon, caramos-lab-veyon-check.timer starts Veyon Server again when it is gone (watchdog.py): Veyon 4.7.5 did not,
+and Veyon Master showed such computers as an orange screen until they restarted. 4.11.5 does by itself; the timer stays
+as a backstop. A student's account also stops its
 desktop from locking or sleeping by itself (awake.py, run as the user by the window and at each login).
 """
 

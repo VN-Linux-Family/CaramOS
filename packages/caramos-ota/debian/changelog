@@ -1,3 +1,21 @@
+caramos-ota (1.5.2-0caramos4) noble; urgency=medium
+
+  * Computer lab (Phòng máy): Veyon goes from 4.7.5 to 4.11.5, the newest
+    Veyon, from the CaramOS PPA (packages/veyon/4.11, Qt 6, the same five
+    package names). Migration 20261126120000_computer_lab_veyon_4_11
+    upgrades the Veyon packages a lab computer has (--only-upgrade
+    --no-install-recommends, automatic marks kept) at any time ("anytime").
+    The room, the pairing and the settings stay; a computer without Veyon
+    changes nothing. Teacher's and students' computers may update at
+    different times: Veyon Master still locks and shows the others, and a
+    Master window that was open while a student's computer updated shows
+    that computer again once it is opened again (release notes).
+  * Phòng máy's notes: Veyon 4.11.5 starts its server again by itself; the
+    check timer stays as a backstop, and the Qt 5 QCA plugin stays in the
+    package lists for Ubuntu's Veyon.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 26 Nov 2026 18:16:38 +0700
+
 caramos-ota (1.5.2-0caramos3) noble; urgency=medium
 
   * Computers whose dpkg was interrupted update again by themselves (tickets

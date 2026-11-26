@@ -437,7 +437,7 @@ class FakeSeat:
 
 
 class WatchdogTests(unittest.TestCase):
-    """caramos-lab-veyon-check: Veyon 4.7.5 does not start its server again; the timer does."""
+    """caramos-lab-veyon-check: Veyon 4.7.5 did not start its server again; the timer does (a backstop for 4.11.5)."""
 
     VEYON_STUDENT = {"role": STUDENT, "backend": VEYON}
 

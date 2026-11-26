@@ -662,12 +662,12 @@ trước đó là Open Beta. Từ 1.4.0 có hai bản: Cinnamon và Xfce (bản 
 | Thành phần | Bản phát hành |
 |---|---|
 | ISO | `CaramOS-1.5.2-cinnamon-amd64.iso` và `CaramOS-1.5.2-xfce-amd64.iso`: GitHub Release `v1.5.2` (`SHA256SUMS`, `SHA256SUMS-xfce`); tệp ISO trên Cloudflare R2 (`download.caramos.vietnamlinuxfamily.net`, nút tải trên landing, từ 1.5.1) và SourceForge (link dự phòng) |
-| `caramos-ota` | `1.5.2-0caramos3` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| `caramos-ota` | `1.5.2-0caramos4` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
 | `xfce4-docklike-plugin`, `xfce4-caramos-plugin` | `0.4.2-0caramos1` và `1.1.0` trên cùng PPA (lên PPA từ 1.4.0; 1.1.0 từ 1.5.1 có thêm dải Hiện màn hình nền): đảo giữa và chỗ của Control Center trên thanh tác vụ bản Xfce |
 | `fastfetch` | `2.71.0-0caramos1` trên cùng PPA (từ 1.5.1, ticket H-1203): bản backport cho noble, cấu hình mặc định có logo CaramOS; migration `20261124130000_install_fastfetch` cài nó |
 | `caramos-business` | `0.3.1` trên cùng PPA (lên PPA từ 1.5.0): CaramOS Doanh nghiệp, cài từ App Center |
 | `fcitx5` | `5.1.7-1build3+caramos1` trên cùng PPA (từ 1.5.1, `packages/fcitx5`): fcitx5 của Ubuntu 24.04 thêm một bản vá để khay hiện đúng bộ gõ đang dùng (chữ V của Lotus) ngay khi đăng nhập; migration `20261125090000_fcitx5_tray_shows_input_method` nâng cấp nó trên bản Cinnamon |
-| `veyon` | `4.7.5+repack1-1ubuntu5+caramos1` trên cùng PPA (từ 1.5.2, `packages/veyon`): Veyon của Ubuntu 24.04 thêm ba bản vá của upstream để Khoá và Trình chiếu toàn màn hình hiện trên máy học sinh và Veyon Server tự chạy lại; migration `20261125120100_veyon_lock_and_demo_show` nâng cấp nó trên máy Phòng máy đã cài Veyon |
+| `veyon` | `4.11.5+repack1-0caramos1` trên cùng PPA (từ `caramos-ota` 1.5.2-0caramos4, `packages/veyon/4.11`): Veyon 4.11.5, bản mới nhất, dựng từ packaging của Debian trên Qt 6 với cùng năm tên gói; migration `20261126120000_computer_lab_veyon_4_11` nâng cấp nó trên máy Phòng máy đã cài Veyon. Trước đó (1.5.2): `4.7.5+repack1-1ubuntu5+caramos1` (`packages/veyon`, migration `20261125120100_veyon_lock_and_demo_show`). Workflow `veyon-upstream` báo mỗi khi Veyon có bản mới |
 | `printer-driver-captdriver` | `0.2.1~git20260813.f2d2da8-0caramos1` trên cùng PPA (lên PPA từ 1.3.7, không đổi từ đó); Kiểm tra driver cài nó khi thấy máy in Canon CAPT mà captdriver chạy được |
 | Driver CAPT của Canon | Không có trên PPA (điều khoản của Canon cấm phát tán lại): từ 1.3.9, Kiểm tra driver tải `linux-capt-drv-v271-uken.tar.gz` từ Canon về máy người dùng, sau khi người dùng đồng ý điều khoản, và kiểm tra SHA-256 (`caramos_driver_check/canon_capt.py`) |
 | App Center | `caramos-app-center` 0.4.0, GitHub Release của repo `VN-Linux-Family/CaramOS-app-center` (từ 0.4.0 mở được liên kết cài `caramos-app://install/<Flathub id>` của apps.vietnamlinuxfamily.net) |
@@ -706,8 +706,9 @@ git commit -am "[build] Release 1.5.2" && git push origin main
 git tag -a v1.5.2 -m "CaramOS 1.5.2" && git push origin v1.5.2   # CI: ISO hai bản, R2, SourceForge, GitHub Release
 
 # 3. caramos-ota lên PPA, và caramos-business khi gói này thay đổi (1.5.0: lần đầu)
-# veyon lên PPA và build xong TRƯỚC caramos-ota khi gói này thay đổi (1.5.2: lần đầu): migration nâng cấp nó
-make -C packages/veyon source upload
+# veyon lên PPA và build xong TRƯỚC caramos-ota khi gói này thay đổi (1.5.2: lần đầu; 4.11.5 từ 1.5.2-0caramos4):
+# migration nâng cấp nó
+make -C packages/veyon/4.11 source upload
 make -C packages/caramos-ota source
 make -C packages/caramos-ota gpg-unlock upload
 make -C packages/caramos-business source upload

@@ -1,0 +1,23 @@
+{
+  "schema": 2,
+  "unattended": "anytime",
+  "codename": "noble",
+  "channel": "stable",
+  "severity": "normal",
+  "size": "Veyon 4.11.5 (khoảng 4 MB)",
+  "size_en": "Veyon 4.11.5 (about 4 MB)",
+  "title": "Phòng máy: Veyon 4.11.5, bản mới nhất",
+  "summary": "Veyon trên máy giáo viên và máy học sinh được nâng lên bản 4.11.5. Khóa màn hình, chiếu màn hình và gửi tin nhắn vẫn dùng như cũ, không phải ghép nối lại.",
+  "title_en": "Computer Lab: Veyon 4.11.5, the newest version",
+  "summary_en": "Veyon on the teacher's and the students' computers is upgraded to 4.11.5. Lock, screen sharing and text messages work as before, with no new pairing.",
+  "release_notes_vi": [
+    "Veyon trong Phòng máy được nâng từ bản 4.7.5 lên 4.11.5, bản mới nhất của Veyon. Phòng, mã ghép nối và cài đặt của máy giáo viên và máy học sinh giữ nguyên.",
+    "Máy giáo viên và máy học sinh cập nhật lúc nào cũng được, kể cả lúc khác nhau: trong lúc chờ, Veyon Master vẫn thấy, khóa và chiếu màn hình cho các máy chưa cập nhật. Nếu Veyon Master đang mở khi máy học sinh cập nhật, đóng Veyon Master rồi mở lại để thấy lại màn hình máy đó.",
+    "Chỉ máy đã cài Veyon bằng Phòng máy mới cập nhật, tải thêm khoảng 4 MB."
+  ],
+  "release_notes_en": [
+    "Veyon in Computer Lab goes from version 4.7.5 to 4.11.5, the newest Veyon. The room, the pairing and the settings of the teacher's and the students' computers stay as they are.",
+    "The teacher's and the students' computers can update at any time, also at different times: meanwhile, Veyon Master still shows, locks and shares the screen with the computers that did not update yet. If Veyon Master is open while a student's computer updates, close Veyon Master and open it again to see that computer's screen again.",
+    "Only computers with Veyon from Computer Lab update; the download is about 4 MB."
+  ]
+}

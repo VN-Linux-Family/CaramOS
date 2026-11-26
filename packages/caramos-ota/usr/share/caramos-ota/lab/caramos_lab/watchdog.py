@@ -4,7 +4,9 @@ veyon-service runs one veyon-server, for the session on screen. Veyon 4.7.5 (Ubu
 when it exits: after its X display went away, or when the lock screen's session closed before logind said so (checked
 in a VM lab on 2026-11-25: 3 of 7 lock/unlock rounds of an Xfce student ended with no server). Veyon Master then shows
 that computer as an orange screen ("Veyon Server unreachable or not running") until the student's computer
-restarts, and a teacher's computer without its server cannot show its screen (Demo).
+restarts, and a teacher's computer without its server cannot show its screen (Demo). Veyon 4.11.5, which the CaramOS
+PPA has since November 2026, starts its server again by itself (checked in a VM lab on 2026-11-26: 6 lock/unlock rounds
+of an Xfce student and a killed x11vnc, with this timer stopped); the timer stays as a backstop.
 
 caramos-lab-veyon-check.timer runs this every 30 seconds where the lab helper set up Veyon (teacher's and students'
 computers). When a graphical session is on screen and nothing listens on Veyon Server's port for SETTLE seconds, it

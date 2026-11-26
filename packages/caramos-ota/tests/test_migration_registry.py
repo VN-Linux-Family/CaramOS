@@ -80,7 +80,7 @@ class MigrationRegistryTests(unittest.TestCase):
         catalog = discover_migrations()
         descriptors = {item.migration_id: item for item in catalog}
 
-        self.assertEqual(74, len(catalog))
+        self.assertEqual(75, len(catalog))
         self.assertNotIn("v1_0_13", descriptors)
         self.assertNotIn("v1_0_14", descriptors)
         self.assertEqual("1.0.12", latest_legacy_release(catalog))
@@ -151,6 +151,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261125130100_autologin_keyring",
                 "20261125130200_online_accounts_sign_in",
                 "20261125130300_apps_site_install_links",
+                "20261126120000_computer_lab_veyon_4_11",
             ],
             timestamp_ids,
         )
@@ -237,6 +238,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261125130100_autologin_keyring",
                 "20261125130200_online_accounts_sign_in",
                 "20261125130300_apps_site_install_links",
+                "20261126120000_computer_lab_veyon_4_11",
             ],
             [item.migration_id for item in plan.migrations],
         )
@@ -319,6 +321,7 @@ class MigrationRegistryTests(unittest.TestCase):
                 "20261125130100_autologin_keyring",
                 "20261125130200_online_accounts_sign_in",
                 "20261125130300_apps_site_install_links",
+                "20261126120000_computer_lab_veyon_4_11",
             ],
             [item.migration_id for item in plan.migrations],
         )

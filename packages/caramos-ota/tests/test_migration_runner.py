@@ -103,9 +103,10 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261125130100_autologin_keyring",
                 "20261125130200_online_accounts_sign_in",
                 "20261125130300_apps_site_install_links",
+                "20261126120000_computer_lab_veyon_4_11",
             ],
         )
-        self.assertEqual(60, run_one.call_count)
+        self.assertEqual(61, run_one.call_count)
         self.assertEqual(
             [
                 "20260805111120_update_taskbar_pins_cleanup_desktop",
@@ -168,6 +169,7 @@ class MigrationRunnerTests(unittest.TestCase):
                 "20261125130100_autologin_keyring",
                 "20261125130200_online_accounts_sign_in",
                 "20261125130300_apps_site_install_links",
+                "20261126120000_computer_lab_veyon_4_11",
             ],
             [entry.args[0].migration_id for entry in run_one.call_args_list],
         )

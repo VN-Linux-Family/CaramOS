@@ -1,0 +1,6 @@
+1001_tests-use-system-libfakekey.patch
+1002_build-without-unity-build.patch
+1003_tests-without-home-directory.patch
+2001_disable-CPackDefinitions-cmake.patch
+2001_disable-upstream-Git-version-detection.patch
+2002_no-Werror.patch

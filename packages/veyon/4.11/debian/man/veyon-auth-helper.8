@@ -1,0 +1,28 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH VEYON-AUTH-HELPER 8 2026-11-26 VEYON
+.SH NAME
+veyon-auth-helper \- Veyon PAM Authentication Helper
+.SH SYNOPSIS
+.B veyon-auth-helper
+.SH DESCRIPTION
+.B veyon-auth-helper
+checks user names and passwords with PAM for the Veyon service
+(\fBveyon-service\fP) when Veyon uses logon authentication.
+.PP
+It is a D-Bus service on the system bus (\fIio.veyon.AuthHelper\fP), started on
+demand through the systemd unit \fIveyon-auth-helper.service\fP. Only root (the
+Veyon service) may call it. It is not meant to be run by hand and, since
+Veyon 4.11, it is not installed setuid root.
+.SH OPTIONS
+No options present.
+.SH SEE ALSO
+.BR veyon-service (1),
+.BR veyon-server (1),
+.BR veyon-cli (1)
+.PP
+.I https://veyon.io/
+.SH AUTHOR
+Veyon has been written by Tobias Junghans.
+.PP
+This manual page has been written by Mike Gabriel. It was originally
+written for the Debian project (but may be used by others).

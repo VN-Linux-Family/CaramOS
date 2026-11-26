@@ -1,0 +1,31 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.TH VEYON-INPUT-HELPER 8 2026-11-26 VEYON
+.SH NAME
+veyon-input-helper \- Veyon input blocking helper for Wayland sessions
+.SH SYNOPSIS
+.B veyon-input-helper
+.I PID
+.SH DESCRIPTION
+.B veyon-input-helper
+blocks the keyboard and the mouse while Veyon locks the screen of a Wayland
+session: Veyon Server (\fBveyon-server\fP) starts it with its own process ID,
+and only that process may tell it, through the socket
+\fI/run/veyon/input-block.sock\fP, to grab or release the input devices in
+\fI/dev/input\fP. It is not meant to be run by hand. X11 sessions do not use
+it.
+.PP
+It needs root privileges. Upstream installs it setuid root; this package does
+not (see \fI/usr/share/doc/veyon-master/README.Debian\fP). To block input in
+Wayland sessions, make it setuid root with:
+.PP
+.RS
+dpkg-statoverride --update --add root root 4755 /usr/bin/veyon-input-helper
+.RE
+.SH SEE ALSO
+.BR veyon-server (1),
+.BR veyon-service (1)
+.PP
+.I https://veyon.io/
+.SH AUTHOR
+Veyon has been written by Tobias Junghans. This manual page has been written
+for the CaramOS package of Veyon (but may be used by others).

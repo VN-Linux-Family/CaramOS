@@ -1,0 +1,270 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Veyon
+Upstream-Contact: Tobias Junghans <tobydox@veyon.io>
+Source: https://github.com/veyon/veyon/releases
+Comment:
+ The orig tarball is upstream's release tarball veyon-<version>-src.tar.bz2
+ (which holds the git submodules), repacked by mk-origtargz without the
+ Files-Excluded below, as Debian's veyon packages do: code and prebuilt
+ binaries for MS Windows and Android (ddengine, interception, UltraVNC, NSIS),
+ embedded copies of libraries that this package takes from the archive
+ (libvncserver and x11vnc, libfakekey, the Qt HTTP Server module) and the
+ Qt 5 copy of kldap, which a Qt 6 build does not use.
+Files-Excluded:
+ .ci
+ .github
+ .gitignore
+ .gitlab-ci.yml
+ .gitmodules
+ .git-blame-ignore-revs
+ .mailmap
+ .tx
+ 3rdparty/ddengine
+ 3rdparty/interception
+ 3rdparty/kldap-qt5
+ 3rdparty/kldap/.git*
+ 3rdparty/kldap/.kde-ci.yml
+ 3rdparty/libfakekey
+ 3rdparty/libvncserver
+ 3rdparty/qthttpserver
+ 3rdparty/ultravnc
+ 3rdparty/x11vnc
+ android
+ cmake/modules/AndroidDeployQt.cmake
+ cmake/modules/AndroidToolchain.cmake
+ cmake/modules/MinGWCrossCompile.cmake
+ cmake/modules/Win32Toolchain.cmake
+ cmake/modules/Win64Toolchain.cmake
+ configurator/data/veyon-configurator.ico
+ master/data/veyon-master.ico
+ nsis
+ plugins/platform/windows
+
+Files: *
+Copyright: 2004-2026, Tobias Junghans <tobydox@veyon.io>
+License: GPL-2+~with-OpenSSL-Exception
+Comment:
+ Upstream's source files carry SPDX headers (GPL-2.0-or-later); COPYING adds
+ the OpenSSL linking exception.
+
+Files: plugins/ldap/*
+Copyright: 2016-2026, Tobias Junghans <tobydox@veyon.io>
+License: LGPL-2.0+
+
+Files: master/src/KExtraColumnsProxyModel.cpp
+ master/src/KExtraColumnsProxyModel.h
+Copyright: 2015, Klarälvdalens Datakonsult AB, a KDAB Group company <info@kdab.com>
+License: LGPL-2.0+
+
+Files: cmake/modules/FindLibVNCClient.cmake
+ cmake/modules/FindLibVNCServer.cmake
+Copyright: 2020-2026, Tobias Junghans <tobydox@veyon.io>
+License: BSD-3-clause
+
+Files: cmake/modules/FindLdap.cmake
+ cmake/modules/FindSasl2.cmake
+Copyright: 2006-2016, Laurent Montel <montel@kde.org>
+ 2006, Szombathelyi György <gyurco@freemail.hu>
+License: BSD-3-clause
+
+Files: core/src/d3des.c
+ core/src/d3des.h
+Copyright: 1999, AT&T Laboratories Cambridge
+License: PublicDomain
+Comment:
+ D3DES (V5.09) by Richard Outerbridge, a public domain implementation of the
+ Data Encryption Standard, with changes by AT&T Laboratories Cambridge.
+
+Files: core/src/Toast.cpp
+ core/src/Toast.h
+Copyright: 2024, Niklas Henning
+License: Expat
+
+Files: 3rdparty/kldap/*
+Copyright: 2004-2006, Szombathelyi György <gyurco@freemail.hu>
+ 2002, Klarälvdalens Datakonsult AB
+ 2006, Sean Harmer <sh@theharmers.co.uk>
+ 2013-2026, Laurent Montel <montel@kde.org>
+ KDE translators (3rdparty/kldap/po)
+License: LGPL-2.0+
+
+Files: 3rdparty/kldap/CMakeLists.txt
+ 3rdparty/kldap/cmake/*
+ 3rdparty/kldap/src/CMakeLists.txt
+ 3rdparty/kldap/src/core/CMakeLists.txt
+ 3rdparty/kldap/src/core/KPimLdapCoreConfig.cmake.in
+Copyright: 2006-2007, Laurent Montel <montel@kde.org>
+ 2006, Szombathelyi György <gyurco@freemail.hu>
+License: BSD-3-clause
+
+Files: 3rdparty/kldap/src/core/ldapactivitiesabstract.*
+ 3rdparty/kldap/src/core/ldapsortproxymodel.*
+Copyright: 2024-2026, Laurent Montel <montel@kde.org>
+License: LGPL-2.1+
+Comment:
+ SPDX: LGPL-2.1-only OR LGPL-3.0-only OR LicenseRef-KDE-Accepted-LGPL.
+
+Files: 3rdparty/kldap/*.license
+ 3rdparty/kldap/sanitizers.supp
+ 3rdparty/kldap/ClangBuildAnalyzer.ini
+ 3rdparty/kldap/.clang-format-pre-commit
+ 3rdparty/kldap/.pre-commit-config.yaml
+ 3rdparty/kldap/src/Messages.sh
+Copyright: 2020-2026, Laurent Montel <montel@kde.org>
+License: CC0-1.0
+
+Files: plugins/webapi/python/*
+Copyright: 2021-2026, Tobias Junghans <tobydox@veyon.io>
+License: GPL-2+
+
+Files: debian/*
+Copyright: 2012-2025, Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+ 2026, Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+License: GPL-2+
+
+License: GPL-2+~with-OpenSSL-Exception
+ This program is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the
+ Free Software Foundation; either version 2 of the License, or (at your
+ option) any later version.
+ .
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 31 Milk Street, # 960789, Boston, MA 02196, USA.
+ .
+ In addition, as a special exception, Tobias Junghans gives permission to
+ link the code of its release of Veyon with the OpenSSL project's
+ "OpenSSL" library (or modified versions of the "OpenSSL" library that
+ use the same license as the original version), and distribute the linked
+ executables.
+ .
+ You must comply with the GNU General Public License version 2 in all
+ respects for all of the code used other than the "OpenSSL" code.  If you
+ modify this file, you may extend this exception to your version of the
+ file, but you are not obligated to do so.  If you do not wish to do so,
+ delete this exception statement from your version of this file.
+ .
+ On Debian systems, the complete text of the GNU General Public License,
+ can be found in /usr/share/common-licenses/GPL-2.
+
+License: GPL-2+
+ This program is free software; you can redistribute it and/or modify it
+ under the terms of the GNU General Public License as published by the
+ Free Software Foundation; either version 2 of the License, or (at your
+ option) any later version.
+ .
+ This program is distributed in the hope that it will be useful, but
+ WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ General Public License for more details.
+ .
+ You should have received a copy of the GNU General Public License along
+ with this program; if not, write to the Free Software Foundation, Inc.,
+ 31 Milk Street, # 960789, Boston, MA 02196, USA.
+ .
+ On Debian systems, the complete text of the GNU General Public License,
+ can be found in /usr/share/common-licenses/GPL-2.
+
+License: LGPL-2.0+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.0 of the License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 31 Milk Street, # 960789, Boston, MA 02196  USA
+ .
+ On Debian systems, the complete text of the GNU Lesser General Public
+ License version 2.0, can be found in /usr/share/common-licenses/LGPL-2.0.
+
+License: LGPL-2.1+
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 2.1 of the License, or (at your option) any later version.
+ .
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
+ .
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 31 Milk Street, # 960789, Boston, MA 02196  USA
+ .
+ On Debian systems, the complete text of the GNU Lesser General Public
+ License version 2.1, can be found in /usr/share/common-licenses/LGPL-2.1.
+
+License: BSD-3-clause
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ .
+   - Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+   - Redistributions in binary form must reproduce the above copyright notice,
+     this list of conditions and the following disclaimer in the documentation
+     and/or other materials provided with the distribution.
+   - Neither the name of the copyright holder nor the names of its
+     contributors may be used to endorse or promote products derived from this
+     software without specific prior written permission.
+ .
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS",
+ AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT HOLDERS OR CONTRIBUTORS BE
+ LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
+
+License: CC0-1.0
+ To the extent possible under law, the author(s) have dedicated all copyright
+ and related and neighboring rights to this software to the public domain
+ worldwide. This software is distributed without any warranty.
+ .
+ You should have received a copy of the CC0 Public Domain Dedication along with
+ this software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+ .
+ On Debian systems, the full text of the CC0 1.0 Universal license can be found
+ in the file `/usr/share/common-licenses/CC0-1.0'.
+
+License: Expat
+ Permission is hereby granted, free of charge, to any person
+ obtaining a copy of this software and associated documentation
+ files (the "Software"), to deal in the Software without
+ restriction, including without limitation the rights to use,
+ copy, modify, merge, publish, distribute, sublicense, and/or sell
+ copies of the Software, and to permit persons to whom the
+ Software is furnished to do so, subject to the following
+ conditions:
+ .
+ The above copyright notice and this permission notice shall be
+ included in all copies or substantial portions of the Software.
+ .
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+ OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+ HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+ WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+ OTHER DEALINGS IN THE SOFTWARE.
+
+License: PublicDomain
+ This software is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.

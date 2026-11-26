@@ -1,0 +1,57 @@
+Description: Build without unity build and precompiled headers
+ Three files only build when upstream's default unity build or precompiled
+ header brings in headers they do not include themselves; with
+ -DWITH_UNITY_BUILD=OFF -DWITH_PCH=OFF (debian/rules) they fail:
+ - plugins/filetransfer/FileCollection.h has QUuid members without including
+   <QUuid> ("field 'id' has incomplete type 'FileCollection::Id'");
+ - plugins/filetransfer/FileTransferPlugin.cpp calls
+   qApp->setQuitOnLastWindowClosed(), a member of QGuiApplication, but only
+   includes <QCoreApplication>, whose qApp is a QCoreApplication: call the
+   static QGuiApplication::setQuitOnLastWindowClosed() instead;
+ - plugins/screenshot/ScreenshotFeaturePlugin.cpp uses QEventLoop and QTimer
+   without including them ("'QEventLoop' was not declared in this scope").
+Author: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+Forwarded: no
+Last-Update: 2026-11-26
+
+--- a/plugins/filetransfer/FileCollection.h
++++ b/plugins/filetransfer/FileCollection.h
+@@ -5,6 +5,7 @@
+ 
+ #include <QFile>
+ #include <QMap>
++#include <QUuid>
+ 
+ #include <algorithm>
+ 
+--- a/plugins/filetransfer/FileTransferPlugin.cpp
++++ b/plugins/filetransfer/FileTransferPlugin.cpp
+@@ -5,6 +5,7 @@
+ #include <QDesktopServices>
+ #include <QFileDialog>
+ #include <QFileInfo>
++#include <QGuiApplication>
+ #include <QMessageBox>
+ 
+ #include "BuiltinFeatures.h"
+@@ -443,7 +444,7 @@
+ 
+ FileTransferPlugin::LockedFileAction FileTransferPlugin::queryLockedFileAction(const QString& fileName)
+ {
+-	qApp->setQuitOnLastWindowClosed(false);
++	QGuiApplication::setQuitOnLastWindowClosed(false);
+ 
+ 	const auto processId = VeyonCore::platform().filesystemFunctions().findFileLockingProcess(fileName);
+ 	const auto applicationName = VeyonCore::platform().coreFunctions().getApplicationName(processId);
+--- a/plugins/screenshot/ScreenshotFeaturePlugin.cpp
++++ b/plugins/screenshot/ScreenshotFeaturePlugin.cpp
+@@ -1,7 +1,9 @@
+ // SPDX-FileCopyrightText: 2017-2026 Tobias Junghans <tobydox@veyon.io>
+ // SPDX-License-Identifier: GPL-2.0-or-later
+ 
++#include <QEventLoop>
+ #include <QMessageBox>
++#include <QTimer>
+ 
+ #include "ComputerControlInterface.h"
+ #include "Screenshot.h"

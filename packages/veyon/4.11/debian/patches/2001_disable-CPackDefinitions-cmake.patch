@@ -1,0 +1,16 @@
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Description: Ignore CPackDefinitions.cmake for official Debian package.
+Forwarded: not needed, Debian specific
+Last-Update: 2026-11-26
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -322,7 +322,7 @@
+ set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+ 
+ 
+-include(cmake/CPackDefinitions.cmake)
++#include(cmake/CPackDefinitions.cmake)
+ 
+ 
+ # make sub-directories

@@ -1,0 +1,6 @@
+cli/veyon-cli.1
+debian/man/veyon-auth-helper.8
+debian/man/veyon-input-helper.8
+service/veyon-service.1
+server/veyon-server.1
+worker/veyon-worker.1

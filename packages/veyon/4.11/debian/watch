@@ -1,0 +1,6 @@
+version=4
+# The release tarball with the git submodules (the tag archives lack them), repacked without the Files-Excluded of
+# debian/copyright. GitHub's release pages load their assets by script; the API lists them.
+opts="searchmode=plain, repack, compression=xz, repacksuffix=+repack1, dversionmangle=s/\+repack\d*$//" \
+https://api.github.com/repos/veyon/veyon/releases?per_page=50 \
+https://github.com/veyon/veyon/releases/download/v[\d.]+/veyon-@ANY_VERSION@-src\.tar\.bz2

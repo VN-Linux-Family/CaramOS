@@ -1,0 +1,44 @@
+Description: LinuxUserFunctionsTest: pass when the user's home directory does not exist
+ setUserEnvironment() checks that an XDG directory reached through a symlink to
+ the home directory is kept. The build users of Debian's and Ubuntu's builders
+ have a home directory that does not exist (/sbuild-nonexistent): the symlink
+ dangles, the directory is rightly dropped, and the test failed. Check the
+ symlink case only when the home directory exists.
+Author: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+Forwarded: no
+Last-Update: 2026-11-26
+
+--- a/tests/unit/LinuxUserFunctionsTest.cpp
++++ b/tests/unit/LinuxUserFunctionsTest.cpp
+@@ -55,20 +55,28 @@
+ 		QVERIFY(userDirectory.isValid());
+ 		QVERIFY(QFileInfo(userDirectory.path()).ownerId() == getuid());
+ 
+-		// the home directory may also be reached through a symlink
++		// the home directory may also be reached through a symlink - not when the home directory
++		// does not exist (build users of Debian and Ubuntu builders: /sbuild-nonexistent)
++		const bool homeExists = QFileInfo(home).isDir();
+ 		QTemporaryDir linkDirectory;
+ 		QVERIFY(linkDirectory.isValid());
+ 		const auto homeLink = linkDirectory.filePath(QStringLiteral("home"));
+ 		QVERIFY(QFile::link(home, homeLink));
+ 
+ 		environment.insert(QStringLiteral("XDG_CACHE_HOME"), userDirectory.path());
+-		environment.insert(QStringLiteral("XDG_STATE_HOME"), homeLink);
++		if (homeExists)
++		{
++			environment.insert(QStringLiteral("XDG_STATE_HOME"), homeLink);
++		}
+ 		environment.insert(QStringLiteral("XDG_CONFIG_HOME"), QStringLiteral(".config"));
+ 
+ 		QVERIFY(LinuxUserFunctions::setUserEnvironment(environment, getuid()));
+ 
+ 		QCOMPARE(environment.value(QStringLiteral("XDG_CACHE_HOME")), userDirectory.path());
+-		QCOMPARE(environment.value(QStringLiteral("XDG_STATE_HOME")), homeLink);
++		if (homeExists)
++		{
++			QCOMPARE(environment.value(QStringLiteral("XDG_STATE_HOME")), homeLink);
++		}
+ 		QVERIFY(environment.contains(QStringLiteral("XDG_CONFIG_HOME")) == false);
+ 
+ 		// other variables are left untouched

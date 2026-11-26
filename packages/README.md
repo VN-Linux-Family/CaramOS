@@ -312,6 +312,26 @@ Tài liệu chi tiết:
 
 - [printer-driver-captdriver/README.md](./printer-driver-captdriver/README.md)
 
+### `veyon/4.11/`
+
+Veyon 4.11 cho Phòng máy, đóng gói cho PPA từ packaging của Debian. Bản này dùng Qt 6 và giữ đúng năm tên gói của Veyon 4.7.5 trong Ubuntu, nên apt nâng tại chỗ. `packages/veyon/` là công thức cũ `4.7.5+caramos1`.
+
+Mỗi ngày, workflow `.github/workflows/veyon-upstream.yml` xem Veyon có bản ổn định mới hơn bản gói đang dựng không. Có thì workflow:
+
+1. đổi số phiên bản ngay trên máy chạy CI;
+2. dựng gói như Launchpad dựng;
+3. chạy `make test`;
+4. mở issue "Veyon x.y.z: …". Gói đã dựng và nhật ký nằm ở mục Artifacts của lần chạy.
+
+Workflow không commit và không đưa gì lên PPA. Khi có issue báo dựng và test xong:
+
+1. `make -C packages/veyon/4.11 bump NEW=x.y.z`, rồi commit.
+2. Thử trên phòng máy ảo, gồm máy giáo viên và máy học sinh cài từ bản CaramOS mới nhất: khóa màn hình, chiếu màn hình, tin nhắn, máy cập nhật lệch nhau.
+3. `make -C packages/veyon/4.11 source upload`, rồi chờ Launchpad dựng xong.
+4. Thêm một migration mới trong `caramos-ota`, theo mẫu `20261126120000_computer_lab_veyon_4_11`, để máy Phòng máy tự lên bản này, rồi phát hành `caramos-ota`. Không có migration thì bản mới chỉ hiện trong Trình quản lý cập nhật.
+
+Issue báo không qua sẽ ghi bước bị dừng và phần cuối nhật ký. Sửa gói xong thì chạy lại workflow bằng tay (Run workflow, nhập version). Trên máy mình, `make check-upstream` làm đúng bước kiểm tra đó.
+
 ### `xfce4-docklike-plugin/` và `xfce4-caramos-plugin/`
 
 Hai plugin thanh tác vụ của bản Xfce, đóng gói cho PPA:

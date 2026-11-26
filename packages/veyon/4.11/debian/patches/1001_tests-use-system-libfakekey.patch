@@ -1,0 +1,46 @@
+Description: Build LinuxKeyboardMappingTest with the system's libfakekey
+ The test compiled 3rdparty/libfakekey/src/libfakekey.c, which the repacked upstream tarball
+ does not have (Debian uses libfakekey-dev; the LinuxPlatform plugin itself already links the
+ system's libfakekey when pkg-config finds it). Use it for the test too, with the bundled copy
+ as the fallback when there is no system libfakekey.
+Author: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+Forwarded: no
+Last-Update: 2026-11-26
+
+--- a/tests/unit/CMakeLists.txt
++++ b/tests/unit/CMakeLists.txt
+@@ -6,15 +6,28 @@
+ 	# LinuxKeyboardMappingTest: tests keysym → linux keycode mapping tables
+ 	# and UTF-8 → linux keycode conversion.
+ 	#
+-	add_executable(LinuxKeyboardMappingTest
+-		LinuxKeyboardMappingTest.cpp
+-		${CMAKE_SOURCE_DIR}/plugins/platform/linux/LinuxKeyboardInput.cpp
+-		${CMAKE_SOURCE_DIR}/3rdparty/libfakekey/src/libfakekey.c
+-	)
++	# libfakekey of the system if there is one, as the LinuxPlatform plugin does; the bundled copy otherwise
++	find_package(PkgConfig REQUIRED)
++	pkg_check_modules(fakekey libfakekey)
++
++	if(fakekey_FOUND)
++		add_executable(LinuxKeyboardMappingTest
++			LinuxKeyboardMappingTest.cpp
++			${CMAKE_SOURCE_DIR}/plugins/platform/linux/LinuxKeyboardInput.cpp
++		)
++		target_include_directories(LinuxKeyboardMappingTest PRIVATE ${fakekey_INCLUDE_DIRS})
++		target_link_libraries(LinuxKeyboardMappingTest PRIVATE ${fakekey_LDFLAGS})
++	else()
++		add_executable(LinuxKeyboardMappingTest
++			LinuxKeyboardMappingTest.cpp
++			${CMAKE_SOURCE_DIR}/plugins/platform/linux/LinuxKeyboardInput.cpp
++			${CMAKE_SOURCE_DIR}/3rdparty/libfakekey/src/libfakekey.c
++		)
++		target_include_directories(LinuxKeyboardMappingTest PRIVATE ${CMAKE_SOURCE_DIR}/3rdparty/libfakekey)
++	endif()
+ 
+ 	target_include_directories(LinuxKeyboardMappingTest PRIVATE
+ 		${CMAKE_SOURCE_DIR}/plugins/platform/linux
+-		${CMAKE_SOURCE_DIR}/3rdparty/libfakekey
+ 		${CMAKE_SOURCE_DIR}/core/src
+ 		${CMAKE_SOURCE_DIR}/core/src/Configuration
+ 	)

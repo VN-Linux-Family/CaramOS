@@ -1,0 +1,163 @@
+# Every day: has Veyon published a stable release newer than the one packages/veyon/4.11 builds? Then the recipe is
+# moved to it in the runner (tools/upstream.py bump), the packages are built from the source package as Launchpad
+# builds them, `make test` runs (fresh install, upgrade from Ubuntu's 4.7.5 and from the Veyon the CaramOS PPA has,
+# Phòng máy's veyon-cli steps), and an issue "Veyon x.y.z: …" reports the result; the packages and the logs are the
+# run's artifacts. Nothing is committed or uploaded: the lab test in VMs and `make source upload` (signed with the
+# maintainer's key) stay a person's steps (packages/README.md, "veyon/4.11").
+#
+# A version with an issue (open or closed) is not built again by the daily run. "Run workflow" builds a version again
+# (the newest one when empty) and reports in its issue only when "report" is ticked.
+name: veyon upstream
+
+on:
+  schedule:
+    - cron: "40 1 * * *"   # every day, 08:40 in Vietnam
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Veyon version to build, e.g. 4.11.6 (empty: the newest release)"
+        required: false
+        default: ""
+      report:
+        description: "Report the result in the version's issue"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: veyon-upstream
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      sha256: ${{ steps.check.outputs.sha256 }}
+      page: ${{ steps.check.outputs.page }}
+      packaged: ${{ steps.check.outputs.packaged }}
+      series: ${{ steps.check.outputs.series }}
+      issue: ${{ steps.issue.outputs.number }}
+      build: ${{ steps.issue.outputs.build }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Test the check
+        run: make -C packages/veyon/4.11 test-tools
+
+      # Exit 0: nothing newer, 1: a newer release, 2: GitHub could not be read or has no such version (the run fails).
+      - name: Newest Veyon release
+        id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          args=(check --output "${GITHUB_OUTPUT}")
+          if [ -n "${VERSION}" ]; then args+=(--version "${VERSION}"); fi
+          set +e
+          python3 -I packages/veyon/4.11/tools/upstream.py "${args[@]}"
+          status=$?
+          set -e
+          echo "status=${status}" >> "${GITHUB_OUTPUT}"
+          [ "${status}" -le 1 ]
+
+      - name: Already reported?
+        id: issue
+        if: steps.check.outputs.status == '1' || github.event_name == 'workflow_dispatch'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ steps.check.outputs.version }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          number="$(gh issue list --state all --search "\"Veyon ${VERSION}\" in:title" --json number,title \
+            --jq ".[] | select(.title | startswith(\"Veyon ${VERSION}:\")) | .number" | head -n 1)"
+          echo "number=${number}" >> "${GITHUB_OUTPUT}"
+          if [ "${EVENT}" = schedule ] && [ -n "${number}" ]; then
+            echo "Issue #${number} reports Veyon ${VERSION} already"
+            echo "build=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "build=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+  build:
+    needs: check
+    if: needs.check.outputs.build == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 150
+    env:
+      VERSION: ${{ needs.check.outputs.version }}
+      SHA256: ${{ needs.check.outputs.sha256 }}
+    defaults:
+      run:
+        working-directory: packages/veyon/4.11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # make reads the version from debian/changelog with dpkg-parsechangelog
+      - name: Tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq --no-install-recommends dpkg-dev >/dev/null
+
+      - name: The recipe for this version
+        id: bump
+        run: |
+          python3 -I tools/upstream.py bump --version "${VERSION}" --sha256 "${SHA256}"
+          mkdir -p build
+          git diff -- . > build/bump.patch
+          head -n 8 debian/changelog
+
+      - name: Orig tarball
+        id: orig
+        run: make orig
+
+      - name: Source package
+        id: source
+        run: make source
+
+      - name: Packages, built as Launchpad builds them
+        id: deb
+        run: make deb
+
+      - name: Package tests
+        id: test
+        run: make test
+
+      - name: Keep the packages and the logs
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: veyon-${{ needs.check.outputs.version }}
+          path: |
+            packages/veyon/4.11/build/*.dsc
+            packages/veyon/4.11/build/*.debian.tar.xz
+            packages/veyon/4.11/build/*.orig.tar.xz
+            packages/veyon/4.11/build/*_source.*
+            packages/veyon/4.11/build/*.log
+            packages/veyon/4.11/build/bump.patch
+            packages/veyon/4.11/build/debs/*.deb
+            packages/veyon/4.11/build/debs/*.buildinfo
+          retention-days: 30
+          if-no-files-found: ignore
+
+      - name: Report in an issue
+        if: always() && (github.event_name == 'schedule' || inputs.report)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          PAGE: ${{ needs.check.outputs.page }}
+          PACKAGED: ${{ needs.check.outputs.packaged }}
+          SERIES: ${{ needs.check.outputs.series }}
+          NUMBER: ${{ needs.check.outputs.issue }}
+          OUTCOMES: >-
+            bump=${{ steps.bump.outcome }} orig=${{ steps.orig.outcome }} source=${{ steps.source.outcome }}
+            deb=${{ steps.deb.outcome }} test=${{ steps.test.outcome }}
+        run: bash tools/report-issue.sh

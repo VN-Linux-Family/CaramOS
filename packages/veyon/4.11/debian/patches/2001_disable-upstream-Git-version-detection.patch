@@ -1,0 +1,45 @@
+Description: Don't detect upstream release version from Git, fails with the veyon packaging Git.
+ The AboutDialog's CONTRIBUTORS list comes from the release tarball's CONTRIBUTORS file instead
+ (-DCONTRIBUTORS in debian/rules).
+Author: Mike Gabriel <mike.gabriel@das-netzwerkteam.de>
+Forwarded: not needed, Debian-specific
+Last-Update: 2026-11-26
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -63,35 +63,6 @@
+ 	string(REPLACE "v" "" VERSION_STRING "${VERSION_STRING}")
+ endif()
+ 
+-find_package(Git)
+-
+-if(GIT_FOUND)
+-	# determine build number to use in NSIS installer and resource files
+-	execute_process(COMMAND "${GIT_EXECUTABLE}" describe --tags
+-		COMMAND cut -d "-" -f2
+-		WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+-		OUTPUT_STRIP_TRAILING_WHITESPACE
+-		OUTPUT_VARIABLE VERSION_BUILD)
+-	if(NOT VERSION_BUILD GREATER 0)
+-		set(VERSION_BUILD 0)
+-	endif()
+-
+-	# Get list of all committers from git history, ordered by number of commits.
+-	# The CONTRIBUTORS file is used by AboutDialog. This information can be provided
+-	# with -DCONTRIBUTORS=/path/to/CONTRIBUTORS instead. For instance, to generate
+-	# this file for version 3.0.2, the command is:
+-	#   git shortlog -sne v3.0.2 | cut -c8-
+-	set(CONTRIBUTORS "${CMAKE_BINARY_DIR}/CONTRIBUTORS")
+-	if(NOT EXISTS "${CONTRIBUTORS}")
+-		execute_process(COMMAND "${GIT_EXECUTABLE}" shortlog -s d160d147165271516589c304cb1b8f5e48f8527d..HEAD
+-			COMMAND cut -c8-
+-			COMMAND sort -f
+-			OUTPUT_FILE "${CONTRIBUTORS}"
+-			WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
+-			TIMEOUT 10)
+-	endif()
+-endif()
+-
+ # set up basic platform variables
+ if(WIN32)
+ 	set(VEYON_BUILD_WINDOWS 1)

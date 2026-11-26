@@ -1,0 +1,77 @@
+#!/usr/bin/make -f
+
+NULL =
+
+ifneq (,$(filter $(DEB_HOST_ARCH), armel m68k mips mipsel powerpc sh4))
+  export DEB_LDFLAGS_MAINT_APPEND += -Wl,--no-as-needed -latomic -Wl,--as-needed
+endif
+
+export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/buildflags.mk
+
+include /usr/share/dpkg/pkg-info.mk
+
+# Upstream's CMakeLists.txt takes its version from these CI variables when they hold a tag (v*). A package built in
+# some other project's CI (a GitHub Actions job of a tag) must not get that project's version.
+unexport CI_COMMIT_TAG GITHUB_REF_NAME
+
+%:
+	dh $@
+
+# -DWITH_LTO=OFF and -DWITH_STACK_PROTECTION=OFF: dpkg-buildflags already adds LTO (Ubuntu) and
+# -fstack-protector-strong; upstream would add its own flags on top. CONTRIBUTORS is the release tarball's file
+# (the About dialog), as debian/patches/2001_disable-upstream-Git-version-detection.patch drops the git shortlog.
+CONFIGURE_OPTS += -DCMAKE_SKIP_RPATH=OFF \
+                  -DWITH_QT6=ON \
+                  -DVEYON_X11VNC_EXTERNAL=ON \
+                  -DDATAROOTDIR=/usr/share \
+                  -DWITH_PCH=OFF \
+                  -DWITH_UNITY_BUILD=OFF \
+                  -DWITH_LTO=OFF \
+                  -DWITH_STACK_PROTECTION=OFF \
+                  -DCONTRIBUTORS=$(CURDIR)/CONTRIBUTORS \
+                  -DSYSTEMD_SERVICE_INSTALL_DIR=/usr/lib/systemd/system \
+                  $(NULL)
+
+# Upstream's unit tests need -DWITH_TESTS=ON, which also makes the binaries look for plugins in the build tree and
+# exports all symbols: they are built and run in a second build tree, never shipped. Some tests open a QApplication:
+# offscreen, the builders have no display. The RSA tests need libqca-qt6-plugins (Build-Depends <!nocheck>).
+TESTS_BUILDDIR = obj-tests
+
+override_dh_auto_configure:
+	dh_auto_configure -- $(CONFIGURE_OPTS)
+
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+override_dh_auto_test:
+	dh_auto_configure --builddirectory=$(TESTS_BUILDDIR) -- $(CONFIGURE_OPTS) -DWITH_TESTS=ON -DWITH_TRANSLATIONS=OFF
+	dh_auto_build --builddirectory=$(TESTS_BUILDDIR)
+	QT_QPA_PLATFORM=offscreen dh_auto_test --builddirectory=$(TESTS_BUILDDIR)
+endif
+
+override_dh_auto_install:
+	dh_auto_install
+	install -D -m 644 debian/icons/veyon-256x256.png debian/veyon-master/usr/share/icons/hicolor/256x256/apps/veyon-master.png
+	install -D -m 644 core/resources/icon64.png debian/veyon-master/usr/share/icons/hicolor/64x64/apps/veyon-master.png
+	install -D -m 644 core/resources/icon32.png debian/veyon-master/usr/share/icons/hicolor/32x32/apps/veyon-master.png
+	install -D -m 644 core/resources/icon22.png debian/veyon-master/usr/share/icons/hicolor/22x22/apps/veyon-master.png
+	install -D -m 644 core/resources/icon16.png debian/veyon-master/usr/share/icons/hicolor/16x16/apps/veyon-master.png
+
+# veyon.service is not enabled by the package, as in Ubuntu's 4.7.5: whoever sets Veyon up enables it. An upgrade
+# restarts it where it is enabled. veyon-auth-helper.service is started by D-Bus when veyon-service needs it: never
+# at installation; an upgrade stops a running one, so that the next request starts the new helper.
+override_dh_installsystemd:
+	dh_installsystemd -pveyon-service --no-enable veyon.service
+	dh_installsystemd -pveyon-service --no-start --no-restart-after-upgrade veyon-auth-helper.service
+
+override_dh_shlibdeps:
+	dh_shlibdeps -L libveyon-core
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -rf $(TESTS_BUILDDIR)
+
+override_dh_clean:
+	dh_clean
+	rm -f config.log
+	rm -f config.status

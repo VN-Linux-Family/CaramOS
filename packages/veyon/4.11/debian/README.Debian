@@ -1,0 +1,48 @@
+Veyon for Debian/Ubuntu
+-----------------------
+
+The upstream release tarball is repacked without code for MS Windows and
+Android, without prebuilt Windows binaries and without the embedded copies of
+libraries that the package takes from the distribution (see Files-Excluded in
+debian/copyright). In particular the VNC server of Veyon Server on X11 is the
+x11vnc program of the x11vnc package (-DVEYON_X11VNC_EXTERNAL=ON), and
+LibVNCServer/LibVNCClient come from libvncserver.
+
+Since Veyon 4.11:
+
+ * veyon-auth-helper (used by logon authentication) is a D-Bus activated
+   systemd service (veyon-auth-helper.service, io.veyon.AuthHelper on the
+   system bus) and no longer setuid root. Upgrading from an older package
+   removes the dpkg-statoverride that made it setuid.
+
+ * veyon-input-helper blocks the keyboard and mouse during a screen lock in
+   Wayland sessions only (X11 sessions do not use it). Upstream installs it
+   setuid root; this package does not, so on X11-only systems there is no
+   setuid program. To use input blocking in Wayland sessions, make it setuid:
+
+     dpkg-statoverride --update --add root root 4755 /usr/bin/veyon-input-helper
+
+ * veyon.service is not enabled by the package. Enable it once Veyon is
+   configured (veyon-cli and veyon-configurator do so when they save the
+   configuration and Service/Autostart is on, the default):
+
+     systemctl enable --now veyon.service
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 26 Nov 2026 10:30:00 +0700
+
+DFSG-FREE PACKAGE
+-----------------
+
+The SHA-1 implementation in upstream sources (ica/x11/common/sha1.{h,c})
+is directly taken from RFC 3174 "US Secure Hash Algorithm 1 (SHA1)". Given
+that Debian considers RFCs non-free according to the Debian Free Software
+Guidelines 3 and 6, the offending files have been removed from the upstream
+sources.
+
+Luckily, the SHA-1 implementation provided by the OpenSSL library is compatible
+with the own in Bacula.  The fact that iTALC is already linked against OpenSSL
+also means that nothing changed for the Debian package.
+
+This change was introduced with Debian upload of italc 2.0.2+dfsg1-2.
+
+ -- Mike Gabriel <mike.gabriel@das-netzwerkteam.de>  Thu, 14 Aug 2014 13:42:47 +0200

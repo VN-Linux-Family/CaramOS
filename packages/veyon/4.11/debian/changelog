@@ -1,0 +1,1044 @@
+veyon (4.11.5+repack1-0caramos1) noble; urgency=medium
+
+  * Veyon 4.11.5 for the CaramOS computer lab (Phòng máy) on Ubuntu 24.04,
+    which has 4.7.5. It supersedes 4.7.5+repack1-1ubuntu5+caramos1, whose
+    three patches are part of upstream 4.11.5: the lock screen and the
+    full-screen demo show on Linux (554bd2d, #824), a crashed Veyon Server
+    starts again (da235ee), servers start again after a session closes
+    (1765f8a, #1177).
+  * Packaging from Debian's 4.9.7+repack1-1.1, adapted to 4.11.5 and noble:
+    - orig tarball: upstream's release tarball (it has the submodules),
+      repacked by mk-origtargz without the Files-Excluded of d/copyright, in
+      place of the git-based get-orig-source; d/watch reads the GitHub
+      releases. Also excluded now: 3rdparty/kldap-qt5 (Qt 5 only) and
+      3rdparty/qthttpserver (the build uses qt6-httpserver-dev);
+    - Build-Depends: drop libkf6itemmodels-dev (not in noble; upstream has
+      its own KExtraColumnsProxyModel now), imagemagick, default-jdk and the
+      X libraries that only the bundled x11vnc used (qt6-websockets-dev stays:
+      noble's Qt6HttpServer CMake package requires Qt6WebSockets); add
+      libpipewire-0.3-dev (PipeWire VNC server plugin for Wayland),
+      qt6-l10n-tools, pkgconf, dbus-daemon and libqca-qt6-plugins for the
+      tests; libldap-dev in place of libldap2-dev;
+    - d/rules: -DWITH_LTO=OFF and -DWITH_STACK_PROTECTION=OFF in place of
+      2001_debian-hardening.patch (dpkg-buildflags adds both); the About
+      dialog's contributors from the tarball's CONTRIBUTORS; CI_COMMIT_TAG
+      and GITHUB_REF_NAME unexported (upstream takes its version from them);
+      upstream's unit tests built in a second tree with -DWITH_TESTS=ON (it
+      changes the binaries) and run unless nocheck, with the offscreen Qt
+      platform;
+    - d/patches: drop 0001-WebApiController-fix-build-with-Qt-6.10.patch
+      (upstream) and 2001_debian-hardening.patch, rebase the 2001 patches;
+      add 1001_tests-use-system-libfakekey.patch,
+      1002_build-without-unity-build.patch (three files of the FileTransfer
+      and Screenshot plugins lacked includes that upstream's unity build and
+      precompiled header hid), 1003_tests-without-home-directory.patch
+      (LinuxUserFunctionsTest failed for a build user whose home directory
+      does not exist, as on Launchpad) and 2002_no-Werror.patch
+      (GCC 13 with Qt 6.4 and Ubuntu's flags reports a false
+      maybe-uninitialized, which -Werror made fatal);
+    - new files: veyon-input-helper (not setuid, see README.Debian; a
+      manual page in debian/man),
+      veyon-auth-helper.service and the D-Bus policy and activation files of
+      veyon-service and of the auth helper, the PipeWire VNC server plugin
+      with veyon-server's desktop and D-Bus activation files;
+    - veyon-auth-helper is no longer setuid root: postinst removes the
+      statoverride that older packages added and the setuid bit that dpkg
+      still applied from it when unpacking the new helper;
+    - veyon.service is not enabled by the package, as in Ubuntu's 4.7.5;
+      veyon-auth-helper.service is only started by D-Bus;
+    - veyon-service: depend on the D-Bus system bus, drop adduser (unused);
+    - Maintainer: Vietnam Linux Family, Debian Edu Packaging Team as
+      XSBC-Original-Maintainer.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 26 Nov 2026 10:30:00 +0700
+
+veyon (4.9.7+repack1-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Backport upstream fix for FTBFS with Qt 6.10. (Closes: #1131593)
+  * Rely on the dpkg hardening flags only.
+
+ -- Adrian Bunk <bunk@debian.org>  Mon, 20 Apr 2026 09:19:33 +0300
+
+veyon (4.9.7+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches:
+    + Rebase 2001_disable-upstream-Git-version-detection.patch.
+  * debian/copyright:
+    + Update auto-generated copyright.in file.
+    + Update copyright attributions.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Tue, 12 Aug 2025 12:20:08 +0200
+
+veyon (4.9.5+repack1-2) unstable; urgency=medium
+
+  * debian/control:
+    + Add D: (libveyon-core): libqca-qt6-plugins.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Tue, 22 Apr 2025 16:04:53 +0200
+
+veyon (4.9.5+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches:
+    + Drop 1001_fix-external-x11vnc.patch and 1002_fix-libproc2.patch. Applied
+      upstream.
+    + Rebase 2001_disable-CPackDefinitions-cmake.patch and 2001_disable-
+      upstream-Git-version-detection.patch.
+  * debian/control:
+    + Bump Standards-Version: to 4.7.2. No changes needed.
+    + Drop or'ed dependency on pkexec or policykit-1 (now: only pkexec).
+  * debian/{control,rules}:
+    + Build against Qt6.
+    + Convert to pure debhelper.
+  * debian/docs:
+    + Drop doc/*. Not available upstream anymore.
+  * debian/copyright:
+    + Update copyright attributions.
+    + Update auto-generated copyright.in file.
+    + Use new FSF address.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 16 Apr 2025 22:55:18 +0200
+
+veyon (4.7.5+repack1-1.2) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Do not include buildflags.mk before setting DPKG_EXPORT_BUILDFLAGS = 1.
+    This makes sure -latomic flag is really added on armel. (Closes: #1086634)
+
+ -- Dmitry Shachnev <mitya57@debian.org>  Sun, 03 Nov 2024 20:16:23 +0300
+
+veyon (4.7.5+repack1-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+
+  [ Helmut Grohne ]
+  * Move systemd unit to /usr for DEP17. (Closes: #1063694)
+
+ -- Chris Hofstaedtler <zeha@debian.org>  Thu, 13 Jun 2024 00:08:02 +0200
+
+veyon (4.7.5+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches:
+    + Trivial rebase of 1001_fix-external-x11vnc.patch.
+    + Drop upstream patches 0001, 0002a, 0002b, 0003, 0004, 0005 and 0006.
+      All included in this upstream release.
+    + Add 2001_disable-upstream-Git-version-detection.patch. Breaks version
+      detection when building insider the Debian packaging Git repo.
+    + Add 1002_fix-libproc2.patch. Complete the libproc2 build option.
+      Incomplete upstream change spotted.
+  * debian/copyright:
+    + Update auto-generated copyright.in file.
+    + Update copyright attributions.
+  * lintian: Add overrides for license files not listed in d/copyright. The
+    veyon source tree contains license files with uncommon names, we won't
+    list copyright attributions for those files.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 03 Feb 2023 08:55:32 +0100
+
+veyon (4.7.4+repack1-2) unstable; urgency=medium
+
+  * debian/control:
+    + Change D: from policykit-1 to pkexec. (Closes: #1025634).
+    + Bump Standards-Version: to 4.6.2. No changes needed.
+    + Add patches 0001, 0002a, 0002b, 0003 and 0004 as recommended by upstream.
+    + In B-D: switch from libprocps-dev to libproc2-dev. (Closes:
+      #1024225).
+  * debian/patches:
+    + Add 0005_LinuxCoreFunctions-add-support-for-libproc2.patch. (relates to
+      #1024225).
+    + Add 0006_LDAP-relicense-under-LGPL-2.patch. Upstream has relicensed
+      the LDAP plugin from GPL-2 to LGPL-2 to fix a license conflict with
+      libsasl2 (which is linked into kldap). This license change will be
+      shipped as a patch until the next release of Veyon. (Closes: #1023923).
+    + Add patch header for 1001_fix-external-x11vnc.patch. Mark patch as
+      forwarded.
+    + Mark patch 2001 as Debian-specific.
+  * debian/copyright:
+    + Update auto-generated copyright.in file.
+    + Update copyright attributions.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 27 Jan 2023 08:30:46 +0100
+
+veyon (4.7.4+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches:
+    + Drop 0001_add-missing-includes.patch. Applied upstream.
+    + Rebase 2001_disable-CPackDefinitions-cmake.patch.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Thu, 20 Oct 2022 22:51:21 +0200
+
+veyon (4.7.3+repack1-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Add a patch to add missing includes for GCC 12 (closes: #1013060).
+
+ -- Dmitry Shachnev <mitya57@debian.org>  Fri, 12 Aug 2022 14:38:21 +0300
+
+veyon (4.7.3+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/copyright:
+    + Update auto-generated copyright.in file.
+    + Update copyright attributions.
+  * debian/docs:
+    + Drop CONTRIBUTORS. File vanished upstream.
+  * debian/patches:
+    + Trivial rebase of 2001_disable-CPackDefinitions-cmake.patch.
+    + Drop 2002_no-bundled-kitemmodels.patch. Feature provided upstream.
+    + Add 1001_fix-external-x11vnc.patch. Fix build with external x11vnc.
+  * debian/veyon-plugins.install:
+    + Simplify file, make it more robust to plugin changes.
+  * debian/rules:
+    + Obtain upstream tarball from Git releases (and import Git submodules
+      when creating it).
+    + Build with -DWITH_UNITY_BUILD=OFF.
+  * debian/watch:
+    + Fix for URL changes on Github.
+  * debian/control:
+    + Adapt S: fields as proposed by upstream.
+    + Bump Standards-Version: to 4.6.0. No changes needed.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Thu, 14 Apr 2022 01:38:16 +0200
+
+veyon (4.5.3+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/copyright:
+    + Update auto-generated copyright.in file.
+    + Update copyright attributions.
+  * debian/patches:
+    + Drop 1001, 1003 and 1004. Applied upstream.
+    + Rebase patches 2001 and 2002.
+  * debian/rules:
+    + Build with -DWITH_PCH=OFF.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sat, 27 Feb 2021 13:19:34 +0100
+
+veyon (4.5.2+repack1-4) unstable; urgency=medium
+
+  [ Adrian Bunk ]
+  * debian/rules:
+    + Link with libatomic on architectures that need it.
+
+  [ Mike Gabriel ]
+  * debian/patches:
+    + Drop 0001_WebApiConnection-use-QAtomicInteger-for-qint64.patch
+      again. Superceded by Adrian Bunk's approach (see above).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 05 Feb 2021 22:38:44 +0100
+
+veyon (4.5.2+repack1-3) unstable; urgency=medium
+
+  * debian/patches:
+    + Add 0001_WebApiConnection-use-QAtomicInteger-for-qint64.patch. Possibly
+      fix FTBFS on some armel, mipsel and some other 32bit architectures.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 05 Feb 2021 12:00:32 +0100
+
+veyon (4.5.2+repack1-2) unstable; urgency=medium
+
+  * debian/control:
+    + Add B-D qtbase5-private-dev. This enables the webapi plugin build.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Thu, 04 Feb 2021 12:23:30 +0100
+
+veyon (4.5.2+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/watch:
+    + Update format version to 4.
+  * debian/control:
+    + Bump Standards-Version: to 4.5.1. No changes needed.
+  * debian/patches:
+    + Drop 1002_fix-ftbfs-g++-9.patch. Applied upstream.
+    + Add 1004_fix-missing-return-value-for-X11VNC-runServer.patch.
+      Fix FTBFS when building with VEYON_X11VNC_EXTERNAL.
+    + Forward patches 1001 and 1003 upstream.
+    + Trivial rebase of patches 1003 and 2001.
+  * debian/copyright:
+    + Update auto-generated copyright.in template file.
+    + Update copyright attributions.
+  * debian/rules:
+    + Don't drop 3rdparty project qthttpserver. Use the bundled version for
+      now.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 03 Feb 2021 23:23:38 +0100
+
+veyon (4.4.2+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/copyright:
+    + Update auto-generated copyright.in file.
+    + Update copyright attributions.
+  * debian/rules:
+    + Drop new 3rd party code project 'qhttpserver' during orig tarball
+      creation. No needed for 4.4.x.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 21 Oct 2020 14:09:02 +0200
+
+veyon (4.4.1+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Stop using fixed logfile paths. (Closes: #964568).
+    - Fix FTBFS in core/src/AccessControlProvider.cpp. (Closes: #964634).
+  * debian/rules:
+    + Drop libvncserver entirely from 3rdparty/ folder entirely.
+  * debian/control:
+    + Bump Standards-Version: to 4.5.0. No changes needed.
+    + Bump versioned B-D on libvncserver-dev to (>= 0.9.13).
+    + Add Rules-Requires-Root: field and set it to 'no'.
+  * debian/patches:
+    + Rebase 2002_no-bundled-kitemmodels.patch.
+    + Trivial rebase of 2001_disable-CPackDefinitions-cmake.patch.
+  * debian/copyright:
+    + Update autogenerated copyright.in template file.
+    + Update copyright attributions.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 17 Jul 2020 08:48:04 +0200
+
+veyon (4.3.1+repack1-2) unstable; urgency=medium
+
+  * debian/patches:
+    + Add 1003_stop-using-gksudo+kdesudo.patch. Refrain from using old and dead
+      kdesudo/gksudo, only use pkexec for launching applications with
+      administrative privileges.
+  * debian/veyon-service.postinst:
+    + Create configuration directories during postinst.
+  * debian/veyon-service.postrm:
+    + Drop XDG autostart removal code. Left-over from iTALC.
+  * debian/control:
+    + Add B-D libsystemd-dev.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 17 Feb 2020 10:19:30 +0100
+
+veyon (4.3.1+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control:
+    + Adapt LONG_DESCRIPTION fields as provided in upstream's README.md file.
+    + Add B-D: libfakekey-dev.
+  * debian/patches:
+    + Update 2002_no-bundled-kitemmodels.patch for Veyon 4.3.1.
+    + Trivial rebase of 2001_disable-CPackDefinitions-cmake.patch.
+  * debian/copyright:
+    + Update copyright attributions.
+    + Update auto-generated copyright.in file.
+  * debian/rules:
+    + White-space fix in get-orig-source tarball.
+    + Drop new 3rdparty/libfakekey/ from orig tarball.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 03 Jan 2020 18:00:08 +0100
+
+veyon (4.2.5+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/rules:
+    + Drop work-around for falsely installed veyon DATADIR.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sat, 28 Sep 2019 00:55:57 +0200
+
+veyon (4.2.4+repack1-2) unstable; urgency=medium
+
+  [ Pino Toscano ]
+  * debian/rules:
+    + Enable parallel builds. (Closes: #919884).
+
+  [ Mike Gabriel ]
+  * debian/patches:
+    + Fix FTBFS with GCC v9. (Closes: #925851).
+  * debian/control:
+    + Bump Standards-Version: to 4.4.0. No changes needed.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Tue, 13 Aug 2019 14:38:22 +0200
+
+veyon (4.2.4+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/control:
+    + Update B-Ds for 4.2.4: Add libsasl2-dev, libkf5itemmodels-dev.
+  * debian/rules:
+    + Update repack instruction in get-orig-source.
+    + Fix flawed installation of language files, move them to veyon's datadir.
+  * debian/copyright:
+    + Update copyright.in template file.
+    + Update copyright attributions.
+  * debian/patches:
+    + Add 2002_no-bundled-kitemmodels.patch. Use Debian's KF5 Item Models shared
+      library.
+    + Rebase/shrink 2001_disable-CPackDefinitions-cmake.patch.
+  * debian/libveyon-core.install:
+    + Simplify installation of language files.
+  * debian/veyon-plugins.install:
+    + Update plugins to be installed, sort by pathname.
+  * debian/veyon-service.{install,manpages}:
+    + Update file list, veyon-ctl renamed to veyon-cli; systemd service file got
+      renamed upstream.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 02 Aug 2019 16:15:33 +0200
+
+veyon (4.1.7+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches:
+    + Rebase 2001_disable-CPackDefinitions-cmake.patch.
+  * debian/copyright:
+    + Update copyright attributions.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Thu, 31 Jan 2019 11:07:06 +0100
+
+veyon (4.1.6+repack1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches:
+    + Drop patches 1001, 1002, 1003, 1004. All applied upstream.
+    + Add 1001_fix-veyon-master-manpage-again.patch. Add missing hyphen in the
+      man page's application name.
+  * debian/control:
+    + Use secure URL in Homepage: field.
+    + Drop R (veyon-service): zenity or kde-baseapps-bin. Leftover from
+      iTALC packaging (was requirement of the ica wrapper script).
+    + Wrap line in LONG_DESCRIPTION of veyon-service.
+    + Bump Standards-Version: to 4.3.0. No changes needed.
+  * debian/*:
+    + Use https://github.com/veyon/veyon URL in lower case letters everywhere.
+  * debian/copyright:
+    + Replace iTALC occurrence in the OpenSSL GPL-2 exception by the word
+      Veyon.
+    + Update copyright attributions.
+  * debian/rules:
+    + Remove more upstream files when repacking orig tarball.
+  * debian/*.lintian-overrides:
+    + Drop files. The epoch-changed-but-upstream-version-did-not-go-backwards
+      override was only required for previous upload.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 14 Jan 2019 10:48:20 +0100
+
+veyon (4.1.4+repack1-1) unstable; urgency=medium
+
+  * Upload to Debian as continuation of italc. (Closes: #887394).
+  * pkexec support: Drop files. Upstream now implemented pkexec support and
+    now hack-around is needed anymore for the Debian package.
+  * debian/changelog:
+    + Drop epoch in version as package name has changed.
+  * debian/*.lintian-overrides:
+    + Add epoch-changed-but-upstream-version-did-not-go-backwards overrides
+      for upcoming / first veyon upload.
+  * debian/patches:
+    + Add 1001_fix-desktop-files.patch,
+          1002_add-documentation-key-to-service-file.patch,
+          1003_fix-man-page-section.patch,
+          1004_improve-man-page-content.patch,
+          2001_disable-CPackDefinitions-cmake.patch.
+    + Drop 1005_gcc47-ftbfs.patch,
+           2001_inject-buildtype-from-outside.patch.
+  * debian/control:
+    + Adapt to veyon. Drop Patrick Winnertz from Uploaders: list. Thanks for
+      your previous work on iTalc in Debian.
+    + Update Homepage: and Vcs-*: fields.
+    + Use secure URLs. Packaging has been migrated to salsa.debian.org.
+  * debian/compat:
+    + Bump DH compat level to version 10 (as long as CDBS does not yet support
+      version level 11).
+  * debian/*.{install,manpages,links,docs,post*,pre*}: Adapt to Veyon.
+  * debian/veyon-service.install (et al.):
+    + Drop veyon-service wrapper, this was iTALC stuff.
+  * debian/veyon-service.*:
+    + Drop preseedable debconf configuration. What worked well with iTALC does
+      not make sense with Veyon's absolutely flexible role model.
+  * iTALC.conf.in / Veyon.conf.in:
+    + Don't ship a config template, not needed for Veyon.
+  * debian/watch: iTALC is now Veyon.
+  * debian/README.setup:
+    + Drop iTALC specific setup README. Does not apply to Veyon anymore.
+  * debian/copyright:
+    + Use secure URL for Debian copyright format reference.
+    + Add comment on why we repack the orig sources.
+    + Drop references to files removed while repacking.
+    + Update auto-generated copyright.in file.
+  * debian/rules (et al.):
+    + Correctly copy icons into veyon-master bin:pkg. Provide 256x256
+      veyon-master.png icon.
+  * debian/man/:
+    + Rename italc_auth_helper.1 to veyon-auth-helper.1 and adapt to Veyon.
+  * debian/desktop/*.desktop:
+    + Drop files. Not required in Veyon.
+  * debian/upstream/metadata:
+    + Add file. Comply with DEP-12.
+  * debian/docs:
+    + Ship some documentation files.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Thu, 06 Dec 2018 16:44:21 +0100
+
+italc (1:3.0.3+dfsg1-2) unstable; urgency=medium
+
+  * debian/control:
+    + Add B-D: qttools5-dev. (Closes: #881090).
+    + Bump Standards-Version: to 4.1.1. No changes needed.
+  * debian/changelog, debian/man/*.1: White-space cleanup.
+  * debian/copyright:
+    + Remove file that is not present in upstrean sources anymore.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sat, 25 Nov 2017 17:20:02 +0100
+
+italc (1:3.0.3+dfsg1-1) unstable; urgency=medium
+
+  [ Mike Gabriel ]
+  * New upstream release.
+  * debian/patches:
+    + Add README, explaining our patch naming scheme. Rename existing patches
+      accordingly.
+    + Update/rebase 2001_inject-buildtype-from-outside.patch.
+  * debian/copyright:
+    + Update copyright attributions (drop lib/include/Inject.h).
+    + Update copyright attributions for debian/patches/.
+
+  [ Gianfranco Costamagna ]
+  * debian/{control,rules,libitalccore.install}:
+    + Turn libitalccore into multi-arch library. (Closes: #850799).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 20 Jan 2017 10:46:10 +0100
+
+italc (1:3.0.2.90+dfsg1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/copyright:
+    + Update copyright attributions.
+    + Update autogenerated copyright.in file.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 09 Jan 2017 13:20:52 +0100
+
+italc (1:3.0.2+dfsg1-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches:
+    + Drop 001_set-static-libdir-and-rpath-for-cmake.patch,
+      003_rename-plugin-dir.patch, 030_fix-man-pages.patch,
+      031_fix-spelling-errors.patch. Applied or otherwise addressed
+      upstream.
+  * italc-client.postinst:
+    + Make sure that the key directories exist before using imc for key
+      creation.
+  * debian/rules:
+    + Fix flawed dbgsym migration.
+    + In get-orig-source, drop more files not relevant for building iTALC on
+      Linux.
+  * debian/copyright:
+    + Update auto-generated copyright.in file.
+    + Update copyright attributions.
+  * debian/watch:
+    + Tolerate -rc upstream release version strings.
+  * debian/docs:
+    + Drop TODO from list of doc files.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sat, 10 Dec 2016 02:09:24 +0100
+
+italc (1:3.0.1+dfsg1-1) unstable; urgency=medium
+
+  * New upstream release.
+    - Fixes FTBFS against libssl 1.1. (Closes: #828358).
+  * debian/watch:
+    + Upstream sources moved from Sourceforge to Github.
+  * Packaging style: Stop shipping upstream files in Debian packaging Git.
+    Superfluous overhead.
+  * debian/patches:
+    + Rebase 003_rename-plugin-dir.patch.
+    + Drop 007_use-openssl-sha.patch. Solved upstream.
+    + Rebase and update 031_fix-spelling-errors.patch.
+    + Update 031_fix-spelling-errors.patch. More spelling issues found.
+  * debian/rules:
+    + Adapt get-orig-source rule to new upstream location. Downloaded tarball
+      is a .gz archive, not .bz2.
+    + Create orig tarball in ../ rather than ./.
+    + Drop configure/libitalccore:: rule. No need to manually call
+      finalize-locales Makefile target in upstream code.
+    + Drop .qm backup hack. Upstream sources come without .qm (and only with .ts
+      files since 3.0.0).
+    + Enable all hardening build flags (i.e., also include +pie).
+    + Drop old compiler tweakings as they are (a) not required any more and
+      (b) cause an FTBFS on Debian 9 and above.
+  * debian/control:
+    + Bump Standards-Version: to 3.9.8. No changes needed.
+    + Use secure URLs in Vcs-*: fields.
+    + iTALC 3 builds against Qt5 now. Drop B-D libqt4-dev, add B-D qtbase5-dev
+      instead.
+    + Add B-D: qttools5-dev-tools (for Qt5 linguist tools).
+  * debian/{control,rules}:
+    + dbgsym: Don't build dbg:packages anymore.
+      See https://wiki.debian.org/AutomaticDebugPackages
+  * debian/copyright:
+    + Update auto-generated copyright.in template file.
+    + Work in auto-detected changes from copyright.in.
+    + Work in more copyright attributions manually.
+    + Remove copyright attributions for files not shipped by upstream anymore.
+  * debian/po:
+    + Add DebConf translations for pt_BR. Thanks so much to Adriano Rafael
+      Gomes. (Closes: #816946).
+  * debian/docs:
+    + README -> README.md.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Tue, 29 Nov 2016 11:05:11 +0100
+
+italc (1:2.0.2+dfsg1-4) unstable; urgency=medium
+
+  * debian/Italc_logo.png:
+    + Add 256x256px resolution icon, obtained from
+      https://commons.wikimedia.org/wiki/File:Italc_logo.png.
+  * debian/copyright:
+    + Add license information for debian/Italc_logo.png.
+    + Individually list files in debiain/*.
+  * debian/source/include-binaries:
+    + White-list binary file debian/Italc_logo.png.
+  * debian/rules:
+    + Install icons of all resolutions available in the upstream sources.
+      (Closes: #795008).
+  * debian/menu:
+    + Drop menu file in favour of .desktop file. See tech-ctte decision
+      on #741573 for details.
+  * debian/patches:
+    + Update 031_fix-spelling-errors.patch. Lintian found more spelling
+      issues in upstream code.
+  * debian/{compat,control}:
+    + Raise DH compat level to debhelper version 9.
+  * debian/control:
+    + Add B-D: qt4-linguist-tools (for creating fresh .qm files at build-time).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 15 Feb 2016 11:04:30 +0100
+
+italc (1:2.0.2+dfsg1-3) unstable; urgency=medium
+
+  * debian/po:
+    + Add Dutch DebConf translation file. (Closes: #765983). Thanks to Frans
+      Spiesschaert.
+  * debian/control:
+    + Bump Standards: to 3.9.6. No changes needed.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 08 Jun 2015 00:29:34 +0200
+
+italc (1:2.0.2+dfsg1-2) unstable; urgency=medium
+
+  * debian/bin/ica (wrapper):
+    + When the -autostart cmdline arg is given, launch iTALC client with the
+      most privileged role that is available to the current user.
+  * DebConf:
+    + Update Japanese translation. Thanks to "victory".
+    + Update Russian translation file. Thanks to Yuri Kozlov. (Closes:
+      #758791).
+    + Update Danish translation file. Thanks to Joe Dalton. (Closes: #758840).
+    + Update Spanish translation file. Thanks to Camaleón. (Closes: #759797).
+    + Update French translation file. Thanks to Steve Petruzzello. (Closes:
+      #760599).
+    + Update Portuguese translation file. Thanks to Miguel Figueiredo. (Closes:
+      #760718).
+    + Update Italian translation file. Thanks to Beatrice Torracca. (Closes:
+      #761089).
+    + Update German translation file. Thanks to myself ;-). (Closes: #764101).
+  * debian/copyright:
+    + Rewrite from scratch. Fixes several false or missing license and copyright
+      information.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sun, 05 Oct 2014 23:05:32 +0200
+
+italc (1:2.0.2+dfsg1-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/watch:
+    + Mangle Debian version (due to new +dfsg1 upstream version suffix).
+  * debian/rules:
+    + Provide get-orig-source rule, repack upstream sources: Remove non-DFSG
+      licensed files sha1.c and sha1.h (which upstream directly took from
+      RFC 3174.
+    + Drop win32 related files when repacking upstream sources via
+      get-orig-source.
+  * debian/control:
+    + Add dbg:packages for iTALC.
+    + Bump Standards: to 3.9.5. No changes needed.
+    + Add R (italc-client): zenity or kde-baseapps-bin (for ica wrapper
+      script).
+  * Desktop integration:
+    + Update .desktop files. Add .desktop file for imc (iTALC Management
+      Console).
+    + Use pkexec to launch iTALC Management Console.
+  * DebConf:
+    + When setting up iTALC roles, ensure that the default group ('root')
+      gets used if an empty string is provided as group name.
+    + Capture non-existing group names and default to group 'root' instead.
+      Also, detect existence of groups correctly, now.
+    + Default to "root" group only if previously set iTALC role groups were
+      not set or do not exist (anymore).
+    + Loop on group input screens if a group does not exist (for
+      use_existing_groups == true).
+    + Always default to "No" for the delete-group-confirmation-question
+      screens.
+    + Provide option to system-wide setup XDG autostart for iTALC client
+      applet. (Closes: #731476).
+    + Reset LogonGroups= in iTALC.conf on every package configuration, so
+      DebConf configured groups get placed into iTALC.conf correctly.
+    + Update PO files.
+  * debian/copyright:
+    + Update file to match changes in upstream release.
+    + Drop copyright information for removed files ica/x11/common/sha1.{c,h}.
+    + Drop copyright information for removed files in ica/win32/.
+  * debian/patches:
+    + Drop 002_use-v4l-videodev2.patch, 004_x2go-nx-noxdamage.patch,
+      021_man-page-patch-in.patch. Applied upstream.
+    + Refresh 031_fix-spelling-errors.patch.
+    + Update 001_set-static-libdir-and-rpath-for-cmake.patch. Adapt
+      block that hard-sets LIB_DIR to /usr/lib/italc.
+    + Add 007_use-openssl-sha.patch. Build against openssl/sha.h, don't use
+      dropped, non-DFSG licensed files sha1.c and sha1.h.
+    + Add 030_fix-man-pages.patch. Fix a hyphen-used-as-minus-sign issue and a
+      spelling error.
+  * debian/italc-client.prerm:
+    + On package purgal, only remove groups if we previously explicitly created
+      them as iTALC roles.
+  * debian/italc-client.postinst:
+    + Ensure that $DISPLAY is unset before evoking the imc -createkeypair
+      command.
+  * lintian:
+    + Drop unused override (spelling-error-in-binary).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Thu, 14 Aug 2014 14:23:53 +0200
+
+italc (1:2.0.1-4) unstable; urgency=low
+
+  * Debconf translation files updated/added:
+    + Spanish translation added (thanks to Camaleón). (Closes: #728116).
+  * debian/control:
+    + Add libpng-dev as build dependency. (Closes: #729675).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sun, 17 Nov 2013 09:19:39 +0100
+
+italc (1:2.0.1-3) unstable; urgency=low
+
+  * /debian/control:
+    + Alioth-canonicalize Vcs-Git: field.
+    + Vcs location has moved into debian-edu/pkg-team/ subfolder.
+  * /debian/desktop/*.desktop:
+    + Add Keywords: field.
+  * Debconf translations:
+    + Update typo in Japanese translation (thanks to
+      »victory«). (Closes: #725724).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Wed, 09 Oct 2013 00:45:33 +0200
+
+italc (1:2.0.1-2) unstable; urgency=low
+
+  * Review of translatable text elements by the Enlish i18n team. (Closes:
+    #719778).
+  * /debian/copyright:
+    + Add block for Files: /debian/*.
+  * Debconf translation files updated/added:
+    + Russian translation (thanks to Yuri Kozlov). (Closes: #721993).
+    + Danish translation (thanks to Joe Dalton). (Closes: #722131).
+    + Czech translation (thanks to Michal Šimůnek). (Closes: #722141).
+    + Japanese translation (thanks to »victory«). (Closes: #723754).
+    + Italian translation (thanks to Beatrice Torracca). (Closes: #723863).
+    + Portuguese translation (thanks to Miguel Figueiredo). (Closes: #724018).
+    + French translation (thanks to Steve Petruzzello). (Closes: #724485).
+    + German translation (thanks to Helge Kreutzmann for reviewing my own
+      translation effort). (Closes: #724025).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Tue, 24 Sep 2013 21:27:50 +0200
+
+italc (1:2.0.1-1) unstable; urgency=low
+
+  * New upstream version.
+  * /debian/italc-client.lintian-overrides:
+    + Silence lintian about a false-positive spelling error report.
+  * /debian/copyright:
+    + Update and review and explicitly add OpenSSL exception.
+  * Update patches, drop patch 011_qt-signals.patch (applied by upstream).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 12 Aug 2013 15:52:25 +0200
+
+italc (1:2.0.0-4) unstable; urgency=low
+
+  * /debian/control:
+    + Fix lintian: <bin:package>: data.tar.xz-member-without-dpkg-pre-depends.
+  * /debian/italc-client.{config,templates}:
+    + Make italc preseedable/configurable via debconf.
+  * /debian/rules:
+    + Now really fix the .ts file update and trigger the .qm build after
+      configure of libitalccore.
+    + Make sure .qm files shipped by upstream get moved out of the way before
+      build and get restored properly during clean up.
+    + Auto-configure iTALC.conf through debconf.
+  * Update documentation file: README.setup.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Mon, 12 Aug 2013 12:07:52 +0200
+
+italc (1:2.0.0-3) unstable; urgency=low
+
+  * /debian/control:
+    + italc-client: Add adduser to Depends: field. (Closes: #707836).
+  * /debian/rules:
+    + Re-build .ts and .qm files during build time to incorporate
+      latest translation fixes.
+  * Lintian issues:
+    + Fix duplicate-in-relation-field in source build-depends: libxrandr-dev,
+      libxrandr-dev.
+    + Fix unneeded-build-dep-on-quilt.
+    + Fix spelling-error-in-binary usr/bin/italc neccessary necessary.
+    + Fix spelling-error-in-binary usr/lib/italc/libItalcCore.so neccessary
+      necessary.
+    + Fix spelling-error-in-manpage usr/share/man/man1/ica.1.gz neccessary
+      necessary.
+    + Fix hyphen-used-as-minus-sign usr/share/man/man1/ica.1.gz.
+    + Fix hyphen-used-as-minus-sign usr/share/man/man1/imc.1.gz.
+  * Update patches.
+  * Provide file italc-client.desktop. (Closes: #666428).
+  * Provide file italc-master.desktop. (Closes: #666429).
+  * Add patch: 006_inject-buildtype-from-outside.patch. Inject the build
+    type (actually the BUILD_CPU) from /debian/rules. Avoid the detection
+    code from upstream as it only covers x86 and x86_64. (Closes: #718745).
+  * Provide documentation: README.setup. (Closes: #511387).
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sun, 11 Aug 2013 03:11:55 +0200
+
+italc (1:2.0.0-2) unstable; urgency=low
+
+  * /debian/control:
+    + Drop B-D: linux-libc-dev
+    + Limit B-D: libv4l-dev to [linux-any].
+    + Update long-descs: replace phrase »pupil« by »student«.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Sat, 11 May 2013 00:06:51 +0200
+
+italc (1:2.0.0-1) unstable; urgency=low
+
+  * New upstream release (Closes: #640200, #672636).
+  * Package becomes team-maintained (debian-edu-pkg-team@l.alioth.d.o).
+  * Raise compat level to 7.
+  * Use multi-line fields in /debian/control.
+  * Add build-dependencies: libpam0g-dev, linux-libc-dev, and cmake.
+    Also add-in build-dependencies found in x11vnc Debian package. Add
+    build-dependency: libv4l-dev.
+  * Add Vcs-* lines to /debian/control.
+  * Make /debian/copyright DEP-5 compliant.
+  * Drop outdated README.Debian, include upstream documentation files in
+    package.
+  * Drop lintian overrides from former package versions.
+  * New binary package: italc-management-console.
+  * Add quilt (>= 0.46-7~) as build dependency. Include CDBS rule
+    patchsys-quilt.
+  * Add patch: 001_set-static-libdir-and-rpath-for-cmake.patch, adapt to
+    new iTALC library name: libItalcCore.so, rename binary package libitalc to
+    libitalccore. As libItalcCore.so is private/unversioned, we use RPATH to
+    build/find <LIB_DIR>/italc/libItalcCore.so.
+  * Add patch: 002_use-v4l-videodev2.patch, support building with v4l2 support
+    if present.
+  * Add patch: 003_rename-plugin-dir.patch, change name of iTalc plugin
+    directory.
+  * Add patch: 004_x2go-nx-noxdamage.patch, handle iTALC in X2Go sessions in
+    the same way as in NX sessions.
+  * Grab man page from upstream Git: imc.8.
+  * Contribute man page: italc_auth_helper.1, no man page available for
+    italc_auth_helper by upstream.
+  * Add build-dependency: gcj-jdk. This triggers the java-build of the iTALC
+    JavaViewer which then gets integrated into the iTALC client.
+  * Add patch: 011_qt-signals.patch.
+  * Add patch: 021_man-page-patch-in.patch, update upstream man pages, apply
+    similar changes to italc_auth_helper.1 provided by us.
+  * Drop man page options that are not available in iTALC 2.x anymore, add
+    those that have been added. Fixing non-up-to-date upstream version of man
+    pages for ica.1 and italc.1.
+  * Install italc_auth_helper setuid root (via dpkg-statoverride).
+  * Provide default iTALC.conf configuration file.
+  * Install italc-* system groups by default (italc-admins, italc-supporters,
+    italc-teachers, italc-students).
+  * Create iTALC key pairs for roles: admin, supporter, teacher during package
+    configuration.
+  * Add patch: 005_gcc47-ftbfs.patch. Fixes FTBFS with gcc-4.7.
+  * Harden package build.
+  * Bump Standards version to 3.9.4.
+
+ -- Mike Gabriel <sunweaver@debian.org>  Fri, 03 May 2013 13:23:05 +0200
+
+italc (1:1.0.13-1.3) unstable; urgency=low
+
+  * Non maintainer upload.
+  * Fix build failure with GCC 4.7. Closes: #667203.
+
+ -- Matthias Klose <doko@debian.org>  Fri, 04 May 2012 08:37:15 +0200
+
+italc (1:1.0.13-1.2) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Build-Depend on libjpeg-dev, not libjpeg62-dev (closes: #642838)
+
+ -- Julien Cristau <jcristau@debian.org>  Sun, 29 Jan 2012 18:08:29 +0100
+
+italc (1:1.0.13-1.1) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Apply patch from Felix Geyer to fix FTBFS when compiled with
+    -Werror=format-security (Closes: #643411)
+  * Set urgency to medium due to rc bug fix
+
+ -- Alexander Reichle-Schmehl <tolimar@debian.org>  Sun, 04 Dec 2011 12:08:19 +0100
+
+italc (1:1.0.13-1) unstable; urgency=low
+
+  * Added a watch file for italc
+  * Imported Upstream version 1.0.13 (Closes: #597759)
+  * Acknowlege NMU of David Paleino, thanks. (Closes: #504970)
+  * Link to GPL-2 as italc is using this version, according to COPYING
+  * Removed dh_desktop call as it is deprecated
+  * Add some more overrides
+  * Bump standards version to 3.9.1 - no further changes needed
+  * Switch to 3.0 (quilt) packaging
+  * Add some more info to the short description
+
+ -- Patrick Winnertz <winnie@debian.org>  Fri, 11 Feb 2011 14:50:22 +0100
+
+italc (1:1.0.9-1.1) unstable; urgency=low
+
+  * Non-maintainer upload.
+  * Fixed FTBFS with GCC 4.4, missing #include. Thanks to
+    Martin Michlmayr (Closes: #504970)
+  * italc-client.lintian-overrides and italc-master.lintian-overrides
+    added
+
+ -- David Paleino <dapal@debian.org>  Mon, 21 Dec 2009 15:02:56 +0100
+
+italc (1:1.0.9-1) unstable; urgency=low
+
+  * New upstream release (Closes: #508049)
+
+ -- Patrick Winnertz <winnie@debian.org>  Tue, 17 Mar 2009 11:40:06 +0100
+
+italc (1:1.0.9~rc3-1) unstable; urgency=low
+
+  * Package new upstream version
+    - upstream ported the code to qt4.4 (Closes: #481974)
+
+ -- Patrick Winnertz <winnie@debian.org>  Tue, 17 Jun 2008 13:46:54 +0200
+
+italc (1:1.0.8-1) unstable; urgency=low
+
+  * Fix FTBFS by switching from openssl to libssl-dev build-dep.
+    Thanks to Laurent Bigonville <bigon@bigon.be> (Closes: #477022)
+  * Packaging new upstream version.
+
+ -- Patrick Winnertz <winnie@debian.org>  Tue, 13 May 2008 10:54:16 +0200
+
+italc (1:1.0.7-2) unstable; urgency=low
+
+  * Fix FTBFS on amd64 (Closes: #472439)
+    + Add patch from upstream
+
+ -- Patrick Winnertz <winnie@debian.org>  Thu, 27 Mar 2008 16:10:54 +0100
+
+italc (1:1.0.7-1) unstable; urgency=low
+
+  * New upstrem release.
+
+ -- Patrick Winnertz <winnie@debian.org>  Mon, 17 Mar 2008 10:13:42 +0100
+
+italc (1:1.0.6-1) unstable; urgency=low
+
+  * Move Homepage Header from Package Section into global Section.
+  * Add the forgotten libitalc.install in order to install the lib correctly.
+    Patch ica/Makefile.am and ima/Makefile.am in order to show
+    the new place of the lib (Closes: #460889)
+
+ -- Patrick Winnertz <winnie@debian.org>  Tue, 12 Feb 2008 14:47:20 +0100
+
+italc (1:1.0.4-1) unstable; urgency=low
+
+  * New upstream version
+  * Add options for dh_shlibdeps to debian/rules to prevent a ftbfs
+  * Added new package libitalc to control since now both
+    applications needs this lib.
+  * Changed my maintainer address.
+  * Add compiler flags to rules
+  * Modified menu file to fit into the new layout
+  * Add Homepage: tag and remove Homepage from description
+  * use new standard-version (3.7.3)
+
+ -- Patrick Winnertz <winnie@debian.org>  Wed, 05 Dec 2007 16:28:26 +0100
+
+italc (1:1.0.2-2) unstable; urgency=low
+
+  * Upload of the package to unstable
+
+ -- Patrick Winnertz <patrick.winnertz@skolelinux.org>  Wed, 16 May 2007 13:45:10 +0200
+
+italc (1:1.0.2-1) experimental; urgency=low
+
+  * Packaging new upstream release
+  * FTBFS Bug on kfreeBSD send to upstream and this is fixed in
+    this version now. (Closes: #414096)
+
+ -- Patrick Winnertz <patrick.winnertz@skolelinux.org>  Tue, 10 Apr 2007 15:29:41 +0200
+
+italc (1:1.0.0-1) experimental; urgency=low
+
+  * Packaging new upstream version.
+    Must use epoch since 1.0.0 seems to be lesser than 1.0.0.0~rc2
+  * Added build dependency libxtst-dev
+  * Modified rules:
+    - Removed build of icon, since this is now upstream
+    - Added --with-linux to enable build on kfreeBSD. Thanks to Cyril
+    Brulebois. (Closes: #414096)
+
+ -- Patrick Winnertz <patrick.winnertz@skolelinux.org>  Sat, 24 Mar 2007 15:44:11 +0100
+
+italc (1.0.0.0~rc2-1) experimental; urgency=low
+
+  * Packaging new upstream release
+  * Adopting this package from Steffen Joeris with his acceptance
+  * Increasing the debhelper level to 5
+  * Adding the build-depends:
+     - libqt4-dev
+     - zlib1g-dev
+     - libjpeg62-dev
+     - openssl
+  * italc-master now has a dependency against italc-client, since
+    the client server (ica ) also have to run on the master.
+  * Updated Copyright file, since some files were removed
+  * Removed build depends libxaw7-dev, libqt3-mt-dev, libssl-dev, libxtst-dev
+    since they are obsolete
+  * Removed patches since upstream adopted them
+  * Added README.Debian to make key creation easier for local administrators
+
+ -- Patrick Winnertz <patrick.winnertz@skolelinux.org>  Wed, 27 Dec 2006 20:16:04 +0100
+
+italc (0.9.6.2-3) unstable; urgency=low
+
+  * Change build-depends against libxaw8-dev to libxaw7-dev
+    (Closes: #370197)
+  * Expand 20-configure.patch to adjust to newer X libraries
+    Thanks to Peter Eisentraut
+  * Bump standard version to 3.7.2
+  * Provide the italc-keygen program which is needed for
+    the key generation to enable the connection
+    Thanks to Patrick Winnertz for some further skolelinux packaging
+  * Fix spelling error in descriptions (Closes: #363282, #363979)
+  * Upload sponsored by Morten Werner Olsen.
+
+ -- Steffen Joeris <steffen.joeris@skolelinux.de>  Sun,  4 Jun 2006 13:23:38 +0200
+
+italc (0.9.6.2-2) unstable; urgency=low
+
+  [ Steffen Joeris ]
+  * Include patch to prevent italc to segfault on architectures
+    where the size of a pointer is greater than the size of
+    an integer, such as ia64. (Closes: #340684)
+    Thanks to Dann Frazier.
+
+  [ Florian Ragwitz ]
+  * Removed build-dep on xlibs-dev, which is deprecated now, and depend on the
+    individual libraries we need.
+
+ -- Florian Ragwitz <rafl@debian.org>  Mon,  9 Jan 2006 15:51:40 +0100
+
+italc (0.9.6.2-1) unstable; urgency=low
+
+  * Initial release (Closes: #338678)
+
+ -- Steffen Joeris <steffen.joeris@skolelinux.de>  Sat, 12 Nov 2005 00:20:36 +0100

@@ -1,0 +1,191 @@
+Source: veyon
+Section: x11
+Priority: optional
+Maintainer: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+XSBC-Original-Maintainer: Debian Edu Packaging Team <debian-edu-pkg-team@lists.alioth.debian.org>
+Build-Depends:
+ debhelper-compat (= 13),
+ cmake,
+ pkgconf,
+ qt6-5compat-dev,
+ qt6-base-dev,
+ qt6-base-private-dev,
+ qt6-httpserver-dev,
+ qt6-l10n-tools,
+ qt6-tools-dev,
+ qt6-websockets-dev,
+ zlib1g-dev,
+ liblzo2-dev,
+ libjpeg-dev,
+ libpng-dev,
+ libpam0g-dev,
+ libfakekey-dev,
+ libldap-dev,
+ libqca-qt6-dev,
+ libpipewire-0.3-dev,
+ libproc2-dev,
+ libsasl2-dev,
+ libssl-dev,
+ libsystemd-dev,
+ libvncserver-dev (>= 0.9.14),
+ libx11-dev,
+ libxext-dev,
+ libxtst-dev,
+ dbus-daemon <!nocheck>,
+ libqca-qt6-plugins <!nocheck>,
+Standards-Version: 4.7.2
+Rules-Requires-Root: no
+Homepage: https://veyon.io/
+
+Package: veyon-master
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libveyon-core (= ${binary:Version}),
+ veyon-service (= ${binary:Version}),
+ pkexec,
+Recommends:
+ veyon-configurator,
+Description: Computer Monitoring and Classroom Management Software - master
+ Veyon is a software for computer monitoring and classroom management
+ supporting Windows and Linux. It enables teachers to view and control
+ computer labs and interact with students. Veyon is available in many different
+ languages and provides numerous features supporting teachers and
+ administrators at their daily work:
+ .
+   - Overview: monitor all computers in one or multiple locations or classrooms
+   - Remote access: view or control computers to watch and support users
+   - Demo: broadcast the teacher's screen in realtime (fullscreen/window)
+   - Screen lock: draw attention to what matters right now
+   - Communication: send text messages to students
+   - Start and end lessons: log in and log out users all at once
+   - Screenshots: record learning progress and document infringements
+   - Programs & websites: launch programs and open website URLs remotely
+   - Teaching material: distribute and open documents, images and videos easily
+   - Administration: power on/off and reboot computers remotely
+ .
+ Veyon is the continuation of iTALC.
+ .
+ This package contains the veyon-master software. With veyon-master a teacher
+ or tutor can control other machines if they run Veyon's client service software
+ (package: veyon-service).
+
+Package: veyon-service
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ default-dbus-system-bus | dbus-system-bus,
+ libveyon-core (= ${binary:Version}),
+ x11vnc,
+Suggests:
+ veyon-configurator,
+Description: Computer Monitoring and Classroom Management Software - client service
+ Veyon is a software for computer monitoring and classroom management
+ supporting Windows and Linux. It enables teachers to view and control
+ computer labs and interact with students. Veyon is available in many different
+ languages and provides numerous features supporting teachers and
+ administrators at their daily work:
+ .
+   - Overview: monitor all computers in one or multiple locations or classrooms
+   - Remote access: view or control computers to watch and support users
+   - Demo: broadcast the teacher's screen in realtime (fullscreen/window)
+   - Screen lock: draw attention to what matters right now
+   - Communication: send text messages to students
+   - Start and end lessons: log in and log out users all at once
+   - Screenshots: record learning progress and document infringements
+   - Programs & websites: launch programs and open website URLs remotely
+   - Teaching material: distribute and open documents, images and videos easily
+   - Administration: power on/off and reboot computers remotely
+ .
+ Veyon is the continuation of iTALC.
+ .
+ This package contains Veyon's client service software which allows one to
+ control a machine using the veyon-master software.
+
+Package: veyon-configurator
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ libveyon-core (= ${binary:Version}),
+Description: Computer Monitoring and Classroom Management Software - configurator
+ Veyon is a software for computer monitoring and classroom management
+ supporting Windows and Linux. It enables teachers to view and control
+ computer labs and interact with students. Veyon is available in many different
+ languages and provides numerous features supporting teachers and
+ administrators at their daily work:
+ .
+   - Overview: monitor all computers in one or multiple locations or classrooms
+   - Remote access: view or control computers to watch and support users
+   - Demo: broadcast the teacher's screen in realtime (fullscreen/window)
+   - Screen lock: draw attention to what matters right now
+   - Communication: send text messages to students
+   - Start and end lessons: log in and log out users all at once
+   - Screenshots: record learning progress and document infringements
+   - Programs & websites: launch programs and open website URLs remotely
+   - Teaching material: distribute and open documents, images and videos easily
+   - Administration: power on/off and reboot computers remotely
+ .
+ Veyon is the continuation of iTALC.
+ .
+ This package contains a graphical configuration manager for Veyon.
+
+Package: libveyon-core
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+ veyon-plugins (= ${binary:Version}),
+ libqca-qt6-plugins,
+Multi-Arch: same
+Description: Computer Monitoring and Classroom Management Software - libraries
+ Veyon is a software for computer monitoring and classroom management
+ supporting Windows and Linux. It enables teachers to view and control
+ computer labs and interact with students. Veyon is available in many different
+ languages and provides numerous features supporting teachers and
+ administrators at their daily work:
+ .
+   - Overview: monitor all computers in one or multiple locations or classrooms
+   - Remote access: view or control computers to watch and support users
+   - Demo: broadcast the teacher's screen in realtime (fullscreen/window)
+   - Screen lock: draw attention to what matters right now
+   - Communication: send text messages to students
+   - Start and end lessons: log in and log out users all at once
+   - Screenshots: record learning progress and document infringements
+   - Programs & websites: launch programs and open website URLs remotely
+   - Teaching material: distribute and open documents, images and videos easily
+   - Administration: power on/off and reboot computers remotely
+ .
+ Veyon is the continuation of iTALC.
+ .
+ This package provides the core libraries needed for all Veyon components.
+
+Package: veyon-plugins
+Architecture: any
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends},
+Multi-Arch: same
+Description: Computer Monitoring and Classroom Management Software - plugins
+ Veyon is a software for computer monitoring and classroom management
+ supporting Windows and Linux. It enables teachers to view and control
+ computer labs and interact with students. Veyon is available in many different
+ languages and provides numerous features supporting teachers and
+ administrators at their daily work:
+ .
+   - Overview: monitor all computers in one or multiple locations or classrooms
+   - Remote access: view or control computers to watch and support users
+   - Demo: broadcast the teacher's screen in realtime (fullscreen/window)
+   - Screen lock: draw attention to what matters right now
+   - Communication: send text messages to students
+   - Start and end lessons: log in and log out users all at once
+   - Screenshots: record learning progress and document infringements
+   - Programs & websites: launch programs and open website URLs remotely
+   - Teaching material: distribute and open documents, images and videos easily
+   - Administration: power on/off and reboot computers remotely
+ .
+ Veyon is the continuation of iTALC.
+ .
+ This package provides Veyon's plugins.

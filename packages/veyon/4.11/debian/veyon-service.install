@@ -1,0 +1,14 @@
+usr/bin/veyon-auth-helper
+usr/bin/veyon-cli
+usr/bin/veyon-input-helper
+usr/bin/veyon-server
+usr/bin/veyon-service
+usr/bin/veyon-worker
+usr/lib/systemd/system/veyon-auth-helper.service
+usr/lib/systemd/system/veyon.service
+usr/share/applications/io.veyon.veyon-server.desktop
+usr/share/dbus-1/services/io.veyon.veyon-server.service
+usr/share/dbus-1/system-services/io.veyon.AuthHelper.service
+usr/share/dbus-1/system.d/io.veyon.AuthHelper.conf
+usr/share/dbus-1/system.d/io.veyon.veyon-service.conf
+usr/share/veyon/veyon-preauth-kde.sh

@@ -1,0 +1,22 @@
+Description: Don't build with -Werror
+ Upstream builds every target with -Wall -Werror. With noble's GCC 13, Qt 6.4
+ and Ubuntu's default flags (-D_FORTIFY_SOURCE=3, LTO, frame pointers) GCC
+ reports a false "may be used uninitialized" in Qt's QStringBuilder inlined
+ into LinuxServerProcess.cpp, and the build fails. Keep the warnings, don't
+ make them errors: a distribution build must not break on new compiler
+ warnings.
+Author: Vietnam Linux Family <developer@vietnamlinuxfamily.net>
+Forwarded: not-needed
+Last-Update: 2026-11-26
+
+--- a/cmake/modules/SetDefaultTargetProperties.cmake
++++ b/cmake/modules/SetDefaultTargetProperties.cmake
+@@ -13,7 +13,7 @@
+ 		-DQT_USE_QSTRINGBUILDER
+ 		-DQT_STRICT_ITERATORS
+ 	)
+-	target_compile_options(${TARGET_NAME} PRIVATE "-Wall;-Werror")
++	target_compile_options(${TARGET_NAME} PRIVATE "-Wall")
+ 	if(WITH_LTO)
+ 		if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
+ 			target_compile_options(${TARGET_NAME} PRIVATE ${GCC_LTO_FLAGS})

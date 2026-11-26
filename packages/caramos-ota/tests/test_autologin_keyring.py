@@ -309,12 +309,15 @@ class LoginCommandTests(unittest.TestCase):
                 (queue / "1000.json").write_text(json.dumps({"schema": 1, "user": "minh", "actions": []}),
                                                  encoding="utf-8")
             user = SimpleNamespace(pw_name="minh", pw_dir=folder)
+            # A Vietnamese session's locale, and only that: Launchpad builds with LC_ALL=C.UTF-8, which comes before
+            # LANG (label_for), so leaving the machine's other locale variables in made the label English there.
+            session_locale = {"LANG": "vi_VN.UTF-8", "LANGUAGE": "", "LC_ALL": "", "LC_MESSAGES": ""}
             with mock.patch.object(os, "getuid", return_value=1000), \
                     mock.patch.object(deferred.pwd, "getpwuid", return_value=user), \
                     mock.patch.object(keyring, "autologin_session", return_value=autologin), \
                     mock.patch.object(keyring, "ensure", return_value=keyring.MADE) as ensure, \
                     mock.patch.object(deferred, "run_pending") as pending, \
-                    mock.patch.dict(os.environ, {"LANG": "vi_VN.UTF-8"}):
+                    mock.patch.dict(os.environ, session_locale):
                 self.assertEqual(0, deferred.main([], queue_dir=queue, keyring=lambda run: "service"))
         return ensure, pending
 

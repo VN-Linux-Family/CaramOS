@@ -642,7 +642,7 @@ trước đó là Open Beta. Từ 1.4.0 có hai bản: Cinnamon và Xfce (bản 
 | Thành phần | Bản phát hành |
 |---|---|
 | ISO | `CaramOS-1.5.2-cinnamon-amd64.iso` và `CaramOS-1.5.2-xfce-amd64.iso`: GitHub Release `v1.5.2` (`SHA256SUMS`, `SHA256SUMS-xfce`); tệp ISO trên Cloudflare R2 (`download.caramos.vietnamlinuxfamily.net`, nút tải trên landing, từ 1.5.1) và SourceForge (link dự phòng) |
-| `caramos-ota` | `1.5.2-0caramos1` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
+| `caramos-ota` | `1.5.2-0caramos2` trên PPA `ppa:vietnamlinuxfamily/caram-os` |
 | `xfce4-docklike-plugin`, `xfce4-caramos-plugin` | `0.4.2-0caramos1` và `1.1.0` trên cùng PPA (lên PPA từ 1.4.0; 1.1.0 từ 1.5.1 có thêm dải Hiện màn hình nền): đảo giữa và chỗ của Control Center trên thanh tác vụ bản Xfce |
 | `fastfetch` | `2.71.0-0caramos1` trên cùng PPA (từ 1.5.1, ticket H-1203): bản backport cho noble, cấu hình mặc định có logo CaramOS; migration `20261124130000_install_fastfetch` cài nó |
 | `caramos-business` | `0.3.1` trên cùng PPA (lên PPA từ 1.5.0): CaramOS Doanh nghiệp, cài từ App Center |

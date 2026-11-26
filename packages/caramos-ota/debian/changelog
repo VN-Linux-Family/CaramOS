@@ -1,3 +1,13 @@
+caramos-ota (1.5.2-0caramos2) noble; urgency=medium
+
+  * Build fix only, nothing changes on the computer: the test of the
+    keyring's name at an automatic login gives the login the locale of a
+    Vietnamese session and nothing else. Launchpad builds with
+    LC_ALL=C.UTF-8, which comes before LANG, so 1.5.2-0caramos1 failed to
+    build there: the name came out in English.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Thu, 26 Nov 2026 09:05:17 +0700
+
 caramos-ota (1.5.2-0caramos1) noble; urgency=medium
 
   * Automatic updates install while people work. An update whose migrations

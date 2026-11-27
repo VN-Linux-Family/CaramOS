@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import importlib.util
+import os
+import time
 from types import ModuleType
 
 from caramos_ota.logging_utils import log_error, log_info
@@ -22,13 +24,33 @@ from .state import (
     mark_migration_complete,
     mark_migration_running,
     mark_transaction_failed,
+    mark_transaction_stopped,
     mark_transaction_success,
     start_transaction,
 )
 
+# The update at start-up, before the login screen (caramos_ota.auto_update.boot_run), gives the migrations a time
+# limit, in seconds since the epoch: no migration starts after it. What ran stays done in the ledger; the rest runs at
+# the next start. A migration that started before the limit finishes.
+DEADLINE_ENV = "CARAMOS_OTA_DEADLINE"
+
 
 class MigrationRunnerError(RuntimeError):
     """Raised when migration discovery or execution fails safely."""
+
+
+class MigrationsLeftForLater(MigrationRunnerError):
+    """The time limit (DEADLINE_ENV) came before every pending migration ran."""
+
+
+def deadline(environ: dict[str, str] | None = None) -> float | None:
+    """DEADLINE_ENV as a time, or None without it (every update but the one at start-up) or with a broken value."""
+
+    value = (os.environ if environ is None else environ).get(DEADLINE_ENV, "").strip()
+    try:
+        return float(value) if value else None
+    except ValueError:
+        return None
 
 
 class MigrationRunner:
@@ -107,7 +129,16 @@ class MigrationRunner:
             migration_ids=[item.migration_id for item in plan.migrations],
         )
         cursor = current_version
-        for migration in plan.migrations:
+        limit = deadline()
+        desktop = current_desktop()
+        for index, migration in enumerate(plan.migrations):
+            # Past the limit, only a migration with something to run waits; the other edition's are recorded below.
+            if limit is not None and time.time() >= limit and applies(migration.desktops, desktop):
+                left = len(plan.migrations) - index
+                message = f"time limit reached; {left} migration(s) left for the next run"
+                self.context.log(f"Stopping before {migration.migration_id}: {message}")
+                mark_transaction_stopped(transaction_id=transaction_id, message=message)
+                raise MigrationsLeftForLater(message)
             mark_migration_running(transaction_id=transaction_id, migration_id=migration.migration_id)
             try:
                 self._run_one(migration)

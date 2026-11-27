@@ -29,12 +29,25 @@ Open desktops
     A migration that would change what someone sees on an open desktop (the panel rebuilt, the wallpaper, Fcitx
     restarted, `dconf update`, which Cinnamon 6.6 does not survive) has "unattended": "nobody-logged-in" in its
     manifest (registry.NOBODY_LOGGED_IN; the default, and every legacy migration): an automatic update that includes
-    it waits until no one has a desktop open. The others say "anytime": what they change applies from the next login,
+    it waits until no one has a desktop open: then it leaves BOOT_FLAG, and the next start installs it before the login
+    screen (below). The others say "anytime": what they change applies from the next login,
     or cannot be seen; in an automatic update they leave out the reloads that would show (context.unattended: the
     Start Menu is not reloaded, Fcitx is not started), so nothing moves on the screen while someone works. A
     migration whose visible part concerns each user's own settings changes the system at once and leaves that part
     for the next login of each user who is logged in (caramos_ota_update.deferred), and says "anytime" too: Show
     desktop and the Trash on the desktop (both from 1.5.1) do.
+
+At the next start (boot_run)
+    Every migration up to CaramOS 1.3.4 waits for nobody to be logged in, and the daily check runs while someone works
+    (at midnight or soon after the computer starts): computers on 1.3.3 or older never updated by themselves, and on
+    2026-11-27 they were 70 of the 177 computers counted. So an update that waited for open desktops leaves BOOT_FLAG,
+    and BOOT_UNIT runs `caramos-ota --boot-update` at the next start, after NetworkManager starts and before the login
+    screen or any other login (systemd-user-sessions): nobody can be logged in. A line under the start-up animation
+    says "Đang cập nhật CaramOS … Đừng tắt máy" with the steps done (Plymouth's two-step theme). Network within
+    NETWORK_WAIT_SECONDS or nothing; no migration starts after BOOT_MINUTES (caramos_ota_update.runner.DEADLINE_ENV),
+    the rest runs at the next start; after BOOT_TRIES starts without the update finished, the Update Center offers it
+    and starts leave it alone (BOOT_GAVE_UP). The other reasons to wait count at the start too (a metered connection,
+    the battery, ...), except open desktops.
 
 Telling the users
     The result goes to RESULT_FILE, which everyone can read. Each user's caramos-ota-auto-update-notify.path (a
@@ -53,12 +66,14 @@ import signal
 import struct
 import subprocess
 import tempfile
+import time
 import uuid
+from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from .constants import EXIT_ERROR, EXIT_LOCK, EXIT_OK, LOCK_FILE, STATE_DIR
+from .constants import EXIT_APT, EXIT_ERROR, EXIT_LATER, EXIT_LOCK, EXIT_OK, EXIT_REPO, LOCK_FILE, STATE_DIR
 from .diskspace import MIB, Needs, Shortage, shortages
 from .logging_utils import log_error, log_info, log_warn, now_iso
 
@@ -116,7 +131,13 @@ APT_BUSY = "apt-busy"
 OTA_BUSY = "ota-busy"
 FAILED_BEFORE = "failed-before"
 IN_USE = "in-use"
-REASONS = (LIVE, OVERLAY, METERED, BATTERY, DISK, APT_BUSY, OTA_BUSY, FAILED_BEFORE, IN_USE)
+# At a start (boot_run): no network in time; the time limit came with migrations left; BOOT_TRIES starts did not
+# finish it.
+NO_NETWORK = "no-network"
+TIME_LIMIT = "time-limit"
+GAVE_UP = "gave-up"
+REASONS = (LIVE, OVERLAY, METERED, BATTERY, DISK, APT_BUSY, OTA_BUSY, FAILED_BEFORE, IN_USE, NO_NETWORK, TIME_LIMIT,
+           GAVE_UP)
 RETRY = frozenset({APT_BUSY, OTA_BUSY})
 
 # How a try ended (state.json and RESULT_FILE).
@@ -131,6 +152,39 @@ INHIBIT_WHY = {
     "en": "CaramOS is updating itself. Wait a few minutes until it finishes before shutting down.",
 }
 INHIBIT_SECONDS = 4 * 3600   # longer than the unit lets an update run
+
+# The update at the next start (boot_run, BOOT_UNIT). BOOT_FLAG holds {"update": update_key, "tries": starts that
+# began installing it}; BOOT_GAVE_UP {"update": update_key} keeps starts from trying that update again.
+BOOT_UNIT = "caramos-ota-boot-update.service"
+BOOT_FLAG = STATE_DIR / "boot-update-pending"
+BOOT_GAVE_UP = STATE_DIR / "boot-update-gave-up"
+BOOT_TRIES = 3
+BOOT_MINUTES = 15            # no migration starts later; the unit's TimeoutStartSec is the last resort
+NETWORK_WAIT_SECONDS = 30       # wired and saved Wi-Fi connect within 5 to 15 seconds of a start
+APT_WAIT_SECONDS = 60        # Ubuntu's apt-daily may refresh its lists right after the computer starts
+PROGRESS_SECONDS = 2
+PLYMOUTH = "plymouth"
+# The lines under the start-up animation, in the language of the system. "once" follows the others: this happens only
+# to computers on CaramOS 1.3.3 or older, once (owner, 2026-11-27); every migration after 1.3.4 says "anytime", and
+# ClassificationTests keeps the list of the others closed. No letter with the hook above (dấu hỏi: ả, ể, ỉ, ở...):
+# the Ubuntu font that the initramfs gives Plymouth has no U+0309, and they showed as boxes (the other marks are drawn
+# from the letter and its combining mark).
+BOOT_TEXTS = {
+    "vi": {
+        "preparing": "Đang bắt đầu cập nhật CaramOS. Đừng tắt máy.",
+        "progress": "Đang cập nhật CaramOS: xong {done}/{total} bước. Đừng tắt máy.",
+        "once": "Việc này diễn ra một lần duy nhất trên máy dùng CaramOS cũ. Xong lần này, bạn sẽ không gặp lại màn "
+                "hình này nữa.",
+        "done": "Đã cập nhật xong CaramOS.",
+    },
+    "en": {
+        "preparing": "Getting ready to update CaramOS. Do not turn off the computer.",
+        "progress": "Updating CaramOS: {done} of {total} steps done. Do not turn off the computer.",
+        "once": "This happens only once, on computers with an older CaramOS. When it is done, you will not see this "
+                "screen again.",
+        "done": "CaramOS is up to date.",
+    },
+}
 
 
 # The setting -------------------------------------------------------------------------------------
@@ -379,8 +433,27 @@ def update_key(update: dict[str, Any] | None) -> str:
     return f"{release}:{','.join(str(item) for item in update.get('migration_ids') or [])}"
 
 
-def skip_reason(update: dict[str, Any], plan, state: dict[str, Any]) -> tuple[str, str] | None:
-    """(reason, detail for the log) when the update must wait; None when it can install now."""
+def wait_for_apt(seconds: int = APT_WAIT_SECONDS, busy: Callable[[], bool] | None = None,
+                 sleep: Callable[[float], None] = time.sleep) -> bool:
+    """APT and dpkg became free within `seconds`."""
+
+    busy = busy or apt_busy
+    waited = 0.0
+    while busy():
+        if waited >= seconds:
+            return False
+        sleep(3)
+        waited += 3
+    return True
+
+
+def skip_reason(update: dict[str, Any], plan, state: dict[str, Any], *,
+                at_start: bool = False) -> tuple[str, str] | None:
+    """(reason, detail for the log) when the update must wait; None when it can install now.
+
+    at_start: the update at a start, before anyone can log in, so open desktops do not count, and APT gets a minute to
+    finish what Ubuntu's apt-daily started.
+    """
 
     if live_session():
         return LIVE, "running from the live USB"
@@ -391,7 +464,7 @@ def skip_reason(update: dict[str, Any], plan, state: dict[str, Any]) -> tuple[st
         return FAILED_BEFORE, "the last automatic try of this update failed; the Update Center offers it"
     if ota_busy():
         return OTA_BUSY, "another caramos-ota run holds the lock"
-    if apt_busy():
+    if apt_busy() and not (at_start and wait_for_apt()):
         return APT_BUSY, "APT or dpkg is busy"
     if metered():
         return METERED, "the connection is metered"
@@ -401,7 +474,7 @@ def skip_reason(update: dict[str, Any], plan, state: dict[str, Any]) -> tuple[st
     if lacking:
         return DISK, "; ".join(f"{item.path}: {item.free // MIB} MiB free, {item.need // MIB} MiB needed"
                                for item in lacking)
-    waiting = changes_open_desktops(plan)
+    waiting = [] if at_start else changes_open_desktops(plan)
     if waiting:
         users = desktop_sessions()
         if users is None or users:
@@ -442,8 +515,13 @@ def reboot_marker(path: Path | None = None) -> str | None:
     return _read(path.with_name(path.name + ".pkgs"))
 
 
-def run_upgrade(language: str | None = None) -> tuple[int, str]:
-    """`caramos-ota --upgrade --yes --unattended` while a logind lock delays shutting down: (exit code, output)."""
+def run_upgrade(language: str | None = None, *, environment_extra: dict[str, str] | None = None,
+                progress: Callable[[], None] | None = None) -> tuple[int, str]:
+    """`caramos-ota --upgrade --yes --unattended` while a logind lock delays shutting down: (exit code, output).
+
+    environment_extra goes to the update (the time limit of the update at a start); progress, when given, is called
+    every PROGRESS_SECONDS while it runs.
+    """
 
     why = INHIBIT_WHY.get(language or system_language(), INHIBIT_WHY["en"])
     inhibitor = None
@@ -457,11 +535,23 @@ def run_upgrade(language: str | None = None) -> tuple[int, str]:
         log_warn(f"Automatic update: no shutdown lock ({exc})")
     environment = dict(os.environ)
     environment.update(UNATTENDED_ENV)
+    environment.update(environment_extra or {})
+    command = [OTA_COMMAND, "--upgrade", "--yes", "--unattended"]
     try:
-        result = subprocess.run([OTA_COMMAND, "--upgrade", "--yes", "--unattended"], stdin=subprocess.DEVNULL,
-                                stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, errors="replace",
-                                env=environment, check=False)
-        return result.returncode, result.stdout or ""
+        if progress is None:
+            result = subprocess.run(command, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, text=True, errors="replace", env=environment, check=False)
+            return result.returncode, result.stdout or ""
+        # A file rather than a pipe: nothing reads the output until the update ends.
+        with tempfile.TemporaryFile("w+", encoding="utf-8", errors="replace") as output:
+            child = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=output, stderr=subprocess.STDOUT,
+                                     env=environment)
+            while child.poll() is None:
+                progress()
+                time.sleep(PROGRESS_SECONDS)
+            progress()
+            output.seek(0)
+            return child.returncode, output.read()
     except OSError as exc:
         return EXIT_ERROR, str(exc)
     finally:
@@ -471,6 +561,129 @@ def run_upgrade(language: str | None = None) -> tuple[int, str]:
                 inhibitor.wait(timeout=10)
             except (OSError, subprocess.SubprocessError):
                 pass
+
+
+# The update at the next start -------------------------------------------------------------------
+
+
+def _read_json(path: Path) -> dict[str, Any] | None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError, UnicodeDecodeError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _write_json(path: Path, data: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, staging = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            json.dump(data, handle)
+            handle.write("\n")
+        os.chmod(staging, 0o644)
+        os.replace(staging, path)
+    except BaseException:
+        Path(staging).unlink(missing_ok=True)
+        raise
+
+
+def read_boot_flag(path: Path | None = None) -> dict[str, Any] | None:
+    return _read_json(path or BOOT_FLAG)
+
+
+def write_boot_flag(update: dict[str, Any], tries: int, path: Path | None = None) -> None:
+    _write_json(path or BOOT_FLAG, {"update": update_key(update), "release": update.get("release") or "",
+                                    "tries": tries, "at": now_iso()})
+
+
+def clear_boot_flag(path: Path | None = None) -> None:
+    try:
+        (path or BOOT_FLAG).unlink(missing_ok=True)
+    except OSError as exc:
+        log_warn(f"Update at start-up: cannot remove {path or BOOT_FLAG} ({exc})")
+
+
+def leave_for_start(update: dict[str, Any]) -> bool:
+    """An update that waited for open desktops installs at the next start (BOOT_FLAG); False when starts gave this
+    update up before (BOOT_GAVE_UP)."""
+
+    key = update_key(update)
+    gave_up = _read_json(BOOT_GAVE_UP)
+    if gave_up is not None and gave_up.get("update") == key:
+        return False
+    flag = read_boot_flag()
+    tries = int(flag.get("tries") or 0) if flag is not None and flag.get("update") == key else 0
+    try:
+        write_boot_flag(update, tries)
+    except OSError as exc:
+        log_warn(f"Update at start-up: cannot leave {BOOT_FLAG} ({exc})")
+    return True
+
+
+def give_up_at_start(update: dict[str, Any]) -> None:
+    try:
+        _write_json(BOOT_GAVE_UP, {"update": update_key(update), "at": now_iso()})
+    except OSError as exc:
+        log_warn(f"Update at start-up: cannot write {BOOT_GAVE_UP} ({exc})")
+    clear_boot_flag()
+
+
+def boot_message(text: str, run=subprocess.run) -> None:
+    """The line under the start-up animation (Plymouth, MessageBelowAnimation), and on the console without it."""
+
+    print(text, flush=True)
+    try:
+        run([PLYMOUTH, "display-message", f"--text={text}"], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL, timeout=5, check=False)
+    except (OSError, subprocess.SubprocessError):
+        pass
+
+
+def boot_text(language: str, key: str, **values: int) -> str:
+    return BOOT_TEXTS.get(language, BOOT_TEXTS["en"])[key].format(**values)
+
+
+def boot_screen(language: str, key: str, **values: int) -> str:
+    """A line of BOOT_TEXTS and, under it, that this happens only once."""
+
+    return f"{boot_text(language, key, **values)}\n{boot_text(language, 'once')}"
+
+
+def wait_for_network(seconds: int = NETWORK_WAIT_SECONDS, run=subprocess.run) -> bool:
+    """NetworkManager has a connection within `seconds` (nm-online); False without NetworkManager."""
+
+    try:
+        return run(["nm-online", "-q", "-t", str(seconds)], stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
+                   stderr=subprocess.DEVNULL, timeout=seconds + 15, check=False).returncode == 0
+    except (OSError, subprocess.SubprocessError):
+        return False
+
+
+def migrations_done(ids: list[str]) -> int:
+    """How many of these migrations the ledger has as done."""
+
+    from caramos_ota_update.ledger import applied_ids, load_ledger
+
+    try:
+        ledger = load_ledger()
+    except Exception:   # noqa: BLE001 - only the progress line depends on it
+        return 0
+    return len(applied_ids(ledger) & set(ids)) if ledger else 0
+
+
+def boot_progress(ids: list[str], language: str) -> Callable[[], None]:
+    """Updates the line under the start-up animation when a migration is done."""
+
+    shown: list[str] = []
+
+    def update() -> None:
+        text = boot_screen(language, "progress", done=migrations_done(ids), total=len(ids))
+        if not shown or shown[-1] != text:
+            boot_message(text)
+            shown.append(text)
+
+    return update
 
 
 def write_result(result: dict[str, Any], path: Path | None = None) -> None:
@@ -498,8 +711,8 @@ def read_result(path: Path | None = None) -> dict[str, Any] | None:
     return result if isinstance(result, dict) and result.get("outcome") in (DONE, FAILED) else None
 
 
-def run() -> int:
-    """`caramos-ota --auto-upgrade` (UNIT, after each successful daily check; root, init_log done)."""
+def _waiting_update(at_start: bool):
+    """(state, update, release_info, plan) of the update waiting to be installed, or None (logged) when none is."""
 
     from caramos_ota_update.registry import version_lt
 
@@ -507,46 +720,64 @@ def run() -> int:
     from .release import detect_caramos
     from .state import load_state
 
+    who = "Update at start-up" if at_start else "Automatic update"
     if not is_enabled():
-        log_info(f"Automatic update: off ({SETTINGS_FILE}); the Update Center asks first")
-        return EXIT_OK
+        log_info(f"{who}: off ({SETTINGS_FILE}); the Update Center asks first")
+        return None
     state = load_state()
     update = state.get("available_update")
     if not isinstance(update, dict) or not update.get("packages"):
-        log_info("Automatic update: no update is waiting")
-        return EXIT_OK
+        log_info(f"{who}: no update is waiting")
+        return None
     release_info = detect_caramos()
     plan = resolve_update_plan(release_info, persist_ledger=False)
     if not plan.migrations and not version_lt(release_info.version, plan.target_version):
-        log_info("Automatic update: nothing left to install")
-        return EXIT_OK
+        log_info(f"{who}: nothing left to install")
+        return None
+    return state, update, release_info, plan
 
-    reason = skip_reason(update, plan, state)
-    if reason is not None:
-        code, detail = reason
-        record(SKIPPED, update, code)
-        retry = code in RETRY
-        log_info(f"Automatic update to {update.get('release')} waits: {code} ({detail}); "
-                 + ("trying again in 15 minutes" if retry else "the Update Center offers it at the next login"))
-        print(f"Automatic update waits: {detail}")
-        return EXIT_RETRY if retry else EXIT_OK
 
-    log_info(f"Automatic update: installing CaramOS {update.get('release')} "
+def install(update: dict[str, Any], plan, release_info, *, at_start: bool = False) -> int:
+    """Install the waiting update (run(), boot_run()): the result for the users, the try in state.json."""
+
+    who = "Update at start-up" if at_start else "Automatic update"
+    log_info(f"{who}: installing CaramOS {update.get('release')} "
              f"({len(plan.migrations)} change(s), from {release_info.version})")
     record(RUNNING, update)
     restart_before = reboot_marker()
     started_at = now_iso()
+    language = system_language()
     # Shutting down now (systemctl sends SIGTERM to this process only, KillMode=mixed): the update finishes first,
     # within the unit's TimeoutStopSec, as an interrupted dpkg would break later updates.
-    previous = signal.signal(signal.SIGTERM, lambda *_args: log_warn("Automatic update: asked to stop; finishing first"))
+    previous = signal.signal(signal.SIGTERM, lambda *_args: log_warn(f"{who}: asked to stop; finishing first"))
     try:
-        code, output = run_upgrade()
+        if at_start:
+            from caramos_ota_update.runner import DEADLINE_ENV
+
+            ids = [item.migration_id for item in plan.migrations]
+            limit = str(int(time.time()) + BOOT_MINUTES * 60)
+            code, output = run_upgrade(language, environment_extra={DEADLINE_ENV: limit},
+                                       progress=boot_progress(ids, language))
+        else:
+            code, output = run_upgrade()
     finally:
         signal.signal(signal.SIGTERM, previous)
     if code == EXIT_LOCK:
         record(SKIPPED, update, OTA_BUSY)
+        if at_start:
+            log_info(f"{who} waits: another caramos-ota run took the lock; the next start tries again")
+            return EXIT_OK
         log_info("Automatic update waits: another caramos-ota run took the lock; trying again in 15 minutes")
         return EXIT_RETRY
+    if at_start and code == EXIT_LATER:
+        record(SKIPPED, update, TIME_LIMIT)
+        log_info(f"{who}: the time limit came first ({BOOT_MINUTES} minutes); the rest runs at the next start")
+        return EXIT_OK
+    if at_start and code in (EXIT_REPO, EXIT_APT):
+        # Before any migration ran: the CaramOS PPA or APT could not be reached in time.
+        record(SKIPPED, update, NO_NETWORK)
+        log_info(f"{who}: APT could not refresh (exit code {code}); the next start tries again")
+        return EXIT_OK
     restart_after = reboot_marker()
     outcome = DONE if code == 0 else FAILED
     result = {
@@ -565,13 +796,75 @@ def run() -> int:
     }
     write_result(result)
     record(outcome, update)
+    # Installed or failed: no start has anything left to try (a failure waits for the Update Center).
+    clear_boot_flag()
     if outcome == DONE:
-        log_info(f"Automatic update to {result['to_version']} finished"
-                 + ("; a restart finishes it" if result["restart"] else ""))
+        if at_start:
+            boot_message(boot_text(language, "done"))
+        log_info(f"{who} to {result['to_version']} finished" + ("; a restart finishes it" if result["restart"] else ""))
         return EXIT_OK
-    log_error(f"Automatic update to {result['to_version']} failed (exit code {code}); the Update Center shows the "
-              "failure at the next login")
+    log_error(f"{who} to {result['to_version']} failed (exit code {code}); the Update Center shows the failure at the "
+              "next login")
     return code if 0 < code < 256 and code != EXIT_RETRY else EXIT_ERROR
+
+
+def run() -> int:
+    """`caramos-ota --auto-upgrade` (UNIT, after each successful daily check; root, init_log done)."""
+
+    waiting = _waiting_update(at_start=False)
+    if waiting is None:
+        return EXIT_OK
+    state, update, release_info, plan = waiting
+    reason = skip_reason(update, plan, state)
+    if reason is not None:
+        code, detail = reason
+        later = "trying again in 15 minutes" if code in RETRY else "the Update Center offers it at the next login"
+        if code == IN_USE:
+            if leave_for_start(update):
+                later = "it installs at the next start, before the login screen"
+            else:
+                code = GAVE_UP   # starts did not finish it before: the Update Center says so
+        record(SKIPPED, update, code)
+        retry = code in RETRY
+        log_info(f"Automatic update to {update.get('release')} waits: {code} ({detail}); {later}")
+        print(f"Automatic update waits: {detail}")
+        return EXIT_RETRY if retry else EXIT_OK
+    return install(update, plan, release_info)
+
+
+def boot_run() -> int:
+    """`caramos-ota --boot-update` (BOOT_UNIT, at a start while BOOT_FLAG is there, before anyone can log in)."""
+
+    flag = read_boot_flag()
+    waiting = _waiting_update(at_start=True)
+    if flag is None or waiting is None:
+        clear_boot_flag()
+        return EXIT_OK
+    state, update, release_info, plan = waiting
+    tries = int(flag.get("tries") or 0) if flag.get("update") == update_key(update) else 0
+    if tries >= BOOT_TRIES:
+        record(SKIPPED, update, GAVE_UP)
+        give_up_at_start(update)
+        log_info(f"Update at start-up: {tries} starts did not finish CaramOS {update.get('release')}; "
+                 "the Update Center offers it")
+        return EXIT_OK
+    reason = skip_reason(update, plan, state, at_start=True)
+    if reason is not None:
+        code, detail = reason
+        record(SKIPPED, update, code)
+        if code in (LIVE, OVERLAY, FAILED_BEFORE):
+            clear_boot_flag()
+        log_info(f"Update at start-up to {update.get('release')} waits: {code} ({detail})")
+        return EXIT_OK
+    language = system_language()
+    boot_message(boot_screen(language, "preparing"))
+    # Counted before anything that could hang or lose power.
+    write_boot_flag(update, tries + 1)
+    if not wait_for_network():
+        record(SKIPPED, update, NO_NETWORK)
+        log_info(f"Update at start-up: no network within {NETWORK_WAIT_SECONDS} seconds; the next start tries again")
+        return EXIT_OK
+    return install(update, plan, release_info, at_start=True)
 
 
 def status_lines(state: dict[str, Any]) -> list[str]:

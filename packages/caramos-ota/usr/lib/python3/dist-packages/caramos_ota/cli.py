@@ -28,7 +28,7 @@ from caramos_ota_update import zalo_update
 
 from . import auto_update, stats
 from .app_center import update_installed_app_center
-from .constants import EXIT_APT, EXIT_CANCEL, EXIT_ERROR, EXIT_OK, TOOL_NAME, TOOL_VERSION
+from .constants import EXIT_APT, EXIT_CANCEL, EXIT_ERROR, EXIT_LATER, EXIT_OK, TOOL_NAME, TOOL_VERSION
 from .errors import OtaError
 from .logging_utils import current_log_file, init_log, log_error, log_info, log_warn, now_iso
 from .manifest import validate_package_name
@@ -134,6 +134,11 @@ def run_migration_update(target_version: str, *, dry_run: bool, unattended: bool
         run_options["pass_fds"] = (lock_fd,)
     log_info("Running updater: " + " ".join(command))
     result = subprocess.run(command, **run_options)
+    if result.returncode == EXIT_LATER:
+        # The update at start-up reached its time limit between two migrations.
+        log_info("caramos-ota-update stopped at the time limit; the rest runs at the next start")
+        print("The rest of the update runs at the next start.")
+        raise SystemExit(EXIT_LATER)
     if result.returncode != 0:
         log_error(f"caramos-ota-update failed with exit code {result.returncode}")
         print("Error: Migration update failed.")
@@ -306,7 +311,8 @@ Exit codes:
   5  APT/dpkg error
   6  Manifest/state error
   7  Another operation is running
-  8  User cancelled""",
+  8  User cancelled
+  9  Time limit of the update at start-up: the rest runs at the next start""",
     )
     parser.add_argument("--check", action="store_true", help="Check for updates only (do not install)")
     parser.add_argument("--upgrade", action="store_true", help="Explicitly upgrade (same as default)")
@@ -332,6 +338,12 @@ Exit codes:
         help="Install a waiting update when automatic updates are on and nothing stops it "
              "(caramos-ota-auto-update.service runs it after each daily check)",
     )
+    parser.add_argument(
+        "--boot-update",
+        action="store_true",
+        help="Install, at a start before anyone can log in, the update that waited because someone was logged in "
+             "(caramos-ota-boot-update.service runs it)",
+    )
     # The update an automatic update runs: no questions, open desktops change from their next login.
     parser.add_argument("--unattended", action="store_true", help=argparse.SUPPRESS)
     parser.add_argument(
@@ -348,7 +360,8 @@ def selected_action(args: argparse.Namespace) -> str:
 
     actions = [
         name
-        for name in ("check", "upgrade", "status", "repair", "rollback", "auto_update", "stats", "auto_upgrade")
+        for name in ("check", "upgrade", "status", "repair", "rollback", "auto_update", "stats", "auto_upgrade",
+                     "boot_update")
         if getattr(args, name)
     ]
     if len(actions) > 1:
@@ -377,12 +390,12 @@ def main(argv: list[str] | None = None) -> int:
         stats.change_setting(args.stats == "on", f"{auto_update.caller()} (caramos-ota --stats)")
         print(f"The daily count of this computer is {args.stats}.")
         return EXIT_OK
-    if action == "auto_upgrade":
+    if action in ("auto_upgrade", "boot_update"):
         # The update it starts (caramos-ota --upgrade --yes --unattended) takes the lock itself.
         init_log()
-        log_info(f"Starting {TOOL_NAME} {TOOL_VERSION} action=auto_upgrade")
+        log_info(f"Starting {TOOL_NAME} {TOOL_VERSION} action={action}")
         try:
-            return auto_update.run()
+            return auto_update.boot_run() if action == "boot_update" else auto_update.run()
         except OtaError as exc:
             print(str(exc))
             log_error(f"Automatic update: {exc}")

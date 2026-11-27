@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-TOOL_VERSION = "1.5.2-0caramos7"
+TOOL_VERSION = "1.5.2.1-0caramos1"
 TOOL_NAME = "caramos-ota"
 
 STATE_DIR = Path("/var/lib/caramos-ota")
@@ -40,3 +40,6 @@ EXIT_APT = 5
 EXIT_STATE = 6
 EXIT_LOCK = 7
 EXIT_CANCEL = 8
+# The update at start-up reached its time limit (caramos_ota_update.runner.DEADLINE_ENV): what ran stays done, the
+# rest runs at the next start.
+EXIT_LATER = 9

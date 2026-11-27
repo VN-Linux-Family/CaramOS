@@ -19,6 +19,9 @@ override_dh_install:
 # would stop, and the printers would stay off until the next boot.
 # caramos-ota-dconf-update.service runs `dconf update` at a start, before anyone logs in, when an update left it for
 # then (caramos_ota_update/deferred.py): enabled, and never started from here, as Cinnamon dies under `dconf update`.
+# caramos-ota-boot-update.service installs, at a start before anyone can log in, an update that waited for open
+# desktops (caramos_ota/auto_update.py, boot_run): enabled, never started or stopped from here. Its update may
+# install this package itself, so a stop in the preinst would wait for its own unit.
 # The daily check updates this package itself (its self-update), from inside caramos-ota-check.service: its upgrade
 # must neither stop nor start that unit or its timer and wait for it. A start or restart of the timer while a shutdown
 # or `systemctl stop` waits for the check (KillMode=mixed, caramos_ota/stopping.py) is ordered after the check's stop,
@@ -29,3 +32,4 @@ override_dh_installsystemd:
 	dh_installsystemd caramos-boot-success.timer
 	dh_installsystemd --no-start --no-stop-on-upgrade caramos-canon-capt.service caramos-canon-capt-setup.service
 	dh_installsystemd --no-start --no-stop-on-upgrade caramos-ota-dconf-update.service
+	dh_installsystemd --no-start --no-stop-on-upgrade caramos-ota-boot-update.service

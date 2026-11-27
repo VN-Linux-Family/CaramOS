@@ -1,0 +1,30 @@
+# CaramOS: install, at a start, the update that waited because someone was logged in (caramos_ota.auto_update,
+# boot_run). Every migration up to CaramOS 1.3.4 waits until nobody has a desktop open, and the daily check runs while
+# someone works, so computers on 1.3.3 or older never updated by themselves. The automatic update leaves the flag
+# file then; this runs only while it is there, before the login screen and before any other login
+# (systemd-user-sessions), with a line under the start-up animation. No migration starts after 15 minutes: the rest
+# runs at the next start, and after three starts the Update Center offers what is left.
+[Unit]
+Description=CaramOS: install the update that waited for nobody to be logged in
+ConditionPathExists=/var/lib/caramos-ota/boot-update-pending
+ConditionKernelCommandLine=!boot=casper
+# NetworkManager has started (systemd-user-sessions waits for network.target anyway, so a start without the flag
+# waits for nothing more). The daily check and the automatic update wait for this one, and so does the `dconf update`
+# a migration may leave for a start (caramos-ota-dconf-update.service), which then runs in this same start.
+After=local-fs.target NetworkManager.service
+Before=systemd-user-sessions.service display-manager.service caramos-ota-check.service caramos-ota-auto-update.service
+Before=caramos-ota-dconf-update.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/caramos-ota --boot-update
+# Plymouth shows the progress line; a start without it shows it on the console.
+StandardOutput=journal+console
+# The last resort for a migration that hangs: the one running at the 15-minute limit finishes first.
+TimeoutStartSec=40min
+# A shutdown meanwhile: SIGTERM to caramos-ota alone, which lets apt and dpkg finish (caramos_ota/stopping.py).
+KillMode=mixed
+TimeoutStopSec=15min
+
+[Install]
+WantedBy=multi-user.target

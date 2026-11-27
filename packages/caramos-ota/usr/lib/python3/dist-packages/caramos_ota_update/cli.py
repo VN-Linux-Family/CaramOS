@@ -6,14 +6,14 @@ import argparse
 import sys
 from pathlib import Path
 
-from caramos_ota.constants import EXIT_ERROR, EXIT_OK
+from caramos_ota.constants import EXIT_ERROR, EXIT_LATER, EXIT_OK
 from caramos_ota.logging_utils import init_log, log_error, log_info
 from caramos_ota.privilege import acquire_lock
 from caramos_ota.release import detect_caramos, parse_key_value_file
 from caramos_ota.release_metadata import PRODUCT_VERSION
 
 from .context import MigrationContext
-from .runner import MigrationRunner, MigrationRunnerError
+from .runner import MigrationRunner, MigrationRunnerError, MigrationsLeftForLater
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -97,6 +97,10 @@ def main(argv: list[str] | None = None) -> int:
             log_info("Automatic update: open desktops change from their next login")
         runner = MigrationRunner(context=context)
         runner.run(current_version=current_version, target_version=target_version)
+    except MigrationsLeftForLater as exc:
+        log_info(f"Migration runner stopped at its time limit: {exc}")
+        print(f"Stopped at the time limit: {exc}")
+        return EXIT_LATER
     except MigrationRunnerError as exc:
         log_error(str(exc))
         print(f"Error: {exc}", file=sys.stderr)

@@ -1,3 +1,33 @@
+caramos-ota (1.5.2.1-0caramos1) noble; urgency=medium
+
+  * CaramOS 1.5.2.1, the first hotfix numbered as a version of its own
+    (owner, 2026-11-27; docs/release-version-tracking.md): a fix that reaches
+    users gets a new CaramOS version, not only a new -0caramosN.
+  * Computers on CaramOS 1.3.3 or older update by themselves again. Every
+    migration up to 1.3.4 waits until nobody has a desktop open, and the
+    daily check runs while someone works, so these computers never updated
+    by themselves (70 of the 177 computers counted on 2026-11-27). Such an
+    update now leaves /var/lib/caramos-ota/boot-update-pending, and
+    caramos-ota-boot-update.service runs `caramos-ota --boot-update` at the
+    next start, before the login screen and any other login, with "Đang cập
+    nhật CaramOS: xong x/y bước. Đừng tắt máy." under the start-up animation.
+    A second line says this happens only once, to bring an older computer up
+    to date (owner, 2026-11-27): the list of such migrations is closed at
+    1.3.4, and a test keeps it closed (MIGRATIONS.md: new ones say "anytime").
+    It waits up to 30 seconds for the network; no migration starts after 15
+    minutes (CARAMOS_OTA_DEADLINE, exit code 9), the rest runs at the next
+    start; after three starts without the update finished, the Update Center
+    offers it. A start without the flag waits for nothing more.
+  * The Update Center says when such an update installs ("at the next
+    start, before the login screen") and why a start did not finish it.
+  * Only what changes this edition is an update: Cinnamon computers listed
+    Xfce's "notifications at the bottom right" (1.5.2-0caramos6) as one, and
+    with automatic updates on, their users were told "CaramOS was updated".
+    The Update Center's own check now also offers a newer version that
+    changes nothing else, with that version's notes (release_metadata).
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Fri, 27 Nov 2026 10:40:13 +0700
+
 caramos-ota (1.5.2-0caramos7) noble; urgency=medium
 
   * Notices from the CaramOS team reach every computer (owner, 2026-11-27):

@@ -18,9 +18,10 @@ from caramos_ota_update.registry import (
 )
 
 from .constants import EXIT_STATE, TOOL_VERSION
-from .release_metadata import PRODUCT_VERSION
+from .release_metadata import (PRODUCT_VERSION, RELEASE_NOTES_EN, RELEASE_NOTES_VI, RELEASE_TITLE_EN,
+                               RELEASE_TITLE_VI)
 from .errors import OtaError
-from .models import Manifest, ReleaseInfo
+from .models import Manifest, ReleaseInfo, UpdatePackage
 
 VALID_PACKAGE = re.compile(r"^[a-z0-9][a-z0-9+.-]+$")
 
@@ -103,8 +104,11 @@ def _manifest_from_descriptors(
     # skips those migrations here.
     desktop = current_desktop()
     shown = [item for item in descriptors if applies(item.desktops, desktop)]
+    # This version's own notes (release_metadata: a hotfix of CaramOS's programs), when the update brings it.
+    own = target_version == PRODUCT_VERSION and bool(RELEASE_NOTES_VI)
     if not shown:
         target_newer = version_lt(release_info.version, target_version)
+        own_title = own and target_newer
         return Manifest(
             release=target_version,
             codename=release_info.codename,
@@ -113,15 +117,19 @@ def _manifest_from_descriptors(
             channel=release_info.channel,
             severity="normal" if target_newer else "none",
             size="Thông tin phiên bản" if target_newer else "Không có cập nhật",
-            title="Cập nhật CaramOS" if target_newer else "CaramOS đã được cập nhật",
+            title=(RELEASE_TITLE_VI or "Cập nhật CaramOS") if own_title else (
+                "Cập nhật CaramOS" if target_newer else "CaramOS đã được cập nhật"),
             summary=(
                 f"Cập nhật thông tin hệ thống từ {release_info.version} lên {target_version}."
                 if target_newer
                 else "Không có migration mới."
             ),
-            release_notes_vi=["Cập nhật thông tin phiên bản CaramOS."] if target_newer else [],
-            release_notes_en=["Update CaramOS release metadata."] if target_newer else [],
-            title_en="CaramOS update" if target_newer else "CaramOS is up to date",
+            release_notes_vi=list(RELEASE_NOTES_VI) if own_title else (
+                ["Cập nhật thông tin phiên bản CaramOS."] if target_newer else []),
+            release_notes_en=list(RELEASE_NOTES_EN or RELEASE_NOTES_VI) if own_title else (
+                ["Update CaramOS release metadata."] if target_newer else []),
+            title_en=(RELEASE_TITLE_EN or RELEASE_TITLE_VI or "CaramOS update") if own_title else (
+                "CaramOS update" if target_newer else "CaramOS is up to date"),
             summary_en=(
                 f"Update the system information from {release_info.version} to {target_version}."
                 if target_newer
@@ -155,6 +163,9 @@ def _manifest_from_descriptors(
         label = item.migration_id
         notes_vi.extend(f"{label}: {note}" for note in (item.release_notes_vi or [item.summary]))
         notes_en.extend(f"{label}: {note}" for note in (item.release_notes_en or [item.summary]))
+    if own:
+        notes_vi.extend(f"{target_version}: {note}" for note in RELEASE_NOTES_VI)
+        notes_en.extend(f"{target_version}: {note}" for note in (RELEASE_NOTES_EN or RELEASE_NOTES_VI))
     sizes_en = [item.size_en or item.size for item in shown if item.size_en or item.size]
 
     return Manifest(
@@ -173,6 +184,19 @@ def _manifest_from_descriptors(
         title_en=display.title_en,
         summary_en=display.summary_en,
         size_en=" + ".join(sizes_en) or "System update",
+    )
+
+
+def version_only_update(current_version: str, target_version: str) -> UpdatePackage:
+    """The update item of a version with nothing to change on this edition but its number (a hotfix of CaramOS's own
+    programs, docs/release-version-tracking.md); the Update Center words it (caramos_ota_notifier.state)."""
+
+    return UpdatePackage(
+        name="CaramOS release metadata",
+        current_version=current_version,
+        available_version=target_version,
+        description="Update CaramOS release metadata to packaged target.",
+        required=True,
     )
 
 

@@ -14,7 +14,7 @@ from .constants import (APT_NONINTERACTIVE_OPTIONS, DPKG_NONINTERACTIVE_OPTIONS,
                         PPA_PATTERN)
 from .errors import OtaError
 from .logging_utils import current_log_file, log_error, log_info, log_warn, now_iso, print_fail, print_ok
-from .manifest import manifest_for_plan, resolve_update_plan
+from .manifest import manifest_for_plan, resolve_update_plan, version_only_update
 from caramos_ota_update.desktop import applies
 from caramos_ota_update.registry import version_lt
 from .models import Manifest, ReleaseInfo, UpdatePackage
@@ -298,6 +298,10 @@ def detect_updates(
         log_error("Migration registry parse failed")
         raise SystemExit(exc.exit_code)
 
+    # Only what changes this edition is an update (Cinnamon's calendar is not one on the Xfce edition). The runner
+    # records the other edition's migrations as done with the next update of this one. Up to 1.5.2-0caramos7 they
+    # counted when nothing else waited: every Cinnamon computer showed Xfce's "notifications at the bottom right" as
+    # an update, and with automatic updates on its users were told "CaramOS was updated" for it.
     updates = [
         UpdatePackage(
             name=item.title,
@@ -309,21 +313,11 @@ def detect_updates(
             description_en=item.summary_en,
         )
         for item in plan.migrations
+        if applies(item.desktops)
     ]
     target_newer = version_lt(release_info.version, manifest.release)
     if target_newer and not updates:
-        updates.append(
-            UpdatePackage(
-                name="CaramOS release metadata",
-                current_version=release_info.version,
-                available_version=manifest.release,
-                description="Update CaramOS release metadata to packaged target.",
-                required=True,
-            )
-        )
-    # The Update Center does not list changes for the other edition (Cinnamon's calendar on the Xfce edition): the
-    # runner only records them as done. Whether there is an update at all does not change.
-    shown = [update for update, item in zip(updates, plan.migrations) if applies(item.desktops)] or updates
+        updates.append(version_only_update(release_info.version, manifest.release))
     if updates:
         state["available_update"] = {
             "detected_at": now_iso(),
@@ -343,7 +337,7 @@ def detect_updates(
             "release_notes_vi": manifest.release_notes_vi,
             "release_notes_en": manifest.release_notes_en,
             "migration_ids": [item.migration_id for item in plan.migrations],
-            "packages": [update.__dict__ for update in shown],
+            "packages": [update.__dict__ for update in updates],
         }
     else:
         state["available_update"] = None

@@ -117,9 +117,14 @@ class ReleaseMetadataUpdateTests(unittest.TestCase):
         everywhere = catalog["20261119100000_open_office_documents"]
         self.assertEqual(("cinnamon",), cinnamon_only.desktops)
         current = ReleaseInfo(name="CaramOS", version="1.4.0", codename="noble", channel="stable")
-        for pending, listed in (([cinnamon_only, everywhere], [everywhere]), ([cinnamon_only], [cinnamon_only])):
-            with self.subTest(pending=[item.migration_id for item in pending]):
-                plan = MigrationPlan(current_version="1.4.0", target_version="1.4.0", migrations=pending)
+        # Only the other edition's changes waiting is no update: Xfce's "notifications at the bottom right" showed as
+        # one on every Cinnamon computer up to 1.5.2-0caramos7. With a newer version, the version alone is the update;
+        # the runner records the other edition's migrations as done with it (migration_ids).
+        for pending, target, listed in (([cinnamon_only, everywhere], "1.4.0", [everywhere.title]),
+                                        ([cinnamon_only], "1.4.0", None),
+                                        ([cinnamon_only], "1.4.1", ["CaramOS release metadata"])):
+            with self.subTest(pending=[item.migration_id for item in pending], target=target):
+                plan = MigrationPlan(current_version="1.4.0", target_version=target, migrations=pending)
                 state = {"available_update": None}
                 with (
                     mock.patch.dict(os.environ, {"CARAMOS_OTA_DESKTOP": "xfce"}),
@@ -127,11 +132,13 @@ class ReleaseMetadataUpdateTests(unittest.TestCase):
                     mock.patch.object(apt, "save_state"),
                 ):
                     _, updates = apt.detect_updates(current, state)
-                # Whether there is an update, and what the runner does, stay as they were.
-                self.assertEqual(len(pending), len(updates))
+                if listed is None:
+                    self.assertEqual([], updates)
+                    self.assertIsNone(state["available_update"])
+                    continue
+                self.assertEqual(listed, [update.name for update in updates])
                 self.assertEqual([item.migration_id for item in pending], state["available_update"]["migration_ids"])
-                self.assertEqual([item.title for item in listed],
-                                 [package["name"] for package in state["available_update"]["packages"]])
+                self.assertEqual(listed, [package["name"] for package in state["available_update"]["packages"]])
 
 
 if __name__ == "__main__":

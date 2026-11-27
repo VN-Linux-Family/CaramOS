@@ -294,8 +294,14 @@ def waiting_text(reason: str) -> str:
         system_auto_update.APT_BUSY: _("It did not update by itself this time: another program was installing "
                                        "software."),
         system_auto_update.OTA_BUSY: _("It did not update by itself this time: another update was running."),
-        system_auto_update.IN_USE: _("This update changes the desktop, so it does not install by itself while "
-                                     "someone is logged in."),
+        system_auto_update.IN_USE: _("This update changes the desktop, so it installs by itself at the next start, "
+                                     "before the login screen. This happens only once. Click Update to install it "
+                                     "now."),
+        system_auto_update.NO_NETWORK: _("It did not update by itself at the start: there was no network, or the "
+                                         "CaramOS servers could not be reached. It tries again at the next start."),
+        system_auto_update.TIME_LIMIT: _("Part of this update installed at the start; the rest installs at the next "
+                                         "start. Click Update to finish it now."),
+        system_auto_update.GAVE_UP: _("The last three starts did not finish this update. Click Update to install it."),
         system_auto_update.FAILED_BEFORE: _("The last automatic try did not work. Click Update to try again."),
         system_auto_update.LIVE: _("The computer runs from a USB stick, so it does not update by itself."),
         system_auto_update.OVERLAY: _("The system drive is frozen, so the computer does not update by itself."),

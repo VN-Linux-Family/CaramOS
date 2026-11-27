@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: caramos-ota\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-27 00:27+0700\n"
+"POT-Creation-Date: 2026-11-27 11:00+0700\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -67,7 +67,7 @@ msgid "CaramOS was updated"
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:264
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:309
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:315
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/auto_update.py:193
 msgid "Some changes show after you log in again."
 msgstr ""
@@ -85,7 +85,7 @@ msgid "Click Try again and type it when asked."
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:271
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:320
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:326
 msgid "Another update is running"
 msgstr ""
 
@@ -104,7 +104,7 @@ msgid "Click Ask for help to ask VNLF, with this update's log attached."
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:276
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:337
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:343
 msgid "Open the Update Center again later to try once more."
 msgstr ""
 
@@ -152,143 +152,161 @@ msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:297
 msgid ""
-"This update changes the desktop, so it does not install by itself while "
-"someone is logged in."
-msgstr ""
-
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:299
-msgid "The last automatic try did not work. Click Update to try again."
+"This update changes the desktop, so it installs by itself at the next start, "
+"before the login screen. This happens only once. Click Update to install it "
+"now."
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:300
+msgid ""
+"It did not update by itself at the start: there was no network, or the "
+"CaramOS servers could not be reached. It tries again at the next start."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:302
+msgid ""
+"Part of this update installed at the start; the rest installs at the next "
+"start. Click Update to finish it now."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:304
+msgid ""
+"The last three starts did not finish this update. Click Update to install it."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:305
+msgid "The last automatic try did not work. Click Update to try again."
+msgstr ""
+
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:306
 msgid "The computer runs from a USB stick, so it does not update by itself."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:301
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:307
 msgid "The system drive is frozen, so the computer does not update by itself."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:309
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:315
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/auto_update.py:193
 msgid "Restart to finish."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:310
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:316
 msgid "CaramOS installed this update by itself."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:321
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:327
 msgid ""
 "CaramOS is already checking or updating, in another window or in the "
 "background."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:322
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:328
 msgid "Wait a moment, then click Try again."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:325
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:332
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:331
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:338
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:344
 msgid "Could not check for updates"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:326
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:332
 msgid "The computer could not reach the CaramOS update server."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:327
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:333
 msgid "Check the internet connection, then click Try again."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:328
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:334
 msgid ""
 "On a company network, ask its administrator to allow the CaramOS update "
 "server: its address is under Details."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:333
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:339
 msgid "This account may not check for updates on this computer."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:334
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:340
 msgid "Ask the computer's administrator to open the Update Center."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:336
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:342
 msgid "Click Ask for help to ask VNLF, with the check's log attached."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:338
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:344
 msgid "Checking stopped because of an error."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:343
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:349
 #, python-format
 msgid "You are using the latest version, %s."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:343
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:349
 msgid "You are using the latest version."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:344
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:350
 msgid "The computer checks for new versions every day."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:448
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:472
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:454
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:478
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/common.py:239
 #: usr/share/caramos-ota/lab/caramos_lab/app.py:346
 msgid "Details"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:662
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:664
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:668
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:670
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/auto_update.py:248
 msgid "Update Center"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:686
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:692
 msgid "Security update"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:686
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:692
 msgid "It fixes a security problem. Update soon."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:688
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:800
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:694
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:806
 msgid "What's new"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:694
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:700
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/install.py:173
 msgid "Later"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:695
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:701
 msgid "Update"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:699
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:705
 msgid "You can keep using the computer while it updates."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:722
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:728
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/app.py:387
 msgid "Getting ready…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:730
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:736
 msgid "Do not turn off the computer until it finishes."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:750
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:765
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:774
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:789
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:803
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:756
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:771
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:780
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:795
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:809
 #: usr/lib/python3/dist-packages/caramos_ota_audit/ui.py:97
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:92
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help_window.py:95
@@ -296,8 +314,8 @@ msgstr ""
 msgid "Close"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:752
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:776
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:758
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:782
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/analysis.py:174
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:77
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:81
@@ -308,8 +326,8 @@ msgstr ""
 msgid "Ask for help"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:754
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:778
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:760
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:784
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:590
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:616
 #: usr/share/caramos-ota/driver-check/caramos_driver_check/ui/help.py:687
@@ -318,15 +336,15 @@ msgstr ""
 msgid "Try again"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:763
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:769
 msgid "Checking for updates…"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:764
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:770
 msgid "The Update Center is asking the CaramOS update server for new versions."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:788
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/ui.py:794
 msgid "CaramOS is up to date"
 msgstr ""
 
@@ -393,25 +411,25 @@ msgstr ""
 msgid "Could not update."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:44
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:67
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:45
 #: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:68
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:78
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:149
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:154
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:69
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:79
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:150
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:155
 msgid "Unknown"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:103
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:104
 msgid "Version information"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:104
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:105
 #, python-format
 msgid "The system will record that it runs CaramOS %s."
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:111
+#: usr/lib/python3/dist-packages/caramos_ota_notifier/state.py:112
 msgid "CaramOS update"
 msgstr ""
 
@@ -593,11 +611,11 @@ msgid "The user reproduced the problem, then ran CaramOS Audit"
 msgstr ""
 
 #: usr/lib/python3/dist-packages/caramos_ota/notices_window.py:53
-#: usr/lib/python3/dist-packages/caramos_ota/notices_window.py:109
+#: usr/lib/python3/dist-packages/caramos_ota/notices_window.py:115
 msgid "A notice from CaramOS"
 msgstr ""
 
-#: usr/lib/python3/dist-packages/caramos_ota/notices_window.py:76
+#: usr/lib/python3/dist-packages/caramos_ota/notices_window.py:78
 msgid "Got it"
 msgstr ""
 

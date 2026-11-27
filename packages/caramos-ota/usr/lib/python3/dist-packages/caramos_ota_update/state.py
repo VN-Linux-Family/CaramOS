@@ -63,6 +63,15 @@ def mark_transaction_success(*, transaction_id: str, installed_version: str) -> 
     update_transaction_status(state, transaction_id, "success", now_iso())
 
 
+def mark_transaction_stopped(*, transaction_id: str, message: str) -> None:
+    """Stopped at a time limit between two migrations: those that ran stay done, the others run next time."""
+
+    state = load_state()
+    transaction = _selected_transaction(state, transaction_id)
+    transaction["message"] = message
+    update_transaction_status(state, transaction_id, "stopped", now_iso())
+
+
 def mark_transaction_failed(*, transaction_id: str, migration_id: str, message: str) -> None:
     state = load_state()
     transaction = _selected_transaction(state, transaction_id)

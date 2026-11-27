@@ -87,16 +87,24 @@ class ManualCheckTests(unittest.TestCase):
         manifest = SimpleNamespace(release="1.4.0", source="", channel="stable", severity="normal", size="", size_en="",
                                    title="", summary="", title_en="", summary_en="", release_notes_vi=[],
                                    release_notes_en=[])
-        for pending, listed in (([cinnamon, everywhere], ["Office"]), ([cinnamon], ["PrtSc"])):
-            plan = SimpleNamespace(migrations=pending, target_version="1.4.0")
+        # Only the other edition's changes waiting is no update (Xfce's notifications showed as one on Cinnamon up to
+        # 1.5.2-0caramos7), unless the version is newer: then the version alone is the update.
+        for pending, target, listed in (([cinnamon, everywhere], "1.4.0", ["Office"]), ([cinnamon], "1.4.0", None),
+                                        ([cinnamon], "1.4.1", ["CaramOS release metadata"]),
+                                        ([], "1.4.1", ["CaramOS release metadata"]), ([], "1.4.0", None)):
+            plan = SimpleNamespace(migrations=pending, target_version=target)
             with mock.patch.dict(os.environ, {"CARAMOS_OTA_DESKTOP": "xfce"}), \
                     mock.patch.object(state, "_read_release_info", return_value=release), \
                     mock.patch.object(state, "read_no_update_status", return_value={}), \
                     mock.patch.object(state, "resolve_update_plan", return_value=plan), \
                     mock.patch.object(state, "manifest_for_plan", return_value=manifest):
                 update_info, _status = state.resolve_available_update_now()
-            self.assertEqual(listed, [package["name"] for package in update_info["packages"]])
-            self.assertEqual([item.migration_id for item in pending], update_info["migration_ids"])
+            with self.subTest(pending=[item.migration_id for item in pending], target=target):
+                if listed is None:
+                    self.assertIsNone(update_info)
+                    continue
+                self.assertEqual(listed, [package["name"] for package in update_info["packages"]])
+                self.assertEqual([item.migration_id for item in pending], update_info["migration_ids"])
 
 
 if __name__ == "__main__":

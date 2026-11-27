@@ -80,8 +80,14 @@ Mỗi migration phải nói nó có được chạy lúc đó không, bằng tr�
   nhập sau. Cập nhật từ Trung tâm cập nhật (`context.unattended` là `False`) vẫn làm như trước.
 - `"nobody-logged-in"`: nó đổi cái người dùng đang nhìn (dựng lại panel, đổi hình nền, khởi động lại Fcitx, xóa
   hàng đợi máy in) hoặc chạy `dconf update`, thứ Cinnamon 6.6 không chịu được khi đang chạy. Bản cập nhật tự chạy có
-  migration này sẽ chờ đến lúc không ai mở phiên đồ họa; trong lúc chờ, Trung tâm cập nhật vẫn hiện bản cập nhật ở
-  lần đăng nhập sau như khi tắt Tự động cập nhật.
+  migration này sẽ chờ đến lúc không ai mở phiên đồ họa. Từ CaramOS 1.5.2.1, nó được cài ở lần khởi động sau, trước
+  màn hình đăng nhập (`caramos-ota-boot-update.service`, `auto_update.boot_run`); trong lúc chờ, Trung tâm cập nhật
+  vẫn hiện bản cập nhật.
+
+**Migration mới luôn là `"anytime"`.** Danh sách `nobody-logged-in` đã đóng ở `20261105120000_keep_lotus_settings`
+(CaramOS 1.3.4): việc cập nhật lúc khởi động chỉ diễn ra một lần, với máy từ 1.3.3 trở về trước, và màn hình khởi
+động hứa với người dùng như vậy (owner, 2026-11-27). Migration mới đổi cái người dùng đang nhìn thì để phần đó lại
+cho lần đăng nhập sau như dưới đây.
 
 Một migration đổi thiết lập riêng của từng người (panel, biểu tượng trên màn hình nền) vẫn là `"anytime"` được nếu nó
 để phần nhìn thấy lại cho lần đăng nhập sau của người đang đăng nhập (`caramos_ota_update/deferred.py`):

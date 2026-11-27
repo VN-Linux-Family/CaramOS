@@ -8,9 +8,10 @@ from typing import Any
 
 from caramos_ota.constants import RELEASE_FILE
 from caramos_ota.i18n import _, localized
-from caramos_ota.manifest import manifest_for_plan, resolve_update_plan
+from caramos_ota.manifest import manifest_for_plan, resolve_update_plan, version_only_update
 from caramos_ota.models import ReleaseInfo
 from caramos_ota_update.desktop import applies
+from caramos_ota_update.registry import version_lt
 
 from .constants import STATE_FILE
 
@@ -174,16 +175,13 @@ def resolve_available_update_now() -> tuple[dict[str, Any] | None, dict[str, str
         return None, status
     try:
         plan = resolve_update_plan(release_info, persist_ledger=False)
-        if not plan.migrations:
-            return None, status
         manifest = manifest_for_plan(plan, release_info)
     except Exception:
         return None, status
 
     status["latest_version"] = plan.target_version
-    # Changes for the other edition (Cinnamon's calendar on the Xfce edition) are not listed: the runner only records
-    # them as done. Whether there is an update at all does not change.
-    shown = [item for item in plan.migrations if applies(item.desktops)] or plan.migrations
+    # Only what changes this edition is an update, as for the daily check (caramos_ota.apt.detect_updates): the
+    # runner records the other edition's migrations as done. A newer version with nothing else is one too.
     packages = [
         {
             "name": item.title,
@@ -194,8 +192,13 @@ def resolve_available_update_now() -> tuple[dict[str, Any] | None, dict[str, str
             "name_en": item.title_en,
             "description_en": item.summary_en,
         }
-        for item in shown
+        for item in plan.migrations
+        if applies(item.desktops)
     ]
+    if not packages:
+        if not version_lt(release_info.version, plan.target_version):
+            return None, status
+        packages = [version_only_update(release_info.version, plan.target_version).__dict__]
     update_info = {
         "detected_at": "manual",
         "release": manifest.release,

@@ -579,6 +579,16 @@ class ClassificationTests(unittest.TestCase):
         self.assertEqual(self.WAIT_FOR_NOBODY, waiting)
         self.assertTrue(all(item.unattended == NOBODY_LOGGED_IN for item in catalog.values() if item.legacy))
 
+    def test_no_new_migration_waits_for_nobody_to_be_logged_in(self) -> None:
+        # Closed at 1.3.4: the update at start-up (caramos-ota-boot-update.service) happens once, to computers on 1.3.3
+        # or older, and the start-up screen tells users so (owner, 2026-11-27). A new migration leaves what shows for
+        # the next login instead (caramos_ota_update.deferred, MIGRATIONS.md).
+        last = max(self.WAIT_FOR_NOBODY)
+        later = [item.migration_id for item in discover_migrations()
+                 if not item.legacy and item.migration_id > last and item.unattended == NOBODY_LOGGED_IN]
+        self.assertEqual([], later)
+        self.assertEqual("20261105120000_keep_lotus_settings", last)
+
     def test_a_manifest_without_it_waits_and_a_wrong_value_is_refused(self) -> None:
         tmp = Path(tempfile.mkdtemp())
         self.addCleanup(lambda: subprocess.run(["rm", "-r", str(tmp)], check=False))

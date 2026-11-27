@@ -30,6 +30,7 @@ etc/apt/sources.list.d/caramos-ppa.sources etc/apt/sources.list.d/
 lib/systemd/system/caramos-ota-check.service lib/systemd/system/
 lib/systemd/system/caramos-ota-check.timer lib/systemd/system/
 lib/systemd/system/caramos-ota-auto-update.service lib/systemd/system/
+lib/systemd/system/caramos-ota-boot-update.service lib/systemd/system/
 usr/lib/systemd/user/caramos-ota-auto-update-notify.path usr/lib/systemd/user/
 usr/lib/systemd/user/caramos-ota-auto-update-notify.service usr/lib/systemd/user/
 usr/lib/systemd/user/caramos-ota-notices.service usr/lib/systemd/user/

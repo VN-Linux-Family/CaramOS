@@ -123,3 +123,13 @@ yarn build
 | `public/assets/` | ảnh mới phải có **tên mới**, ví dụ `og-caramos-1.5.2.jpg`: `_headers` cache `/assets/*` một năm (`immutable`), ghi đè tên cũ thì trình duyệt vẫn hiện ảnh cũ | không đổi |
 
 Chỉ cập nhật nội dung release/user-facing. Không dùng landing page để mô tả migration internals.
+
+## Link tải trên trang GitHub Release
+
+Link tải ISO trên trang GitHub Release đi qua link đếm lượt tải của landing, giống link trong README (owner, 2026-11-27):
+
+- tải nhanh (R2): `https://caramos.vietnamlinuxfamily.net/tai/<cinnamon|xfce>?from=github-release`;
+- dự phòng (SourceForge): `https://caramos.vietnamlinuxfamily.net/tai/<cinnamon|xfce>?mirror=sourceforge&from=github-release`;
+- thư mục SourceForge của đúng bản đó, để ai cần đúng số phiên bản.
+
+`.github/workflows/build.yml` ghi các link này khi tag `v*` tạo trang Release. `/tai` luôn đưa tới bản mà landing đang ghi trong `server/release.js`, nên sau một bản phát hành mới, link trên trang Release cũ đưa tới bản mới; bản cũ thì lấy trong thư mục SourceForge. Bản sửa nóng không có trang Release (tag `ota-x.y.z.n`). Sửa trang Release đã có bằng `gh release edit <tag> --notes-file <file>`.

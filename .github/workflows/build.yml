@@ -157,41 +157,35 @@ jobs:
             -b upload-release.sftp \
             "${SOURCEFORGE_USERNAME}@frs.sourceforge.net"
 
-          DOWNLOAD_URL="https://sourceforge.net/projects/${SOURCEFORGE_PROJECT}/files/${GITHUB_REF_NAME}/${ISO_BASENAME}/download"
-          CHECKSUM_URL="https://sourceforge.net/projects/${SOURCEFORGE_PROJECT}/files/${GITHUB_REF_NAME}/${CHECKSUMS}/download"
-          python3 - <<PY
-          from pathlib import Path
+          # The release page's download links go through the landing page's /tai/<edition> (server/downloads.js in
+          # caramos-landing), as the README's do: every click is counted (from=github-release), R2 first, SourceForge as
+          # the backup. /tai serves the release the landing page names, so the exact version stays in the SourceForge
+          # folder. The heredoc is quoted: the shell ran the backticks of the old unquoted one, which dropped the
+          # verify command from the page.
+          export ISO_BASENAME SOURCEFORGE_PROJECT CHECKSUMS MINT_EDITION
+          python3 - <<'PY'
+          import os
           import textwrap
+          from pathlib import Path
 
-          github_ref_name = "${GITHUB_REF_NAME}"
-          iso_basename = "${ISO_BASENAME}"
-          download_url = "${DOWNLOAD_URL}"
-          checksum_url = "${CHECKSUM_URL}"
-          sourceforge_project = "${SOURCEFORGE_PROJECT}"
-          edition = "${MINT_EDITION}".capitalize()
-          checksums = "${CHECKSUMS}"
+          tag = os.environ["GITHUB_REF_NAME"]
+          version = tag.removeprefix("v")
+          iso = os.environ["ISO_BASENAME"]
+          project = os.environ["SOURCEFORGE_PROJECT"]
+          checksums = os.environ["CHECKSUMS"]
+          edition = os.environ["MINT_EDITION"].lower()
+          name = {"cinnamon": "Cinnamon, cho phần lớn máy", "xfce": "Xfce, cho máy 2 GB và phòng máy ở trường"}.get(edition, edition)
+          site = f"https://caramos.vietnamlinuxfamily.net/tai/{edition}"
+          folder = f"https://sourceforge.net/projects/{project}/files/{tag}/"
 
           release_body = f"""
-          ## Download CaramOS {github_ref_name} {edition}
+          ## Tải CaramOS {version} bản {name}
 
-          > GitHub Release cannot host the ISO directly because release assets have a
-          > per-file size limit. The ISO is hosted as one complete file on SourceForge.
+          - **Tải nhanh, từ máy chủ Cloudflare R2 (nên dùng ở Việt Nam):** [{iso}]({site}?from=github-release)
+          - **Dự phòng, từ SourceForge:** [{iso}]({site}?mirror=sourceforge&from=github-release) · [thư mục {tag}]({folder})
+          - **Kiểm tra file tải về:** lấy `{checksums}` ở mục Assets, đặt cạnh file ISO rồi chạy `sha256sum -c {checksums}`.
 
-          <p align="center">
-            <a href="{download_url}">
-              <img src="https://img.shields.io/badge/Download-CaramOS%20ISO-ff6b00?style=for-the-badge&logo=linux&logoColor=white" alt="Download CaramOS ISO">
-            </a>
-          </p>
-
-          - **ISO:** [{iso_basename}]({download_url})
-          - **{checksums}:** [{checksums}]({checksum_url})
-          - **SourceForge folder:** https://sourceforge.net/projects/{sourceforge_project}/files/{github_ref_name}/
-
-          ### Verify the ISO
-
-          ```bash
-          sha256sum -c {checksums}
-          ```
+          Fast download (Cloudflare R2): [{iso}]({site}?from=github-release) · Mirror (SourceForge): [{iso}]({site}?mirror=sourceforge&from=github-release)
           """
 
           Path("RELEASE_DOWNLOADS.md").write_text(textwrap.dedent(release_body).strip() + "\n", encoding="utf-8")

@@ -100,6 +100,7 @@ CaramOS là bản phân phối Linux dựa trên Linux Mint 22 (Ubuntu 24.04 LTS
 
 - Chỉnh sửa `scripts/config.sh` để thay đổi: MINT_VERSION, CARAMOS_VERSION, MIRROR, OUTPUT_ISO
 - Nén mặc định: lz4 (dev nhanh), xz cho release
+- Bản sửa nóng tới máy người dùng có số CaramOS mới dạng `x.y.z.n`, ví dụ `make release VERSION=1.5.2.1`, và không dựng ISO. Không chỉ tăng đuôi `-0caramosN`: đuôi này chỉ dành cho lần dựng lại gói mà trên máy không đổi gì. Chi tiết trong [docs/release-version-tracking.md](docs/release-version-tracking.md).
 
 ### Output
 

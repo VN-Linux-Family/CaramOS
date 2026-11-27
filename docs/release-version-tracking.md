@@ -54,6 +54,35 @@ make release VERSION=x.y.z
 
 `VERSION=x.y.z` dùng cho package/release artifact. Nó không biến timestamp migration thành version migration.
 
+## Số phiên bản: bản phát hành và bản sửa nóng
+
+Owner chốt ngày 2026-11-27: **mọi thay đổi tới máy người dùng đều có số phiên bản CaramOS riêng**. Nhờ vậy người dùng, Trung tâm cập nhật và số đếm máy hằng ngày (`/api/active`) đều biết máy đang ở bản nào.
+
+| Loại | Số CaramOS | Gói caramos-ota | Cách làm | ISO |
+|---|---|---|---|---|
+| Bản phát hành | `x.y.z`, ví dụ `1.5.2` | `1.5.2-0caramos1` | `make release VERSION=1.5.2` | dựng ISO, tag `v1.5.2` |
+| Bản sửa nóng | `x.y.z.n`, ví dụ `1.5.2.1`, `1.5.2.2` | `1.5.2.1-0caramos1` | `make release VERSION=1.5.2.1` | không dựng ISO, tag `ota-1.5.2.1` |
+| Sửa lỗi dựng gói, trên máy không đổi gì | giữ nguyên | tăng đuôi, ví dụ `1.5.2.1-0caramos2` | thêm mục changelog bằng tay, rồi `make source` và `make upload` | không |
+
+Quy tắc:
+
+- **Không dùng đuôi `-0caramosN` (N từ 2 trở lên) cho thay đổi tới máy người dùng.** Đuôi này chỉ dành cho lần dựng lại gói khi Launchpad dựng hỏng mà nội dung trên máy không đổi.
+  - Lý do: bản 1.5.2 đã lên PPA bảy lần (`1.5.2-0caramos1` tới `0caramos7`). Máy nào cũng ghi 1.5.2, và không ai biết máy đã nhận những bản sửa nào.
+  - Từ 1.0.x tới 1.4.0, mỗi lần sửa đều có số mới, ví dụ 1.3.5 lên 1.3.6, 1.3.10 lên 1.3.11.
+- **`make release VERSION=1.5.2.1`** làm hai việc qua `tools/prepare-release.py`, công cụ nhận số có 2 tới 4 phần:
+  - ghi `PRODUCT_VERSION` trong `caramos_ota/release_metadata.py`;
+  - ghi mục changelog `1.5.2.1-0caramos1`.
+- **Phía máy người dùng:**
+  - Máy cập nhật xong thì `/etc/caramos-release` ghi `VERSION=1.5.2.1`, và thông báo hiện "CaramOS đã cập nhật lên 1.5.2.1".
+  - dpkg xếp `1.5.2.1-0caramos1` sau mọi bản `1.5.2-0caramosN`.
+- **Tag của bản sửa nóng là `ota-x.y.z.n`, không bắt đầu bằng `v`.** Tag `v*` chạy `.github/workflows/build.yml` và dựng ISO mới. Bản sửa nóng tới máy qua OTA; ISO được dựng lại ở bản phát hành tiếp theo.
+- **Mỗi bản sửa nóng có một mục trong `releaseNotes` của landing** (bảng ở mục Landing page bên dưới), để người dùng và owner tra được nó sửa gì.
+- **Quy trình như bản phát hành:**
+  - chạy đủ test;
+  - thử trên máy ảo cài từ bản mới nhất;
+  - dựng gói từ một clone sạch của commit phát hành, vì cây làm việc có thể còn file chưa commit;
+  - đưa lên PPA, rồi thử lại bằng bản thật từ PPA.
+
 ## Tài liệu chính cần kiểm tra khi release
 
 | File | Cần kiểm tra |
@@ -86,11 +115,11 @@ yarn install
 yarn build
 ```
 
-| File/vị trí | Cần đổi |
-|---|---|
-| `src/main.jsx` | `const VERSION`, release note của bản mới, nội dung tính năng |
-| `index.html` | `<title>`, description, `og:*`/`twitter:*`, `softwareVersion`, `datePublished`, `downloadUrl` trong JSON-LD |
-| `public/sitemap.xml` | `lastmod` |
-| `public/assets/` | ảnh mới phải có **tên mới**: `_headers` cache `/assets/*` một năm (`immutable`), ghi đè tên cũ thì trình duyệt vẫn hiện ảnh cũ |
+| File/vị trí | Bản phát hành (có ISO) | Bản sửa nóng |
+|---|---|---|
+| `server/release.js` | `VERSION` mới. Link ISO trên GitHub Release và R2 dùng số này | **không đổi**: bản sửa nóng không có ISO, đổi số này là gãy link tải |
+| `src/content.js` | mục mới trong `releaseNotes`, cả tiếng Việt và tiếng Anh; `whatsNew` khi có tính năng lớn | mục mới trong `releaseNotes`, cả tiếng Việt và tiếng Anh, ví dụ `['1.5.2.1', 'tiêu đề', ['điểm 1', ...]]` |
+| `scripts/prerender.mjs` | `ogImage` trỏ tới ảnh xem trước link của bản mới | không đổi |
+| `public/assets/` | ảnh mới phải có **tên mới**, ví dụ `og-caramos-1.5.2.jpg`: `_headers` cache `/assets/*` một năm (`immutable`), ghi đè tên cũ thì trình duyệt vẫn hiện ảnh cũ | không đổi |
 
 Chỉ cập nhật nội dung release/user-facing. Không dùng landing page để mô tả migration internals.

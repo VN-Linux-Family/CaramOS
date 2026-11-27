@@ -34,6 +34,14 @@ case "$1" in
                 && [ "$(md5sum < "$stale" 2>/dev/null | cut -d ' ' -f 1)" = 656282d52d81c53509c4b22f05ebdd66 ]; then
             rm -f "$stale" || true
         fi
+
+        # The CaramOS Control Center of running Xfce sessions starts again when this upgrade changed it: a part it
+        # loads later would come out of the new files in the old style (ticket H-1216). preinst kept the old
+        # checksums; caramos_ota/control_center_restart.py says more.
+        if [ -n "$2" ] && [ "${DPKG_ROOT:-/}" = / ]; then
+            python3 -I -m caramos_ota.control_center_restart --old-version "$2" || true
+        fi
+        rm -f "$DPKG_ROOT/run/caramos-ota/control-center-before.md5sums" || true
         ;;
     triggered)
         # A Cinnamon update put back its own panel files: make the CaramOS changes again. A failure is

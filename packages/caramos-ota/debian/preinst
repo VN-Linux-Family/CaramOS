@@ -26,6 +26,17 @@ case "$1" in
         ;;
 esac
 
+# The CaramOS Control Center of Xfce runs for the whole session, and postinst starts it again when this upgrade changes
+# its files (caramos_ota/control_center_restart.py): it needs the checksums of the version being replaced, which dpkg
+# overwrites with the new ones while unpacking. Nothing here may fail the upgrade.
+case "$1" in
+    upgrade)
+        before="$DPKG_ROOT/run/caramos-ota/control-center-before.md5sums"
+        rm -f "$before" || true
+        mkdir -p "${before%/*}" && cp -f "$DPKG_ROOT/var/lib/dpkg/info/caramos-ota.md5sums" "$before" || true
+        ;;
+esac
+
 #DEBHELPER#
 
 exit 0

@@ -1,3 +1,21 @@
+caramos-ota (1.5.2.2-0caramos1) noble; urgency=medium
+
+  * CaramOS 1.5.2.2: the CaramOS Control Center of Xfce starts again after
+    an update that changed it (owner, 2026-11-27). It runs for the whole
+    session and reads its style and translations when it starts, but loads
+    the sound level of the sound keys (osd.py) only at the first press. A
+    computer that updated while someone worked showed the new slim sound
+    level of 1.5.2-0caramos6 (ticket H-1216) in the tall box of the old one
+    until the next login, as its user reported. preinst now keeps the
+    checksums of the version being replaced, and postinst
+    (caramos_ota.control_center_restart) sends SIGTERM to the running
+    Control Centers when a file of theirs changed, or when the version
+    replaced is older than 1.5.2.2; the CaramOS panel plugin starts the
+    installed one three seconds later. Not in a chroot, not on a first
+    install, and never at the cost of the update.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Fri, 27 Nov 2026 14:38:56 +0700
+
 caramos-ota (1.5.2.1-0caramos1) noble; urgency=medium
 
   * CaramOS 1.5.2.1, the first hotfix numbered as a version of its own

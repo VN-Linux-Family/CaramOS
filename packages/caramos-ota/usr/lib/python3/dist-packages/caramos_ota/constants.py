@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-TOOL_VERSION = "1.5.2.1-0caramos1"
+TOOL_VERSION = "1.5.2.2-0caramos1"
 TOOL_NAME = "caramos-ota"
 
 STATE_DIR = Path("/var/lib/caramos-ota")

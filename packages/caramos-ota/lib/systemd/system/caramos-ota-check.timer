@@ -1,10 +1,16 @@
 [Unit]
 Description=CaramOS OTA daily check
 
+# Every day, and about 15 minutes after each start (CaramOS 1.5.2.3): a computer that is never on at midnight, as in
+# an office or a school, checks on the day it is used, and a computer installed from an older ISO gets the fixes
+# released since in its first session (the daily timer alone waited for a midnight, or for the next start). Not at
+# once: the network and the desktop come up first, and the random delay spreads the computers of a lab that start
+# together. The check after a start stands for a missed midnight, so there is no catch-up at start (Persistent=)
+# that would check twice. The upgrade that a check installs leaves this timer running (debian/rules).
 [Timer]
+OnBootSec=10min
 OnCalendar=daily
-RandomizedDelaySec=1h
-Persistent=true
+RandomizedDelaySec=10min
 
 [Install]
 WantedBy=timers.target

@@ -1,3 +1,21 @@
+caramos-ota (1.5.2.3-0caramos1) noble; urgency=medium
+
+  * CaramOS 1.5.2.3: the daily check also runs 10 to 20 minutes after each
+    start (owner, 2026-11-27). caramos-ota-check.timer: OnBootSec=10min,
+    OnCalendar=daily, RandomizedDelaySec=10min (was 1h), no Persistent=.
+    A computer that is never on at midnight, as in offices and schools,
+    waited for its next start plus up to an hour; one just installed from an
+    older ISO waited for a midnight or its second start, and ran without the
+    fixes released since the ISO for its whole first session. The check after
+    a start stands for a missed midnight, so a catch-up at start would only
+    check twice. The upgrade does not restart the timer (debian/rules): the
+    new schedule counts from the next start. ISOs built from now on have it,
+    so computers installed from them get the fixes in their first session.
+  * The notes of 1.5.2.2 stay in release_metadata: most computers go from
+    1.5.2.1 or older straight to 1.5.2.3.
+
+ -- Vietnam Linux Family <developer@vietnamlinuxfamily.net>  Fri, 27 Nov 2026 15:56:35 +0700
+
 caramos-ota (1.5.2.2-0caramos1) noble; urgency=medium
 
   * CaramOS 1.5.2.2: the CaramOS Control Center of Xfce starts again after

@@ -709,6 +709,17 @@ class PackagingTests(unittest.TestCase):
         self.assertIn("systemctl --no-block start caramos-ota-check.timer", postinst)
         self.assertNotRegex(postinst, r"systemctl (re)?start caramos-ota-check")
 
+    def test_the_check_runs_every_day_and_soon_after_each_start(self) -> None:
+        # CaramOS 1.5.2.3: a computer that is never on at midnight, or one just installed from an older ISO, checks
+        # 10 to 20 minutes after it starts instead of waiting for a midnight or for the next start.
+        timer = unit(ROOT / "lib/systemd/system/caramos-ota-check.timer")
+        self.assertEqual(["daily"], timer["OnCalendar"])
+        self.assertEqual(["10min"], timer["OnBootSec"])
+        self.assertEqual(["10min"], timer["RandomizedDelaySec"])
+        # The check after a start stands for a missed midnight: a catch-up as well would check twice.
+        self.assertNotIn("Persistent", timer)
+        self.assertEqual(["timers.target"], timer["WantedBy"])
+
     def test_the_automatic_update_unit(self) -> None:
         service = unit(ROOT / "lib/systemd/system/caramos-ota-auto-update.service")
         self.assertEqual(["/usr/bin/caramos-ota --auto-upgrade"], service["ExecStart"])

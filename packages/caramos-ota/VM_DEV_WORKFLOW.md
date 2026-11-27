@@ -431,8 +431,8 @@ virsh -c qemu:///system undefine caram1.0.16 --snapshots-metadata --remove-all-s
 
 - Snapshot nằm trong file qcow2 của VM trên máy bạn, không chia sẻ được qua git. Mỗi dev tự setup
   theo mục 3 (khoảng 15 phút nếu cài vào đĩa).
-- Sau khi revert, đồng hồ VM nhảy tới giờ hiện tại nên `caramos-ota-check.timer` (daily, `Persistent=true`)
-  đến hạn ngay. Lần cài `.deb` tiếp theo, postinst khởi động lại timer, timer chạy `caramos-ota --check`,
+- Sau khi revert, đồng hồ VM nhảy tới giờ hiện tại nên `caramos-ota-check.timer` (hằng ngày, và 10 tới 20
+  phút sau mỗi lần khởi động) đến hạn ngay. Lần cài `.deb` tiếp theo, postinst khởi động lại timer, timer chạy `caramos-ota --check`,
   và bước check tự cập nhật `caramos-ota` từ PPA đè lên bản đang test, đồng thời giữ lock OTA làm
   `make test` báo `Another CaramOS OTA operation is already running`. Vì vậy `make vm-reset` mask
   `caramos-ota-check.service` trong `/run` (mất sau lần revert/reboot sau) và dừng timer. Lệnh CLI

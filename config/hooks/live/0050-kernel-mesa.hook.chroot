@@ -1,0 +1,82 @@
+#!/bin/bash
+set -e
+
+echo "==> Thiết lập Liquorix Kernel & Kisak-Mesa PPA..."
+
+export DEBIAN_FRONTEND=noninteractive
+
+# Đảm bảo có command add-apt-repository
+apt-get install -y software-properties-common
+
+# Tạm thời giả lập OS là Ubuntu Noble để add-apt-repository hoạt động
+cp /etc/os-release /tmp/os-release.bak
+cp /etc/lsb-release /tmp/lsb-release.bak
+[ -f /etc/upstream-release/lsb-release ] && cp /etc/upstream-release/lsb-release /tmp/upstream-lsb-release.bak && rm -f /etc/upstream-release/lsb-release
+
+cat > /etc/os-release <<EOF
+NAME="Linux Mint"
+VERSION="22.3 (Zena)"
+ID=linuxmint
+ID_LIKE="ubuntu debian"
+PRETTY_NAME="Linux Mint 22.3"
+VERSION_ID="22.3"
+HOME_URL="https://www.linuxmint.com/"
+SUPPORT_URL="https://forums.linuxmint.com/"
+BUG_REPORT_URL="http://linuxmint-troubleshooting-guide.readthedocs.io/en/latest/"
+PRIVACY_POLICY_URL="https://www.linuxmint.com/"
+VERSION_CODENAME=zena
+UBUNTU_CODENAME=noble
+EOF
+
+cat > /etc/lsb-release <<EOF
+DISTRIB_ID=LinuxMint
+DISTRIB_RELEASE=22.3
+DISTRIB_CODENAME=zena
+DISTRIB_DESCRIPTION="Linux Mint 22.3 Zena"
+EOF
+
+mkdir -p /etc/upstream-release
+cat > /etc/upstream-release/lsb-release <<EOF
+DISTRIB_ID=Ubuntu
+DISTRIB_RELEASE=24.04
+DISTRIB_CODENAME=noble
+DISTRIB_DESCRIPTION="Ubuntu 24.04 LTS"
+EOF
+
+# Thêm PPA
+echo "  -> Thêm ppa:damentz/liquorix"
+add-apt-repository -y ppa:damentz/liquorix
+
+echo "  -> Thêm ppa:kisak/kisak-mesa"
+add-apt-repository -y ppa:kisak/kisak-mesa
+
+echo "  -> Thêm ppa:kobuk-team/intel-graphics"
+add-apt-repository -y ppa:kobuk-team/intel-graphics
+
+# Khôi phục lại OS release gốc
+mv /tmp/os-release.bak /etc/os-release
+mv /tmp/lsb-release.bak /etc/lsb-release
+[ -f /tmp/upstream-lsb-release.bak ] && mv /tmp/upstream-lsb-release.bak /etc/upstream-release/lsb-release
+
+apt-get update
+
+echo "==> Cài đặt Liquorix Kernel..."
+apt-get install -y linux-image-liquorix-amd64 linux-headers-liquorix-amd64
+
+echo "==> Cài đặt Intel Media Driver Non-Free..."
+apt-get install -y intel-media-va-driver-non-free
+
+echo "==> Gỡ bỏ kernel mặc định (Ubuntu/Mint generic)..."
+# Gỡ bỏ meta-packages và các package phiên bản cụ thể
+apt-get remove -y --purge "^linux-image-.*generic" "^linux-headers-.*generic" "^linux-modules-.*generic" || true
+apt-get autoremove -y --purge
+
+echo "==> Nâng cấp hệ thống (Kéo bản cập nhật Kisak-Mesa và Intel Graphics)..."
+# Xử lý cảnh báo nâng cấp Kisak-Mesa (Mesa 26.0+)
+# Upstream mesa packaging đã gộp mesa-va-drivers vào mesa-libgallium và xoá mesa-va-drivers.
+apt-get install -y libgl1-mesa-dri || true
+apt-get install -y libgl1-mesa-dri:i386 || true
+apt-get upgrade -y
+
+echo "==> Dọn dẹp cache apt..."
+apt-get clean
